@@ -16,6 +16,7 @@ from codegen.cli.commands.profile.main import profile_command
 from codegen.cli.commands.reset.main import reset_command
 from codegen.cli.commands.run.main import run_command
 from codegen.cli.commands.run_on_pr.main import run_on_pr_command
+from codegen.cli.commands.start.main import start_command
 from codegen.cli.commands.style_debug.main import style_debug_command
 from codegen.cli.commands.update.main import update_command
 
@@ -47,6 +48,8 @@ main.add_command(reset_command)
 main.add_command(update_command)
 main.add_command(config_command)
 main.add_command(lsp_command)
+main.add_command(start_command)
+
 
 if __name__ == "__main__":
     main()
