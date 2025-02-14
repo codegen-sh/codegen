@@ -8,6 +8,12 @@ from .github.create_pr import create_pr
 from .github.create_pr_comment import create_pr_comment
 from .github.create_pr_review_comment import create_pr_review_comment
 from .github.view_pr import view_pr
+from .linear_tools import (
+    linear_comment_on_issue_tool,
+    linear_get_issue_comments_tool,
+    linear_get_issue_tool,
+    linear_register_webhook_tool,
+)
 from .list_directory import list_directory
 from .move_symbol import move_symbol
 from .rename_file import rename_file
@@ -27,6 +33,11 @@ __all__ = [
     "create_pr_review_comment",
     "delete_file",
     "edit_file",
+    # Linear operations
+    "linear_comment_on_issue_tool",
+    "linear_get_issue_comments_tool",
+    "linear_get_issue_tool",
+    "linear_register_webhook_tool",
     "list_directory",
     # Symbol operations
     "move_symbol",

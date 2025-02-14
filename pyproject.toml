@@ -70,6 +70,7 @@ dependencies = [
   "numpy>=2.2.2",
   "mcp[cli]",
   "neo4j",
+  "modal>=0.73.45",
 ]
 
 license = { text = "Apache-2.0" }

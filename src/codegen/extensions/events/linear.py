@@ -3,7 +3,7 @@ import logging
 import os
 from typing import Callable
 
-import modal
+import modal  # deptry: ignore
 from anthropic import BaseModel
 
 from codegen.extensions.clients.linear import LinearClient

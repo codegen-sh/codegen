@@ -1,6 +1,6 @@
 import logging
 
-import modal
+import modal  # deptry: ignore
 
 from codegen.extensions.events.linear import Linear
 

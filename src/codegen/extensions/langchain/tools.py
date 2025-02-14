@@ -7,6 +7,12 @@ from langchain.tools import BaseTool
 from pydantic import BaseModel, Field
 
 from codegen import Codebase
+from codegen.extensions.linear.linear_client import LinearClient
+from codegen.extensions.tools.linear_tools import (
+    linear_comment_on_issue_tool,
+    linear_get_issue_comments_tool,
+    linear_get_issue_tool,
+)
 
 from ..tools import (
     commit,
@@ -184,7 +190,10 @@ class RevealSymbolInput(BaseModel):
 
     symbol_name: str = Field(..., description="Name of the symbol to analyze")
     degree: int = Field(default=1, description="How many degrees of separation to traverse")
-    max_tokens: Optional[int] = Field(default=None, description="Optional maximum number of tokens for all source code combined")
+    max_tokens: Optional[int] = Field(
+        default=None,
+        description="Optional maximum number of tokens for all source code combined",
+    )
     collect_dependencies: bool = Field(default=True, description="Whether to collect dependencies")
     collect_usages: bool = Field(default=True, description="Whether to collect usages")
 
@@ -281,7 +290,10 @@ class MoveSymbolInput(BaseModel):
     source_file: str = Field(..., description="Path to the file containing the symbol")
     symbol_name: str = Field(..., description="Name of the symbol to move")
     target_file: str = Field(..., description="Path to the destination file")
-    strategy: Literal["update_all_imports", "add_back_edge"] = Field(default="update_all_imports", description="Strategy for handling imports: 'update_all_imports' (default) or 'add_back_edge'")
+    strategy: Literal["update_all_imports", "add_back_edge"] = Field(
+        default="update_all_imports",
+        description="Strategy for handling imports: 'update_all_imports' (default) or 'add_back_edge'",
+    )
     include_dependencies: bool = Field(default=True, description="Whether to move dependencies along with the symbol")
 
 
@@ -453,6 +465,73 @@ class CreatePRReviewCommentTool(BaseTool):
         return json.dumps(result, indent=2)
 
 
+class LinearGetIssueInput(BaseModel):
+    """Input for getting a Linear issue."""
+
+    issue_id: str = Field(..., description="ID of the Linear issue to retrieve")
+
+
+class LinearGetIssueTool(BaseTool):
+    """Tool for getting Linear issue details."""
+
+    name: ClassVar[str] = "linear_get_issue"
+    description: ClassVar[str] = "Get details of a Linear issue by its ID"
+    args_schema: ClassVar[type[BaseModel]] = LinearGetIssueInput
+    client: LinearClient = Field(exclude=True)
+
+    def __init__(self, client: LinearClient) -> None:
+        super().__init__(client=client)
+
+    def _run(self, issue_id: str) -> str:
+        result = linear_get_issue_tool(self.client, issue_id)
+        return json.dumps(result, indent=2)
+
+
+class LinearGetIssueCommentsInput(BaseModel):
+    """Input for getting Linear issue comments."""
+
+    issue_id: str = Field(..., description="ID of the Linear issue to get comments for")
+
+
+class LinearGetIssueCommentsTool(BaseTool):
+    """Tool for getting Linear issue comments."""
+
+    name: ClassVar[str] = "linear_get_issue_comments"
+    description: ClassVar[str] = "Get all comments on a Linear issue"
+    args_schema: ClassVar[type[BaseModel]] = LinearGetIssueCommentsInput
+    client: LinearClient = Field(exclude=True)
+
+    def __init__(self, client: LinearClient) -> None:
+        super().__init__(client=client)
+
+    def _run(self, issue_id: str) -> str:
+        result = linear_get_issue_comments_tool(self.client, issue_id)
+        return json.dumps(result, indent=2)
+
+
+class LinearCommentOnIssueInput(BaseModel):
+    """Input for commenting on a Linear issue."""
+
+    issue_id: str = Field(..., description="ID of the Linear issue to comment on")
+    body: str = Field(..., description="The comment text")
+
+
+class LinearCommentOnIssueTool(BaseTool):
+    """Tool for commenting on Linear issues."""
+
+    name: ClassVar[str] = "linear_comment_on_issue"
+    description: ClassVar[str] = "Add a comment to a Linear issue"
+    args_schema: ClassVar[type[BaseModel]] = LinearCommentOnIssueInput
+    client: LinearClient = Field(exclude=True)
+
+    def __init__(self, client: LinearClient) -> None:
+        super().__init__(client=client)
+
+    def _run(self, issue_id: str, body: str) -> str:
+        result = linear_comment_on_issue_tool(self.client, issue_id, body)
+        return json.dumps(result, indent=2)
+
+
 def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
     """Get all workspace tools initialized with a codebase.
 
@@ -479,4 +558,7 @@ def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
         SemanticEditTool(codebase),
         SemanticSearchTool(codebase),
         ViewFileTool(codebase),
+        LinearGetIssueTool(codebase),
+        LinearGetIssueCommentsTool(codebase),
+        LinearCommentOnIssueTool(codebase),
     ]
