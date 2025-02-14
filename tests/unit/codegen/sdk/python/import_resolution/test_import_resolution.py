@@ -341,3 +341,30 @@ module.some_func()
         # Verify usages are detected
         assert len(some_func.usages) > 0
         assert len(some_func.symbol_usages) > 0
+
+
+def test_import_wildcard_preserves_import_resolution(tmpdir: str) -> None:
+    """Tests importing from a file that contains a wildcard import doesn't break further resolution.
+    This could occur depending on to_resolve ordering, if the outer file is processed first _wildcards will not be filled in time.
+    """
+    # language=python
+    with get_codebase_session(
+        tmpdir,
+        files={
+            "testdir/sub/file.py": """
+                test_const=5
+                b=2
+            """,
+            "testdir/file.py": """
+            from testdir.sub.file import *
+            c=b
+            """,
+            "file.py": """
+            from testdir.file import test_const
+            test = test_const
+            """,
+        },
+    ) as codebase:
+        mainfile: SourceFile = codebase.get_file("file.py")
+
+        assert len(mainfile.ctx.edges) == 5
