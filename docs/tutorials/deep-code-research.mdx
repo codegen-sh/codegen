@@ -1,0 +1,212 @@
+---
+title: "Deep Code Research with AI"
+sidebarTitle: "Code Research Agent"
+icon: "magnifying-glass"
+iconType: "solid"
+---
+
+This guide demonstrates how to build an intelligent code research tool that can analyze and explain codebases using Codegen's and LangChain. The tool combines semantic code search, dependency analysis, and natural language understanding to help developers quickly understand new codebases.
+
+<Info>View the full code on [GitHub](https://github.com/codegen-sh/codegen-sdk/tree/develop/codegen-examples/examples/deep_code_research)</Info>
+
+<Tip>This example works with any public GitHub repository - just provide the repo name in the format owner/repo</Tip>
+
+## Overview
+
+The process involves three main components:
+
+1. A CLI interface for interacting with the research agent
+2. A set of code analysis tools powered by Codegen
+3. An LLM-powered agent that combines the tools to answer questions
+
+Let's walk through building each component.
+
+## Step 1: Setting Up the Research Tools
+
+First, let's import the necessary components and set up our research tools:
+
+```python
+from codegen import Codebase
+from codegen.extensions.langchain.agent import create_agent_with_tools
+from codegen.extensions.langchain.tools import (
+    ListDirectoryTool,
+    RevealSymbolTool,
+    SearchTool,
+    SemanticSearchTool,
+    ViewFileTool,
+)
+from langchain_core.messages import SystemMessage
+```
+
+We'll create a function to initialize our codebase with a nice progress indicator:
+
+```python
+def initialize_codebase(repo_name: str) -> Optional[Codebase]:
+    """Initialize a codebase with a spinner showing progress."""
+    with console.status("") as status:
+        try:
+            status.update(f"[bold blue]Cloning {repo_name}...[/bold blue]")
+            codebase = Codebase.from_repo(repo_name)
+            status.update("[bold green]✓ Repository cloned successfully![/bold green]")
+            return codebase
+        except Exception as e:
+            console.print(f"[bold red]Error initializing codebase:[/bold red] {e}")
+            return None
+```
+
+Then we'll set up our research tools:
+
+```python
+# Create research tools
+tools = [
+    ViewFileTool(codebase),      # View file contents
+    ListDirectoryTool(codebase),  # Explore directory structure
+    SearchTool(codebase),        # Text-based search
+    SemanticSearchTool(codebase), # Natural language search
+    RevealSymbolTool(codebase),  # Analyze symbol relationships
+]
+```
+
+Each tool provides specific capabilities:
+- `ViewFileTool`: Read and understand file contents
+- `ListDirectoryTool`: Explore the codebase structure
+- `SearchTool`: Find specific code patterns
+- `SemanticSearchTool`: Search using natural language
+- `RevealSymbolTool`: Analyze dependencies and usages
+
+## Step 2: Creating the Research Agent
+
+Next, we'll create an agent that can use these tools intelligently. We'll give it a detailed prompt about its role:
+
+```python
+RESEARCH_AGENT_PROMPT = """You are a code research expert. Your goal is to help users understand codebases by:
+1. Finding relevant code through semantic and text search
+2. Analyzing symbol relationships and dependencies
+3. Exploring directory structures
+4. Reading and explaining code
+
+Always explain your findings in detail and provide context about how different parts of the code relate to each other.
+When analyzing code, consider:
+- The purpose and functionality of each component
+- How different parts interact
+- Key patterns and design decisions
+- Potential areas for improvement
+
+Break down complex concepts into understandable pieces and use examples when helpful."""
+
+# Initialize the agent
+agent = create_agent_with_tools(
+    codebase=codebase,
+    tools=tools,
+    chat_history=[SystemMessage(content=RESEARCH_AGENT_PROMPT)],
+    verbose=True
+)
+```
+
+## Step 3: Building the CLI Interface
+
+Finally, we'll create a user-friendly CLI interface using rich-click:
+
+```python
+import rich_click as click
+from rich.console import Console
+from rich.markdown import Markdown
+
+@click.group()
+def cli():
+    """🔍 Codegen Code Research CLI"""
+    pass
+
+@cli.command()
+@click.argument("repo_name", required=False)
+@click.option("--query", "-q", default=None, help="Initial research query.")
+def research(repo_name: Optional[str] = None, query: Optional[str] = None):
+    """Start a code research session."""
+    # Initialize codebase
+    codebase = initialize_codebase(repo_name)
+    
+    # Create and run the agent
+    agent = create_research_agent(codebase)
+    
+    # Main research loop
+    while True:
+        if not query:
+            query = Prompt.ask("[bold cyan]Research query[/bold cyan]")
+            
+        result = agent.invoke({"input": query})
+        console.print(Markdown(result["output"]))
+        
+        query = None  # Clear for next iteration
+```
+
+## Using the Research Tool
+
+You can use the tool in several ways:
+
+1. Interactive mode (will prompt for repo):
+```bash
+python run.py research
+```
+
+2. Specify a repository:
+```bash
+python run.py research "fastapi/fastapi"
+```
+
+3. Start with an initial query:
+```bash
+python run.py research "fastapi/fastapi" -q "Explain the main components"
+```
+
+Example research queries:
+- "Explain the main components and their relationships"
+- "Find all usages of the FastAPI class"
+- "Show me the dependency graph for the routing module"
+- "What design patterns are used in this codebase?"
+
+<Tip>
+  The agent maintains conversation history, so you can ask follow-up questions
+  and build on previous findings.
+</Tip>
+
+## Advanced Usage
+
+### Custom Research Tools
+
+You can extend the agent with custom tools for specific analysis needs:
+
+```python
+from langchain.tools import BaseTool
+from pydantic import BaseModel, Field
+
+class CustomAnalysisTool(BaseTool):
+    """Custom tool for specialized code analysis."""
+    name = "custom_analysis"
+    description = "Performs specialized code analysis"
+    
+    def _run(self, query: str) -> str:
+        # Custom analysis logic
+        return results
+
+# Add to tools list
+tools.append(CustomAnalysisTool())
+```
+
+### Customizing the Agent
+
+You can modify the agent's behavior by adjusting its prompt:
+
+```python
+CUSTOM_PROMPT = """You are a specialized code reviewer focused on:
+1. Security best practices
+2. Performance optimization
+3. Code maintainability
+...
+"""
+
+agent = create_agent_with_tools(
+    codebase=codebase,
+    tools=tools,
+    chat_history=[SystemMessage(content=CUSTOM_PROMPT)],
+)
+```
