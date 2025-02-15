@@ -1,4 +1,5 @@
 version = 1
+revision = 1
 requires-python = ">=3.12, <3.14"
 resolution-markers = [
     "python_full_version >= '3.12.4'",
@@ -560,6 +561,7 @@ dependencies = [
     { name = "lazy-object-proxy" },
     { name = "mcp", extra = ["cli"] },
     { name = "mini-racer" },
+    { name = "modal" },
     { name = "neo4j" },
     { name = "networkx" },
     { name = "numpy" },
@@ -681,6 +683,7 @@ requires-dist = [
     { name = "lsprotocol", marker = "extra == 'lsp'", specifier = "==2024.0.0b1" },
     { name = "mcp", extras = ["cli"] },
     { name = "mini-racer", specifier = ">=0.12.4" },
+    { name = "modal", specifier = ">=0.73.45" },
     { name = "neo4j" },
     { name = "networkx", specifier = ">=3.4.1" },
     { name = "numpy", specifier = ">=2.2.2" },
@@ -693,7 +696,7 @@ requires-dist = [
     { name = "pydantic-core", specifier = ">=2.23.4" },
     { name = "pydantic-settings", specifier = ">=2.0.0" },
     { name = "pygit2", specifier = ">=1.16.0" },
-    { name = "pygithub", specifier = "==2.5.0" },
+    { name = "pygithub", specifier = "==2.6.0" },
     { name = "pygls", marker = "extra == 'lsp'", specifier = ">=2.0.0a2" },
     { name = "pyinstrument", specifier = ">=5.0.0" },
     { name = "pyjson5", specifier = "==1.6.8" },
@@ -730,6 +733,7 @@ requires-dist = [
     { name = "wrapt", specifier = ">=1.16.0,<2.0.0" },
     { name = "xmltodict", specifier = ">=0.13.0,<1.0.0" },
 ]
+provides-extras = ["lsp", "types"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -2896,7 +2900,7 @@ wheels = [
 
 [[package]]
 name = "pygithub"
-version = "2.5.0"
+version = "2.6.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "deprecated" },
@@ -2906,9 +2910,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/16/ce/aa91d30040d9552c274e7ea8bd10a977600d508d579a4bb262b95eccf961/pygithub-2.5.0.tar.gz", hash = "sha256:e1613ac508a9be710920d26eb18b1905ebd9926aa49398e88151c1b526aad3cf", size = 3552804 }
+sdist = { url = "https://files.pythonhosted.org/packages/60/7a/78a40edc07426052eb909f556deb8ae3158c234df49553bd4690bc6c4ba7/pygithub-2.6.0.tar.gz", hash = "sha256:04784fd6f4acfcaf91df5d3f08ef14153709395a34e706850f92337d9914548f", size = 3658095 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/37/05/bfbdbbc5d8aafd8dae9b3b6877edca561fccd8528ef5edc4e7b6d23721b5/PyGithub-2.5.0-py3-none-any.whl", hash = "sha256:b0b635999a658ab8e08720bdd3318893ff20e2275f6446fcf35bf3f44f2c0fd2", size = 375935 },
+    { url = "https://files.pythonhosted.org/packages/f3/9e/ba08aa9e1632f8752648126505598b95429fcb7bb884c1eb9de5b2370d8f/PyGithub-2.6.0-py3-none-any.whl", hash = "sha256:22635b245b885413c607bb86393603cadcfdcb67a9b81ce9a64634e64f308084", size = 409218 },
 ]
 
 [[package]]
