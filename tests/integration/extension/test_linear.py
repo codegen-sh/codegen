@@ -5,7 +5,7 @@ import os
 import pytest
 
 from codegen.extensions.linear.linear_client import LinearClient
-from codegen.extensions.tools.linear_tools import (
+from codegen.extensions.tools.linear.linear import (
     linear_comment_on_issue_tool,
     linear_create_issue_tool,
     linear_get_issue_comments_tool,

@@ -13,12 +13,12 @@ from codegen import Codebase
 from .tools import (
     CommitTool,
     CreateFileTool,
-    CreatePRCommentTool,
-    CreatePRReviewCommentTool,
-    CreatePRTool,
     DeleteFileTool,
     EditFileTool,
-    GetPRcontentsTool,
+    GithubCreatePRCommentTool,
+    GithubCreatePRReviewCommentTool,
+    GithubCreatePRTool,
+    GithubViewPRTool,
     ListDirectoryTool,
     MoveSymbolTool,
     RenameFileTool,
@@ -68,10 +68,10 @@ def create_codebase_agent(
         SemanticEditTool(codebase),
         SemanticSearchTool(codebase),
         CommitTool(codebase),
-        CreatePRTool(codebase),
-        GetPRcontentsTool(codebase),
-        CreatePRCommentTool(codebase),
-        CreatePRReviewCommentTool(codebase),
+        GithubCreatePRTool(codebase),
+        GithubViewPRTool(codebase),
+        GithubCreatePRCommentTool(codebase),
+        GithubCreatePRReviewCommentTool(codebase),
     ]
 
     # Get the prompt to use

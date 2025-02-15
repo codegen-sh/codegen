@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 from codegen import Codebase
 from codegen.extensions.linear.linear_client import LinearClient
-from codegen.extensions.tools.linear_tools import (
+from codegen.extensions.tools.linear.linear import (
     linear_comment_on_issue_tool,
     linear_create_issue_tool,
     linear_get_issue_comments_tool,
@@ -354,19 +354,24 @@ class SemanticSearchTool(BaseTool):
         return json.dumps(result, indent=2)
 
 
-class CreatePRInput(BaseModel):
+########################################################################################################################
+# GITHUB
+########################################################################################################################
+
+
+class GithubCreatePRInput(BaseModel):
     """Input for creating a PR"""
 
     title: str = Field(..., description="The title of the PR")
     body: str = Field(..., description="The body of the PR")
 
 
-class CreatePRTool(BaseTool):
+class GithubCreatePRTool(BaseTool):
     """Tool for creating a PR."""
 
     name: ClassVar[str] = "create_pr"
     description: ClassVar[str] = "Create a PR for the current branch"
-    args_schema: ClassVar[type[BaseModel]] = CreatePRInput
+    args_schema: ClassVar[type[BaseModel]] = GithubCreatePRInput
     codebase: Codebase = Field(exclude=True)
 
     def __init__(self, codebase: Codebase) -> None:
@@ -377,18 +382,18 @@ class CreatePRTool(BaseTool):
         return json.dumps(result, indent=2)
 
 
-class GetPRContentsInput(BaseModel):
+class GithubViewPRInput(BaseModel):
     """Input for getting PR contents."""
 
     pr_id: int = Field(..., description="Number of the PR to get the contents for")
 
 
-class GetPRcontentsTool(BaseTool):
+class GithubViewPRTool(BaseTool):
     """Tool for getting PR data."""
 
-    name: ClassVar[str] = "get_pr_contents"
-    description: ClassVar[str] = "Get the diff and modified symbols of a PR along with the dependencies of the modified symbols"
-    args_schema: ClassVar[type[BaseModel]] = GetPRContentsInput
+    name: ClassVar[str] = "view_pr"
+    description: ClassVar[str] = "View the diff and associated context for a pull request"
+    args_schema: ClassVar[type[BaseModel]] = GithubViewPRInput
     codebase: Codebase = Field(exclude=True)
 
     def __init__(self, codebase: Codebase) -> None:
@@ -399,19 +404,19 @@ class GetPRcontentsTool(BaseTool):
         return json.dumps(result, indent=2)
 
 
-class CreatePRCommentInput(BaseModel):
+class GithubCreatePRCommentInput(BaseModel):
     """Input for creating a PR comment"""
 
     pr_number: int = Field(..., description="The PR number to comment on")
     body: str = Field(..., description="The comment text")
 
 
-class CreatePRCommentTool(BaseTool):
+class GithubCreatePRCommentTool(BaseTool):
     """Tool for creating a general PR comment."""
 
     name: ClassVar[str] = "create_pr_comment"
     description: ClassVar[str] = "Create a general comment on a pull request"
-    args_schema: ClassVar[type[BaseModel]] = CreatePRCommentInput
+    args_schema: ClassVar[type[BaseModel]] = GithubCreatePRCommentInput
     codebase: Codebase = Field(exclude=True)
 
     def __init__(self, codebase: Codebase) -> None:
@@ -422,7 +427,7 @@ class CreatePRCommentTool(BaseTool):
         return json.dumps(result, indent=2)
 
 
-class CreatePRReviewCommentInput(BaseModel):
+class GithubCreatePRReviewCommentInput(BaseModel):
     """Input for creating an inline PR review comment"""
 
     pr_number: int = Field(..., description="The PR number to comment on")
@@ -434,12 +439,12 @@ class CreatePRReviewCommentInput(BaseModel):
     start_line: int | None = Field(None, description="For multi-line comments, the starting line")
 
 
-class CreatePRReviewCommentTool(BaseTool):
+class GithubCreatePRReviewCommentTool(BaseTool):
     """Tool for creating inline PR review comments."""
 
     name: ClassVar[str] = "create_pr_review_comment"
     description: ClassVar[str] = "Create an inline review comment on a specific line in a pull request"
-    args_schema: ClassVar[type[BaseModel]] = CreatePRReviewCommentInput
+    args_schema: ClassVar[type[BaseModel]] = GithubCreatePRReviewCommentInput
     codebase: Codebase = Field(exclude=True)
 
     def __init__(self, codebase: Codebase) -> None:
@@ -466,6 +471,11 @@ class CreatePRReviewCommentTool(BaseTool):
             start_line=start_line,
         )
         return json.dumps(result, indent=2)
+
+
+########################################################################################################################
+# LINEAR
+########################################################################################################################
 
 
 class LinearGetIssueInput(BaseModel):
@@ -597,6 +607,11 @@ class LinearGetTeamsTool(BaseTool):
         return json.dumps(result, indent=2)
 
 
+########################################################################################################################
+# EXPORT
+########################################################################################################################
+
+
 def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
     """Get all workspace tools initialized with a codebase.
 
@@ -609,12 +624,9 @@ def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
     return [
         CommitTool(codebase),
         CreateFileTool(codebase),
-        CreatePRTool(codebase),
-        CreatePRCommentTool(codebase),
-        CreatePRReviewCommentTool(codebase),
         DeleteFileTool(codebase),
         EditFileTool(codebase),
-        GetPRcontentsTool(codebase),
+        GithubViewPRTool(codebase),
         ListDirectoryTool(codebase),
         MoveSymbolTool(codebase),
         RenameFileTool(codebase),
@@ -623,6 +635,12 @@ def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
         SemanticEditTool(codebase),
         SemanticSearchTool(codebase),
         ViewFileTool(codebase),
+        # Github
+        GithubCreatePRTool(codebase),
+        GithubCreatePRCommentTool(codebase),
+        GithubCreatePRReviewCommentTool(codebase),
+        GithubViewPRTool(codebase),
+        # Linear
         LinearGetIssueTool(codebase),
         LinearGetIssueCommentsTool(codebase),
         LinearCommentOnIssueTool(codebase),
