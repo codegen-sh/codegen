@@ -10,8 +10,11 @@ from codegen import Codebase
 from codegen.extensions.linear.linear_client import LinearClient
 from codegen.extensions.tools.linear_tools import (
     linear_comment_on_issue_tool,
+    linear_create_issue_tool,
     linear_get_issue_comments_tool,
     linear_get_issue_tool,
+    linear_get_teams_tool,
+    linear_search_issues_tool,
 )
 
 from ..tools import (
@@ -532,6 +535,68 @@ class LinearCommentOnIssueTool(BaseTool):
         return json.dumps(result, indent=2)
 
 
+class LinearSearchIssuesInput(BaseModel):
+    """Input for searching Linear issues."""
+
+    query: str = Field(..., description="Search query string")
+    limit: int = Field(default=10, description="Maximum number of issues to return")
+
+
+class LinearSearchIssuesTool(BaseTool):
+    """Tool for searching Linear issues."""
+
+    name: ClassVar[str] = "linear_search_issues"
+    description: ClassVar[str] = "Search for Linear issues using a query string"
+    args_schema: ClassVar[type[BaseModel]] = LinearSearchIssuesInput
+    client: LinearClient = Field(exclude=True)
+
+    def __init__(self, client: LinearClient) -> None:
+        super().__init__(client=client)
+
+    def _run(self, query: str, limit: int = 10) -> str:
+        result = linear_search_issues_tool(self.client, query, limit)
+        return json.dumps(result, indent=2)
+
+
+class LinearCreateIssueInput(BaseModel):
+    """Input for creating a Linear issue."""
+
+    title: str = Field(..., description="Title of the issue")
+    description: str | None = Field(None, description="Optional description of the issue")
+    team_id: str | None = Field(None, description="Optional team ID. If not provided, uses the default team_id (recommended)")
+
+
+class LinearCreateIssueTool(BaseTool):
+    """Tool for creating Linear issues."""
+
+    name: ClassVar[str] = "linear_create_issue"
+    description: ClassVar[str] = "Create a new Linear issue"
+    args_schema: ClassVar[type[BaseModel]] = LinearCreateIssueInput
+    client: LinearClient = Field(exclude=True)
+
+    def __init__(self, client: LinearClient) -> None:
+        super().__init__(client=client)
+
+    def _run(self, title: str, description: str | None = None, team_id: str | None = None) -> str:
+        result = linear_create_issue_tool(self.client, title, description, team_id)
+        return json.dumps(result, indent=2)
+
+
+class LinearGetTeamsTool(BaseTool):
+    """Tool for getting Linear teams."""
+
+    name: ClassVar[str] = "linear_get_teams"
+    description: ClassVar[str] = "Get all Linear teams the authenticated user has access to"
+    client: LinearClient = Field(exclude=True)
+
+    def __init__(self, client: LinearClient) -> None:
+        super().__init__(client=client)
+
+    def _run(self) -> str:
+        result = linear_get_teams_tool(self.client)
+        return json.dumps(result, indent=2)
+
+
 def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
     """Get all workspace tools initialized with a codebase.
 
@@ -561,4 +626,7 @@ def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
         LinearGetIssueTool(codebase),
         LinearGetIssueCommentsTool(codebase),
         LinearCommentOnIssueTool(codebase),
+        LinearSearchIssuesTool(codebase),
+        LinearCreateIssueTool(codebase),
+        LinearGetTeamsTool(codebase),
     ]
