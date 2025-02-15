@@ -1,13 +1,14 @@
 """Langchain tools for workspace operations."""
 
 import json
-from typing import ClassVar, Literal, Optional
+from typing import Callable, ClassVar, Literal, Optional
 
 from langchain.tools import BaseTool
 from pydantic import BaseModel, Field
 
 from codegen import Codebase
 from codegen.extensions.linear.linear_client import LinearClient
+from codegen.extensions.tools.bash import run_bash_command
 from codegen.extensions.tools.linear.linear import (
     linear_comment_on_issue_tool,
     linear_create_issue_tool,
@@ -16,6 +17,7 @@ from codegen.extensions.tools.linear.linear import (
     linear_get_teams_tool,
     linear_search_issues_tool,
 )
+from codegen.extensions.tools.link_annotation import add_links_to_message
 
 from ..tools import (
     commit,
@@ -355,6 +357,30 @@ class SemanticSearchTool(BaseTool):
 
 
 ########################################################################################################################
+# BASH
+########################################################################################################################
+
+
+class RunBashCommandInput(BaseModel):
+    """Input for running a bash command."""
+
+    command: str = Field(..., description="The command to run")
+    is_background: bool = Field(default=False, description="Whether to run the command in the background")
+
+
+class RunBashCommandTool(BaseTool):
+    """Tool for running bash commands."""
+
+    name: ClassVar[str] = "run_bash_command"
+    description: ClassVar[str] = "Run a bash command and return its output"
+    args_schema: ClassVar[type[BaseModel]] = RunBashCommandInput
+
+    def _run(self, command: str, is_background: bool = False) -> str:
+        result = run_bash_command(command, is_background)
+        return json.dumps(result, indent=2)
+
+
+########################################################################################################################
 # GITHUB
 ########################################################################################################################
 
@@ -608,6 +634,43 @@ class LinearGetTeamsTool(BaseTool):
 
 
 ########################################################################################################################
+# SLACK
+########################################################################################################################
+
+
+class SlackSendMessageInput(BaseModel):
+    """Input for sending a message to Slack."""
+
+    content: str = Field(..., description="Message to send to Slack")
+
+
+class SlackSendMessageTool(BaseTool):
+    """Tool for sending a message to Slack."""
+
+    name: ClassVar[str] = "send_slack_message"
+    description: ClassVar[str] = (
+        "Send a message via Slack."
+        "Write symbol names (classes, functions, etc.) or full filepaths in single backticks and they will be auto-linked to the code."
+        "Use Slack-style markdown for other links."
+    )
+    args_schema: ClassVar[type[BaseModel]] = SlackSendMessageInput
+    say: Callable[[str], None] = Field(exclude=True)
+    codebase: Codebase = Field(exclude=True)
+
+    def __init__(self, codebase: Codebase, say: Callable[[str], None]) -> None:
+        super().__init__(say=say, codebase=codebase)
+        self.say = say
+        self.codebase = codebase
+
+    def _run(self, content: str) -> str:
+        print("> Adding links to message")
+        content_formatted = add_links_to_message(content, self.codebase)
+        print("> Sending message to Slack")
+        self.say(content_formatted)
+        return "✅ Message sent successfully"
+
+
+########################################################################################################################
 # EXPORT
 ########################################################################################################################
 
@@ -631,6 +694,7 @@ def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
         MoveSymbolTool(codebase),
         RenameFileTool(codebase),
         RevealSymbolTool(codebase),
+        RunBashCommandTool(),  # Note: This tool doesn't need the codebase
         SearchTool(codebase),
         SemanticEditTool(codebase),
         SemanticSearchTool(codebase),
