@@ -133,7 +133,10 @@ def research(repo_name: Optional[str] = None, query: Optional[str] = None):
         if not query:
             query = Prompt.ask("[bold cyan]Research query[/bold cyan]")
             
-        result = agent.invoke({"input": query})
+        result = agent.invoke(
+            {"input": query},
+            config={"configurable": {"session_id": "research"}}
+        )
         console.print(Markdown(result["output"]))
         
         query = None  # Clear for next iteration
