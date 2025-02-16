@@ -7,7 +7,7 @@ iconType: "solid"
 
 Migrating from [Flask](https://flask.palletsprojects.com/) to [FastAPI](https://fastapi.tiangolo.com/) involves several key changes to your codebase. This guide will walk you through using Codegen to automate this migration, handling imports, route decorators, static files, and template rendering.
 
-You can find the complete example code in our [examples repository](https://github.com/codegen-sh/codegen-examples/tree/7b978091c3153b687c32928fe10f05425e22f6a5/examples/flask_to_fastapi_migration)
+You can find the complete example code in our [examples repository](https://github.com/codegen-sh/codegen-sdk/tree/93f0d4cd7740e3e01ee7ecfd69fd3259b8ebf783/codegen-examples/examples/flask_to_fastapi_migration)
 
 ## Overview
 
@@ -183,8 +183,8 @@ def list_users(request: Request):
 You can run the complete migration using our example script:
 
 ```bash
-git clone https://github.com/codegen-sh/codegen-examples.git
-cd codegen-examples/flask_to_fastapi_migration
+git clone https://github.com/codegen-sh/codegen-sdk.git
+cd codegen-examples/examples/flask_to_fastapi_migration
 python run.py
 ```
 
