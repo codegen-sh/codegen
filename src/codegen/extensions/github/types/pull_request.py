@@ -43,7 +43,7 @@ class PullRequest(BaseModel):
     updated_at: str
     closed_at: Optional[str]
     merged_at: Optional[str]
-    merge_commit_sha: str
+    merge_commit_sha: Optional[str]
     assignee: Optional[GitHubUser]
     assignees: list[GitHubUser]
     requested_reviewers: list[GitHubUser]

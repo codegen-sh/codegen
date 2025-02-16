@@ -24,4 +24,4 @@ class PushEvent(BaseModel):
     base_ref: str | None = None
     compare: str
     commits: list[GitHubCommit]
-    head_commit: GitHubCommit
+    head_commit: GitHubCommit | None = None
