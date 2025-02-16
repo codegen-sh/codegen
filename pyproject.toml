@@ -71,6 +71,7 @@ dependencies = [
   "mcp[cli]",
   "neo4j",
   "modal>=0.73.45",
+  "slack-sdk",
 ]
 
 license = { text = "Apache-2.0" }

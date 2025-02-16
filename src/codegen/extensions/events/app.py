@@ -3,19 +3,22 @@ import logging
 import modal  # deptry: ignore
 
 from codegen.extensions.events.linear import Linear
+from codegen.extensions.events.slack import Slack
 
 logger = logging.getLogger(__name__)
 
 
 class CodegenApp(modal.App):
     linear: Linear
+    slack: Slack
 
-    def __init__(self, name, modal_api_key, image: modal.Image):
+    def __init__(self, name: str, modal_api_key: str, image: modal.Image):
         self._modal_api_key = modal_api_key
         self._image = image
         self._name = name
 
         super().__init__(name=name, image=image)
 
-        # Expose a attribute that provides the event decorator for different providers.
+        # Expose attributes that provide event decorators for different providers.
         self.linear = Linear(self)
+        self.slack = Slack(self)
