@@ -22,7 +22,7 @@ First, let's import the necessary components and create our agent:
 ```python
 from langchain_openai import ChatOpenAI
 from codegen import Codebase
-from codegen.extensions.langchain import create_codebase_agent
+from codegen.extensions.langchain.agent import create_codebase_agent
 
 # Initialize codebase
 codebase = Codebase.from_repo("fastapi/fastapi")
