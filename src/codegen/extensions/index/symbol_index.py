@@ -1,5 +1,6 @@
 """Symbol-level semantic code search index."""
 
+import logging
 import pickle
 from pathlib import Path
 
@@ -11,25 +12,24 @@ from codegen import Codebase
 from codegen.extensions.index.code_index import CodeIndex
 from codegen.sdk.core.symbol import Symbol
 
+logger = logging.getLogger(__name__)
 
+
+# TODO: WIP!
 class SymbolIndex(CodeIndex):
     """A semantic search index over codebase symbols.
 
     This implementation indexes individual symbols (functions, classes, etc.)
-    rather than entire files. This allows for more granular search results
-    and better context preservation.
+    rather than entire files. This allows for more granular search results.
     """
 
     EMBEDDING_MODEL = "text-embedding-3-small"
-    MAX_TOKENS = 8000
-    BATCH_SIZE = 100
+    MAX_TOKENS_PER_TEXT = 8000  # Max tokens per individual text
+    MAX_BATCH_TOKENS = 32000  # Max total tokens per API call
+    BATCH_SIZE = 100  # Max number of texts per API call
 
     def __init__(self, codebase: Codebase):
-        """Initialize the symbol index.
-
-        Args:
-            codebase: The codebase to index
-        """
+        """Initialize the symbol index."""
         super().__init__(codebase)
         self.client = OpenAI()
         self.encoding = tiktoken.get_encoding("cl100k_base")
@@ -38,70 +38,76 @@ class SymbolIndex(CodeIndex):
     def save_file_name(self) -> str:
         return "symbol_index_{commit}.pkl"
 
-    def _get_symbol_content(self, symbol: Symbol) -> str:
-        """Get the content to embed for a symbol.
+    def _batch_texts_by_tokens(self, texts: list[str]) -> list[list[str]]:
+        """Batch texts to maximize tokens per API call while respecting limits.
 
-        This includes:
-        1. The symbol's code
-        2. Its docstring if available
-        3. The symbol's name and type
-        4. Parent class/module context if applicable
+        This tries to pack as many texts as possible into each batch while ensuring:
+        1. No individual text exceeds MAX_TOKENS_PER_TEXT
+        2. Total tokens in batch doesn't exceed MAX_BATCH_TOKENS
+        3. Number of texts doesn't exceed BATCH_SIZE
         """
-        content_parts = []
+        batches = []
+        current_batch = []
+        current_tokens = 0
 
-        # Add symbol type and name
-        content_parts.append(f"Type: {symbol.symbol_type.value}")
-        content_parts.append(f"Name: {symbol.name}")
+        for text in texts:
+            # Get token count for this text
+            tokens = self.encoding.encode(text)
+            n_tokens = len(tokens)
 
-        # Add parent context if available
-        if hasattr(symbol, "parent") and symbol.parent:
-            content_parts.append(f"Parent: {symbol.parent.name}")
+            # If text is too long, truncate it
+            if n_tokens > self.MAX_TOKENS_PER_TEXT:
+                tokens = tokens[: self.MAX_TOKENS_PER_TEXT]
+                text = self.encoding.decode(tokens)
+                n_tokens = self.MAX_TOKENS_PER_TEXT
 
-        # Add docstring if available
-        if hasattr(symbol, "docstring") and symbol.docstring:
-            content_parts.append(f"Documentation: {symbol.docstring}")
+            # Check if adding this text would exceed batch limits
+            if len(current_batch) + 1 > self.BATCH_SIZE or current_tokens + n_tokens > self.MAX_BATCH_TOKENS:
+                # Current batch is full, start a new one
+                if current_batch:
+                    batches.append(current_batch)
+                current_batch = []
+                current_tokens = 0
 
-        # Add the actual code
-        if hasattr(symbol, "code"):
-            content_parts.append(f"Code: {symbol.code}")
+            # Add text to current batch
+            current_batch.append(text)
+            current_tokens += n_tokens
 
-        return "\n".join(content_parts)
+        # Add the last batch if not empty
+        if current_batch:
+            batches.append(current_batch)
 
-    def _split_by_tokens(self, text: str) -> list[str]:
-        """Split text into chunks that fit within token limit."""
-        tokens = self.encoding.encode(text)
-        if len(tokens) <= self.MAX_TOKENS:
-            return [text]
-
-        # For symbols, we don't split - we truncate
-        # This is because splitting a symbol's content could break context
-        truncated_tokens = tokens[: self.MAX_TOKENS]
-        return [self.encoding.decode(truncated_tokens)]
+        return batches
 
     def _get_embeddings(self, texts: list[str]) -> list[list[float]]:
         """Get embeddings for a batch of texts using OpenAI's API."""
         # Clean texts
         texts = [text.replace("\\n", " ") for text in texts]
 
-        response = self.client.embeddings.create(model=self.EMBEDDING_MODEL, input=texts, encoding_format="float")
-        return [data.embedding for data in response.data]
+        # Batch texts efficiently
+        batches = self._batch_texts_by_tokens(texts)
+        logger.info(f"Processing {len(texts)} texts in {len(batches)} batches")
+
+        # Process batches with progress bar
+        all_embeddings = []
+        for batch in tqdm(batches, desc="Getting embeddings"):
+            response = self.client.embeddings.create(model=self.EMBEDDING_MODEL, input=batch, encoding_format="float")
+            all_embeddings.extend(data.embedding for data in response.data)
+
+        return all_embeddings
 
     def _get_items_to_index(self) -> list[tuple[str, str]]:
         """Get all symbols and their content to index."""
         items_to_index = []
+        symbols_to_process = [s for s in self.codebase.symbols if s.source]
+        logger.info(f"Found {len(symbols_to_process)} symbols to index")
 
-        for file in tqdm(self.codebase.files, desc="Collecting symbols"):
-            for symbol in file.symbols:
-                content = self._get_symbol_content(symbol)
-                if not content:  # Skip empty symbols
-                    continue
+        # Process each symbol - no need to pre-truncate since _batch_texts_by_tokens handles it
+        for symbol in symbols_to_process:
+            symbol_id = f"{symbol.file.filepath}::{symbol.name}"
+            items_to_index.append((symbol_id, symbol.source))
 
-                # Get the potentially truncated content
-                processed_content = self._split_by_tokens(content)[0]
-                # Store symbol identifier (could be filepath + symbol name or a unique id)
-                symbol_id = f"{file.filepath}::{symbol.name}"
-                items_to_index.append((symbol_id, processed_content))
-
+        logger.info(f"Total symbols to process: {len(items_to_index)}")
         return items_to_index
 
     def _get_changed_items(self) -> set[Symbol]:
@@ -120,8 +126,9 @@ class SymbolIndex(CodeIndex):
                     continue
                 file = self.codebase.get_file(path)
                 if file:
-                    changed_symbols.update(file.symbols)
+                    changed_symbols.update(s for s in file.symbols if s.source)
 
+        logger.info(f"Found {len(changed_symbols)} changed symbols")
         return changed_symbols
 
     def _save_index(self, path: Path) -> None:
@@ -146,7 +153,7 @@ class SymbolIndex(CodeIndex):
             # Get the file and find the symbol
             if file := self.codebase.get_file(filepath):
                 for symbol in file.symbols:
-                    if symbol.name == symbol_name:
+                    if symbol.name == symbol_name and symbol.source:
                         results.append((symbol, score))
                         break
 
