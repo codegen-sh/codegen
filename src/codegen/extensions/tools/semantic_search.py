@@ -3,7 +3,7 @@
 from typing import Any, Optional
 
 from codegen import Codebase
-from codegen.extensions.vector_index import VectorIndex
+from codegen.extensions.index.file_index import FileIndex
 
 
 def semantic_search(
@@ -51,7 +51,7 @@ def semantic_search(
     """
     try:
         # Initialize vector index
-        index = VectorIndex(codebase)
+        index = FileIndex(codebase)
 
         # Try to load existing index
         try:
