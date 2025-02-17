@@ -338,13 +338,15 @@ class TSPromiseChain:
         var_name = assignment_variable_name if assignment_variable_name else self.assigned_var
 
         if any(stmt_source.startswith(console_method) for console_method in self.log_statements):
-            return stmt_source
+            return stmt_source + ";"
         elif is_catch:
-            return "throw " + stmt_source
+            return "throw " + stmt_source + ";"
         elif var_name:
             return self.format_param_assignment([var_name], stmt_source)
+        elif self.is_return_statement:
+            return "return " + stmt_source + ";"
         else:
-            return "await " + stmt_source
+            return "await " + stmt_source + ";"
 
     @reader
     def handle_catch_block(self, call: FunctionCall, assignment_variable_name: str | None = None) -> str:

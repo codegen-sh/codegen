@@ -434,10 +434,12 @@ class TSFunction(Function["TSFunction", TSDecorator, "TSCodeBlock", TSParameter,
     def promise_chains(self) -> list[TSPromiseChain]:
         """Returns a list of promise chains in the function."""
         promise_chains = []
+        visited_base_functions = set()
         function_calls = self.function_calls
 
         for function_call in function_calls:
-            if function_call.name == "then":
+            if function_call.name == "then" and function_call.base not in visited_base_functions:
                 promise_chains.append(function_call.get_promise_chain)
+                visited_base_functions.add(function_call.base)
 
         return promise_chains

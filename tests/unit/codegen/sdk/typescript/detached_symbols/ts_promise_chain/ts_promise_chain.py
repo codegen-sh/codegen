@@ -278,3 +278,105 @@ def test_complex_returns_with_anonymous_function(tmpdir) -> None:
         })(response);
         """
         assert normalize_whitespace(async_await_code) == normalize_whitespace(expected)
+
+
+def test_file_promise_chains(tmpdir) -> None:
+    FILENAME = "multiple_functions.ts"
+    # language=typescript
+    FILE_CONTENT = """
+    function first(): Promise<number> {
+        return Promise.resolve(10).then(value => value * 2);
+    }
+
+    function second(): Promise<string> {
+        return fetchUserData(1)
+            .then(user => user.name)
+            .catch(error => 'default');
+    }
+
+    function noPromise(): number {
+        return 42;
+    }
+    """
+    with get_codebase_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={FILENAME: FILE_CONTENT}) as codebase:
+        file = codebase.get_file(FILENAME)
+        promise_chains = file.promise_chains
+
+        # Should find 2 promise chains (from first and second functions)
+        assert len(promise_chains) == 2
+
+        # Verify the chains are from the correct functions
+        function_names = {chain.parent_function.name for chain in promise_chains}
+        assert function_names == {"first", "second"}
+
+        # Convert first chain and verify
+        first_chain = next(chain for chain in promise_chains if chain.parent_function.name == "first")
+        async_code = first_chain.convert_to_async_await(inplace_edit=False)
+        expected = """
+        let value = await Promise.resolve(10);
+        return value * 2;
+        """
+        assert normalize_whitespace(async_code) == normalize_whitespace(expected)
+
+
+def test_function_promise_chains_multiple(tmpdir) -> None:
+    FILENAME = "multiple_chains.ts"
+    # language=typescript
+    FILE_CONTENT = """
+    function multipleChains(): void {
+        // First chain
+        Promise.resolve(1)
+            .then(x => x + 1)
+            .catch(err => console.error(err));
+
+        // Second chain
+        fetchUserData(1)
+            .then(user => user.posts)
+            .then(posts => console.log(posts));
+    }
+    """
+    with get_codebase_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={FILENAME: FILE_CONTENT}) as codebase:
+        function_symbol = codebase.get_function("multipleChains")
+        chains = function_symbol.promise_chains
+
+        # Should find both promise chains
+        assert len(chains) == 2
+
+        # Convert first chain and verify
+        first_chain_code = chains[0].convert_to_async_await(inplace_edit=False)
+        expected_first = """
+        try {
+            let x = await Promise.resolve(1);
+            await x + 1;
+        } catch(err: any) {
+            console.error(err);
+        }
+        """
+        assert normalize_whitespace(first_chain_code) == normalize_whitespace(expected_first)
+
+
+def test_promise_chain_attributes(tmpdir) -> None:
+    FILENAME = "chain_attributes.ts"
+    # language=typescript
+    FILE_CONTENT = """
+    function chainWithAll(): Promise<void> {
+        return fetchUserData(1)
+            .then(user => user.posts)
+            .catch(error => {
+                console.error(error);
+                throw error;
+            })
+            .finally(() => {
+                console.log('Done');
+            });
+    }
+    """
+    with get_codebase_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={FILENAME: FILE_CONTENT}) as codebase:
+        function_symbol = codebase.get_function("chainWithAll")
+        chain = function_symbol.promise_chains[0]
+
+        # Test chain attributes
+        assert chain.has_catch_call
+        assert chain.has_finally_call
+        assert len(chain.then_chain) == 1
+        assert chain.parent_function.name == "chainWithAll"
