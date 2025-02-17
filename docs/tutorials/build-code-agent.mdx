@@ -30,7 +30,7 @@ codebase = Codebase.from_repo("fastapi/fastapi")
 # Create the agent with GPT-4
 agent = create_codebase_agent(
     codebase=codebase,
-    model_name="gpt-4",
+    model_name="gpt-4o",
     temperature=0,
     verbose=True
 )
@@ -71,28 +71,22 @@ Let's see some examples of how to interact with the agent:
 ```python
 # Analyze dependencies
 result = agent.invoke(
-    {
-        "input": "What are the dependencies of the FastAPI class?",
-        "config": {"configurable": {"session_id": "demo"}}
-    }
+    {"input": "What are the dependencies of the FastAPI class?"},
+    confeg={"configurable": {"session_id": "demo"}}
 )
 print(result["output"])
 
 # Find usage patterns
 result = agent.invoke(
-    {
-        "input": "Show me examples of dependency injection in the codebase",
-        "config": {"configurable": {"session_id": "demo"}}
-    }
+    {"input": "Show me examples of dependency injection in the codebase"},
+    config={"configurable": {"session_id": "demo"}}
 )
 print(result["output"])
 
 # Perform code analysis
 result = agent.invoke(
-    {
-        "input": "What's the most complex function in terms of dependencies?",
-        "config": {"configurable": {"session_id": "demo"}}
-    }
+    {"input": "What's the most complex function in terms of dependencies?"},
+    config={"configurable": {"session_id": "demo"}}
 )
 print(result["output"])
 ```
@@ -106,26 +100,20 @@ The agent can also perform code changes:
 ```python
 # Move a function to a new file
 result = agent.invoke(
-    {
-        "input": "Move the validate_email function to validation_utils.py",
-        "config": {"configurable": {"session_id": "demo"}}
-    }
+    {"input": "Move the validate_email function to validation_utils.py"},
+    config={"configurable": {"session_id": "demo"}}
 )
 
 # Rename a class and update all references
 result = agent.invoke(
-    {
-        "input": "Rename the UserModel class to User and update all imports",
-        "config": {"configurable": {"session_id": "demo"}}
-    }
+    {"input": "Rename the UserModel class to User and update all imports"},
+    config={"configurable": {"session_id": "demo"}}
 )
 
 # Add error handling
 result = agent.invoke(
-    {
-        "input": "Add proper error handling to the process_data function",
-        "config": {"configurable": {"session_id": "demo"}}
-    }
+    {"input": "Add proper error handling to the process_data function"},
+    config={"configurable": {"session_id": "demo"}}
 )
 ```
 
@@ -164,6 +152,6 @@ tools.append(CustomCodeTool())
 agent = create_codebase_agent(
     codebase=codebase,
     tools=tools,
-    model_name="gpt-4"
+    model_name="gpt-4o"
 )
 ```
