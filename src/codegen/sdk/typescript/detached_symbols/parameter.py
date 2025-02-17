@@ -185,3 +185,8 @@ class TSParameter(Parameter[TSType, Collection["TSParameter", "TSFunction"]]):
         self.parent_function.insert_before(interface_def + "\n")
 
         self.type.edit(interface_name)
+
+    @writer
+    def make_optional(self) -> None:
+        if not self.is_optional:
+            self.rename(f"{self.name}?")

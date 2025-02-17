@@ -66,7 +66,8 @@ dependencies = [
   "langchain[openai]",
   "langchain_core",
   "langchain_openai",
-  "numpy>=2.2.2",
+  "mcp",
+  "numpy>=2.2.2"
 ]
 
 license = { text = "Apache-2.0" }

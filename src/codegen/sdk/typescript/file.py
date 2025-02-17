@@ -24,6 +24,7 @@ from codegen.shared.decorators.docs import noapidoc, ts_apidoc
 
 if TYPE_CHECKING:
     from codegen.sdk.codebase.codebase_context import CodebaseContext
+    from codegen.sdk.core.detached_symbols.promise_chain import TSPromiseChain
     from codegen.sdk.core.statements.export_statement import ExportStatement
     from codegen.sdk.core.symbol import Symbol
     from codegen.sdk.typescript.symbol import TSSymbol
@@ -445,3 +446,12 @@ class TSFile(SourceFile[TSImport, TSFunction, TSClass, TSAssignment, TSInterface
             TSNamespace | None: The namespace with the specified name if found, None otherwise.
         """
         return next((x for x in self.symbols if isinstance(x, TSNamespace) and x.name == name), None)
+
+    @property
+    @reader
+    def promise_chains(self) -> list[TSPromiseChain]:
+        promise_chains = []
+        for function in self.functions:
+            for promise_chain in function.promise_chains:
+                promise_chains.append(promise_chain)
+        return promise_chains

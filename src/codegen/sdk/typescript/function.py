@@ -22,6 +22,7 @@ if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
 
     from codegen.sdk.codebase.codebase_context import CodebaseContext
+    from codegen.sdk.core.detached_symbols.promise_chain import TSPromiseChain
     from codegen.sdk.core.import_resolution import Import, WildcardImport
     from codegen.sdk.core.interfaces.has_name import HasName
     from codegen.sdk.core.node_id_factory import NodeId
@@ -427,3 +428,16 @@ class TSFunction(Function["TSFunction", TSDecorator, "TSCodeBlock", TSParameter,
                     self.parameters[0].edit(interface_name)
                 else:
                     self.insert_at(self.parameters.ts_node.end_byte - 1, f": {interface_name}")
+
+    @property
+    @reader
+    def promise_chains(self) -> list[TSPromiseChain]:
+        """Returns a list of promise chains in the function."""
+        promise_chains = []
+        function_calls = self.function_calls
+
+        for function_call in function_calls:
+            if function_call.name == "then":
+                promise_chains.append(function_call.get_promise_chain)
+
+        return promise_chains

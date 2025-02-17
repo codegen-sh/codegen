@@ -707,6 +707,7 @@ class FunctionCall(Expression[Parent], HasName, Resolvable, Generic[Parent]):
                 name = name.object
         return name
 
+    @property
     @reader
     def get_promise_chain(self) -> TSPromiseChain | None:
         """Returns a list of all promise chains in this function call chain, including this call."""
