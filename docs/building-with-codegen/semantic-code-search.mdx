@@ -5,80 +5,102 @@ icon: "magnifying-glass"
 iconType: "solid"
 ---
 
-Codegen's `VectorIndex` enables semantic code search capabilities using embeddings. This allows you to search codebases using natural language queries and find semantically related code, even when the exact terms aren't present.
+Codegen provides semantic code search capabilities using embeddings. This allows you to search codebases using natural language queries and find semantically related code, even when the exact terms aren't present.
 
 <Warning>This is under active development. Interested in an application? [Reach out to the team!](/introduction/about.tsx)</Warning>
 
 ## Basic Usage
 
-Create and save a vector index for your codebase:
+Here's how to create and use a semantic code search index:
 
 ```python
-from codegen.extensions import VectorIndex
+# Parse a codebase
+codebase = Codebase.from_repo('fastapi/fastapi', language='python')
 
-# Initialize with your codebase
-index = VectorIndex(codebase)
+# Create index
+index = FileIndex(codebase)
+index.create() # computes per-file embeddings
 
-# Create embeddings for all files
-index.create()
+# Save index to .pkl
+index.save('index.pkl')
 
-# Save to disk (defaults to .codegen/vector_index.pkl)
-index.save()
+# Load index into memory
+index.load('index.pkl')
+
+# Update index after changes
+codebase.files[0].edit('# 🌈 Replacing File Content 🌈')
+codebase.commit()
+index.update() # re-computes 1 embedding
 ```
 
-Later, load the index and perform semantic searches:
+
+## Searching Code
+
+Once you have an index, you can perform semantic searches:
 
 ```python
-# Create a codebase
-codebase = Codebase.from_repo('fastapi/fastapi')
-
-# Load a previously created index
-index = VectorIndex(codebase)
-index.load()
-
 # Search with natural language
 results = index.similarity_search(
     "How does FastAPI handle dependency injection?",
     k=5  # number of results
 )
 
-# Print results with previews
-for filepath, score in results:
-    print(f"\nScore: {score:.3f} | File: {filepath}")
-    file = codebase.get_file(filepath)
+# Print results
+for file, score in results:
+    print(f"\nScore: {score:.3f} | File: {file.filepath}")
     print(f"Preview: {file.content[:200]}...")
 ```
+<Tip>The `FileIndex` returns tuples of ([File](/api-reference/core/SourceFile), `score`)</Tip>
 
 <Note>
 The search uses cosine similarity between embeddings to find the most semantically related files, regardless of exact keyword matches.
 </Note>
 
-## Getting Embeddings
+## Available Indices
 
-You can also get embeddings for arbitrary text using the same model:
+Codegen provides two types of semantic indices:
+
+### FileIndex
+
+The `FileIndex` operates at the file level:
+- Indexes entire files, splitting large files into chunks
+- Best for finding relevant files or modules
+- Simpler and faster to create/update
 
 ```python
-# Get embeddings for a list of texts
-texts = [
-    "Some code or text to embed",
-    "Another piece of text"
-]
-embeddings = index.get_embeddings(texts)  # shape: (n_texts, embedding_dim)
+from codegen import FileIndex
+
+index = FileIndex(codebase)
+index.create()
+```
+
+### SymbolIndex (Experimental)
+
+The `SymbolIndex` operates at the symbol level:
+- Indexes individual functions, classes, and methods
+- Better for finding specific code elements
+- More granular search results
+
+```python
+from codegen import SymbolIndex
+
+index = SymbolIndex(codebase)
+index.create()
 ```
 
 ## How It Works
 
-The `VectorIndex` class:
-1. Processes each file in your codebase
-2. Splits large files into chunks that fit within token limits
-3. Uses OpenAI's text-embedding-3-small model to create embeddings
-4. Stores embeddings in a numpy array for efficient similarity search
-5. Saves the index to disk for reuse
+The semantic indices:
+1. Process code at either file or symbol level
+2. Split large content into chunks that fit within token limits
+3. Use OpenAI's text-embedding-3-small model to create embeddings
+4. Store embeddings efficiently for similarity search
+5. Support incremental updates when code changes
 
 When searching:
-1. Your query is converted to an embedding using the same model
-2. Cosine similarity is computed between the query and all file embeddings
-3. The most similar files are returned, along with their similarity scores
+1. Your query is converted to an embedding
+2. Cosine similarity is computed with all stored embeddings
+3. The most similar items are returned with their scores
 
 <Warning>
 Creating embeddings requires an OpenAI API key with access to the embeddings endpoint.
@@ -86,7 +108,7 @@ Creating embeddings requires an OpenAI API key with access to the embeddings end
 
 ## Example Searches
 
-Here are some example semantic searches that demonstrate the power of the system:
+Here are some example semantic searches:
 
 ```python
 # Find authentication-related code
