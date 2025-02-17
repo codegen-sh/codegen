@@ -129,3 +129,28 @@ export function fetchPostComments(postId: number): Promise<Comment[]> {
 		}, 500);
 	});
 }
+
+interface RequestOptions {
+	url?: string;
+	method?: string;
+	// biome-ignore lint/suspicious/noExplicitAny: example interface
+	body?: any;
+}
+
+interface RequestResponse {
+	statusCode: number;
+	// biome-ignore lint/suspicious/noExplicitAny: example interface
+	body: string | any;
+}
+
+export function request(opts: RequestOptions): Promise<RequestResponse> {
+	return new Promise((resolve) => {
+		// Simulated API response
+		setTimeout(() => {
+			resolve({
+				statusCode: 200,
+				body: JSON.stringify({ success: true, data: opts }),
+			});
+		}, 100);
+	});
+}

@@ -21,7 +21,6 @@ class TSPromiseChain:
     It provides functionality to convert Promise chains to async/await syntax.
     """
 
-    # Class-level type annotations
     base_chain: list[FunctionCall | Name]
     then_chain: list[FunctionCall]
     catch_call: FunctionCall | None
@@ -34,6 +33,7 @@ class TSPromiseChain:
     declared_vars: set[str]
     base_indent: str
     name: str | None
+    log_statements: list[str] = ["console.error", "console.warn", "console.log"]
 
     def __init__(self, attribute_chain: list[FunctionCall | Name]) -> None:
         """Initialize a TSPromiseChain instance.
@@ -250,7 +250,7 @@ class TSPromiseChain:
                     next_params = self.get_next_call_params(next_call)
                     await_expression = f"await {return_value}"
                     if next_params:
-                        formatted_statements.append(f"{self.base_indent}{self.format_param_assignment(next_params, await_expression)}")
+                        formatted_statements.append(f"{self.base_indent}{self.format_param_assignment(next_params, await_expression, declare=True)}")
                     else:
                         formatted_statements.append(f"{self.base_indent}{await_expression}")
                 else:
@@ -337,15 +337,12 @@ class TSPromiseChain:
         stmt_source = statements[0].source.strip()
         var_name = assignment_variable_name if assignment_variable_name else self.assigned_var
 
-        if var_name:
-            return self.format_param_assignment([var_name], stmt_source)
-        if self.is_return_statement:
-            if is_catch:
-                return f"throw {stmt_source}"
-            else:
-                return f"return {stmt_source}"
-        if is_catch:
+        if any(stmt_source.startswith(console_method) for console_method in self.log_statements):
+            return stmt_source
+        elif is_catch:
             return "throw " + stmt_source
+        elif var_name:
+            return self.format_param_assignment([var_name], stmt_source)
         else:
             return "await " + stmt_source
 
