@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from codegen import FileIndex
+from codegen.extensions.index.file_index import FileIndex
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
 
 
