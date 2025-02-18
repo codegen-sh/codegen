@@ -15,11 +15,12 @@ def run(codebase: Codebase):
     """
 
     # loop through all files -> classes -> methods to find promise the operationPromise chains
+    i = 0
     for file in codebase.files:
         for _class in file.classes:
             for method in _class.methods:
                 if method.name in ["each", "setPromiseCallback"]:
-                    print("skipping method", method.name, "\n")
+                    print("skipping method", method.name, "...")
                     continue
 
                 # Only process methods containing operationPromise
@@ -27,51 +28,46 @@ def run(codebase: Codebase):
                     continue
 
                 # Find the first promise chain with then blocks
-                promise_chain = None
-                promise_statement = None
-                for func in method.function_calls:
-                    chain = func.get_promise_chain
-                    if chain and len(chain.then_chain) > 0:  # Check if chain exists first
-                        promise_chain = chain
-                        promise_statement = chain.parent_statement
-                        print(f"converting {method.name} promise chain to async await...")
-                        break
+                for promise_chain in method.promise_chains:
+                    promise_statement = promise_chain.parent_statement
+                    i += 1
+                    if i < 10:
+                        print(f"Found operation promise in the {method.name} method in {method.file.filepath} file.")
 
-                if not promise_chain:
-                    continue
+                    # ---------- CONVERT PROMISE CHAIN TO ASYNC AWAIT ----------
+                    assignment_variable_name = "operation"
+                    async_await_code = promise_chain.convert_to_async_await(assignment_variable_name=assignment_variable_name, inplace_edit=False)
 
-                custom_var_name = "operation"
+                    new_code = f"""\
+                        try {{
+                            {async_await_code}
 
-                # ---------- CONVERT PROMISE CHAIN TO ASYNC AWAIT ----------
-                async_await_code = promise_chain.convert_to_async_await(custom_var_name=custom_var_name, inplace_edit=False)
+                            if (callback) {{
+                                callback(null, {assignment_variable_name});
+                            }}
 
-                new_code = f"""\
-                    try {{
-                        {async_await_code}
+                            return {assignment_variable_name};
+                        }} catch(err: any) {{
+                            if (callback) {{
+                                callback(err);
+                            }}
+                            throw err;
+                        }}"""
 
-                        if (callback) {{
-                            callback(null, {custom_var_name});
-                        }}
+                    promise_statement.edit(new_code)
 
-                        return {custom_var_name};
-                    }} catch(err: any) {{
-                        if (callback) {{
-                            callback(err);
-                        }}
-                        throw err;
-                    }}"""
+                    # Cleanup callback handler assignment and subsequent return statement
+                    statements = promise_statement.parent.get_statements()
+                    return_stmt = next((stmt for stmt in statements if stmt.statement_type == StatementType.RETURN_STATEMENT), None)
+                    assign_stmt = next((stmt for stmt in reversed(statements) if stmt.statement_type == StatementType.ASSIGNMENT), None)
 
-                promise_statement.edit(new_code)
-
-                # Cleanup callback handler assignment and subsequent return statement
-                statements = promise_statement.parent.get_statements()
-                return_stmt = next((stmt for stmt in statements if stmt.statement_type == StatementType.RETURN_STATEMENT), None)
-                assign_stmt = next((stmt for stmt in reversed(statements) if stmt.statement_type == StatementType.ASSIGNMENT), None)
-
-                if return_stmt:
-                    return_stmt.remove()
-                if assign_stmt:
-                    assign_stmt.remove()
+                    if return_stmt:
+                        return_stmt.remove()
+                    if assign_stmt:
+                        assign_stmt.remove()
+    print(f"Found {i + 1} operationPromise chains!")
+    print("Converting to async/await...")
+    print("Done!")
 
     codebase.commit()
 
