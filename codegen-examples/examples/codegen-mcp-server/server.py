@@ -9,14 +9,16 @@ from codegen import Codebase
 class CodebaseState:
     """Class to manage codebase state and parsing."""
 
-    parse_task: Optional[asyncio.Task] = None
+    parse_task: Optional[asyncio.Future] = None
     parsed_codebase: Optional[Codebase] = None
+    codebase_path: Optional[str] = None
     log_buffer: List[str] = field(default_factory=list)
 
     async def parse(self, path: str) -> Codebase:
         """Parse the codebase at the given path."""
         codebase = Codebase(path)
         self.parsed_codebase = codebase
+        self.codebase_path = path
         return codebase
 
     def reset(self) -> None:
@@ -46,7 +48,7 @@ def capture_output(*args, **kwargs) -> None:
 @mcp.tool(name="parse_codebase", description="Initiate codebase parsing")
 async def parse_codebase(codebase_path: Annotated[str, "path to the codebase to be parsed"]) -> Dict[str, str]:
     if not state.parse_task or state.parse_task.done():
-        state.parse_task = asyncio.create_task(state.parse(codebase_path))
+        state.parse_task = asyncio.get_event_loop().run_in_executor(None, lambda: state.parse(codebase_path))
         return {"message": "Codebase parsing initiated, this may take some time depending on the size of the codebase. Use the `check_parsing_status` tool to check if the parse has completed."}
     return {"message": "Codebase is already being parsed."}
 
@@ -86,7 +88,7 @@ def main():
     print("starting codegen-mcp-server")
     run = mcp.run_stdio_async()
     print("codegen-mcp-server started")
-    asyncio.run(run)
+    asyncio.get_event_loop().run_until_complete(run)
 
 
 if __name__ == "__main__":
