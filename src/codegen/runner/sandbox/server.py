@@ -54,7 +54,6 @@ async def lifespan(server: FastAPI):
     except Exception:
         logger.exception("Failed to build graph during warmup")
         server_info.warmup_state = WarmupState.FAILED
-        raise
 
     logger.info("Sandbox fastapi server is ready to accept requests")
     yield
