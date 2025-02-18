@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from codegen.sdk.core.statements.symbol_statement import SymbolStatement
     from codegen.sdk.core.symbol import Symbol
     from codegen.sdk.typescript.detached_symbols.code_block import TSCodeBlock
-    from codegen.sdk.typescript.promise_chain import TSPromiseChain
+    from codegen.sdk.typescript.detached_symbols.promise_chain import TSPromiseChain
 _VALID_TYPE_NAMES = {function_type.value for function_type in TSFunctionTypeNames}
 logger = logging.getLogger(__name__)
 

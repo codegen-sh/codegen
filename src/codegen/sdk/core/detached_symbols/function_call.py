@@ -16,8 +16,8 @@ from codegen.sdk.core.symbol_groups.collection import Collection
 from codegen.sdk.enums import NodeType
 from codegen.sdk.extensions.sort import sort_editables
 from codegen.sdk.extensions.utils import cached_property, is_descendant_of
+from codegen.sdk.typescript.detached_symbols.promise_chain import TSPromiseChain
 from codegen.sdk.typescript.enums import TSFunctionTypeNames
-from codegen.sdk.typescript.promise_chain import TSPromiseChain
 from codegen.sdk.utils import find_first_ancestor
 from codegen.shared.decorators.docs import apidoc, noapidoc
 from codegen.shared.enums.programming_language import ProgrammingLanguage
