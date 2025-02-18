@@ -51,8 +51,8 @@ async def parse_codebase(codebase_path: Annotated[str, "path to the codebase to 
     return {"message": "Codebase is already being parsed."}
 
 
-@mcp.tool(name="check_parsing_status", description="Check if codebase parsing has completed")
-async def check_parsing_status() -> Dict[str, str]:
+@mcp.tool(name="check_parse_status", description="Check if codebase parsing has completed")
+async def check_parse_status() -> Dict[str, str]:
     if not state.parse_task:
         return {"message": "No codebase provided to parse."}
     if state.parse_task.done():
