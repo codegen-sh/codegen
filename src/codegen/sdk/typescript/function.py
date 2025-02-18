@@ -432,7 +432,11 @@ class TSFunction(Function["TSFunction", TSDecorator, "TSCodeBlock", TSParameter,
     @property
     @reader
     def promise_chains(self) -> list[TSPromiseChain]:
-        """Returns a list of promise chains in the function."""
+        """Returns a list of promise chains in the function.
+
+        Returns:
+            list[TSPromiseChain]: A list of promise chains in the function.
+        """
         promise_chains = []
         visited_base_functions = set()
         function_calls = self.function_calls

@@ -711,7 +711,11 @@ class FunctionCall(Expression[Parent], HasName, Resolvable, Generic[Parent]):
     @property
     @reader
     def promise_chain(self) -> TSPromiseChain | None:
-        """Return the promise chain associated with this function call, if a then call is found."""
+        """Return the promise chain associated with this function call, if a then call is found.
+
+        Returns:
+            TSPromiseChain | None: The promise chain associated with this function call, if a then call is found.
+        """
         if any(call.name == "then" for call in self.call_chain) is True:
             return TSPromiseChain(self.attribute_chain)
         return None

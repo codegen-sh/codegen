@@ -451,6 +451,11 @@ class TSFile(SourceFile[TSImport, TSFunction, TSClass, TSAssignment, TSInterface
     @property
     @reader
     def promise_chains(self) -> list[TSPromiseChain]:
+        """Returns all promise chains in the file.
+
+        Returns:
+            list[TSPromiseChain]: A list of promise chains in the file.
+        """
         promise_chains = []
         for function in self.functions:
             for promise_chain in function.promise_chains:
