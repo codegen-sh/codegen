@@ -1,6 +1,5 @@
 import codegen
 from codegen import Codebase
-from codegen.sdk.enums import ProgrammingLanguage
 from codegen.sdk.core.statements.statement import StatementType
 
 
@@ -75,6 +74,6 @@ def run(codebase: Codebase):
 
 if __name__ == "__main__":
     print("Initializing codebase...")
-    codebase = Codebase("/Users/tawsifkamal/Documents/codegen-repos/twilio-node", programming_language=ProgrammingLanguage.TYPESCRIPT)
+    codebase = Codebase("twilio/twilio-node", language="typescript")
     print("Running codemod...")
     run(codebase)
