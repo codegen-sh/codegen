@@ -36,7 +36,7 @@ This example demonstrates how to run a Model Control Protocol (MCP) server that 
 1. No installation is necessary, with the following command. Run this command directly or add it your `.json` mcp config file.
 
 ```bash
- uvx --from 'git+https://github.com/codegen-sh/codegen-sdk.git@ce8cffe#egg=codegen-mcp-server&subdirectory=codegen-examples/examples/codegen-mcp-server' codegen-mcp-server
+ uvx --from 'git+https://github.com/codegen-sh/codegen-sdk.git#egg=codegen-mcp-server&subdirectory=codegen-examples/examples/codegen-mcp-server' codegen-mcp-server
 ```
 
 ### Example MCP Config
