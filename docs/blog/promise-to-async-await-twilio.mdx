@@ -1,0 +1,168 @@
+---
+title: "Promise -> Async/Await in Twilio Node.js SDK"
+sidebarTitle: "Promise -> Async/Await"
+description: "Using Codegen to automate the conversion of ***592 instances*** of Promise `.then` chains to `async/await` in Twilio's Node.js Repository"
+icon: "hand-fingers-crossed"
+iconType: "solid"
+---
+
+<img src="/images/async-await.png" />
+
+Promise `.then()` chains often lead to nested, hard-to-read code. While `async/await` offers a cleaner alternative, migrating large codebases like [Twilio's Node.js SDK](https://github.com/twilio/twilio-node) requires careful handling of backward compatibility.
+
+
+Using Codegen, we performed this conversion reliably across **all 592 instances.**
+
+<Check>
+Here is the conversion [Pull Request](https://github.com/twilio/twilio-node/pull/1072) made using Codegen.
+</Check>
+
+## The Pattern
+
+ Twilio's Node.js SDK has [this](https://github.com/twilio/twilio-node/blob/9bc36951e300af5affff46a05bdd120c7d6ceec4/src/rest/accounts/v1/credential/aws.ts#L182) Promise chain pattern repeated across the codebase:
+
+<img src="/images/twilio-then.png" />
+
+```typescript
+function update(callback?: (error: Error | null, item?: Instance) => any): Promise<Instance> {
+  let operationPromise = operationVersion.update({
+    uri: instance._uri,
+    method: "post",
+    headers,
+  });
+
+  operationPromise = operationPromise.then(
+    (payload) => new Instance(operationVersion, payload)
+  );
+
+  operationPromise = instance._version.setPromiseCallback(
+    operationPromise,
+    callback
+  );
+  return operationPromise;
+}
+```
+
+Each instance of this is found:
+1. Creating an `operationPromise`
+2. Transforming the response
+3. Handling callbacks through `setPromiseCallback`
+4. Returning the promise
+
+
+# Converting the Promise Chain to Async/Await
+
+To perform this conversion, we used the Codegen `convert_to_async_await()` api.
+
+<Info>
+Learn more about the the usage of this api in the following [tutorial](/tutorials/promise-to-async-await)
+</Info>
+
+## Step 1: Finding Promise Chains
+
+Extract all promise chains using the `TSFunction.promise_chains` method.
+
+```python
+operation_promise_chains = []
+unique_files = set()
+
+# loop through all classes
+for _class in codebase.classes:
+
+    # loop through all methods
+    for method in _class.methods:
+    
+        # Skip certain methods
+        if method.name in ["each", "setPromiseCallback"]:
+            continue
+
+        # Only process methods with operationPromise
+        if not method.find("operationPromise"):
+            continue
+
+        # Collect all promise chains
+        for promise_chain in method.promise_chains:
+            operation_promise_chains.append({
+                "function_name": method.name,
+                "promise_chain": promise_chain,
+                "promise_statement": promise_chain.parent_statement
+            })
+            unique_files.add(method.file.filepath)
+
+print(f"Found {len(operation_promise_chains)} Promise chains")
+print(f"Across {len(unique_files)} files")
+```
+
+```bash
+Found 592 Promise chains
+Across 393 files
+```
+
+
+## Step 2: Converting to Async/Await
+
+Then we converted each chain and added proper error handling with try/catch:
+
+```python
+for chain_info in operation_promise_chains:
+    promise_chain = chain_info["promise_chain"]
+    promise_statement = chain_info["promise_statement"]
+    
+    # Convert the chain
+    async_code = promise_chain.convert_to_async_await(
+        assignment_variable_name="operation"
+    )
+    
+    # Add try-catch with callback handling
+    new_code = f"""
+        try {{
+            {async_code}
+            if (callback) {{
+                callback(null, operation);
+            }}
+            return operation;
+        }} catch(err: any) {{
+            if (callback) {{
+                callback(err);
+            }}
+            throw err;
+        }}
+    """
+    promise_statement.edit(new_code)
+
+    # Clean up old statements
+    statements = promise_statement.parent.get_statements()
+    return_stmt = next((stmt for stmt in statements 
+        if stmt.statement_type == StatementType.RETURN_STATEMENT), None)
+    assign_stmt = next((stmt for stmt in reversed(statements) 
+        if stmt.statement_type == StatementType.ASSIGNMENT), None)
+
+    if return_stmt:
+        return_stmt.remove()
+    if assign_stmt:
+        assign_stmt.remove()
+```
+
+## The Conversion
+
+- Converted 592 Promise chains across the codebase
+- Eliminated the need for `setPromiseCallback` utility
+- Maintained backward compatibility with callback-style APIs
+- Improved code readability and maintainability
+
+<Tabs>
+    <Tab title="Before">
+        <img src="/images/twilio-diff-before.png" />
+    </Tab>
+
+    <Tab title="After">
+        <img src="/images/twilio-diff-after.png" />
+    </Tab>
+</Tabs>
+
+## Conclusion
+
+Promise chains using `.then()` syntax often leads to complex and deeply nested code that's harder to maintain. It's an active problem that many teams *want* to pursue but never end up doing so due to the time consuming nature of the migration.
+Codegen can significantly accelerate these migrations by automating the conversion for several different cases.
+
+Want to try this yourself? Check out our [Promise to Async/Await tutorial](/tutorials/promise-to-async-await)
