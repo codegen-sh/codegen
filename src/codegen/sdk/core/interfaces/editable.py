@@ -230,7 +230,7 @@ class Editable(JSONable, Generic[Parent]):
     @cached_property
     @noapidoc
     @reader
-    def _source(self):
+    def _source(self) -> str:
         """Text representation of the Editable instance."""
         return self.ts_node.text.decode("utf-8")
 

@@ -16,7 +16,8 @@ def run(codebase: Codebase):
 
     # loop through all files -> classes -> methods to find promise the operationPromise chains
     i = 0
-    for file in codebase.files:
+
+    for file in codebase.files:  # pyright: ignore
         for _class in file.classes:
             for method in _class.methods:
                 if method.name in ["each", "setPromiseCallback"]:

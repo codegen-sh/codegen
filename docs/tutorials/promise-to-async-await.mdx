@@ -49,7 +49,7 @@ Find Promise chains starting from a specific function call:
 ```python
 # Assuming the function call is part of a promise chain
 fetch_call = codebase.get_function("fetchUserData").function_calls[2]
-chain = fetch_call.get_promise_chain
+chain = fetch_call.promise_chain
 ```
 
 

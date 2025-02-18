@@ -6,7 +6,6 @@ from codegen.sdk.codebase.resolution_stack import ResolutionStack
 from codegen.sdk.core.autocommit import reader, remover, writer
 from codegen.sdk.core.dataclasses.usage import UsageKind
 from codegen.sdk.core.detached_symbols.argument import Argument
-from codegen.sdk.core.detached_symbols.promise_chain import TSPromiseChain
 from codegen.sdk.core.expressions import Expression, Name, Value
 from codegen.sdk.core.expressions.chained_attribute import ChainedAttribute
 from codegen.sdk.core.expressions.generic_type import GenericType
@@ -18,6 +17,7 @@ from codegen.sdk.enums import NodeType, ProgrammingLanguage
 from codegen.sdk.extensions.sort import sort_editables
 from codegen.sdk.extensions.utils import cached_property, is_descendant_of
 from codegen.sdk.typescript.enums import TSFunctionTypeNames
+from codegen.sdk.typescript.promise_chain import TSPromiseChain
 from codegen.sdk.utils import find_first_ancestor
 from codegen.shared.decorators.docs import apidoc, noapidoc
 
@@ -709,8 +709,8 @@ class FunctionCall(Expression[Parent], HasName, Resolvable, Generic[Parent]):
 
     @property
     @reader
-    def get_promise_chain(self) -> TSPromiseChain | None:
-        """Returns a list of all promise chains in this function call chain, including this call."""
+    def promise_chain(self) -> TSPromiseChain | None:
+        """Return the promise chain associated with this function call, if a then call is found."""
         if any(call.name == "then" for call in self.call_chain) is True:
             return TSPromiseChain(self.attribute_chain)
         return None

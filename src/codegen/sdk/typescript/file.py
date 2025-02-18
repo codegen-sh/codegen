@@ -24,9 +24,9 @@ from codegen.shared.decorators.docs import noapidoc, ts_apidoc
 
 if TYPE_CHECKING:
     from codegen.sdk.codebase.codebase_context import CodebaseContext
-    from codegen.sdk.core.detached_symbols.promise_chain import TSPromiseChain
     from codegen.sdk.core.statements.export_statement import ExportStatement
     from codegen.sdk.core.symbol import Symbol
+    from codegen.sdk.typescript.promise_chain import TSPromiseChain
     from codegen.sdk.typescript.symbol import TSSymbol
     from codegen.sdk.typescript.ts_config import TSConfig
     from codegen.sdk.typescript.type_alias import TSTypeAlias

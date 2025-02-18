@@ -22,7 +22,6 @@ if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
 
     from codegen.sdk.codebase.codebase_context import CodebaseContext
-    from codegen.sdk.core.detached_symbols.promise_chain import TSPromiseChain
     from codegen.sdk.core.import_resolution import Import, WildcardImport
     from codegen.sdk.core.interfaces.has_name import HasName
     from codegen.sdk.core.node_id_factory import NodeId
@@ -30,6 +29,7 @@ if TYPE_CHECKING:
     from codegen.sdk.core.statements.symbol_statement import SymbolStatement
     from codegen.sdk.core.symbol import Symbol
     from codegen.sdk.typescript.detached_symbols.code_block import TSCodeBlock
+    from codegen.sdk.typescript.promise_chain import TSPromiseChain
 _VALID_TYPE_NAMES = {function_type.value for function_type in TSFunctionTypeNames}
 logger = logging.getLogger(__name__)
 
@@ -439,7 +439,7 @@ class TSFunction(Function["TSFunction", TSDecorator, "TSCodeBlock", TSParameter,
 
         for function_call in function_calls:
             if function_call.name == "then" and function_call.base not in visited_base_functions:
-                promise_chains.append(function_call.get_promise_chain)
+                promise_chains.append(function_call.promise_chain)
                 visited_base_functions.add(function_call.base)
 
         return promise_chains

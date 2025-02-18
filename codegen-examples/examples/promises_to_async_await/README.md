@@ -2,7 +2,7 @@
 
 This example demonstrates how to use Codegen to automatically transform `promise.then` statements to `async/await`.
 
-> Here is an [open pull request](https://github.com/twilio/twilio-node/pull/1072) created in the [*official* twilio node.js](https://www.twilio.com/docs/messaging/quickstart/node) repository using the promise to async/await transformation using Codegen.
+> Here is an [open pull request](https://github.com/twilio/twilio-node/pull/1072) created in the [_official_ twilio node.js](https://www.twilio.com/docs/messaging/quickstart/node) repository using the promise to async/await transformation using Codegen.
 
 ## How the Migration Script Works
 
@@ -26,7 +26,7 @@ The script automates the entire migration process in a few key steps:
    ```python
    # Or get the promise chain for the current function call
    function_call = codebase.get_function("function_name").function_calls[0]
-   promise_chain = function_call.get_promise_chain
+   promise_chain = function_call.promise_chain
    ```
 
    - Automatically identifies all promise chains in each file, function, or function call in the codebase
@@ -65,9 +65,9 @@ The script automates the entire migration process in a few key steps:
 
 ## Running the Migration on the [Official Twilio Node.js](https://github.com/twilio/twilio-node) Client Libary
 
-*1. Follow step by step in the [convert_promises_twilio_repository.ipynb](./convert_promises_twilio_repository.ipynb) notebook*
+_1. Follow step by step in the [convert_promises_twilio_repository.ipynb](./convert_promises_twilio_repository.ipynb) notebook_
 
-*Or run codemod script directly:*
+_Or run codemod script directly:_
 
 ```bash
 # Install Codegen
@@ -80,14 +80,14 @@ python run.py
 The script will:
 
 1. Initialize the codebase
-1. Find *all 592* instances of `promise.then` statements with the base call called `operationPromise`
+1. Find _all 592_ instances of `promise.then` statements with the base call called `operationPromise`
 1. Convert those to async/await style calls
 
-*IMPORTANT: ensure to run `npx prettier --write .` after the migration to fix indentation + linting*
+_IMPORTANT: ensure to run `npx prettier --write .` after the migration to fix indentation + linting_
 
 ## Explore All The Covered Cases for the Conversion
 
-*Checkout the [promise_to_async_await.ipynb](./promise_to_async_await.ipynb) notebook*
+_Checkout the [promise_to_async_await.ipynb](./promise_to_async_await.ipynb) notebook_
 
 Currently, the `promise_chain.convert_to_async_await()` method handles the following cases:
 
@@ -101,7 +101,7 @@ Currently, the `promise_chain.convert_to_async_await()` method handles the follo
 
 **IMPORTANT:**
 
-*There will be cases that the current `promise_chain.convert_to_async_await()` cannot handle. In those cases, either right your own transformation logic using the codegen-sdk or open an issue on the [Codegen](https://github.com/codegen-sh/codegen-sdk) repository.*
+_There will be cases that the current `promise_chain.convert_to_async_await()` cannot handle. In those cases, either right your own transformation logic using the codegen-sdk or open an issue on the [Codegen](https://github.com/codegen-sh/codegen-sdk) repository._
 
 ## Contributing
 
