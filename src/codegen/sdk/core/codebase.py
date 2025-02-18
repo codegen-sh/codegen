@@ -9,7 +9,7 @@ from collections.abc import Generator
 from contextlib import contextmanager
 from functools import cached_property
 from pathlib import Path
-from typing import TYPE_CHECKING, Generic, Literal, TypeVar, Unpack, overload
+from typing import Generic, Literal, Unpack, overload
 
 import plotly.graph_objects as go
 import rich.repr
@@ -19,7 +19,7 @@ from git.remote import PushInfoList
 from github.PullRequest import PullRequest
 from networkx import Graph
 from rich.console import Console
-from typing_extensions import deprecated
+from typing_extensions import TypeVar, deprecated
 
 from codegen.git.repo_operator.local_repo_operator import LocalRepoOperator
 from codegen.git.repo_operator.remote_repo_operator import RemoteRepoOperator
@@ -44,6 +44,7 @@ from codegen.sdk.core.codeowner import CodeOwner
 from codegen.sdk.core.detached_symbols.code_block import CodeBlock
 from codegen.sdk.core.detached_symbols.parameter import Parameter
 from codegen.sdk.core.directory import Directory
+from codegen.sdk.core.export import Export
 from codegen.sdk.core.external_module import ExternalModule
 from codegen.sdk.core.file import File, SourceFile
 from codegen.sdk.core.function import Function
@@ -84,27 +85,24 @@ from codegen.shared.exceptions.control_flow import MaxAIRequestsError
 from codegen.shared.performance.stopwatch_utils import stopwatch
 from codegen.visualizations.visualization_manager import VisualizationManager
 
-if TYPE_CHECKING:
-    from codegen.sdk.core.export import Export
-
 logger = logging.getLogger(__name__)
 MAX_LINES = 10000  # Maximum number of lines of text allowed to be logged
 
 
-TSourceFile = TypeVar("TSourceFile", bound="SourceFile")
-TDirectory = TypeVar("TDirectory", bound="Directory")
-TSymbol = TypeVar("TSymbol", bound="Symbol")
-TClass = TypeVar("TClass", bound="Class")
-TFunction = TypeVar("TFunction", bound="Function")
-TImport = TypeVar("TImport", bound="Import")
-TGlobalVar = TypeVar("TGlobalVar", bound="Assignment")
-TInterface = TypeVar("TInterface", bound="Interface")
-TTypeAlias = TypeVar("TTypeAlias", bound="TypeAlias")
-TParameter = TypeVar("TParameter", bound="Parameter")
-TCodeBlock = TypeVar("TCodeBlock", bound="CodeBlock")
-TExport = TypeVar("TExport", bound="Export")
-TSGlobalVar = TypeVar("TSGlobalVar", bound="Assignment")
-PyGlobalVar = TypeVar("PyGlobalVar", bound="Assignment")
+TSourceFile = TypeVar("TSourceFile", bound="SourceFile", default=SourceFile)
+TDirectory = TypeVar("TDirectory", bound="Directory", default=Directory)
+TSymbol = TypeVar("TSymbol", bound="Symbol", default=Symbol)
+TClass = TypeVar("TClass", bound="Class", default=Class)
+TFunction = TypeVar("TFunction", bound="Function", default=Function)
+TImport = TypeVar("TImport", bound="Import", default=Import)
+TGlobalVar = TypeVar("TGlobalVar", bound="Assignment", default=Assignment)
+TInterface = TypeVar("TInterface", bound="Interface", default=Interface)
+TTypeAlias = TypeVar("TTypeAlias", bound="TypeAlias", default=TypeAlias)
+TParameter = TypeVar("TParameter", bound="Parameter", default=Parameter)
+TCodeBlock = TypeVar("TCodeBlock", bound="CodeBlock", default=CodeBlock)
+TExport = TypeVar("TExport", bound="Export", default=Export)
+TSGlobalVar = TypeVar("TSGlobalVar", bound="Assignment", default=Assignment)
+PyGlobalVar = TypeVar("PyGlobalVar", bound="Assignment", default=Assignment)
 TSDirectory = Directory[TSFile, TSSymbol, TSImportStatement, TSGlobalVar, TSClass, TSFunction, TSImport]
 PyDirectory = Directory[PyFile, PySymbol, PyImportStatement, PyGlobalVar, PyClass, PyFunction, PyImport]
 

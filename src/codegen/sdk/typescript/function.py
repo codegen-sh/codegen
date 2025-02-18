@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 
 @ts_apidoc
-class TSFunction(Function["TSFunction", TSDecorator, "TSCodeBlock", TSParameter, TSType], TSHasBlock, TSSymbol):
+class TSFunction(Function[TSDecorator, "TSCodeBlock", TSParameter, TSType], TSHasBlock, TSSymbol):
     """Representation of a Function in JavaScript/TypeScript"""
 
     @noapidoc
