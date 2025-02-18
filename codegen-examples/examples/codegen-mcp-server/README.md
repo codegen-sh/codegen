@@ -21,16 +21,15 @@
 This example demonstrates how to run a Model Control Protocol (MCP) server that integrates with Codegen. The server provides:
 
 1. A standardized interface for model inference
-2. Integration with Codegen's core functionality, parsing codebases and executing codemods
-3. Support for various LLM providers through the MCP protocol
-
+1. Integration with Codegen's core functionality, parsing codebases and executing codemods
+1. Support for various LLM providers through the MCP protocol
 
 ## Quick Start
 
 ### Prerequisites
+
 - [uv](https://docs.astral.sh/uv/getting-started/installation/)
 - [python](https://www.python.org/downloads/) 3.12+
-
 
 ### Direct Execution
 
@@ -40,8 +39,8 @@ This example demonstrates how to run a Model Control Protocol (MCP) server that 
  uvx --from 'git+https://github.com/codegen-sh/codegen-sdk.git@ce8cffe#egg=codegen-mcp-server&subdirectory=codegen-examples/examples/codegen-mcp-server' codegen-mcp-server
 ```
 
-
 ### Example MCP Config
+
 Here is an example mcp config that can be used with Cline or Claude desktop to integrate this MCP server
 
 ```json
@@ -50,12 +49,13 @@ Here is an example mcp config that can be used with Cline or Claude desktop to i
     "codegen-mcp": {
       "command": "uvx",
       "args": [
-        "--from", "git+https://github.com/codegen-sh/codegen-sdk.git#egg=codegen-mcp-server&subdirectory=codegen-examples/examples/codegen-mcp-server", "codegen-mcp-server"
+        "--from",
+        "git+https://github.com/codegen-sh/codegen-sdk.git#egg=codegen-mcp-server&subdirectory=codegen-examples/examples/codegen-mcp-server",
+        "codegen-mcp-server"
       ],
       "disabled": false,
       "autoApprove": []
     }
   }
 }
-
 ```
