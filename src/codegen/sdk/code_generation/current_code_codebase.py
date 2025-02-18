@@ -5,11 +5,11 @@ from pathlib import Path
 from typing import TypedDict
 
 from codegen.git.repo_operator.local_repo_operator import LocalRepoOperator
-from codegen.git.schemas.repo_config import BaseRepoConfig
+from codegen.git.schemas.repo_config import RepoConfig
 from codegen.sdk.codebase.config import CodebaseConfig, DefaultConfig, ProjectConfig
 from codegen.sdk.core.codebase import Codebase, CodebaseType
-from codegen.sdk.enums import ProgrammingLanguage
 from codegen.shared.decorators.docs import DocumentedObject, apidoc_objects, no_apidoc_objects, py_apidoc_objects, ts_apidoc_objects
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 logger = logging.getLogger(__name__)
 
@@ -35,10 +35,15 @@ def get_codegen_codebase_base_path() -> str:
 def get_current_code_codebase(config: CodebaseConfig = DefaultConfig, subdirectories: list[str] | None = None) -> CodebaseType:
     """Returns a Codebase for the code that is *currently running* (i.e. the Codegen repo)"""
     codegen_repo_path = get_graphsitter_repo_path()
-    logger.info(f"Creating codebase from repo at: {codegen_repo_path} with base_path {get_codegen_codebase_base_path()}")
-    op = LocalRepoOperator(repo_path=codegen_repo_path, bot_commit=False, repo_config=BaseRepoConfig(respect_gitignore=False))
-    config = config.model_copy(update={"base_path": get_codegen_codebase_base_path()})
-    projects = [ProjectConfig(repo_operator=op, programming_language=ProgrammingLanguage.PYTHON, subdirectories=subdirectories, base_path=get_codegen_codebase_base_path())]
+    base_dir = get_codegen_codebase_base_path()
+    logger.info(f"Creating codebase from repo at: {codegen_repo_path} with base_path {base_dir}")
+
+    repo_config = RepoConfig.from_repo_path(codegen_repo_path)
+    repo_config.respect_gitignore = False
+    op = LocalRepoOperator(repo_config=repo_config, bot_commit=False)
+
+    config = config.model_copy(update={"base_path": base_dir})
+    projects = [ProjectConfig(repo_operator=op, programming_language=ProgrammingLanguage.PYTHON, subdirectories=subdirectories, base_path=base_dir)]
     codebase = Codebase(projects=projects, config=config)
     return codebase
 

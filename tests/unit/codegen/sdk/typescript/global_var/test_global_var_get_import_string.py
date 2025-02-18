@@ -1,5 +1,6 @@
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
-from codegen.sdk.enums import ImportType, ProgrammingLanguage
+from codegen.sdk.enums import ImportType
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def test_global_var_get_import_string_import_type_star(tmpdir) -> None:

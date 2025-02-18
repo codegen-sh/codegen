@@ -1,9 +1,9 @@
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
 from codegen.sdk.core.detached_symbols.function_call import FunctionCall
 from codegen.sdk.core.expressions.number import Number
-from codegen.sdk.enums import ProgrammingLanguage
 from codegen.sdk.typescript.statements.assignment_statement import TSAssignmentStatement
 from codegen.sdk.typescript.statements.attribute import TSAttribute
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def test_attribute(tmpdir) -> None:

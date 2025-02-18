@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 import inflection
 
 from codegen.sdk.core.codebase import CodebaseType
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 from tests.shared.skills.skill_implementation import SkillImplementation
 from tests.shared.skills.skill_test import SkillTestCase
 from tests.shared.skills.utils import skill_name_to_skill_implementations, skills

@@ -5,7 +5,7 @@ github_token = "gh_token123"
 openai_api_key = "sk-123456"
 
 [repository]
-organization_name = "test-org"
+full_name = "test-org/test-repo"
 repo_name = "test-repo"
 
 [feature_flags.codebase]

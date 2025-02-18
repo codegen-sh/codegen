@@ -19,10 +19,6 @@ class IO(ABC):
         self.write_bytes(path, content.encode("utf-8"))
 
     @abstractmethod
-    def untrack_file(self, path: Path) -> None:
-        pass
-
-    @abstractmethod
     def write_bytes(self, path: Path, content: bytes) -> None:
         pass
 

@@ -1,7 +1,7 @@
 import pytest
 
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 @pytest.mark.skip("TODO: @caroljung fix once file and symbol code block parse is unified")

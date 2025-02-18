@@ -33,7 +33,7 @@ jobs:
       matrix:
         os: [
           ubuntu-latest,
-          ubuntu-24.04-arm, # https://github.com/actions/partner-runner-images/issues/37
+          ubuntu-22.04-arm, # https://github.com/actions/partner-runner-images/issues/37 https://github.com/orgs/community/discussions/148648#discussioncomment-12099554
           macos-latest,
           macos-14-large
         ]

@@ -1,7 +1,8 @@
 from typing import TYPE_CHECKING
 
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
-from codegen.sdk.enums import ImportType, ProgrammingLanguage
+from codegen.sdk.enums import ImportType
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 if TYPE_CHECKING:
     from codegen.sdk.typescript.file import TSFile

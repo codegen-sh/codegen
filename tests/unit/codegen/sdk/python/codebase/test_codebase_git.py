@@ -1,7 +1,7 @@
 import pytest
 
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 @pytest.mark.parametrize("commit, sync", [(True, True), (True, False), (False, False)])

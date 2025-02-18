@@ -8,7 +8,7 @@ from doctest import ELLIPSIS
 
 from codegen.sdk.code_generation.current_code_codebase import get_documented_objects
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 from codegen.sdk.typescript.class_definition import TSClass
 from codegen.sdk.typescript.file import TSFile
 from codegen.gscli.generate.runner_imports import EXTERNAL_IMPORTS

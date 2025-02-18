@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from codegen.sdk.core.autocommit import commiter, mover, reader, writer
 from codegen.sdk.core.file import SourceFile
 from codegen.sdk.core.interfaces.exportable import Exportable
-from codegen.sdk.enums import ImportType, NodeType, ProgrammingLanguage, SymbolType
+from codegen.sdk.enums import ImportType, NodeType, SymbolType
 from codegen.sdk.extensions.sort import sort_editables
 from codegen.sdk.extensions.utils import cached_property
 from codegen.sdk.typescript.assignment import TSAssignment
@@ -21,6 +21,7 @@ from codegen.sdk.typescript.namespace import TSNamespace
 from codegen.sdk.typescript.statements.import_statement import TSImportStatement
 from codegen.sdk.utils import calculate_base_path, find_all_descendants
 from codegen.shared.decorators.docs import noapidoc, ts_apidoc
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 if TYPE_CHECKING:
     from codegen.sdk.codebase.codebase_context import CodebaseContext

@@ -4,7 +4,7 @@ import pytest
 
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
 from codegen.sdk.core.codebase import Codebase
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def generate_files(num_files: int, extension: str = "py") -> dict[str, str]:

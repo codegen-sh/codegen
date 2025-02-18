@@ -1,6 +1,7 @@
 from collections import Counter
 from collections.abc import Generator, Iterable
-from functools import cached_property
+from functools import cached_property as functools_cached_property
+from functools import lru_cache as functools_lru_cache
 
 from tabulate import tabulate
 from tree_sitter import Node as TSNode
@@ -106,10 +107,11 @@ def find_first_descendant(node: TSNode, type_names: list[str], max_depth: int | 
 
 
 to_uncache = []
+lru_caches = []
 counter = Counter()
 
 
-class cached_property(cached_property):
+class cached_property(functools_cached_property):
     def __get__(self, instance, owner=None):
         ret = super().__get__(instance)
         if instance is not None:
@@ -118,12 +120,29 @@ class cached_property(cached_property):
         return ret
 
 
+def lru_cache(func=None, *, maxsize=128, typed=False):
+    """A wrapper around functools.lru_cache that tracks the cached function so that its cache
+    can be cleared later via uncache_all().
+    """
+    if func is None:
+        # return decorator
+        return lambda f: lru_cache(f, maxsize=maxsize, typed=typed)
+
+    # return decorated
+    cached_func = functools_lru_cache(maxsize=maxsize, typed=typed)(func)
+    lru_caches.append(cached_func)
+    return cached_func
+
+
 def uncache_all():
     for instance, name in to_uncache:
         try:
             del instance.__dict__[name]
         except KeyError:
             pass
+
+    for cached_func in lru_caches:
+        cached_func.cache_clear()
 
 
 def report():

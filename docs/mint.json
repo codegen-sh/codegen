@@ -84,6 +84,7 @@
 				"tutorials/at-a-glance",
 				"tutorials/build-code-agent",
 				"tutorials/slack-bot",
+				"tutorials/deep-code-research",
 				"tutorials/training-data",
 				"tutorials/codebase-visualization",
 				"tutorials/migrating-apis",
@@ -101,7 +102,9 @@
 				"tutorials/sqlalchemy-1.6-to-2.0",
 				"tutorials/fixing-import-loops-in-pytorch",
 				"tutorials/python2-to-python3",
-				"tutorials/flask-to-fastapi"
+				"tutorials/flask-to-fastapi",
+				"tutorials/build-mcp",
+				"tutorials/neo4j-graph"
 			]
 		},
 		{
@@ -187,6 +190,7 @@
 						"api-reference/core/ChainedAttribute",
 						"api-reference/core/Class",
 						"api-reference/core/CodeBlock",
+						"api-reference/core/CodeOwner",
 						"api-reference/core/Codebase",
 						"api-reference/core/Comment",
 						"api-reference/core/CommentGroup",

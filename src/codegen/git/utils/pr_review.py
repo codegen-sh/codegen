@@ -127,3 +127,20 @@ class CodegenPR:
                 if self.is_modified(symbol):
                     all_modified.append(symbol)
         return all_modified
+
+    def get_pr_diff(self) -> str:
+        """Get the full diff of the PR"""
+        if not self._op.remote_git_repo:
+            msg = "GitHub API client is required to get PR diffs"
+            raise ValueError(msg)
+
+        # Get the diff directly from the PR
+        diff_url = self._gh_pr.raw_data.get("diff_url")
+        if diff_url:
+            # Fetch the diff content from the URL
+            response = requests.get(diff_url)
+            response.raise_for_status()
+            return response.text
+        else:
+            # If diff_url not available, get the patch directly
+            return self._gh_pr.get_patch()

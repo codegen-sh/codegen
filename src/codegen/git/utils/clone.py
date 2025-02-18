@@ -2,15 +2,15 @@ import logging
 import os
 import subprocess
 
+from git import Repo as GitRepo
+
+from codegen.git.utils.remote_progress import CustomRemoteProgress
 from codegen.shared.performance.stopwatch_utils import subprocess_with_stopwatch
 
 logger = logging.getLogger(__name__)
 
 
-# return os.path.join(repo_path, repo_name), clone_url
-
-
-# TODO: update to use GitPython instead + move into LocalRepoOperator
+# TODO: move into LocalRepoOperator
 def clone_repo(
     repo_path: str,
     clone_url: str,
@@ -25,14 +25,7 @@ def clone_repo(
         delete_command = f"rm -rf {repo_path}"
         logger.info(f"Deleting existing clone with command: {delete_command}")
         subprocess.run(delete_command, shell=True, capture_output=True)
-
-    if shallow:
-        clone_command = f"""git clone --depth 1 {clone_url} {repo_path}"""
-    else:
-        clone_command = f"""git clone {clone_url} {repo_path}"""
-    logger.info(f"Cloning with command: {clone_command} ...")
-    subprocess_with_stopwatch(clone_command, shell=True, capture_output=True)
-    # TODO: if an error raise or return None rather than silently failing
+    GitRepo.clone_from(url=clone_url, to_path=repo_path, depth=1 if shallow else None, progress=CustomRemoteProgress())
     return repo_path
 
 
@@ -47,12 +40,7 @@ def clone_or_pull_repo(
         pull_repo(clone_url=clone_url, repo_path=repo_path)
     else:
         logger.info(f"{repo_path} directory does not exist running git clone ...")
-        if shallow:
-            clone_command = f"""git clone --depth 1 {clone_url} {repo_path}"""
-        else:
-            clone_command = f"""git clone {clone_url} {repo_path}"""
-        logger.info(f"Cloning with command: {clone_command} ...")
-        subprocess_with_stopwatch(command=clone_command, command_desc=f"clone {repo_path}", shell=True, capture_output=True)
+        clone_repo(repo_path=repo_path, clone_url=clone_url, shallow=shallow)
     return repo_path
 
 

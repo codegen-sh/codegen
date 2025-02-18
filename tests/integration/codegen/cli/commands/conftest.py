@@ -37,7 +37,5 @@ def initialized_repo(sample_repository: Path, runner: CliRunner):
 
     with patch.object(VenvManager, "is_initialized", return_value=True):
         runner.invoke(init_command)
-    subprocess.run(["git", "add", "."], cwd=sample_repository, check=True)
-    subprocess.run(["git", "commit", "-m", "Initialize codegen"], cwd=sample_repository, check=True)
 
     return sample_repository

@@ -7,6 +7,7 @@ import os
 import re
 from collections.abc import Generator
 from contextlib import contextmanager
+from functools import cached_property
 from pathlib import Path
 from typing import TYPE_CHECKING, Generic, Literal, TypeVar, Unpack, overload
 
@@ -15,6 +16,7 @@ import rich.repr
 from git import Commit as GitCommit
 from git import Diff
 from git.remote import PushInfoList
+from github.PullRequest import PullRequest
 from networkx import Graph
 from rich.console import Console
 from typing_extensions import deprecated
@@ -33,9 +35,12 @@ from codegen.sdk.codebase.diff_lite import DiffLite
 from codegen.sdk.codebase.flagging.code_flag import CodeFlag
 from codegen.sdk.codebase.flagging.enums import FlagKwargs
 from codegen.sdk.codebase.flagging.group import Group
+from codegen.sdk.codebase.io.io import IO
+from codegen.sdk.codebase.progress.progress import Progress
 from codegen.sdk.codebase.span import Span
 from codegen.sdk.core.assignment import Assignment
 from codegen.sdk.core.class_definition import Class
+from codegen.sdk.core.codeowner import CodeOwner
 from codegen.sdk.core.detached_symbols.code_block import CodeBlock
 from codegen.sdk.core.detached_symbols.parameter import Parameter
 from codegen.sdk.core.directory import Directory
@@ -48,7 +53,7 @@ from codegen.sdk.core.interfaces.editable import Editable
 from codegen.sdk.core.interfaces.has_name import HasName
 from codegen.sdk.core.symbol import Symbol
 from codegen.sdk.core.type_alias import TypeAlias
-from codegen.sdk.enums import NodeType, ProgrammingLanguage, SymbolType
+from codegen.sdk.enums import NodeType, SymbolType
 from codegen.sdk.extensions.sort import sort_editables
 from codegen.sdk.extensions.utils import uncache_all
 from codegen.sdk.output.constants import ANGULAR_STYLE
@@ -74,6 +79,7 @@ from codegen.sdk.typescript.statements.import_statement import TSImportStatement
 from codegen.sdk.typescript.symbol import TSSymbol
 from codegen.sdk.typescript.type_alias import TSTypeAlias
 from codegen.shared.decorators.docs import apidoc, noapidoc, py_noapidoc
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 from codegen.shared.exceptions.control_flow import MaxAIRequestsError
 from codegen.shared.performance.stopwatch_utils import stopwatch
 from codegen.visualizations.visualization_manager import VisualizationManager
@@ -123,9 +129,11 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         self,
         repo_path: None = None,
         *,
-        programming_language: None = None,
+        language: None = None,
         projects: list[ProjectConfig] | ProjectConfig,
         config: CodebaseConfig = DefaultConfig,
+        io: IO | None = None,
+        progress: Progress | None = None,
     ) -> None: ...
 
     @overload
@@ -133,18 +141,22 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         self,
         repo_path: str,
         *,
-        programming_language: ProgrammingLanguage | None = None,
+        language: Literal["python", "typescript"] | ProgrammingLanguage | None = None,
         projects: None = None,
         config: CodebaseConfig = DefaultConfig,
+        io: IO | None = None,
+        progress: Progress | None = None,
     ) -> None: ...
 
     def __init__(
         self,
         repo_path: str | None = None,
         *,
-        programming_language: ProgrammingLanguage | None = None,
+        language: Literal["python", "typescript"] | ProgrammingLanguage | None = None,
         projects: list[ProjectConfig] | ProjectConfig | None = None,
         config: CodebaseConfig = DefaultConfig,
+        io: IO | None = None,
+        progress: Progress | None = None,
     ) -> None:
         # Sanity check inputs
         if repo_path is not None and projects is not None:
@@ -155,8 +167,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             msg = "Must specify either repo_path or projects"
             raise ValueError(msg)
 
-        if projects is not None and programming_language is not None:
-            msg = "Cannot specify both projects and programming_language. Use ProjectConfig.from_path() to create projects with a custom programming_language."
+        if projects is not None and language is not None:
+            msg = "Cannot specify both projects and language. Use ProjectConfig.from_path() to create projects with a custom language."
             raise ValueError(msg)
 
         # If projects is a single ProjectConfig, convert it to a list
@@ -165,7 +177,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
 
         # Initialize project with repo_path if projects is None
         if repo_path is not None:
-            main_project = ProjectConfig.from_path(repo_path, programming_language=programming_language)
+            main_project = ProjectConfig.from_path(repo_path, programming_language=ProgrammingLanguage(language.upper()) if language else None)
             projects = [main_project]
         else:
             main_project = projects[0]
@@ -174,7 +186,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         self._op = main_project.repo_operator
         self.viz = VisualizationManager(op=self._op)
         self.repo_path = Path(self._op.repo_path)
-        self.ctx = CodebaseContext(projects, config=config)
+        self.ctx = CodebaseContext(projects, config=config, io=io, progress=progress)
         self.console = Console(record=True, soft_wrap=True)
 
     @noapidoc
@@ -196,6 +208,20 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
     @deprecated("Please do not use the local repo operator directly")
     @noapidoc
     def op(self) -> RepoOperator:
+        return self._op
+
+    @property
+    def github(self) -> RepoOperator:
+        """Access GitHub operations through the repo operator.
+
+        This property provides access to GitHub operations like creating PRs,
+        working with branches, commenting on PRs, etc. The implementation is built
+        on top of PyGitHub (python-github library) and provides a simplified interface
+        for common GitHub operations.
+
+        Returns:
+            RepoOperator: The repo operator instance that handles GitHub operations.
+        """
         return self._op
 
     ####################################################################################################################
@@ -256,6 +282,17 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
                 files.append(self.get_file(filepath, optional=False))
         # Sort files alphabetically
         return sort_editables(files, alphabetical=True, dedupe=False)
+
+    @cached_property
+    def codeowners(self) -> list["CodeOwner[TSourceFile]"]:
+        """List all CodeOnwers in the codebase.
+
+        Returns:
+            list[CodeOwners]: A list of CodeOwners objects in the codebase.
+        """
+        if self.G.codeowners_parser is None:
+            return []
+        return CodeOwner.from_parser(self.G.codeowners_parser, lambda *args, **kwargs: self.files(*args, **kwargs))
 
     @property
     def directories(self) -> list[TDirectory]:
@@ -491,6 +528,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         if file is not None:
             return file
         absolute_path = self.ctx.to_absolute(filepath)
+        if absolute_path.suffix in self.ctx.extensions and not self.ctx.io.file_exists(absolute_path):
+            return None
         if self.ctx.io.file_exists(absolute_path):
             return get_file_from_path(absolute_path)
         elif ignore_case:
@@ -701,7 +740,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
     ####################################################################################################################
 
     def git_commit(self, message: str, *, verify: bool = False) -> GitCommit | None:
-        """Commits all staged changes to the codebase and git.
+        """Stages + commits all changes to the codebase and git.
 
         Args:
             message (str): The commit message
@@ -714,6 +753,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         if self._op.stage_and_commit_all_changes(message, verify):
             logger.info(f"Commited repository to {self._op.head_commit} on {self._op.get_active_branch_or_commit()}")
             return self._op.head_commit
+        else:
+            logger.info("No changes to commit")
         return None
 
     def commit(self, sync_graph: bool = True) -> None:
@@ -871,6 +912,39 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
     def restore_stashed_changes(self):
         """Restore the most recent stash in the codebase."""
         self._op.stash_pop()
+
+    ####################################################################################################################
+    # GITHUB
+    ####################################################################################################################
+
+    def create_pr(self, title: str, body: str) -> PullRequest:
+        """Creates a pull request from the current branch to the repository's default branch.
+
+        This method will:
+        1. Stage and commit any pending changes with the PR title as the commit message
+        2. Push the current branch to the remote repository
+        3. Create a pull request targeting the default branch
+
+        Args:
+            title (str): The title for the pull request
+            body (str): The description/body text for the pull request
+
+        Returns:
+            PullRequest: The created GitHub pull request object
+
+        Raises:
+            ValueError: If attempting to create a PR while in a detached HEAD state
+            ValueError: If the current branch is the default branch
+        """
+        if self._op.git_cli.head.is_detached:
+            msg = "Cannot make a PR from a detached HEAD"
+            raise ValueError(msg)
+        if self._op.git_cli.active_branch.name == self._op.default_branch:
+            msg = "Cannot make a PR from the default branch"
+            raise ValueError(msg)
+        self._op.stage_and_commit_all_changes(message=title)
+        self._op.push_changes()
+        return self._op.remote_git_repo.create_pull(head_branch_name=self._op.git_cli.active_branch.name, base_branch_name=self._op.default_branch, title=title, body=body)
 
     ####################################################################################################################
     # GRAPH VISUALIZATION
@@ -1165,12 +1239,11 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
     @classmethod
     def from_repo(
         cls,
-        repo_name: str,
+        repo_full_name: str,
         *,
-        tmp_dir: str | None = None,
+        tmp_dir: str | None = "/tmp/codegen",
         commit: str | None = None,
-        shallow: bool = True,
-        programming_language: ProgrammingLanguage | None = None,
+        language: Literal["python", "typescript"] | ProgrammingLanguage | None = None,
         config: CodebaseConfig = DefaultConfig,
     ) -> "Codebase":
         """Fetches a codebase from GitHub and returns a Codebase instance.
@@ -1180,44 +1253,42 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             tmp_dir (Optional[str]): The directory to clone the repo into. Defaults to /tmp/codegen
             commit (Optional[str]): The specific commit hash to clone. Defaults to HEAD
             shallow (bool): Whether to do a shallow clone. Defaults to True
-            programming_language (ProgrammingLanguage | None): The programming language of the repo. Defaults to None.
+            language (Literal["python", "typescript"] | ProgrammingLanguage | None): The programming language of the repo. Defaults to None.
             config (CodebaseConfig): Configuration for the codebase. Defaults to DefaultConfig.
 
         Returns:
             Codebase: A Codebase instance initialized with the cloned repository
         """
-        logger.info(f"Fetching codebase for {repo_name}")
+        logger.info(f"Fetching codebase for {repo_full_name}")
 
         # Parse repo name
-        if "/" not in repo_name:
+        if "/" not in repo_full_name:
             msg = "repo_name must be in format 'owner/repo'"
             raise ValueError(msg)
-        owner, repo = repo_name.split("/")
+        owner, repo = repo_full_name.split("/")
 
         # Setup temp directory
-        if tmp_dir is None:
-            tmp_dir = "/tmp/codegen"
         os.makedirs(tmp_dir, exist_ok=True)
         logger.info(f"Using directory: {tmp_dir}")
 
         # Setup repo path and URL
         repo_path = os.path.join(tmp_dir, repo)
-        repo_url = f"https://github.com/{repo_name}.git"
+        repo_url = f"https://github.com/{repo_full_name}.git"
         logger.info(f"Will clone {repo_url} to {repo_path}")
 
         try:
             # Use LocalRepoOperator to fetch the repository
             logger.info("Cloning repository...")
             if commit is None:
-                repo_operator = LocalRepoOperator.create_from_repo(repo_path=repo_path, url=repo_url, github_api_key=config.secrets.github_api_key if config.secrets else None)
+                repo_operator = LocalRepoOperator.create_from_repo(repo_path=repo_path, url=repo_url, access_token=config.secrets.github_api_key if config.secrets else None)
             else:
                 # Ensure the operator can handle remote operations
-                repo_operator = LocalRepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url, github_api_key=config.secrets.github_api_key if config.secrets else None)
+                repo_operator = LocalRepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url, access_token=config.secrets.github_api_key if config.secrets else None)
             logger.info("Clone completed successfully")
 
             # Initialize and return codebase with proper context
             logger.info("Initializing Codebase...")
-            project = ProjectConfig.from_repo_operator(repo_operator=repo_operator, programming_language=programming_language)
+            project = ProjectConfig.from_repo_operator(repo_operator=repo_operator, programming_language=ProgrammingLanguage(language.upper()) if language else None)
             codebase = Codebase(projects=[project], config=config)
             logger.info("Codebase initialization complete")
             return codebase
@@ -1225,11 +1296,12 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             logger.exception(f"Failed to initialize codebase: {e}")
             raise
 
-    def get_modified_symbols_in_pr(self, pr_id: int) -> list[Symbol]:
+    def get_modified_symbols_in_pr(self, pr_id: int) -> tuple[list[Symbol], str]:
         """Get all modified symbols in a pull request"""
         pr = self._op.get_pull_request(pr_id)
         cg_pr = CodegenPR(self._op, self, pr)
-        return cg_pr.modified_symbols
+        patch = cg_pr.get_pr_diff()
+        return cg_pr.modified_symbols, patch
 
 
 # The last 2 lines of code are added to the runner. See codegen-backend/cli/generate/utils.py

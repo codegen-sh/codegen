@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from codegen.sdk.core.autocommit import commiter, reader, writer
 from codegen.sdk.core.file import SourceFile
 from codegen.sdk.core.interface import Interface
-from codegen.sdk.enums import ImportType, ProgrammingLanguage
+from codegen.sdk.enums import ImportType
 from codegen.sdk.extensions.utils import cached_property, iter_all_descendants
 from codegen.sdk.python import PyAssignment
 from codegen.sdk.python.class_definition import PyClass
@@ -17,6 +17,7 @@ from codegen.sdk.python.interfaces.has_block import PyHasBlock
 from codegen.sdk.python.statements.attribute import PyAttribute
 from codegen.sdk.python.statements.import_statement import PyImportStatement
 from codegen.shared.decorators.docs import noapidoc, py_apidoc
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 if TYPE_CHECKING:
     from codegen.sdk.codebase.codebase_context import CodebaseContext

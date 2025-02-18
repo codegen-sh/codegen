@@ -23,4 +23,5 @@ runs:
             Actor: `${{ github.triggering_actor }}`
             Author: `${{ github.event.head_commit.author.username }}`
             ${{ format('Commit: <{0}/{1}/commit/{2}|{1}@{2}>', github.server_url, github.repository, github.sha) || ''}}
+            View <${{ format('{0}/{1}/releases/tag/{2}', github.server_url, github.repository, inputs.release-tag) }}|Github Release>
             View <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|GHA logs>

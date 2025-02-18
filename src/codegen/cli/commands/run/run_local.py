@@ -35,7 +35,7 @@ def run_local(
         diff_preview: Number of lines of diff to preview (None for all)
     """
     # Parse codebase and run
-    repo_root = Path(session.git_repo.workdir)
+    repo_root = session.repo_path
 
     with Status("[bold]Parsing codebase...", spinner="dots") as status:
         codebase = parse_codebase(repo_root)

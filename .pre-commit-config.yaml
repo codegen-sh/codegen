@@ -22,6 +22,7 @@ repos:
     rev: "v0.6.1"
     hooks:
       - id: biome-check
+        language: node
         additional_dependencies: ["@biomejs/biome@1.9.4"]
         exclude: (src/codemods/eval)|(tests/unit/skills/snapshots)|(tests/unit/codegen/sdk/output)|(tests/integration/verified_codemods)|(docs/samples)
   - repo: https://github.com/MarcoGorelli/cython-lint
@@ -62,6 +63,7 @@ repos:
     rev: v2.4.1
     hooks:
       - id: codespell
+        language: python
         additional_dependencies:
           - tomli
         files: "docs/.*/.*.mdx"
@@ -75,11 +77,11 @@ repos:
         entry: bash -c "uv run --frozen --all-extras --dev deptry src --ignore DEP001 --extend-exclude 'codegen-examples/.*'"
 
   - repo: https://github.com/renovatebot/pre-commit-hooks
-    rev: 39.165.3
+    rev: 39.169.3
     hooks:
       - id: renovate-config-validator
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: "0.5.30"
+    rev: "0.5.31"
     hooks:
       - id: uv-sync
         args: ["--frozen", "--all-packages", "--all-extras"]
@@ -103,6 +105,7 @@ repos:
     rev: 0.7.22  # Use the ref you want to point at
     hooks:
     - id: mdformat
+      language: python
       # Optionally add plugins
       additional_dependencies:
       - mdformat-gfm

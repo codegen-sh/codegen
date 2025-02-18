@@ -141,7 +141,7 @@ jobs:
         timeout-minutes: 5
         env:
           GITHUB_WORKSPACE: $GITHUB_WORKSPACE
-          GITHUB_TOKEN: ${{ secrets.GHA_PAT }}
+          CODEGEN_SECRETS__GITHUB_TOKEN: ${{ secrets.GHA_PAT }}
         run: |
           uv run pytest \
             -n auto \

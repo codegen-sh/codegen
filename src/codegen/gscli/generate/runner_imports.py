@@ -4,8 +4,8 @@ from pathlib import Path
 import tomlkit
 from termcolor import colored
 
+from codegen.git.utils.file_utils import split_git_path
 from codegen.sdk.code_generation.current_code_codebase import get_documented_objects
-from codegen.sdk.utils import split_git_path
 from codegen.shared.decorators.docs import DocumentedObject
 
 EXTERNAL_IMPORTS = """

@@ -7,7 +7,7 @@ from codegen.sdk.core.expressions import String
 from codegen.sdk.core.interfaces.editable import Editable
 from codegen.sdk.core.plugins.plugin import Plugin
 from codegen.sdk.core.symbol_groups.dict import Dict
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 if TYPE_CHECKING:
     from codegen.sdk.core.codebase import TSCodebaseType

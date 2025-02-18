@@ -4,8 +4,8 @@ from codegen.sdk.core.codebase import PyCodebaseType, TSCodebaseType
 from codegen.sdk.core.function import Function
 from codegen.sdk.core.import_resolution import Import
 from codegen.sdk.core.statements.if_block_statement import IfBlockStatement
-from codegen.sdk.enums import ProgrammingLanguage
 from codegen.sdk.python.statements.with_statement import WithStatement
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 from tests.shared.skills.decorators import skill, skill_impl
 from tests.shared.skills.skill import Skill
 from tests.shared.skills.skill_test import SkillTestCase, SkillTestCasePyFile, SkillTestCaseTSFile

@@ -9,7 +9,8 @@ iconType: "solid"
 
 It provides a scriptable interface to a powerful, multi-lingual language server built on top of [Tree-sitter](https://tree-sitter.github.io/tree-sitter/).
 
-export const metaCode = `from codegen import Codebase
+```python
+from codegen import Codebase
 
 # Codegen builds a complete graph connecting
 # functions, classes, imports and their relationships
@@ -24,30 +25,8 @@ for function in codebase.functions:
 
 # Fast, in-memory code index
 codebase.commit()
-`
+```
 
-export const code = `def foo():
-  pass
-
-def bar():
-  foo()
-
-def baz():
-  pass
-`
-
-<iframe
-  width="100%"
-  height="370px"
-  scrolling="no"
-  src={`https://codegen.sh/embedded/codemod/?code=${encodeURIComponent(
-    metaCode
-  )}&input=${encodeURIComponent(code)}`}
-  style={{
-    backgroundColor: "#15141b",
-  }}
-  className="rounded-xl"
-></iframe>
 
 <Note>
 Codegen handles complex refactors while maintaining correctness, enabling a broad set of advanced code manipulation programs.
@@ -67,7 +46,40 @@ pip install codegen
 
 ## What can I do with Codegen?
 
-Codegen enables you to programmatically manipulate code with scale and precision.
+Codegen's simple yet powerful APIs enable a range of applications, including:
+
+<CardGroup cols={2}>
+  <Card
+    title="Build a Code Agent"
+    icon="robot"
+    href="/tutorials/build-code-agent"
+  >
+    Create an intelligent agent that can analyze and manipulate your codebase using natural language.
+  </Card>
+  <Card
+    title="Visualize Your Codebase"
+    icon="diagram-project"
+    href="/tutorials/codebase-visualization"
+  >
+    Generate interactive visualizations of your codebase's structure, dependencies, and relationships.
+  </Card>
+  <Card
+    title="Mine Codebase Data"
+    icon="database"
+    href="/tutorials/training-data"
+  >
+    Create high-quality training data for fine-tuning LLMs on your codebase.
+  </Card>
+  <Card
+    title="Build Codemods"
+    icon="wand-magic-sparkles"
+    href="/tutorials/at-a-glance#api-migrations"
+  >
+    Create powerful code transformations to automate large-scale changes.
+  </Card>
+</CardGroup>
+
+See below for an example call graph visualization generated with Codegen.
 
 <Frame caption="Call graph visualization for modal/modal-client/_Client">
 <iframe
@@ -84,40 +96,6 @@ Codegen enables you to programmatically manipulate code with scale and precision
 <Info>
 View source code on [modal/modal-client](https://github.com/modal-labs/modal-client/blob/cbac0d80dfd98588027ecd21850152776be3ab82/modal/client.py#L70). View codemod on [codegen.sh](https://www.codegen.sh/codemod/66e2e195-ceec-4935-876a-ed4cfc1731c7/public/diff)
 </Info>
-
-Common use cases include:
-
-<CardGroup cols={2}>
-  <Card
-    title="Visualize Your Codebase"
-    icon="diagram-project"
-    href="/tutorials/codebase-visualization"
-  >
-    Generate interactive visualizations of your codebase's structure, dependencies, and relationships.
-  </Card>
-  <Card
-    title="Mine Codebase Data"
-    icon="robot"
-    href="/tutorials/training-data"
-  >
-    Create high-quality training data for fine-tuning LLMs on your codebase.
-  </Card>
-  <Card
-    title="Eliminate Feature Flags"
-    icon="flag"
-    href="/tutorials/manage-feature-flags"
-  >
-    Add, remove, and update feature flags across your application.
-  </Card>
-  <Card
-    title="Organize Your Codebase"
-    icon="folder-tree"
-    href="/tutorials/organize-your-codebase"
-  >
-    Restructure files, enforce naming conventions, and improve project layout.
-  </Card>
-</CardGroup>
-
 
 ## Get Started
 
@@ -413,7 +391,7 @@ Codegen's graph structure makes it easy to analyze relationships between code el
 ```python
 # Find dead code
 for func in codebase.functions:
-    if len(function.usages) == 0:
+    if len(func.usages) == 0:
         print(f'🗑️ Dead code: {func.name}')
         func.remove()
 
@@ -640,6 +618,53 @@ Codegen creates a custom Python environment in `.codegen/.venv`. Configure your 
 </AccordionGroup>
 
 
+## MCP Server Setup
+This is an optional step but highly recommended if your IDE supports MCP support and you use AI Agents.
+The MCP server is a local server that allows your AI Agent to interact with the Codegen specific tools,
+it will allow an agent to:
+- ask an expert to create a codemod
+- improve a codemod
+- get setup instructions
+
+### IDE Configuration
+#### Cline
+Add this to your cline_mcp_settings.json:
+```json
+{
+  "mcpServers": {
+    "codegen-cli": {
+        "command": "uv",
+        "args": [
+            "--directory",
+            "<path to codegen installation>/codegen-sdk/src/codegen/cli/mcp",
+            "run",
+            "server.py"
+        ]
+    }
+  }
+}
+```
+
+
+#### Cursor:
+Under the `Settings` > `Feature` > `MCP Servers` section, click "Add New MCP Server" and add the following:
+
+```
+Name: codegen-mcp
+Type: Command
+Command: uv --directory <path to codegen installation>/codegen-sdk/src/codegen/cli/mcp run server.py
+```
+
+
+## Index Codegen Docs
+#### Cursor:
+If you use Cursor you'll be able to configure the IDE to index the Codegen docs. To do so go to `Settings` > `Features` > `Docs`
+and then click on `Add new docs`. We recommend using this url to index the API reference:
+```
+https://docs.codegen.com/api-reference/index
+```
+
+
 ## Create a New Codemod
 
 Generate the boilerplate for a new code manipulation program using [codegen create](/cli/create):
@@ -747,7 +772,7 @@ import {
 
 The [Codegen CLI](/cli/about) provides commands to generate `.md` files that can be fed to any AI assistant for more accurate and contextual help.
 
-When you create a new codemod via [`codegen create`](/cli/create):
+When you create a new codemod via [codegen create](/cli/create):
 
 ```bash
 codegen create delete-dead-imports --description "Delete unused imports"
@@ -763,7 +788,7 @@ You can find this generated prompt in the `.codegen/prompts/<codemod-name>-syste
 
 <Note>
   All contents of the `.codegen/prompts` directory are by default ignored the
-  `.gitignore` file. after running [`codegen init`](/cli/init)
+  `.gitignore` file. after running [codegen init](/cli/init)
 </Note>
 
 This `.md` file can be used with any AI assistant (Claude, GPT-4, etc.) to get more accurate and contextual help.
@@ -772,7 +797,7 @@ This `.md` file can be used with any AI assistant (Claude, GPT-4, etc.) to get m
 
 <Steps>
   <Step title="Create a codemod with description">
-    Use the [`create` command](/cli/create) with a detailed description of what you want to accomplish:
+    Use the [create command](/cli/create) with a detailed description of what you want to accomplish:
     ```bash
     codegen create modernize-components --description "Convert class components to functional components with hooks"
     ```
@@ -1325,7 +1350,6 @@ Construct a Codebase by passing in a path to a local `git` repository or any sub
 
 ```python
 from codegen import Codebase
-from codegen.sdk.enums import ProgrammingLanguage
 
 # Parse from a git repository root
 codebase = Codebase("path/to/repository")
@@ -1337,12 +1361,12 @@ codebase = Codebase("path/to/repository/src/subfolder")
 codebase = Codebase("./")
 
 # Specify programming language (instead of inferring from file extensions)
-codebase = Codebase("./", programming_language=ProgrammingLanguage.TYPESCRIPT)
+codebase = Codebase("./", language="typescript")
 ```
 
 <Note>
   By default, Codegen will automatically infer the programming language of the codebase and
-  parse all files in the codebase. You can override this by passing the `programming_language` parameter
+  parse all files in the codebase. You can override this by passing the `language` parameter
   with a value from the `ProgrammingLanguage` enum.
 </Note>
 
@@ -1358,7 +1382,6 @@ To fetch and parse a repository directly from GitHub, use the `from_repo` functi
 
 ```python
 import codegen
-from codegen.sdk.enums import ProgrammingLanguage
 
 # Fetch and parse a repository (defaults to /tmp/codegen/{repo_name})
 codebase = codegen.from_repo('fastapi/fastapi')
@@ -1369,7 +1392,7 @@ codebase = codegen.from_repo(
     tmp_dir='/custom/temp/dir',  # Optional: custom temp directory
     commit='786a8ada7ed0c7f9d8b04d49f24596865e4b7901',  # Optional: specific commit
     shallow=False,  # Optional: full clone instead of shallow
-    programming_language=ProgrammingLanguage.PYTHON  # Optional: override language detection
+    language="python"  # Optional: override language detection
 )
 ```
 
@@ -1421,7 +1444,6 @@ from codegen import Codebase
 from codegen.git.repo_operator.local_repo_operator import LocalRepoOperator
 from codegen.git.schemas.repo_config import BaseRepoConfig
 from codegen.sdk.codebase.config import ProjectConfig
-from codegen.sdk.enums import ProgrammingLanguage
 
 codebase = Codebase(
     projects = [
@@ -1431,7 +1453,7 @@ codebase = Codebase(
                 repo_config=BaseRepoConfig(),
                 bot_commit=True
             ),
-            programming_language=ProgrammingLanguage.TYPESCRIPT,
+            language="typescript",
             base_path="src/codegen/sdk/typescript",
             subdirectories=["src/codegen/sdk/typescript"]
         )
@@ -1750,7 +1772,6 @@ This command runs the function named `my-function`.
 
 ## See Also
 
-- [Webhook Decorator](./webhook-decorator.mdx): For handling webhook events with decorators.
 - [Codebase Visualization](./codebase-visualization.mdx): For visualizing codebases in your application.
 - [CLI Init Command](../cli/init.mdx): For initializing projects or environments related to the function decorator.
 - [CLI Create Command](../cli/create.mdx): For creating new functions or projects using the CLI.
@@ -1807,15 +1828,15 @@ TSCodebaseType = Codebase[
 
 Every code element has both a Python and TypeScript implementation that inherits from a common base class. For example:
 
-- [`Function`](/api-reference/core/Function)
-  - [`PyFunction`](/api-reference/python/PyFunction)
-  - [`TSFunction`](/api-reference/typescript/TSFunction)
-- [`Class`](/api-reference/core/Class)
-  - [`PyClass`](/api-reference/python/PyClass)
-  - [`TSClass`](/api-reference/typescript/TSClass)
-- [`Import`](/api-reference/core/Import)
-  - [`PyImport`](/api-reference/python/PyImport)
-  - [`TSImport`](/api-reference/typescript/TSImport)
+- [Function](/api-reference/core/Function)
+  - [PyFunction](/api-reference/python/PyFunction)
+  - [TSFunction](/api-reference/typescript/TSFunction)
+- [Class](/api-reference/core/Class)
+  - [PyClass](/api-reference/python/PyClass)
+  - [TSClass](/api-reference/typescript/TSClass)
+- [Import](/api-reference/core/Import)
+  - [PyImport](/api-reference/python/PyImport)
+  - [TSImport](/api-reference/typescript/TSImport)
 
 ...
 
@@ -1850,8 +1871,8 @@ for function in codebase.functions:
 
 Some features are only available in TypeScript codebases:
 
-- **Types and Interfaces**: TypeScript's rich type system ([`TSTypeAlias`](/api-reference/typescript/TSTypeAlias), [`TSInterface`](/api-reference/typescript/TSInterface))
-- **Exports**: Module exports and re-exports ([`TSExport`](/api-reference/typescript/TSExport))
+- **Types and Interfaces**: TypeScript's rich type system ([TSTypeAlias](/api-reference/typescript/TSTypeAlias), [TSInterface](/api-reference/typescript/TSInterface))
+- **Exports**: Module exports and re-exports ([TSExport](/api-reference/typescript/TSExport))
 - **JSX/TSX**: React component handling (see [React and JSX](/building-with-codegen/react-and-jsx))
 
 Example of TypeScript-specific features:
@@ -1941,14 +1962,14 @@ sidebarTitle: "Git Operations"
 icon: "code-branch"
 ---
 
-Many workflows require Git operations. Codegen provides a high-level API for common Git operations through the [`Codebase`](/api-reference/core/Codebase) class, including:
+Many workflows require Git operations. Codegen provides a high-level API for common Git operations through the [Codebase](/api-reference/core/Codebase) class, including:
 
-- [`Codebase.git_commit(...)`](/api-reference/core/Codebase#git_commit)
-- [`Codebase.checkout(...)`](/api-reference/core/Codebase#checkout)
+- [Codebase.git_commit(...)](/api-reference/core/Codebase#git_commit)
+- [Codebase.checkout(...)](/api-reference/core/Codebase#checkout)
 
 ## Committing Changes to Git
 
-You can commit changes to Git using the [`Codebase.git_commit(...)`](/api-reference/core/Codebase#git_commit):
+You can commit changes to Git using the [Codebase.git_commit(...)](/api-reference/core/Codebase#git_commit):
 
 ```python
 # Make some changes and call `commit()` to sync them to disk
@@ -1968,8 +1989,8 @@ if commit:
 
 <Note>
   `git_commit` will only commit changes that have been synced to the filesystem
-  by calling [`Codebase.commit()`](/api-reference/core/Codebase#commit). See
-  [`Commit and Reset`](/building-with-codegen/commit-and-reset) for more
+  by calling [Codebase.commit()](/api-reference/core/Codebase#commit). See
+  [Commit and Reset](/building-with-codegen/commit-and-reset) for more
   details.
 </Note>
 
@@ -1990,7 +2011,7 @@ if current:
 
 ## Checking Out Branches and Commits
 
-The [`Codebase.checkout(...)`](/api-reference/core/Codebase#checkout) method allows you to switch between branches and commits.
+The [Codebase.checkout(...)](/api-reference/core/Codebase#checkout) method allows you to switch between branches and commits.
 
 This will automatically re-parse the codebase to reflect the new state.
 
@@ -2202,7 +2223,7 @@ parent = dir.parent # Parent directory
 
 ## Editing Files Directly
 
-Files themselves are [`Editable`](/api-reference/core/Editable.mdx) objects, just like Functions and Classes.
+Files themselves are [Editable](/api-reference/core/Editable.mdx) objects, just like Functions and Classes.
 
 <Tip>
   Learn more about the [Editable API](/building-with-codegen/the-editable-api).
@@ -2210,12 +2231,12 @@ Files themselves are [`Editable`](/api-reference/core/Editable.mdx) objects, jus
 
 This means they expose many useful operations, including:
 
-- [`File.search`](/api-reference/core/File#search) - Search for all functions named "main"
-- [`File.edit`](/api-reference/core/File#edit) - Edit the file
-- [`File.replace`](/api-reference/core/File#replace) - Replace all instances of a string with another string
-- [`File.insert_before`](/api-reference/core/File#insert-before) - Insert text before a specific string
-- [`File.insert_after`](/api-reference/core/File#insert-after) - Insert text after a specific string
-- [`File.remove`](/api-reference/core/File#remove) - Remove a specific string
+- [File.search](/api-reference/core/File#search) - Search for all functions named "main"
+- [File.edit](/api-reference/core/File#edit) - Edit the file
+- [File.replace](/api-reference/core/File#replace) - Replace all instances of a string with another string
+- [File.insert_before](/api-reference/core/File#insert-before) - Insert text before a specific string
+- [File.insert_after](/api-reference/core/File#insert-after) - Insert text after a specific string
+- [File.remove](/api-reference/core/File#remove) - Remove a specific string
 
 ```python
 # Get a file
@@ -2241,7 +2262,7 @@ file.insert_after("def end():\npass")
 file.remove()
 ```
 
-You can frequently do bulk modifictions via the [`.edit(...)`](/api-reference/core/Editable#edit) method or [`.replace(...)`](/api-reference/core/File#replace) method.
+You can frequently do bulk modifictions via the [.edit(...)](/api-reference/core/Editable#edit) method or [.replace(...)](/api-reference/core/File#replace) method.
 
 <Note>
   Most useful operations will have bespoke APIs that handle edge cases, update
@@ -2250,7 +2271,7 @@ You can frequently do bulk modifictions via the [`.edit(...)`](/api-reference/co
 
 ## Moving and Renaming Files
 
-Files can be manipulated through methods like [`File.update_filepath()`](/api-reference/core/File#update-filepath), [`File.rename()`](/api-reference/core/File#rename), and [`File.remove()`](/api-reference/core/File#remove):
+Files can be manipulated through methods like [File.update_filepath()](/api-reference/core/File#update-filepath), [File.rename()](/api-reference/core/File#rename), and [File.remove()](/api-reference/core/File#remove):
 
 ```python
 # Move/rename a file
@@ -2274,7 +2295,7 @@ for file in codebase.files:
 
 ## Directories
 
-[`Directories`](/api-reference/core/Directory) expose a similar API to the [File](/api-reference/core/File.mdx) class, with the addition of the `subdirectories` property.
+[Directories](/api-reference/core/Directory) expose a similar API to the [File](/api-reference/core/File.mdx) class, with the addition of the `subdirectories` property.
 
 ```python
 # Get a directory
@@ -3627,8 +3648,8 @@ Codegen pre-computes dependencies and usages for all symbols in the codebase, en
 
 Codegen provides two main ways to track relationships between symbols:
 
-- [`.dependencies`](/api-reference/core/Symbol#dependencies) / [`.get_dependencies(...)`](/api-reference/core/Symbol#get-dependencies) - What symbols does this symbol depend on?
-- [`.usages`](/api-reference/core/Symbol#usages) / [`.usages(...)`](/api-reference/core/Symbol#usages) - Where is this symbol used?
+- [.dependencies](/api-reference/core/Symbol#dependencies) / - What symbols does this symbol depend on?
+- [.usages](/api-reference/core/Symbol#usages) / [.usages(...)](/api-reference/core/Symbol#usages) - Where is this symbol used?
 
 Dependencies and usages are inverses of each other. For example, given the following input code:
 
@@ -3745,12 +3766,12 @@ The dependencies API lets you find what symbols a given symbol depends on.
 
 ```python
 # Get all direct dependencies
-deps = my_class.dependencies  # Shorthand for get_dependencies(UsageType.DIRECT)
+deps = my_class.dependencies  # Shorthand for dependencies(UsageType.DIRECT)
 
 # Get dependencies of specific types
-direct_deps = my_class.get_dependencies(UsageType.DIRECT)
-chained_deps = my_class.get_dependencies(UsageType.CHAINED)
-indirect_deps = my_class.get_dependencies(UsageType.INDIRECT)
+direct_deps = my_class.dependencies(UsageType.DIRECT)
+chained_deps = my_class.dependencies(UsageType.CHAINED)
+indirect_deps = my_class.dependencies(UsageType.INDIRECT)
 ```
 
 ### Combining Usage Types
@@ -3759,10 +3780,10 @@ You can combine usage types using the bitwise OR operator:
 
 ```python
 # Get both direct and indirect dependencies
-deps = my_class.get_dependencies(UsageType.DIRECT | UsageType.INDIRECT)
+deps = my_class.dependencies(UsageType.DIRECT | UsageType.INDIRECT)
 
 # Get all types of dependencies
-deps = my_class.get_dependencies(
+deps = my_class.dependencies(
     UsageType.DIRECT | UsageType.CHAINED |
     UsageType.INDIRECT | UsageType.ALIASED
 )
@@ -3794,10 +3815,86 @@ class_imports = [dep for dep in my_class.dependencies if isinstance(dep, Import)
 
 # Get all imports used by a function, including indirect ones
 all_function_imports = [
-    dep for dep in my_function.get_dependencies(UsageType.DIRECT | UsageType.INDIRECT)
+    dep for dep in my_function.dependencies(UsageType.DIRECT | UsageType.INDIRECT)
     if isinstance(dep, Import)
 ]
 ```
+## Traversing the Dependency Graph
+
+Sometimes you need to analyze not just direct dependencies, but the entire dependency graph up to a certain depth. The `dependencies` method allows you to traverse the dependency graph and collect all dependencies up to a specified depth level.
+
+### Basic Usage
+
+```python
+
+# Get only direct dependencies
+deps = symbol.dependencies(max_depth=1)
+
+# Get deep dependencies (up to 5 levels)
+deps = symbol.dependencies(max_depth=5)
+```
+
+The method returns a dictionary mapping each symbol to its list of direct dependencies. This makes it easy to analyze the dependency structure:
+
+```python
+# Print the dependency tree
+for sym, direct_deps in deps.items():
+    print(f"{sym.name} depends on: {[d.name for d in direct_deps]}")
+```
+
+### Example: Analyzing Class Inheritance
+
+Here's an example of using `dependencies` to analyze a class inheritance chain:
+
+```python
+class A:
+    def method_a(self): pass
+
+class B(A):
+    def method_b(self):
+        self.method_a()
+
+class C(B):
+    def method_c(self):
+        self.method_b()
+
+# Get the full inheritance chain
+symbol = codebase.get_class("C")
+deps = symbol.dependencies(
+    max_depth=3
+)
+
+# Will show:
+# C depends on: [B]
+# B depends on: [A]
+# A depends on: []
+```
+
+### Handling Cyclic Dependencies
+
+The method properly handles cyclic dependencies in the codebase:
+
+```python
+class A:
+    def method_a(self):
+        return B()
+
+class B:
+    def method_b(self):
+        return A()
+
+# Get dependencies including cycles
+symbol = codebase.get_class("A")
+deps = symbol.dependencies()
+
+# Will show:
+# A depends on: [B]
+# B depends on: [A]
+```
+
+<Tip>
+  The `max_depth` parameter helps prevent excessive recursion in large codebases or when there are cycles in the dependency graph.
+</Tip>
 
 
 ---
@@ -4695,7 +4792,7 @@ function.set_return_type("List[str]")
 
 ### Type Resolution
 
-Type resolution uses [`Type.resolved_value`](/api-reference/core/Type#resolved-value) to get the actual symbols that a type refers to:
+Type resolution uses [Type.resolved_value](/api-reference/core/Type#resolved-value) to get the actual symbols that a type refers to:
 
 ```python
 # Get the actual symbols for a type
@@ -4723,11 +4820,11 @@ iconType: "solid"
 
 Codegen provides fast, configurable and safe APIs for moving symbols (functions, classes, variables) between files while automatically handling imports and dependencies.
 
-The key API is [`Symbol.move_to_file(...)`](/api-reference/core/Symbol#move-to-file).
+The key API is [Symbol.move_to_file(...)](/api-reference/core/Symbol#move-to-file).
 
 ## Basic Symbol Movement
 
-Simply call [`Symbol.move_to_file(...)`](/api-reference/core/Symbol#move-to-file) to move a symbol to a new file.
+Simply call [Symbol.move_to_file(...)](/api-reference/core/Symbol#move-to-file) to move a symbol to a new file.
 
 ```python
 # Manipulation code:
@@ -4751,7 +4848,7 @@ helper_func.move_to_file(file2)
 
 ## Moving Strategies
 
-The [`Symbol.move_to_file(...)`](/api-reference/core/Symbol#move-to-file) method accepts a `strategy` parameter, which can be used to control how imports are updated.
+The [Symbol.move_to_file(...)](/api-reference/core/Symbol#move-to-file) method accepts a `strategy` parameter, which can be used to control how imports are updated.
 
 Your options are:
 
@@ -4767,7 +4864,7 @@ Your options are:
 
 ## Moving Symbols in Bulk
 
-Make sure to call [`Codebase.commit(...)`](/api-reference/core/Codebase#commit) _after_ moving symbols in bulk for performant symbol movement.
+Make sure to call [Codebase.commit(...)](/api-reference/core/Codebase#commit) _after_ moving symbols in bulk for performant symbol movement.
 
 ```python
 # Move all functions with a specific prefix
@@ -4921,6 +5018,7 @@ Here's how to build a directed graph of function calls using NetworkX:
 import networkx as nx
 from codegen.sdk.core.interfaces.callable import FunctionCallDefinition
 from codegen.sdk.core.function import Function
+from codegen.sdk.core.external_module import ExternalModule
 
 def create_call_graph(start_func, end_func, max_depth=5):
     G = nx.DiGraph()
@@ -5460,6 +5558,74 @@ def create_custom_graph(codebase):
 
 
 ---
+title: "Flagging Symbols"
+description: "Learn how to use symbol flags for debugging, tracking changes, and marking code for review"
+icon: "flag"
+iconType: "solid"
+---
+
+# Flagging Symbols
+
+Symbol flags are a powerful feature in Codegen that allow you to mark and track specific code elements during development, debugging, or code review processes. Flags can be used to visually highlight code in the editor and can also integrate with various messaging systems.
+
+## Basic Usage
+
+The simplest way to flag a symbol is to call the `flag()` method on any symbol:
+
+```python
+# Flag a function
+function.flag(message="This function needs optimization")
+
+# Flag a class
+my_class.flag(message="Consider breaking this into smaller classes")
+
+# Flag a variable
+variable.flag(message="Type hints needed here")
+```
+
+When you flag a symbol, two things happen:
+1. A visual flag emoji (🚩) is added as an inline comment
+2. A `CodeFlag` object is created to track the flag in the system
+
+
+## Language-Specific Behavior
+
+The flag system adapts automatically to the programming language being used:
+
+```python
+# Python
+# Results in: def my_function():  # 🚩 Review needed
+python_function.flag(message="Review needed")
+
+# TypeScript
+# Results in: function myFunction() {  // 🚩 Review needed
+typescript_function.flag(message="Review needed")
+```
+
+
+## Example: Code Analysis
+
+Here's an example of using flags during code analysis:
+
+```python
+def analyze_codebase(codebase):
+    for function in codebase.functions:
+        # Check documentation
+        if not function.docstring:
+            function.flag(
+                message="Missing docstring",
+            )
+
+        # Check error handling
+        if function.is_async and not function.has_try_catch:
+            function.flag(
+                message="Async function missing error handling",
+            )
+```
+
+This feature is particularly useful when building, and iterating on the symbols that you are trying to modify.
+
+---
 title: "Calling Out to LLMs"
 sidebarTitle: "LLM Integration"
 icon: "brain"
@@ -5692,6 +5858,119 @@ method.edit(new_impl)
   codebase.set_session_options(max_seconds=300, max_transactions=500)
   ```
 </Note>
+
+---
+title: "Semantic Code Search"
+sidebarTitle: "Semantic Code Search"
+icon: "magnifying-glass"
+iconType: "solid"
+---
+
+Codegen's `VectorIndex` enables semantic code search capabilities using embeddings. This allows you to search codebases using natural language queries and find semantically related code, even when the exact terms aren't present.
+
+<Warning>This is under active development. Interested in an application? [Reach out to the team!](/introduction/about.tsx)</Warning>
+
+## Basic Usage
+
+Create and save a vector index for your codebase:
+
+```python
+from codegen.extensions import VectorIndex
+
+# Initialize with your codebase
+index = VectorIndex(codebase)
+
+# Create embeddings for all files
+index.create()
+
+# Save to disk (defaults to .codegen/vector_index.pkl)
+index.save()
+```
+
+Later, load the index and perform semantic searches:
+
+```python
+# Create a codebase
+codebase = Codebase.from_repo('fastapi/fastapi')
+
+# Load a previously created index
+index = VectorIndex(codebase)
+index.load()
+
+# Search with natural language
+results = index.similarity_search(
+    "How does FastAPI handle dependency injection?",
+    k=5  # number of results
+)
+
+# Print results with previews
+for filepath, score in results:
+    print(f"\nScore: {score:.3f} | File: {filepath}")
+    file = codebase.get_file(filepath)
+    print(f"Preview: {file.content[:200]}...")
+```
+
+<Note>
+The search uses cosine similarity between embeddings to find the most semantically related files, regardless of exact keyword matches.
+</Note>
+
+## Getting Embeddings
+
+You can also get embeddings for arbitrary text using the same model:
+
+```python
+# Get embeddings for a list of texts
+texts = [
+    "Some code or text to embed",
+    "Another piece of text"
+]
+embeddings = index.get_embeddings(texts)  # shape: (n_texts, embedding_dim)
+```
+
+## How It Works
+
+The `VectorIndex` class:
+1. Processes each file in your codebase
+2. Splits large files into chunks that fit within token limits
+3. Uses OpenAI's text-embedding-3-small model to create embeddings
+4. Stores embeddings in a numpy array for efficient similarity search
+5. Saves the index to disk for reuse
+
+When searching:
+1. Your query is converted to an embedding using the same model
+2. Cosine similarity is computed between the query and all file embeddings
+3. The most similar files are returned, along with their similarity scores
+
+<Warning>
+Creating embeddings requires an OpenAI API key with access to the embeddings endpoint.
+</Warning>
+
+## Example Searches
+
+Here are some example semantic searches that demonstrate the power of the system:
+
+```python
+# Find authentication-related code
+results = index.similarity_search(
+    "How is user authentication implemented?",
+    k=3
+)
+
+# Find error handling patterns
+results = index.similarity_search(
+    "Show me examples of error handling and custom exceptions",
+    k=3
+)
+
+# Find configuration management
+results = index.similarity_search(
+    "Where is the application configuration and settings handled?",
+    k=3
+)
+```
+
+The semantic search can understand concepts and return relevant results even when the exact terms aren't present in the code.
+
 
 ---
 title: "Reducing Conditions"
@@ -5985,6 +6264,13 @@ Explore our tutorials to learn how to use Codegen for various code transformatio
 
 <CardGroup cols={2}>
   <Card
+    title="Build a Code Agent"
+    icon="robot"
+    href="/tutorials/build-code-agent"
+  >
+    Create an intelligent code agent with Langchain and powerful, codegen-powered tools
+  </Card>
+  <Card
     title="Visualize Your Codebase"
     icon="diagram-project"
     href="/tutorials/codebase-visualization"
@@ -5993,17 +6279,10 @@ Explore our tutorials to learn how to use Codegen for various code transformatio
   </Card>
   <Card
     title="Mine Training Data"
-    icon="robot"
+    icon="database"
     href="/tutorials/training-data"
   >
     Create high-quality training data for LLM pre-training similar to word2vec or node2vec
-  </Card>
-  <Card
-    title="Manage Feature Flags"
-    icon="flag"
-    href="/tutorials/manage-feature-flags"
-  >
-    Add, remove, and update feature flags across your application.
   </Card>
   <Card
     title="Delete Dead Code"
@@ -6125,214 +6404,597 @@ Explore our tutorials to learn how to use Codegen for various code transformatio
 
 
 ---
-title: "Migrating APIs"
-sidebarTitle: "API Migrations"
-icon: "webhook"
+title: "Building a Code Agent with LangChain"
+sidebarTitle: "Code Agent"
+icon: "robot"
 iconType: "solid"
 ---
 
-API migrations are a common task in large codebases. Whether you're updating a deprecated function, changing parameter names, or modifying return types, Codegen makes it easy to update all call sites consistently.
+This guide demonstrates how to build an intelligent code agent that can analyze and manipulate codebases using Codegen's LangChain integration.
 
-## Common Migration Scenarios
+This agent access to powerful code viewing and manipulation tools powered by Codegen, including:
+- `RevealSymbolTool`: reveal all N-th degree dependencies and usages of a function
+- `MoveSymbolTool`: move a symbol between files, updating all imports etc. (guaranteed correctness)
+- `SemanticEditTool`: implementation of Cursor-style smart file editing
+- `SemanticSearchTool`: search over an index of vector embeddings for files
 
-### Renaming Parameters
+<Info>View the full code in our [examples repository](https://github.com/codegen-sh/codegen-sdk/tree/develop/src/codegen/extensions/langchain)</Info>
 
-When updating parameter names across an API, you need to update both the function definition and all call sites:
+## Step 1: Setting Up the Agent
 
-```python
-# Find the API function to update
-api_function = codebase.get_function("process_data")
-
-# Update the parameter name
-old_param = api_function.get_parameter("input")
-old_param.rename("data")
-
-# All call sites are automatically updated:
-# process_data(input="test") -> process_data(data="test")
-```
-
-<Info>See [dependencies and usages](/building-with-codegen/dependencies-and-usages) for more on updating parameter names and types.</Info>
-
-### Adding Required Parameters
-
-When adding a new required parameter to an API:
+First, let's import the necessary components and create our agent:
 
 ```python
-# Find all call sites before modifying the function
-call_sites = list(api_function.call_sites)
+from langchain_openai import ChatOpenAI
+from codegen import Codebase
+from codegen.extensions.langchain import create_codebase_agent
 
-# Add the new parameter
-api_function.add_parameter("timeout: int")
+# Initialize codebase
+codebase = Codebase.from_repo("fastapi/fastapi")
 
-# Update all existing call sites to include the new parameter
-for call in call_sites:
-    call.add_argument("timeout=30")  # Add with a default value
+# Create the agent with GPT-4
+agent = create_codebase_agent(
+    codebase=codebase,
+    model_name="gpt-4",
+    temperature=0,
+    verbose=True
+)
 ```
 
-<Info>See [function calls and callsites](/building-with-codegen/function-calls-and-callsites) for more on handling call sites.</Info>
+The agent is initialized with:
+- A Codebase instance to operate on
+- An LLM (GPT-4 in this case)
+- Tools for code manipulation
+- A conversation memory to maintain context
 
-### Changing Parameter Types
+## Step 2: Available Tools
 
-When updating parameter types:
+The agent comes with several built-in tools for code operations:
 
 ```python
-# Update the parameter type
-param = api_function.get_parameter("user_id")
-param.type = "UUID"  # Change from string to UUID
-
-# Find all call sites that need type conversion
-for call in api_function.call_sites:
-    arg = call.get_arg_by_parameter_name("user_id")
-    if arg:
-        # Convert string to UUID
-        arg.edit(f"UUID({arg.value})")
+tools = [
+    ViewFileTool(codebase),      # View file contents
+    ListDirectoryTool(codebase),  # List directory contents
+    SearchTool(codebase),        # Search code
+    EditFileTool(codebase),      # Edit files
+    CreateFileTool(codebase),    # Create new files
+    DeleteFileTool(codebase),    # Delete files
+    RenameFileTool(codebase),    # Rename files
+    MoveSymbolTool(codebase),    # Move functions/classes
+    RevealSymbolTool(codebase),  # Analyze symbol relationships
+    SemanticEditTool(codebase),  # Make semantic edits
+    CommitTool(codebase),        # Commit changes
+]
 ```
 
-<Info>See [working with type annotations](/building-with-codegen/type-annotations) for more on changing parameter types.</Info>
+Each tool provides specific capabilities to the agent, allowing it to perform complex code operations.
 
-### Deprecating Functions
+## Step 3: Interacting with the Agent
 
-When deprecating an old API in favor of a new one:
+Let's see some examples of how to interact with the agent:
 
 ```python
-old_api = codebase.get_function("old_process_data")
-new_api = codebase.get_function("new_process_data")
+# Analyze dependencies
+result = agent.invoke(
+    {
+        "input": "What are the dependencies of the FastAPI class?",
+        "config": {"configurable": {"session_id": "demo"}}
+    }
+)
+print(result["output"])
 
-# Add deprecation warning
-old_api.add_decorator('@deprecated("Use new_process_data instead")')
+# Find usage patterns
+result = agent.invoke(
+    {
+        "input": "Show me examples of dependency injection in the codebase",
+        "config": {"configurable": {"session_id": "demo"}}
+    }
+)
+print(result["output"])
 
-# Update all call sites to use the new API
-for call in old_api.call_sites:
-    # Map old arguments to new parameter names
-    args = [
-        f"data={call.get_arg_by_parameter_name('input').value}",
-        f"timeout={call.get_arg_by_parameter_name('wait').value}"
-    ]
-
-    # Replace the old call with the new API
-    call.replace(f"new_process_data({', '.join(args)})")
+# Perform code analysis
+result = agent.invoke(
+    {
+        "input": "What's the most complex function in terms of dependencies?",
+        "config": {"configurable": {"session_id": "demo"}}
+    }
+)
+print(result["output"])
 ```
 
-## Bulk Updates to Method Chains
+The agent maintains conversation history, so it can reference previous queries and build context over time.
 
-When updating chained method calls, like database queries or builder patterns:
+## Step 4: Code Manipulation
+
+The agent can also perform code changes:
 
 ```python
-# Find all query chains ending with .execute()
-for execute_call in codebase.function_calls:
-    if execute_call.name != "execute":
-        continue
+# Move a function to a new file
+result = agent.invoke(
+    {
+        "input": "Move the validate_email function to validation_utils.py",
+        "config": {"configurable": {"session_id": "demo"}}
+    }
+)
 
-    # Get the full chain
-    chain = execute_call.call_chain
+# Rename a class and update all references
+result = agent.invoke(
+    {
+        "input": "Rename the UserModel class to User and update all imports",
+        "config": {"configurable": {"session_id": "demo"}}
+    }
+)
 
-    # Example: Add .timeout() before .execute()
-    if "timeout" not in {call.name for call in chain}:
-        execute_call.insert_before("timeout(30)")
+# Add error handling
+result = agent.invoke(
+    {
+        "input": "Add proper error handling to the process_data function",
+        "config": {"configurable": {"session_id": "demo"}}
+    }
+)
 ```
 
-## Handling Breaking Changes
+The agent will:
+1. Analyze the current code state
+2. Plan the necessary changes
+3. Execute the changes while maintaining code correctness
+4. Update all related imports and references
 
-When making breaking changes to an API, it's important to:
-1. Identify all affected call sites
-2. Make changes consistently
-3. Update related documentation
-4. Consider backward compatibility
+## Advanced Usage
 
-Here's a comprehensive example:
+### Adding Custom Tools
+
+You can extend the agent with custom tools:
 
 ```python
-def migrate_api_v1_to_v2(codebase):
-    old_api = codebase.get_function("create_user_v1")
+from langchain.tools import BaseTool
+from pydantic import BaseModel, Field
 
-    # Document all existing call patterns
-    call_patterns = {}
-    for call in old_api.call_sites:
-        args = [arg.source for arg in call.args]
-        pattern = ", ".join(args)
-        call_patterns[pattern] = call_patterns.get(pattern, 0) + 1
+class CustomToolInput(BaseModel):
+    """Input schema for custom tool."""
+    param: str = Field(..., description="Parameter description")
 
-    print("Found call patterns:")
-    for pattern, count in call_patterns.items():
-        print(f"  {pattern}: {count} occurrences")
+class CustomCodeTool(BaseTool):
+    """A custom tool for the code agent."""
+    name = "custom_tool"
+    description = "Description of what the tool does"
+    args_schema = CustomToolInput
 
-    # Create new API version
-    new_api = old_api.copy()
-    new_api.rename("create_user_v2")
+    def _run(self, param: str) -> str:
+        # Tool implementation
+        return f"Processed {param}"
 
-    # Update parameter types
-    new_api.get_parameter("email").type = "EmailStr"
-    new_api.get_parameter("role").type = "UserRole"
-
-    # Add new required parameters
-    new_api.add_parameter("tenant_id: UUID")
-
-    # Update all call sites
-    for call in old_api.call_sites:
-        # Get current arguments
-        email_arg = call.get_arg_by_parameter_name("email")
-        role_arg = call.get_arg_by_parameter_name("role")
-
-        # Build new argument list with type conversions
-        new_args = [
-            f"email=EmailStr({email_arg.value})",
-            f"role=UserRole({role_arg.value})",
-            "tenant_id=get_current_tenant_id()"
-        ]
-
-        # Replace old call with new version
-        call.replace(f"create_user_v2({', '.join(new_args)})")
-
-    # Add deprecation notice to old version
-    old_api.add_decorator('@deprecated("Use create_user_v2 instead")')
-
-# Run the migration
-migrate_api_v1_to_v2(codebase)
+# Add custom tool to agent
+tools.append(CustomCodeTool())
+agent = create_codebase_agent(
+    codebase=codebase,
+    tools=tools,
+    model_name="gpt-4"
+)
 ```
 
-## Best Practices
+---
+title: "Building a RAG-powered Slack Bot"
+sidebarTitle: "Slack Bot"
+icon: "slack"
+iconType: "solid"
+---
 
-1. **Analyze First**: Before making changes, analyze all call sites to understand usage patterns
-   ```python
-   # Document current usage
-   for call in api.call_sites:
-       print(f"Called from: {call.parent_function.name}")
-       print(f"With args: {[arg.source for arg in call.args]}")
-   ```
+This tutorial demonstrates how to build a Slack bot that can answer code questions using simple RAG (Retrieval Augmented Generation) over a codebase. The bot uses semantic search to find relevant code snippets and generates detailed answers using OpenAI's APIs.
 
-2. **Make Atomic Changes**: Update one aspect at a time
-   ```python
-   # First update parameter names
-   param.rename("new_name")
+<Info>View the full code and setup instructions in our [examples repository](https://github.com/codegen-sh/codegen-sdk/tree/develop/codegen-examples/examples/slack_chatbot)</Info>
 
-   # Then update types
-   param.type = "new_type"
+<Tip>While this example uses the Codegen codebase, you can adapt it to any repository by changing the repository URL</Tip>
 
-   # Finally update call sites
-   for call in api.call_sites:
-       # ... update calls
-   ```
+## Overview
 
-3. **Maintain Backwards Compatibility**:
-   ```python
-   # Add new parameter with default
-   api.add_parameter("new_param: str = None")
+The process involves three main steps:
 
-   # Later make it required
-   api.get_parameter("new_param").remove_default()
-   ```
+1. Initializing and indexing the codebase
+2. Finding relevant code snippets for a query
+3. Generating answers using RAG
 
-4. **Document Changes**:
-   ```python
-   # Add clear deprecation messages
-   old_api.add_decorator('''@deprecated(
-       "Use new_api() instead. Migration guide: docs/migrations/v2.md"
-   )''')
-   ```
+Let's walk through each step using Codegen.
+
+## Step 1: Initializing the Codebase
+
+First, we initialize the codebase and create a vector index for semantic search:
+
+```python
+from codegen import Codebase
+from codegen.extensions import VectorIndex
+
+def initialize_codebase():
+    """Initialize and index the codebase."""
+    # Initialize codebase with smart caching
+    codebase = Codebase.from_repo(
+        "codegen-sh/codegen-sdk",
+        language="python",
+        tmp_dir="/root"
+    )
+
+    # Initialize vector index
+    index = VectorIndex(codebase)
+
+    # Try to load existing index or create new one
+    index_path = "/root/E.pkl"
+    try:
+        index.load(index_path)
+    except FileNotFoundError:
+        # Create new index if none exists
+        index.create()
+        index.save(index_path)
+
+    return codebase, index
+```
 
 <Note>
-Remember to test thoroughly after making bulk changes to APIs. While Codegen ensures syntactic correctness, you'll want to verify the semantic correctness of the changes.
+The vector index is persisted to disk, so subsequent queries will be much faster.
+See [semantic code search](/building-with-codegen/semantic-code-search) to learn more about VectorIndex.
 </Note>
+
+## Step 2: Finding Relevant Code
+
+Next, we use the vector index to find code snippets relevant to a query:
+
+```python
+def find_relevant_code(index: VectorIndex, query: str) -> list[tuple[str, float]]:
+    """Find code snippets relevant to the query."""
+    # Get top 10 most relevant files
+    results = index.similarity_search(query, k=10)
+
+    # Clean up chunk references from index
+    cleaned_results = []
+    for filepath, score in results:
+        if "#chunk" in filepath:
+            filepath = filepath.split("#chunk")[0]
+        cleaned_results.append((filepath, score))
+
+    return cleaned_results
+```
+
+<Tip>
+VectorIndex automatically chunks large files for better search results. We clean up the chunk references to show clean file paths.
+</Tip>
+
+## Step 3: Generating Answers
+
+Finally, we use GPT-4 to generate answers based on the relevant code:
+
+```python
+from openai import OpenAI
+
+def generate_answer(query: str, context: str) -> str:
+    """Generate an answer using RAG."""
+    prompt = f"""You are a code expert. Given the following code context and question,
+provide a clear and accurate answer.
+
+Note: Keep it short and sweet - 2 paragraphs max.
+
+Question: {query}
+
+Relevant code:
+{context}
+
+Answer:"""
+
+    client = OpenAI()
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": "You are a code expert. Answer questions about the given repo based on RAG'd results."},
+            {"role": "user", "content": prompt},
+        ],
+        temperature=0,
+    )
+
+    return response.choices[0].message.content
+```
+
+## Putting It All Together
+
+Here's how the components work together to answer questions:
+
+```python
+def answer_question(query: str) -> tuple[str, list[tuple[str, float]]]:
+    """Answer a question about the codebase using RAG."""
+    # Initialize or load codebase and index
+    codebase, index = initialize_codebase()
+
+    # Find relevant files
+    results = find_relevant_code(index, query)
+
+    # Collect context from relevant files
+    context = ""
+    for filepath, score in results:
+        file = codebase.get_file(filepath)
+        context += f"File: {filepath}\n```\n{file.content}\n```\n\n"
+
+    # Generate answer
+    answer = generate_answer(query, context)
+
+    return answer, results
+```
+
+This will:
+1. Load or create the vector index
+2. Find relevant code snippets
+3. Generate a detailed answer
+4. Return both the answer and file references
+
+## Example Usage
+
+Here's what the output looks like:
+
+```python
+answer, files = answer_question("How does VectorIndex handle large files?")
+
+print("Answer:", answer)
+print("\nRelevant files:")
+for filepath, score in files:
+    print(f"• {filepath} (score: {score:.2f})")
+```
+
+Output:
+```
+Answer:
+VectorIndex handles large files by automatically chunking them into smaller pieces
+using tiktoken. Each chunk is embedded separately and can be searched independently,
+allowing for more precise semantic search results.
+
+Relevant files:
+• src/codegen/extensions/vector_index.py (score: 0.92)
+• src/codegen/extensions/tools/semantic_search.py (score: 0.85)
+```
+
+## Extensions
+
+While this example demonstrates a simple RAG-based bot, you can extend it to build a more powerful code agent that can:
+- Do more sophisticated code retrieval
+- Make code changes using Codegen's edit APIs
+- Gather further context from Slack channels
+- ... etc.
+
+<Tip>Check out our [Code Agent tutorial](/tutorials/build-code-agent) to learn how to build an intelligent agent with access to Codegen's full suite of tools</Tip>
+
+
+## Learn More
+
+<CardGroup cols={2}>
+  <Card
+    title="Semantic Code Search"
+    icon="magnifying-glass"
+    href="/building-with-codegen/semantic-code-search"
+  >
+    Learn how to use VectorIndex for semantic code search and embeddings.
+  </Card>
+  <Card
+    title="Build a Code Agent"
+    icon="robot"
+    href="/tutorials/build-code-agent"
+  >
+    Create a more powerful agent with multi-step reasoning and code manipulation.
+  </Card>
+  <Card
+    title="OpenAI Embeddings"
+    icon="brain"
+    href="https://platform.openai.com/docs/guides/embeddings"
+  >
+    Learn about OpenAI's text embeddings and how they work.
+  </Card>
+  <Card
+    title="RAG Best Practices"
+    icon="book"
+    href="https://www.pinecone.io/learn/retrieval-augmented-generation"
+  >
+    Understand RAG patterns and best practices for better results.
+  </Card>
+</CardGroup>
+
+
+---
+title: "Mining Training Data for LLMs"
+sidebarTitle: "Mining Data"
+description: "Learn how to generate training data for large language models using Codegen"
+icon: "network-wired"
+iconType: "solid"
+---
+
+This guide demonstrates how to use Codegen to generate high-quality training data for large language models (LLMs) by extracting function implementations along with their dependencies and usages. This approach is similar to [word2vec](https://www.tensorflow.org/text/tutorials/word2vec) or [node2vec](https://snap.stanford.edu/node2vec/) - given the context of a function, learn to predict the function's implementation.
+
+<Info>View the full code in our [examples repository](https://github.com/codegen-sh/codegen-examples/tree/7b978091c3153b687c32928fe10f05425e22f6a5/examples/generate_training_data)</Info>
+
+<Tip>This example works with both Python and Typescript repositories without modification</Tip>
+
+## Overview
+
+The process involves three main steps:
+
+1. Finding all functions in the codebase
+2. Extracting their implementations, dependencies, and usages
+3. Generating structured training data
+
+Let's walk through each step using Codegen.
+
+## Step 1: Finding Functions and Their Context
+
+First, we will do a "graph expansion" for each function - grab the function's source, as well as the full source of all usages of the function and all dependencies.
+
+<Info>See [dependencies and usages](/building-with-codegen/dependencies-and-usages) to learn more about navigating the code graph</Info>
+
+First, let's import the types we need from Codegen:
+
+```python
+import codegen
+from codegen import Codebase
+from codegen.sdk.core.external_module import ExternalModule
+from codegen.sdk.core.import_resolution import Import
+from codegen.sdk.core.symbol import Symbol
+```
+
+Here's how we get the full context for each function:
+
+```python
+def get_function_context(function) -> dict:
+    """Get the implementation, dependencies, and usages of a function."""
+    context = {
+        "implementation": {"source": function.source, "filepath": function.filepath},
+        "dependencies": [],
+        "usages": [],
+    }
+
+    # Add dependencies
+    for dep in function.dependencies:
+        # Hop through imports to find the root symbol source
+        if isinstance(dep, Import):
+            dep = hop_through_imports(dep)
+
+        context["dependencies"].append({"source": dep.source, "filepath": dep.filepath})
+
+    # Add usages
+    for usage in function.usages:
+        context["usages"].append({
+            "source": usage.usage_symbol.source,
+            "filepath": usage.usage_symbol.filepath,
+        })
+
+    return context
+```
+
+Notice how we use `hop_through_imports` to resolve dependencies. When working with imports, symbols can be re-exported multiple times. For example, a helper function might be imported and re-exported through several files before being used. We need to follow this chain to find the actual implementation:
+
+```python
+def hop_through_imports(imp: Import) -> Symbol | ExternalModule:
+    """Finds the root symbol for an import."""
+    if isinstance(imp.imported_symbol, Import):
+        return hop_through_imports(imp.imported_symbol)
+    return imp.imported_symbol
+```
+
+This creates a structured representation of each function's context:
+
+```json
+{
+  "implementation": {
+    "source": "def process_data(input: str) -> dict: ...",
+    "filepath": "src/data_processor.py"
+  },
+  "dependencies": [
+    {
+      "source": "def validate_input(data: str) -> bool: ...",
+      "filepath": "src/validators.py"
+    }
+  ],
+  "usages": [
+    {
+      "source": "result = process_data(user_input)",
+      "filepath": "src/api.py"
+    }
+  ]
+}
+```
+
+## Step 2: Processing the Codebase
+
+Next, we process all functions in the codebase to generate our training data:
+
+```python
+def run(codebase: Codebase):
+    """Generate training data using a node2vec-like approach for code embeddings."""
+    # Track all function contexts
+    training_data = {
+        "functions": [],
+        "metadata": {
+            "total_functions": len(codebase.functions),
+            "total_processed": 0,
+            "avg_dependencies": 0,
+            "avg_usages": 0,
+        },
+    }
+
+    # Process each function in the codebase
+    for function in codebase.functions:
+        # Skip if function is too small
+        if len(function.source.split("\n")) < 2:
+            continue
+
+        # Get function context
+        context = get_function_context(function)
+
+        # Only keep functions with enough context
+        if len(context["dependencies"]) + len(context["usages"]) > 0:
+            training_data["functions"].append(context)
+
+    # Update metadata
+    training_data["metadata"]["total_processed"] = len(training_data["functions"])
+    if training_data["functions"]:
+        training_data["metadata"]["avg_dependencies"] = sum(
+            len(f["dependencies"]) for f in training_data["functions"]
+        ) / len(training_data["functions"])
+        training_data["metadata"]["avg_usages"] = sum(
+            len(f["usages"]) for f in training_data["functions"]
+        ) / len(training_data["functions"])
+
+    return training_data
+```
+
+## Step 3: Running the Generator
+
+Finally, we can run our training data generator on any codebase.
+
+<Note>See [parsing codebases](/building-with-codegen/parsing-codebases) to learn more</Note>
+
+```python
+if __name__ == "__main__":
+    print("Initializing codebase...")
+    codebase = Codebase.from_repo("fastapi/fastapi")
+
+    print("Generating training data...")
+    training_data = run(codebase)
+
+    print("Saving training data...")
+    with open("training_data.json", "w") as f:
+        json.dump(training_data, f, indent=2)
+    print("Training data saved to training_data.json")
+```
+
+This will:
+1. Load the target codebase
+2. Process all functions
+3. Save the structured training data to a JSON file
+
+<Tip>
+  You can use any Git repository as your source codebase by passing the repo URL
+  to [Codebase.from_repo(...)](/api-reference/core/Codebase#from-repo).
+</Tip>
+
+## Using the Training Data
+
+The generated data can be used to train LLMs in several ways:
+
+1. **Masked Function Prediction**: Hide a function's implementation and predict it from dependencies and usages
+2. **Code Embeddings**: Generate embeddings that capture semantic relationships between functions
+3. **Dependency Prediction**: Learn to predict which functions are likely to be dependencies
+4. **Usage Pattern Learning**: Train models to understand common usage patterns
+
+For example, to create a masked prediction task:
+
+```python
+def create_training_example(function_data):
+    """Create a masked prediction example from function data."""
+    return {
+        "context": {
+            "dependencies": function_data["dependencies"],
+            "usages": function_data["usages"]
+        },
+        "target": function_data["implementation"]
+    }
+
+# Create training examples
+examples = [create_training_example(f) for f in training_data["functions"]]
+```
+
+
 
 ---
 title: "Codebase Visualization"
@@ -6734,208 +7396,214 @@ View on [codegen.sh](https://www.codegen.sh/codemod/d255db6c-9a86-4197-9b78-16c5
 </CardGroup>
 
 ---
-title: "Mining Training Data for LLMs"
-sidebarTitle: "Mining Data"
-description: "Learn how to generate training data for large language models using Codegen"
-icon: "network-wired"
+title: "Migrating APIs"
+sidebarTitle: "API Migrations"
+icon: "webhook"
 iconType: "solid"
 ---
 
-This guide demonstrates how to use Codegen to generate high-quality training data for large language models (LLMs) by extracting function implementations along with their dependencies and usages. This approach is similar to [word2vec](https://www.tensorflow.org/text/tutorials/word2vec) or [node2vec](https://snap.stanford.edu/node2vec/) - given the context of a function, learn to predict the function's implementation.
+API migrations are a common task in large codebases. Whether you're updating a deprecated function, changing parameter names, or modifying return types, Codegen makes it easy to update all call sites consistently.
 
-<Info>View the full code in our [examples repository](https://github.com/codegen-sh/codegen-examples/tree/7b978091c3153b687c32928fe10f05425e22f6a5/examples/generate_training_data)</Info>
+## Common Migration Scenarios
 
-<Tip>This example works with both Python and Typescript repositories without modification</Tip>
+### Renaming Parameters
 
-## Overview
-
-The process involves three main steps:
-
-1. Finding all functions in the codebase
-2. Extracting their implementations, dependencies, and usages
-3. Generating structured training data
-
-Let's walk through each step using Codegen.
-
-## Step 1: Finding Functions and Their Context
-
-First, we will do a "graph expansion" for each function - grab the function's source, as well as the full source of all usages of the function and all dependencies.
-
-<Info>See [dependencies and usages](/building-with-codegen/dependencies-and-usages) to learn more about navigating the code graph</Info>
-
-First, let's import the types we need from Codegen:
+When updating parameter names across an API, you need to update both the function definition and all call sites:
 
 ```python
-import codegen
-from codegen import Codebase
-from codegen.sdk.core.external_module import ExternalModule
-from codegen.sdk.core.import_resolution import Import
-from codegen.sdk.core.symbol import Symbol
+# Find the API function to update
+api_function = codebase.get_function("process_data")
+
+# Update the parameter name
+old_param = api_function.get_parameter("input")
+old_param.rename("data")
+
+# All call sites are automatically updated:
+# process_data(input="test") -> process_data(data="test")
 ```
 
-Here's how we get the full context for each function:
+<Info>See [dependencies and usages](/building-with-codegen/dependencies-and-usages) for more on updating parameter names and types.</Info>
+
+### Adding Required Parameters
+
+When adding a new required parameter to an API:
 
 ```python
-def get_function_context(function) -> dict:
-    """Get the implementation, dependencies, and usages of a function."""
-    context = {
-        "implementation": {"source": function.source, "filepath": function.filepath},
-        "dependencies": [],
-        "usages": [],
-    }
+# Find all call sites before modifying the function
+call_sites = list(api_function.call_sites)
 
-    # Add dependencies
-    for dep in function.dependencies:
-        # Hop through imports to find the root symbol source
-        if isinstance(dep, Import):
-            dep = hop_through_imports(dep)
+# Add the new parameter
+api_function.add_parameter("timeout: int")
 
-        context["dependencies"].append({"source": dep.source, "filepath": dep.filepath})
-
-    # Add usages
-    for usage in function.usages:
-        context["usages"].append({
-            "source": usage.usage_symbol.source,
-            "filepath": usage.usage_symbol.filepath,
-        })
-
-    return context
+# Update all existing call sites to include the new parameter
+for call in call_sites:
+    call.add_argument("timeout=30")  # Add with a default value
 ```
 
-Notice how we use `hop_through_imports` to resolve dependencies. When working with imports, symbols can be re-exported multiple times. For example, a helper function might be imported and re-exported through several files before being used. We need to follow this chain to find the actual implementation:
+<Info>See [function calls and callsites](/building-with-codegen/function-calls-and-callsites) for more on handling call sites.</Info>
+
+### Changing Parameter Types
+
+When updating parameter types:
 
 ```python
-def hop_through_imports(imp: Import) -> Symbol | ExternalModule:
-    """Finds the root symbol for an import."""
-    if isinstance(imp.imported_symbol, Import):
-        return hop_through_imports(imp.imported_symbol)
-    return imp.imported_symbol
+# Update the parameter type
+param = api_function.get_parameter("user_id")
+param.type = "UUID"  # Change from string to UUID
+
+# Find all call sites that need type conversion
+for call in api_function.call_sites:
+    arg = call.get_arg_by_parameter_name("user_id")
+    if arg:
+        # Convert string to UUID
+        arg.edit(f"UUID({arg.value})")
 ```
 
-This creates a structured representation of each function's context:
+<Info>See [working with type annotations](/building-with-codegen/type-annotations) for more on changing parameter types.</Info>
 
-```json
-{
-  "implementation": {
-    "source": "def process_data(input: str) -> dict: ...",
-    "filepath": "src/data_processor.py"
-  },
-  "dependencies": [
-    {
-      "source": "def validate_input(data: str) -> bool: ...",
-      "filepath": "src/validators.py"
-    }
-  ],
-  "usages": [
-    {
-      "source": "result = process_data(user_input)",
-      "filepath": "src/api.py"
-    }
-  ]
-}
-```
+### Deprecating Functions
 
-## Step 2: Processing the Codebase
-
-Next, we process all functions in the codebase to generate our training data:
+When deprecating an old API in favor of a new one:
 
 ```python
-def run(codebase: Codebase):
-    """Generate training data using a node2vec-like approach for code embeddings."""
-    # Track all function contexts
-    training_data = {
-        "functions": [],
-        "metadata": {
-            "total_functions": len(codebase.functions),
-            "total_processed": 0,
-            "avg_dependencies": 0,
-            "avg_usages": 0,
-        },
-    }
+old_api = codebase.get_function("old_process_data")
+new_api = codebase.get_function("new_process_data")
 
-    # Process each function in the codebase
-    for function in codebase.functions:
-        # Skip if function is too small
-        if len(function.source.split("\n")) < 2:
-            continue
+# Add deprecation warning
+old_api.add_decorator('@deprecated("Use new_process_data instead")')
 
-        # Get function context
-        context = get_function_context(function)
+# Update all call sites to use the new API
+for call in old_api.call_sites:
+    # Map old arguments to new parameter names
+    args = [
+        f"data={call.get_arg_by_parameter_name('input').value}",
+        f"timeout={call.get_arg_by_parameter_name('wait').value}"
+    ]
 
-        # Only keep functions with enough context
-        if len(context["dependencies"]) + len(context["usages"]) > 0:
-            training_data["functions"].append(context)
-
-    # Update metadata
-    training_data["metadata"]["total_processed"] = len(training_data["functions"])
-    if training_data["functions"]:
-        training_data["metadata"]["avg_dependencies"] = sum(
-            len(f["dependencies"]) for f in training_data["functions"]
-        ) / len(training_data["functions"])
-        training_data["metadata"]["avg_usages"] = sum(
-            len(f["usages"]) for f in training_data["functions"]
-        ) / len(training_data["functions"])
-
-    return training_data
+    # Replace the old call with the new API
+    call.replace(f"new_process_data({', '.join(args)})")
 ```
 
-## Step 3: Running the Generator
+## Bulk Updates to Method Chains
 
-Finally, we can run our training data generator on any codebase.
-
-<Note>See [parsing codebases](/building-with-codegen/parsing-codebases) to learn more</Note>
+When updating chained method calls, like database queries or builder patterns:
 
 ```python
-if __name__ == "__main__":
-    print("Initializing codebase...")
-    codebase = Codebase.from_repo("fastapi/fastapi")
+# Find all query chains ending with .execute()
+for execute_call in codebase.function_calls:
+    if execute_call.name != "execute":
+        continue
 
-    print("Generating training data...")
-    training_data = run(codebase)
+    # Get the full chain
+    chain = execute_call.call_chain
 
-    print("Saving training data...")
-    with open("training_data.json", "w") as f:
-        json.dump(training_data, f, indent=2)
-    print("Training data saved to training_data.json")
+    # Example: Add .timeout() before .execute()
+    if "timeout" not in {call.name for call in chain}:
+        execute_call.insert_before("timeout(30)")
 ```
 
-This will:
-1. Load the target codebase
-2. Process all functions
-3. Save the structured training data to a JSON file
+## Handling Breaking Changes
 
-<Tip>
-  You can use any Git repository as your source codebase by passing the repo URL
-  to [Codebase.from_repo(...)](/api-reference/core/Codebase#from-repo).
-</Tip>
+When making breaking changes to an API, it's important to:
+1. Identify all affected call sites
+2. Make changes consistently
+3. Update related documentation
+4. Consider backward compatibility
 
-## Using the Training Data
-
-The generated data can be used to train LLMs in several ways:
-
-1. **Masked Function Prediction**: Hide a function's implementation and predict it from dependencies and usages
-2. **Code Embeddings**: Generate embeddings that capture semantic relationships between functions
-3. **Dependency Prediction**: Learn to predict which functions are likely to be dependencies
-4. **Usage Pattern Learning**: Train models to understand common usage patterns
-
-For example, to create a masked prediction task:
+Here's a comprehensive example:
 
 ```python
-def create_training_example(function_data):
-    """Create a masked prediction example from function data."""
-    return {
-        "context": {
-            "dependencies": function_data["dependencies"],
-            "usages": function_data["usages"]
-        },
-        "target": function_data["implementation"]
-    }
+def migrate_api_v1_to_v2(codebase):
+    old_api = codebase.get_function("create_user_v1")
 
-# Create training examples
-examples = [create_training_example(f) for f in training_data["functions"]]
+    # Document all existing call patterns
+    call_patterns = {}
+    for call in old_api.call_sites:
+        args = [arg.source for arg in call.args]
+        pattern = ", ".join(args)
+        call_patterns[pattern] = call_patterns.get(pattern, 0) + 1
+
+    print("Found call patterns:")
+    for pattern, count in call_patterns.items():
+        print(f"  {pattern}: {count} occurrences")
+
+    # Create new API version
+    new_api = old_api.copy()
+    new_api.rename("create_user_v2")
+
+    # Update parameter types
+    new_api.get_parameter("email").type = "EmailStr"
+    new_api.get_parameter("role").type = "UserRole"
+
+    # Add new required parameters
+    new_api.add_parameter("tenant_id: UUID")
+
+    # Update all call sites
+    for call in old_api.call_sites:
+        # Get current arguments
+        email_arg = call.get_arg_by_parameter_name("email")
+        role_arg = call.get_arg_by_parameter_name("role")
+
+        # Build new argument list with type conversions
+        new_args = [
+            f"email=EmailStr({email_arg.value})",
+            f"role=UserRole({role_arg.value})",
+            "tenant_id=get_current_tenant_id()"
+        ]
+
+        # Replace old call with new version
+        call.replace(f"create_user_v2({', '.join(new_args)})")
+
+    # Add deprecation notice to old version
+    old_api.add_decorator('@deprecated("Use create_user_v2 instead")')
+
+# Run the migration
+migrate_api_v1_to_v2(codebase)
 ```
 
+## Best Practices
 
+1. **Analyze First**: Before making changes, analyze all call sites to understand usage patterns
+   ```python
+   # Document current usage
+   for call in api.call_sites:
+       print(f"Called from: {call.parent_function.name}")
+       print(f"With args: {[arg.source for arg in call.args]}")
+   ```
+
+2. **Make Atomic Changes**: Update one aspect at a time
+   ```python
+   # First update parameter names
+   param.rename("new_name")
+
+   # Then update types
+   param.type = "new_type"
+
+   # Finally update call sites
+   for call in api.call_sites:
+       # ... update calls
+   ```
+
+3. **Maintain Backwards Compatibility**:
+   ```python
+   # Add new parameter with default
+   api.add_parameter("new_param: str = None")
+
+   # Later make it required
+   api.get_parameter("new_param").remove_default()
+   ```
+
+4. **Document Changes**:
+   ```python
+   # Add clear deprecation messages
+   old_api.add_decorator('''@deprecated(
+       "Use new_api() instead. Migration guide: docs/migrations/v2.md"
+   )''')
+   ```
+
+<Note>
+Remember to test thoroughly after making bulk changes to APIs. While Codegen ensures syntactic correctness, you'll want to verify the semantic correctness of the changes.
+</Note>
 
 ---
 title: "Organizing Your Codebase"
@@ -8302,8 +8970,8 @@ iconType: "solid"
 This guide demonstrates how to determine docs coverage and create documentation for your codebase.
 
 This primarily leverages two APIs:
-- [`codebase.ai(...)`](/api-reference/core/Codebase#ai) for generating docstrings
-- [`function.set_docstring(...)`](/api-reference/core/HasBlock#set-docstring) for modifying them
+- [codebase.ai(...)](/api-reference/core/Codebase#ai) for generating docstrings
+- [function.set_docstring(...)](/api-reference/core/HasBlock#set-docstring) for modifying them
 
 ## Determining Documentation Coverage
 
@@ -8368,7 +9036,7 @@ Which provides the following output:
 
 To identify areas of low documentation coverage, you can iterate through all directories and count the number of functions with docstrings.
 
-<Note>Learn more about [`Directories` here](/building-with-codegen/files-and-directories).</Note>
+<Note>Learn more about [Directories here](/building-with-codegen/files-and-directories).</Note>
 
 ```python python
 # Track directory stats
@@ -9274,12 +9942,14 @@ def some_func():
 
 A dynamic import is an import defined inside of a function, method or any executable body of code which delays the import execution until that function, method or body of code is called.
 
-You can use `imp.is_dynamic` to check if the import is dynamic allowing you to investigate imports that are handled more intentionally.
+You can use [Import.is_dynamic](/api-reference/core/Import#is-dynamic) to check if the import is dynamic allowing you to investigate imports that are handled more intentionally.
 
 # Step 2: Visualize Import Loops
 - Create a new subgraph to visualize one cycle
 - color and label the edges based on their type (dynamic/static)
-- visualize the cycle graph using `codebase.visualize(graph)`
+- visualize the cycle graph using [codebase.visualize(graph)](/api-reference/core/Codebase#visualize)
+
+<Tip>Learn more about codebase visualization [here](/building-with-codegen/codebase-visualization)</Tip>
 
 ```python
 cycle = cycles[0]
@@ -9390,7 +10060,9 @@ problematic_cycles = find_problematic_import_loops(G, cycles)
 ```
 
 # Step 4: Fix the loop by moving the shared symbols to a separate `utils.py` file
-One common fix to this problem to break this cycle is to move all the shared symbols to a separate `utils.py` file. We can do this using the method `symbol.move_to_file`:
+One common fix to this problem to break this cycle is to move all the shared symbols to a separate `utils.py` file. We can do this using the method [symbol.move_to_file](/api-reference/core/Symbol#move-to-file):
+
+<Tip>Learn more about moving symbols [here](/building-with-codegen/moving-symbols)</Tip>
 
 ```python
 # Create new utils file
@@ -9419,18 +10091,30 @@ for symbol in symbols_to_move:
 print(f"🔄 Moved {len(symbols_to_move)} symbols to flex_utils.py")
 for symbol in symbols_to_move:
     print(symbol.name)
-```
 
-```python
-# run this command to have the changes take effect in the codebase
+# Commit changes
 codebase.commit()
 ```
 
-Next Steps
-Verify all tests pass after the migration and fix other problematic import loops using the suggested strategies:
-    1. Move the shared symbols to a separate file
-    2. If a module needs imports only for type hints, consider using `if TYPE_CHECKING` from the `typing` module
-    3. Use lazy imports using `importlib` to load imports dynamically
+# Conclusions & Next Steps
+
+Import loops can be tricky to identify and fix, but Codegen provides powerful tools to help manage them:
+
+- Use `codebase.imports` to analyze import relationships across your project
+- Visualize import cycles to better understand dependencies
+- Distinguish between static and dynamic imports using `Import.is_dynamic`
+- Move shared symbols to break cycles using `symbol.move_to_file`
+
+Here are some next steps you can take:
+
+1. **Analyze Your Codebase**: Run similar analysis on your own codebase to identify potential import cycles
+2. **Create Import Guidelines**: Establish best practices for your team around when to use static vs dynamic imports
+3. **Automate Fixes**: Create scripts to automatically detect and fix problematic import patterns
+4. **Monitor Changes**: Set up CI checks to prevent new problematic import cycles from being introduced
+
+<Info>
+For more examples of codebase analysis and refactoring, check out our other [tutorials](/tutorials/at-a-glance).
+</Info>
 
 ---
 title: "Migrating from Python 2 to Python 3"
@@ -9907,3 +10591,175 @@ Check out these related tutorials:
 - [Codegen API Reference](/api-reference)
 - [Moving Symbols Guide](/building-with-codegen/moving-symbols)
 - [Dependencies and Usages](/building-with-codegen/dependencies-and-usages)
+
+
+---
+title: "Building a Model Context Protocol server with Codegen"
+sidebarTitle: "MCP Server"
+icon: "boxes-stacked"
+iconType: "solid"
+---
+
+Learn how to build a Model Context Protocol (MCP) server that enables AI models to understand and manipulate code using Codegen's powerful tools.
+
+This guide will walk you through creating an MCP server that can provide semantic code search
+
+<Info>View the full code in our [examples repository](https://github.com/codegen-sh/codegen-sdk/tree/develop/src/codegen/extensions/mcp)</Info>
+
+
+## Setup:
+Install the MCP python library
+```
+uv pip install mcp
+```
+
+## Step 1: Setting Up Your MCP Server
+
+First, let's create a basic MCP server using Codegen's MCP tools:
+
+server.py
+```python
+from codegen import Codebase
+from mcp.server.fastmcp import FastMCP
+from typing import Annotated
+# Initialize the codebase
+codebase = Codebase.from_repo(".")
+
+# create the MCP server using FastMCP
+mcp = FastMCP(name="demo-mcp", instructions="Use this server for semantic search of codebases")
+
+
+if __name__ == "__main__":
+    # Initialize and run the server
+    print("Starting demo mpc server...")
+    mcp.run(transport="stdio")
+
+```
+
+## Step 2: Create the search tool
+
+Let's implement the semantic search tool.
+
+server.py
+```python
+from codegen.extensions.tools.semantic_search import semantic_search
+
+....
+
+@mcp.tool('codebase_semantic_search', "search codebase with the provided query")
+def search(query: Annotated[str, "search query to run against codebase"]):
+  codebase = Codebase("provide location to codebase", language="provide codebase Language")
+  # use the semantic search tool from codegen.extensions.tools OR write your own
+  results = semantic_search(codebase=codebase, query=query)
+  return results
+
+....
+```
+
+## Run Your MCP Server
+
+You can run and inspect your MCP server with:
+
+```
+mcp dev server.py
+```
+
+If you'd like to integrate this into an IDE checkout out this [setup guide](/introduction/ide-usage#mcp-server-setup)
+
+And that's a wrap, chime in at our [community
+  Slack](https://community.codegen.com) if you have questions or ideas for additional MCP tools/capabilities
+
+
+---
+title: "Neo4j Graph"
+sidebarTitle: "Neo4j Graph"
+icon: "database"
+iconType: "solid"
+---
+
+<Frame caption="Function call graph for a codebase">
+  <img src="/images/neo4j-call-graph.png" />
+</Frame>
+
+# Neo4j Graph
+
+Codegen can export codebase graphs to Neo4j for visualization and analysis.
+
+## Installation
+In order to use Neo4j you will need to install it and run it locally using Docker.
+
+### Neo4j
+First, install Neo4j using the official [installation guide](https://neo4j.com/docs/desktop-manual/current/installation/download-installation/).
+
+### Docker
+To run Neo4j locally using Docker, follow the instructions [here](https://neo4j.com/docs/apoc/current/installation/#docker).
+
+## Launch Neo4j Locally
+
+```bash
+docker run \
+    -p 7474:7474 -p 7687:7687 \
+    -v $PWD/data:/data -v $PWD/plugins:/plugins \
+    --name neo4j-apoc \
+    -e NEO4J_apoc_export_file_enabled=true \
+    -e NEO4J_apoc_import_file_enabled=true \
+    -e NEO4J_apoc_import_file_use__neo4j__config=true \
+    -e NEO4J_PLUGINS=\[\"apoc\"\] \
+    neo4j:latest
+```
+## Usage
+
+```python
+from codegen import Codebase
+from codegen.extensions.graph.main import visualize_codebase
+
+# parse codebase
+codebase = Codebase("path/to/codebase")
+
+# export to Neo4j
+visualize_codebase(codebase, "bolt://localhost:7687", "neo4j", "password")
+```
+
+## Visualization
+
+Once exported, you can open the Neo4j browser at `http://localhost:7474`, sign in with the username `neo4j` and the password `password`, and use the following Cypher queries to visualize the codebase:
+
+### Class Hierarchy
+
+```cypher
+Match (s: Class )-[r: INHERITS_FROM*]-> (e:Class) RETURN s, e LIMIT 10
+```
+<Frame caption="Class hierarchy for a codebase">
+  <img src="/images/neo4j-class-hierarchy.png" />
+</Frame>
+
+### Methods Defined by Each Class
+
+```cypher
+Match (s: Class )-[r: DEFINES]-> (e:Method) RETURN s, e LIMIT 10
+```
+<Frame caption="Methods defined by each class">
+  <img src="/images/neo4j-class-methods.png" />
+</Frame>
+
+### Function Calls
+
+```cypher
+Match (s: Func )-[r: CALLS]-> (e:Func) RETURN s, e LIMIT 10
+```
+
+<Frame caption="Function call graph for a codebase">
+  <img src="/images/neo4j-function-calls.png" />
+</Frame>
+
+### Call Graph
+
+```cypher
+Match path = (:(Method|Func)) -[:CALLS*5..10]-> (:(Method|Func))
+Return path
+LIMIT 20
+```
+
+<Frame caption="Call graph for a codebase">
+  <img src="/images/neo4j-call-graph.png" />
+</Frame>

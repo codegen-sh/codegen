@@ -4,7 +4,7 @@ from codegen.sdk.ai.helpers import count_tokens
 from codegen.sdk.code_generation.doc_utils.generate_docs_json import generate_docs_json
 from codegen.sdk.code_generation.prompts.api_docs import get_codegen_sdk_codebase, get_codegen_sdk_docs
 from codegen.sdk.core.symbol import Symbol
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 @pytest.fixture(scope="module")

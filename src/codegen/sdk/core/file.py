@@ -223,7 +223,10 @@ class File(Editable[None]):
     @noapidoc
     def github_url(self) -> str | None:
         if self.ctx.base_url:
-            return self.ctx.base_url + "/" + self.file_path
+            if self.ctx.base_url.endswith(".git"):
+                return self.ctx.base_url.replace(".git", "/blob/develop/") + self.file_path
+            else:
+                return self.ctx.base_url + "/" + self.file_path
 
     @property
     @reader

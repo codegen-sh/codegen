@@ -5,7 +5,9 @@ import rich
 import rich_click as click
 from rich.table import Table
 
-from codegen.shared.configs.config import config
+from codegen.cli.auth.session import CodegenSession
+from codegen.cli.workspace.decorators import requires_init
+from codegen.shared.configs.session_configs import global_config
 
 
 @click.group(name="config")
@@ -15,7 +17,9 @@ def config_command():
 
 
 @config_command.command(name="list")
-def list_command():
+@requires_init
+@click.option("--global", "is_global", is_flag=True, help="Lists the global configuration values")
+def list_command(session: CodegenSession, is_global: bool):
     """List current configuration values."""
     table = Table(title="Configuration Values", border_style="blue", show_header=True)
     table.add_column("Key", style="cyan", no_wrap=True)
@@ -35,6 +39,7 @@ def list_command():
         return items
 
     # Get flattened config and sort by keys
+    config = global_config.global_session if is_global else session.config
     flat_config = flatten_dict(config.model_dump())
     sorted_items = sorted(flat_config.items(), key=lambda x: x[0])
 
@@ -54,9 +59,12 @@ def list_command():
 
 
 @config_command.command(name="get")
+@requires_init
 @click.argument("key")
-def get_command(key: str):
+@click.option("--global", "is_global", is_flag=True, help="Get the global configuration value")
+def get_command(session: CodegenSession, key: str, is_global: bool):
     """Get a configuration value."""
+    config = global_config.global_session if is_global else session.config
     value = config.get(key)
     if value is None:
         rich.print(f"[red]Error: Configuration key '{key}' not found[/red]")
@@ -66,10 +74,13 @@ def get_command(key: str):
 
 
 @config_command.command(name="set")
+@requires_init
 @click.argument("key")
 @click.argument("value")
-def set_command(key: str, value: str):
+@click.option("--global", "is_global", is_flag=True, help="Sets the global configuration value")
+def set_command(session: CodegenSession, key: str, value: str, is_global: bool):
     """Set a configuration value and write to config.toml."""
+    config = global_config.global_session if is_global else session.config
     cur_value = config.get(key)
     if cur_value is None:
         rich.print(f"[red]Error: Configuration key '{key}' not found[/red]")

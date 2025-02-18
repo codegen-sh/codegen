@@ -1,7 +1,7 @@
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
 from codegen.sdk.core.assignment import Assignment
-from codegen.sdk.enums import ProgrammingLanguage
 from codegen.sdk.typescript.function import TSFunction
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def test_add_symbol_from_source(tmpdir) -> None:

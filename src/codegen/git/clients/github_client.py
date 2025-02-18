@@ -15,7 +15,7 @@ class GithubClient:
     base_url: str
     _client: Github
 
-    def __init__(self, token: str, base_url: str = Consts.DEFAULT_BASE_URL):
+    def __init__(self, token: str | None = None, base_url: str = Consts.DEFAULT_BASE_URL):
         self.base_url = base_url
         self._client = Github(token, base_url=base_url)
 

@@ -11,7 +11,7 @@ import {HorizontalDivider} from '/snippets/HorizontalDivider.mdx';
 import {GithubLinkNote} from '/snippets/GithubLinkNote.mdx';
 import {Attribute} from '/snippets/Attribute.mdx';
 
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/export.py#L46-L671" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/export.py#L46-L679" />
 
 ### Inherits from
 [HasValue](/api-reference/core/HasValue), [Export](/api-reference/core/Export), [Editable](/api-reference/core/Editable), [Exportable](/api-reference/core/Exportable), [Usable](/api-reference/core/Usable), [Importable](/api-reference/core/Importable), [Expression](/api-reference/core/Expression), [HasName](/api-reference/core/HasName)
@@ -21,10 +21,6 @@ import {Attribute} from '/snippets/Attribute.mdx';
 ### <span className="text-primary">declared_symbol</span>
 <HorizontalDivider light={true} />
 <Attribute type={ <><a href="/api-reference/typescript/TSSymbol" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSSymbol</a> <span>|</span> <a href="/api-reference/typescript/TSImport" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSImport</a> <span>| None</span></> } description="Returns the symbol that was defined in this export." />
-
-### <span className="text-primary">dependencies</span>
-<HorizontalDivider light={true} />
-<Attribute type={ <><span>list[Union[</span> <a href="/api-reference/typescript/TSSymbol" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSSymbol</a> <span>,</span> <a href="/api-reference/typescript/TSImport" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSImport</a> <span>]]</span></> } description="Returns a list of symbols that this symbol depends on." />
 
 ### <span className="text-primary">descendant_symbols</span>
 <HorizontalDivider light={true} />
@@ -127,15 +123,38 @@ import {Attribute} from '/snippets/Attribute.mdx';
 <HorizontalDivider />
 ### <span className="text-primary">ancestors</span>
 Find all ancestors of the node of the given type. Does not return itself
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1088-L1096" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1101-L1109" />
 
 
 <Return return_type={ <><span>list[</span> <a href="/api-reference/core/Editable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Editable</a> <span>]</span></> } description=""/>
 
 
+### <span className="text-primary">dependencies</span>
+Returns a list of symbols that this symbol depends on.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/importable.py#L46-L78" />
+
+<ParameterWrapper>
+<Parameter
+    name="usage_types"
+    type={ <><a href="/api-reference/core/UsageType" style={ {fontWeight: "inherit", fontSize: "inherit"} }>UsageType</a> <span>| None</span></> }
+    description="The types of dependencies to search for. Defaults to UsageType.DIRECT."
+    defaultValue="UsageType.DIRECT"
+/>
+<Parameter
+    name="max_depth"
+    type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">int | None</code> }
+    description="Maximum depth to traverse in the dependency graph. If provided, will recursively collect"
+    defaultValue="None"
+/>
+</ParameterWrapper>
+
+
+<Return return_type={ <><span>list[Union[</span> <a href="/api-reference/typescript/TSSymbol" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSSymbol</a> <span>,</span> <a href="/api-reference/typescript/TSImport" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSImport</a> <span>]]</span></> } description="A list of symbols and imports that this symbol depends on, sorted by file location."/>
+
+
 ### <span className="text-primary">edit</span>
 Replace the source of this `Editable` with `new_src`.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L632-L660" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L637-L665" />
 
 <ParameterWrapper>
 <Parameter
@@ -170,7 +189,7 @@ Replace the source of this `Editable` with `new_src`.
 
 ### <span className="text-primary">find</span>
 Find and return matching nodes or substrings within an Editable instance.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L482-L499" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L487-L504" />
 
 <ParameterWrapper>
 <Parameter
@@ -193,7 +212,7 @@ Find and return matching nodes or substrings within an Editable instance.
 
 ### <span className="text-primary">find_string_literals</span>
 Returns a list of string literals within this node's source that match any of the given
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L394-L408" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L398-L412" />
 
 <ParameterWrapper>
 <Parameter
@@ -211,12 +230,12 @@ Returns a list of string literals within this node's source that match any of th
 </ParameterWrapper>
 
 
-<Return return_type={ <><span>list[</span> <a href="/api-reference/core/Editable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Editable</a> <span>]</span></> } description="A list of Editable objects representing the matching string literals."/>
+<Return return_type={ <><span>list[</span> <a href="/api-reference/core/Editable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Editable</a> <span>[</span> <a href="/api-reference/typescript/TSExport" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSExport</a> <span>]]</span></> } description="A list of Editable objects representing the matching string literals."/>
 
 
 ### <span className="text-primary">flag</span>
 Adds a visual flag comment to the end of this Editable's source text.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L926-L937" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L939-L950" />
 
 
 <Return return_type={ <><span>CodeFlag[</span> <a href="/api-reference/typescript/TSExport" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSExport</a> <span>]</span></> } description=""/>
@@ -224,7 +243,7 @@ Adds a visual flag comment to the end of this Editable's source text.
 
 ### <span className="text-primary">get_import_string</span>
 Returns the import string for this export.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/export.py#L610-L641" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/export.py#L618-L649" />
 
 <ParameterWrapper>
 <Parameter
@@ -267,7 +286,7 @@ Returns the name node of the object.
 
 ### <span className="text-primary">get_variable_usages</span>
 Returns Editables for all TreeSitter nodes corresponding to instances of variable usage
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L902-L918" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L909-L925" />
 
 <ParameterWrapper>
 <Parameter
@@ -285,12 +304,12 @@ Returns Editables for all TreeSitter nodes corresponding to instances of variabl
 </ParameterWrapper>
 
 
-<Return return_type={ <><span>list[</span> <a href="/api-reference/core/Editable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Editable</a> <span>]</span></> } description="List of Editable objects representing variable usage nodes matching the given name."/>
+<Return return_type={ <><span>Sequence[</span> <a href="/api-reference/core/Editable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Editable</a> <span>[</span> <a href="/api-reference/typescript/TSExport" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSExport</a> <span>]]</span></> } description="List of Editable objects representing variable usage nodes matching the given name."/>
 
 
 ### <span className="text-primary">insert_after</span>
 Inserts code after this node.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L603-L629" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L608-L634" />
 
 <ParameterWrapper>
 <Parameter
@@ -331,7 +350,7 @@ Inserts code after this node.
 
 ### <span className="text-primary">insert_before</span>
 Inserts text before this node's source with optional indentation and newline handling.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L570-L600" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L575-L605" />
 
 <ParameterWrapper>
 <Parameter
@@ -380,7 +399,7 @@ Determines if the Export object is aliased.
 
 ### <span className="text-primary">is_default_export</span>
 Determines if an export is the default export for a file.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/export.py#L241-L264" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/export.py#L249-L272" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">bool</code> } description="True if this is a default export, False otherwise."/>
@@ -388,7 +407,7 @@ Determines if an export is the default export for a file.
 
 ### <span className="text-primary">is_default_symbol_export</span>
 Returns True if this is exporting a default symbol, as opposed to a default object export.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/export.py#L267-L289" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/export.py#L275-L297" />
 
 <ParameterWrapper>
 <Parameter
@@ -405,7 +424,7 @@ Returns True if this is exporting a default symbol, as opposed to a default obje
 
 ### <span className="text-primary">is_module_export</span>
 Determines if the export is exporting a module rather than a symbol.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/export.py#L332-L340" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/export.py#L340-L348" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">bool</code> } description="True if the export represents a module export, False otherwise."/>
@@ -413,7 +432,7 @@ Determines if the export is exporting a module rather than a symbol.
 
 ### <span className="text-primary">is_named_export</span>
 Determines whether this export is a named export.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/export.py#L229-L238" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/export.py#L237-L246" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">bool</code> } description="True if this is a named export, False if it is a default export."/>
@@ -421,7 +440,7 @@ Determines whether this export is a named export.
 
 ### <span className="text-primary">is_reexport</span>
 Returns whether the export is re-exporting an import or export.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/export.py#L305-L318" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/export.py#L313-L326" />
 
 <ParameterWrapper>
 <Parameter
@@ -438,7 +457,7 @@ Returns whether the export is re-exporting an import or export.
 
 ### <span className="text-primary">is_type_export</span>
 Determines if this export is exclusively exporting a type.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/export.py#L292-L302" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/export.py#L300-L310" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">bool</code> } description="True if this is a type-only export, False otherwise."/>
@@ -446,7 +465,7 @@ Determines if this export is exclusively exporting a type.
 
 ### <span className="text-primary">is_wildcard_export</span>
 Determines if the export is a wildcard export.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/export.py#L321-L329" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/export.py#L329-L337" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">bool</code> } description="True if the export is a wildcard export (e.g. 'export * from &quot;./module&quot;'), False otherwise."/>
@@ -454,7 +473,7 @@ Determines if the export is a wildcard export.
 
 ### <span className="text-primary">is_wrapped_in</span>
 Check if this node is contained another node of the given class
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1074-L1076" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1087-L1089" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">bool</code> } description=""/>
@@ -462,7 +481,7 @@ Check if this node is contained another node of the given class
 
 ### <span className="text-primary">make_non_default</span>
 Converts the export to a named export.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/export.py#L406-L483" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/export.py#L414-L491" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
@@ -470,7 +489,7 @@ Converts the export to a named export.
 
 ### <span className="text-primary">parent_of_type</span>
 Find the first ancestor of the node of the given type. Does not return itself
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1079-L1085" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1092-L1098" />
 
 
 <Return return_type={ <><a href="/api-reference/core/Editable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Editable</a> <span>| None</span></> } description=""/>
@@ -478,7 +497,7 @@ Find the first ancestor of the node of the given type. Does not return itself
 
 ### <span className="text-primary">reduce_condition</span>
 Reduces an editable to the following condition
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1030-L1035" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1043-L1048" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
@@ -486,7 +505,7 @@ Reduces an editable to the following condition
 
 ### <span className="text-primary">reexport_symbol</span>
 Returns the import object that is re-exporting this symbol.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/export.py#L644-L671" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/export.py#L652-L679" />
 
 
 <Return return_type={ <><a href="/api-reference/typescript/TSImport" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSImport</a> <span>| None</span></> } description="The import object being re-exported, or None if this is not a re-export or no import was found."/>
@@ -494,7 +513,7 @@ Returns the import object that is re-exporting this symbol.
 
 ### <span className="text-primary">remove</span>
 Deletes this Node and its related extended nodes (e.g. decorators, comments).
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L682-L697" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L687-L702" />
 
 <ParameterWrapper>
 <Parameter
@@ -546,7 +565,7 @@ Renames a symbol and updates all its references in the codebase.
 
 ### <span className="text-primary">replace</span>
 Search and replace occurrences of text within this node's source and its extended nodes.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L427-L451" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L432-L456" />
 
 <ParameterWrapper>
 <Parameter
@@ -587,7 +606,7 @@ Search and replace occurrences of text within this node's source and its extende
 
 ### <span className="text-primary">search</span>
 Returns a list of all regex match of `regex_pattern`, similar to python's re.search().
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L515-L531" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L520-L536" />
 
 <ParameterWrapper>
 <Parameter
@@ -667,7 +686,7 @@ Returns a list of symbols that use or import the exportable object.
 
 ### <span className="text-primary">to_import_string</span>
 Converts this export into its equivalent import string representation.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/export.py#L571-L607" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/export.py#L579-L615" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">str</code> } description="The import string representation of this export. Examples: - For `export { foo } from './bar'` -> `import { foo } from './bar'` - For `export * from './bar'` -> `import * as _namespace from './bar'` - For `export { default as foo } from './bar'` -> `import foo from './bar'`"/>

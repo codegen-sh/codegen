@@ -3,7 +3,7 @@ from pathlib import Path
 
 from codegen.cli.api.client import RestAPI
 from codegen.cli.api.schemas import CodemodRunType, RunCodemodOutput
-from codegen.cli.auth.session import CodegenSession
+from codegen.cli.auth.token_manager import get_current_token
 from codegen.cli.utils.codemods import Codemod
 from codegen.cli.utils.schema import CodemodConfig
 
@@ -28,8 +28,7 @@ class Function:
             A Function instance that can be used to run the codemod
 
         """
-        session = CodegenSession()
-        api_client = RestAPI(session.token)
+        api_client = RestAPI(get_current_token())
         response = api_client.lookup(name)
 
         return cls(name=name, codemod_id=response.codemod_id, version_id=response.version_id, _api_client=api_client)
@@ -51,8 +50,7 @@ class Function:
 
         """
         if self._api_client is None:
-            session = CodegenSession()
-            self._api_client = RestAPI(session.token)
+            self._api_client = RestAPI(get_current_token())
 
         # Create a temporary codemod object to use with the API
         config = CodemodConfig(

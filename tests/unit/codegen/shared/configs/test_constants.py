@@ -5,8 +5,6 @@ from codegen.shared.configs.constants import (
     CODEGEN_REPO_ROOT,
     CONFIG_FILENAME,
     CONFIG_PATH,
-    ENV_FILENAME,
-    ENV_PATH,
 )
 
 
@@ -22,9 +20,3 @@ def test_config_path_construction():
     assert str(CONFIG_PATH).endswith(f"{CODEGEN_DIR_NAME}/{CONFIG_FILENAME}")
     assert CONFIG_PATH.exists()
     assert CONFIG_PATH.is_file()
-
-
-def test_env_path_construction():
-    expected_path = CODEGEN_REPO_ROOT / "src" / "codegen" / ENV_FILENAME
-    assert ENV_PATH == expected_path
-    assert str(ENV_PATH).endswith(f"src/codegen/{ENV_FILENAME}")

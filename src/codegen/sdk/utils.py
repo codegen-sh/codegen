@@ -1,20 +1,17 @@
 import os
 import re
 import shutil
-from collections import Counter
 from collections.abc import Iterable
 from contextlib import contextmanager
-from pathlib import Path
-from typing import Literal
 from xml.dom.minidom import parseString
 
 import dicttoxml
 import xmltodict
 from tree_sitter import Node as TSNode
 
-from codegen.sdk.enums import ProgrammingLanguage
 from codegen.sdk.extensions.utils import find_all_descendants, find_first_descendant, get_all_identifiers
 from codegen.sdk.typescript.enums import TSFunctionTypeNames
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 """
 Utility functions for traversing the tree sitter structure.
@@ -241,125 +238,6 @@ def get_language_file_extensions(language: ProgrammingLanguage):
         return set(PyFile.get_extensions())
     elif language == ProgrammingLanguage.TYPESCRIPT:
         return set(TSFile.get_extensions())
-
-
-def determine_project_language(folder_path: str, strategy: Literal["most_common", "package_json"] = "package_json") -> ProgrammingLanguage:
-    """Determines the primary programming language of a project.
-
-    Args:
-        folder_path (str): Path to the folder to analyze
-        strategy (Literal["most_common", "package_json"]): Strategy to use for determining language.
-            "most_common" analyzes file extensions, "package_json" checks for package.json presence.
-
-    Returns:
-        ProgrammingLanguage: The determined programming language
-    """
-    # TODO: Create a new strategy that follows gitignore
-    if strategy == "most_common":
-        return _determine_language_by_file_count(folder_path)
-    elif strategy == "package_json":
-        return _determine_language_by_package_json(folder_path)
-
-
-def _determine_language_by_package_json(folder_path: str) -> ProgrammingLanguage:
-    """Determines project language by checking for presence of package.json.
-    Faster but less accurate than file count strategy.
-
-    Args:
-        folder_path (str): Path to the folder to analyze
-
-    Returns:
-        ProgrammingLanguage: TYPESCRIPT if package.json exists, otherwise PYTHON
-    """
-    package_json_path = Path(folder_path) / "package.json"
-    if package_json_path.exists():
-        return ProgrammingLanguage.TYPESCRIPT
-    else:
-        return ProgrammingLanguage.PYTHON
-
-
-def _determine_language_by_file_count(folder_path: str) -> ProgrammingLanguage:
-    """Analyzes a folder to determine the primary programming language based on file extensions.
-    Returns the language with the most matching files.
-
-    Args:
-        folder_path (str): Path to the folder to analyze
-
-    Returns:
-        ProgrammingLanguage: The dominant programming language, or UNSUPPORTED if no matching files found
-    """
-    from codegen.sdk.python import PyFile
-    from codegen.sdk.typescript.file import TSFile
-
-    EXTENSIONS = {
-        ProgrammingLanguage.PYTHON: PyFile.get_extensions(),
-        ProgrammingLanguage.TYPESCRIPT: TSFile.get_extensions(),
-    }
-
-    folder = Path(folder_path)
-    if not folder.exists() or not folder.is_dir():
-        msg = f"Invalid folder path: {folder_path}"
-        raise ValueError(msg)
-
-    # Initialize counters for each language
-    language_counts = Counter()
-
-    # Walk through the directory
-    for file_path in folder.rglob("*"):
-        # Skip directories and hidden files
-        if file_path.is_dir() or file_path.name.startswith("."):
-            continue
-
-        # Skip common directories to ignore
-        if any(ignore in str(file_path) for ignore in [".git", "node_modules", "__pycache__", "venv", ".env"]):
-            continue
-
-        # Count files for each language based on extensions
-        for language, exts in EXTENSIONS.items():
-            if file_path.suffix in exts:
-                language_counts[language] += 1
-
-    # If no files found, return None
-    if not language_counts:
-        return ProgrammingLanguage.UNSUPPORTED
-
-    # Return the language with the highest count
-    return language_counts.most_common(1)[0][0]
-
-
-def split_git_path(filepath: str) -> tuple[str, str | None]:
-    """Split a filepath into (git_root, base_path) tuple by finding .git directory.
-
-    Args:
-        filepath (str): The full path to split
-
-    Returns:
-        tuple: (git_root_path, relative_path)
-
-    Raises:
-        ValueError: If the path is not in a git repository
-    """
-    # Convert to absolute path and resolve any symlinks
-    path = Path(filepath).resolve()
-
-    # Start from the given path and traverse up until we find .git
-    current = path
-    while current != current.parent:
-        if (current / ".git").exists():
-            # Found the git root
-            git_root = str(current)
-            rel_path = str(path.relative_to(current))
-
-            # Handle the case where filepath is the git root itself
-            if rel_path == ".":
-                rel_path = None
-
-            return (git_root, rel_path)
-        current = current.parent
-
-    # If we get here, we didn't find a .git directory
-    msg = f"Path '{filepath}' is not in a git repository!"
-    raise ValueError(msg)
 
 
 def truncate_line(input: str, max_chars: int) -> str:

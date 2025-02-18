@@ -13,13 +13,14 @@ from codegen.sdk.core.expressions.unpack import Unpack
 from codegen.sdk.core.interfaces.has_name import HasName
 from codegen.sdk.core.interfaces.resolvable import Resolvable
 from codegen.sdk.core.symbol_groups.collection import Collection
-from codegen.sdk.enums import NodeType, ProgrammingLanguage
+from codegen.sdk.enums import NodeType
 from codegen.sdk.extensions.sort import sort_editables
 from codegen.sdk.extensions.utils import cached_property, is_descendant_of
 from codegen.sdk.typescript.enums import TSFunctionTypeNames
 from codegen.sdk.typescript.promise_chain import TSPromiseChain
 from codegen.sdk.utils import find_first_ancestor
 from codegen.shared.decorators.docs import apidoc, noapidoc
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -601,7 +602,7 @@ class FunctionCall(Expression[Parent], HasName, Resolvable, Generic[Parent]):
                 if isinstance(match, FunctionCall):
                     match._compute_dependencies(usage_type, dest)
                 for definition in self.function_definition_frames:
-                    definition.add_usage(match=self, dest=dest, usage_type=usage_type, codebase_context=self.ctx)
+                    definition.add_usage(self, usage_type, dest, self.ctx)
             else:
                 match._compute_dependencies(usage_type, dest)
 

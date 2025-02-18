@@ -2,7 +2,9 @@ import json
 import os
 from pathlib import Path
 
+from codegen.cli.api.client import RestAPI
 from codegen.cli.auth.constants import AUTH_FILE, CONFIG_DIR
+from codegen.cli.errors import AuthError
 
 
 class TokenManager:
@@ -18,6 +20,17 @@ class TokenManager:
         """Create config directory if it doesn't exist."""
         if not os.path.exists(self.config_dir):
             Path(self.config_dir).mkdir(parents=True, exist_ok=True)
+
+    def authenticate_token(self, token: str) -> None:
+        """Authenticate the token with the api."""
+        identity = RestAPI(token).identify()
+        if not identity:
+            msg = "No identity found for session"
+            raise AuthError(msg)
+        if identity.auth_context.status != "active":
+            msg = "Current session is not active. API Token may be invalid or may have expired."
+            raise AuthError(msg)
+        self.save_token(token)
 
     def save_token(self, token: str) -> None:
         """Save api token to disk."""

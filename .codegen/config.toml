@@ -3,8 +3,12 @@ github_token = ""
 openai_api_key = ""
 
 [repository]
-organization_name = "codegen-sh"
-repo_name = "codegen-sdk"
+repo_path = ""
+repo_name = ""
+full_name = ""
+user_name = ""
+user_email = ""
+language = ""
 
 [feature_flags.codebase]
 debug = false

@@ -4,7 +4,6 @@ from pathlib import Path
 
 import rich_click as click
 
-from codegen.cli.auth.constants import CODEGEN_DIR
 from codegen.cli.auth.session import CodegenSession
 from codegen.cli.rich.spinners import create_spinner
 from codegen.cli.utils.notebooks import create_notebook
@@ -12,9 +11,9 @@ from codegen.cli.workspace.decorators import requires_init
 from codegen.cli.workspace.venv_manager import VenvManager
 
 
-def create_jupyter_dir() -> Path:
+def create_jupyter_dir(codegen_dir: Path) -> Path:
     """Create and return the jupyter directory."""
-    jupyter_dir = Path.cwd() / CODEGEN_DIR / "jupyter"
+    jupyter_dir = codegen_dir / "jupyter"
     jupyter_dir.mkdir(parents=True, exist_ok=True)
     return jupyter_dir
 
@@ -26,12 +25,12 @@ def create_jupyter_dir() -> Path:
 def notebook_command(session: CodegenSession, background: bool, demo: bool):
     """Launch Jupyter Lab with a pre-configured notebook for exploring your codebase."""
     with create_spinner("Setting up Jupyter environment...") as status:
-        venv = VenvManager()
+        venv = VenvManager(codegen_dir=session.codegen_dir)
 
         status.update("Checking Jupyter installation...")
         venv.ensure_jupyter()
 
-        jupyter_dir = create_jupyter_dir()
+        jupyter_dir = create_jupyter_dir(session.codegen_dir)
         notebook_path = create_notebook(jupyter_dir, demo=demo)
 
         status.update("Running Jupyter Lab...")

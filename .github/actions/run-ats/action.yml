@@ -48,11 +48,10 @@ runs:
           echo "No tests to run, skipping..."
           exit 0
         fi
-        echo $TESTS_TO_RUN | xargs uv run pytest --cov \
+        echo $TESTS_TO_RUN | xargs uv run --frozen pytest --cov \
           -o junit_suite_name="${{ github.job }}" \
           -n auto \
           -vv \
-          --cov \
           --cov-append \
           ${{ inputs.collect_args }}
 

@@ -1,0 +1,153 @@
+---
+title: "CodeOwner"
+sidebarTitle: "CodeOwner"
+icon: ""
+description: "CodeOwner is a class that represents a code owner in a codebase. It is used to iterate over all files that are owned by a specific owner."
+---
+import {Parameter} from '/snippets/Parameter.mdx';
+import {ParameterWrapper} from '/snippets/ParameterWrapper.mdx';
+import {Return} from '/snippets/Return.mdx';
+import {HorizontalDivider} from '/snippets/HorizontalDivider.mdx';
+import {GithubLinkNote} from '/snippets/GithubLinkNote.mdx';
+import {Attribute} from '/snippets/Attribute.mdx';
+
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/codeowner.py#L26-L97" />
+
+
+## Attributes
+<HorizontalDivider />
+### <span className="text-primary">classes</span>
+<HorizontalDivider light={true} />
+<Attribute type={ <><span>list[</span> <a href="/api-reference/core/Class" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Class</a> <span>]</span></> } description="Get a recursive list of all classes in files container." />
+
+### <span className="text-primary">exports</span>
+<HorizontalDivider light={true} />
+<Attribute type={ <><span>list[</span> <a href="/api-reference/typescript/TSExport" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSExport</a> <span>]</span></> } description="Get a recursive list of all exports in files container." />
+
+### <span className="text-primary">files_source</span>
+<HorizontalDivider light={true} />
+<Attribute type={ <><a href="/api-reference/core/Callable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Callable</a> <span>[FilesParam, Iterable[TFile]]</span></> } description="A callable that returns an iterable of all files in the codebase." />
+
+### <span className="text-primary">functions</span>
+<HorizontalDivider light={true} />
+<Attribute type={ <><span>list[</span> <a href="/api-reference/core/Function" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Function</a> <span>]</span></> } description="Get a recursive list of all functions in files container." />
+
+### <span className="text-primary">global_vars</span>
+<HorizontalDivider light={true} />
+<Attribute type={ <><span>list[</span> <a href="/api-reference/core/Assignment" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Assignment</a> <span>]</span></> } description="Get a recursive list of all global variables in files container." />
+
+### <span className="text-primary">import_statements</span>
+<HorizontalDivider light={true} />
+<Attribute type={ <><span>list[</span> <a href="/api-reference/core/ImportStatement" style={ {fontWeight: "inherit", fontSize: "inherit"} }>ImportStatement</a> <span>]</span></> } description="Get a recursive list of all import statements in files container." />
+
+### <span className="text-primary">imports</span>
+<HorizontalDivider light={true} />
+<Attribute type={ <><span>list[</span> <a href="/api-reference/core/Import" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Import</a> <span>]</span></> } description="Get a recursive list of all imports in files container." />
+
+### <span className="text-primary">name</span>
+<HorizontalDivider light={true} />
+<Attribute type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">str</code> } description="The name of the code owner." />
+
+### <span className="text-primary">owner_type</span>
+<HorizontalDivider light={true} />
+<Attribute type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">Literal[USERNAME, TEAM, EMAIL]</code> } description="The type of the owner (USERNAME, TEAM, EMAIL)." />
+
+### <span className="text-primary">owner_value</span>
+<HorizontalDivider light={true} />
+<Attribute type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">str</code> } description="The value of the owner." />
+
+### <span className="text-primary">symbols</span>
+<HorizontalDivider light={true} />
+<Attribute type={ <><span>list[</span> <a href="/api-reference/core/Symbol" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Symbol</a> <span>]</span></> } description="Get a recursive list of all symbols in files container." />
+
+
+## Methods
+<HorizontalDivider />
+### <span className="text-primary">files</span>
+Recursively iterate over all files in the codebase that are owned by the current code owner.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/codeowner.py#L84-L86" />
+
+
+<Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">Iterable[TFile]</code> } description=""/>
+
+
+### <span className="text-primary">from_parser</span>
+Create a list of CodeOwner objects from a CodeOwnersParser.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/codeowner.py#L55-L73" />
+
+<ParameterWrapper>
+<Parameter
+    name="parser"
+    type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">CodeOwnersParser</code> }
+    description="The CodeOwnersParser to use."
+    defaultValue=""
+/>
+<Parameter
+    name="file_source"
+    type={ <><a href="/api-reference/core/Callable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Callable</a> <span>[FilesParam, Iterable[TFile]]</span></> }
+    description="A callable that returns an iterable of all files in the codebase."
+    defaultValue=""
+/>
+</ParameterWrapper>
+
+
+<Return return_type={ <><span>list[</span> <a href="/api-reference/core/CodeOwner" style={ {fontWeight: "inherit", fontSize: "inherit"} }>CodeOwner</a> <span>]</span></> } description="A list of CodeOwner objects."/>
+
+
+### <span className="text-primary">get_class</span>
+Get a class by name in files container.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/has_symbols.py#L99-L101" />
+
+
+<Return return_type={ <><a href="/api-reference/core/Class" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Class</a> <span>| None</span></> } description=""/>
+
+
+### <span className="text-primary">get_export</span>
+Get an export by name in files container (supports only typescript).
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/has_symbols.py#L108-L113" />
+
+
+<Return return_type={ <><a href="/api-reference/typescript/TSExport" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSExport</a> <span>| None</span></> } description=""/>
+
+
+### <span className="text-primary">get_function</span>
+Get a function by name in files container.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/has_symbols.py#L103-L105" />
+
+
+<Return return_type={ <><a href="/api-reference/core/Function" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Function</a> <span>| None</span></> } description=""/>
+
+
+### <span className="text-primary">get_global_var</span>
+Get a global variable by name in files container.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/has_symbols.py#L95-L97" />
+
+
+<Return return_type={ <><a href="/api-reference/core/Assignment" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Assignment</a> <span>| None</span></> } description=""/>
+
+
+### <span className="text-primary">get_import</span>
+Get an import by name in files container.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/has_symbols.py#L115-L117" />
+
+
+<Return return_type={ <><a href="/api-reference/core/Import" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Import</a> <span>| None</span></> } description=""/>
+
+
+### <span className="text-primary">get_import_statement</span>
+Get an import statement by name in files container.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/has_symbols.py#L91-L93" />
+
+
+<Return return_type={ <><a href="/api-reference/core/ImportStatement" style={ {fontWeight: "inherit", fontSize: "inherit"} }>ImportStatement</a> <span>| None</span></> } description=""/>
+
+
+### <span className="text-primary">get_symbol</span>
+Get a symbol by name in files container.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/has_symbols.py#L87-L89" />
+
+
+<Return return_type={ <><a href="/api-reference/core/Symbol" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Symbol</a> <span>| None</span></> } description=""/>
+
+
+

@@ -30,7 +30,7 @@ async def test_sandbox_runner_warmup_logs_repo_id(mock_executor, mock_logger, ru
     assert runner.codebase.files
     assert len(runner.codebase.files) == 1
     assert mock_logger.info.call_count == 1
-    assert "Warming runner for test-org/test-repo (ID=1)" in mock_logger.info.call_args_list[0][0][0]
+    assert "Warming runner for test-repo" in mock_logger.info.call_args_list[0][0][0]
 
 
 @pytest.mark.asyncio

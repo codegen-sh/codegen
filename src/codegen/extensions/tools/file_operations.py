@@ -1,6 +1,5 @@
 """File operations for manipulating the codebase."""
 
-import os
 from typing import Any, Literal
 
 from codegen import Codebase
@@ -17,30 +16,24 @@ def view_file(codebase: Codebase, filepath: str) -> dict[str, Any]:
     Returns:
         Dict containing file contents and metadata, or error information if file not found
     """
+    file = None
+
     try:
         file = codebase.get_file(filepath)
     except ValueError:
-        return {"error": f"File not found: {filepath}"}
+        pass
 
     if not file:
-        return {"error": f"File not found: {filepath}"}
+        return {"error": f"File not found: {filepath}. Please use full filepath relative to workspace root."}
 
     return {
         "filepath": file.filepath,
         "content": file.content,
-        "extension": file.extension,
-        "name": file.name,
-        "functions": [f.name for f in file.functions],
-        "classes": [c.name for c in file.classes],
-        "imports": [i.source for i in file.imports],
     }
 
 
 def list_directory(codebase: Codebase, dirpath: str = "./", depth: int = 1) -> dict[str, Any]:
     """List contents of a directory.
-
-    TODO(CG-10729): add support for directories that only including non-SourceFiles (code files). At the moment,
-     only files and directories that have SourceFile objects are included.
 
     Args:
         codebase: The codebase to operate on
@@ -48,8 +41,25 @@ def list_directory(codebase: Codebase, dirpath: str = "./", depth: int = 1) -> d
         depth: How deep to traverse the directory tree. Default is 1 (immediate children only).
                Use -1 for unlimited depth.
 
+    TODO(CG-10729): add support for directories that only including non-SourceFiles (code files). At the moment,
+     only files and directories that have SourceFile objects are included.
+
     Returns:
-        Dict containing directory contents and metadata, or error information if directory not found
+        Dict containing directory contents and metadata in a nested structure:
+        {
+            "path": str,
+            "name": str,
+            "files": list[str],
+            "subdirectories": [
+                {
+                    "path": str,
+                    "name": str,
+                    "files": list[str],
+                    "subdirectories": [...],
+                },
+                ...
+            ]
+        }
     """
     try:
         directory = codebase.get_directory(dirpath)
@@ -59,33 +69,33 @@ def list_directory(codebase: Codebase, dirpath: str = "./", depth: int = 1) -> d
     if not directory:
         return {"error": f"Directory not found: {dirpath}"}
 
-    # Get immediate files
-    files = []
-    subdirs = []
+    def get_directory_info(dir_obj: Directory, current_depth: int) -> dict[str, Any]:
+        """Helper function to get directory info recursively."""
+        # Get direct files
+        all_files = []
+        for file in dir_obj.files:
+            if file.directory == dir_obj:
+                all_files.append(file.filepath.split("/")[-1])
 
-    for item in directory.items.values():
-        if isinstance(item, Directory):
-            subdirs.append(item.name)
-        else:
-            # Get full filename with extension from filepath
-            files.append(os.path.basename(item.filepath))
+        # Get direct subdirectories
+        subdirs = []
+        for subdir in dir_obj.subdirectories:
+            # Only include direct descendants
+            if subdir.parent == dir_obj:
+                if current_depth != 1:
+                    new_depth = current_depth - 1 if current_depth > 1 else -1
+                    subdirs.append(get_directory_info(subdir, new_depth))
+                else:
+                    # At max depth, just include name
+                    subdirs.append(subdir.name)
+        return {
+            "name": dir_obj.name,
+            "path": dir_obj.dirpath,
+            "files": all_files,
+            "subdirectories": subdirs,
+        }
 
-    # If depth > 1 or unlimited (-1), recursively get subdirectories
-    if depth != 1:
-        new_depth = depth - 1 if depth > 1 else -1
-        for item in directory.items.values():
-            if isinstance(item, Directory):
-                subdir_result = list_directory(codebase, os.path.join(dirpath, item.name), depth=new_depth)
-                if "error" not in subdir_result:
-                    files.extend(subdir_result["files"])
-                    subdirs.extend(subdir_result["subdirectories"])
-
-    return {
-        "path": str(directory.path),  # Convert PosixPath to string
-        "name": directory.name,
-        "files": files,
-        "subdirectories": subdirs,
-    }
+    return get_directory_info(directory, depth)
 
 
 def edit_file(codebase: Codebase, filepath: str, content: str) -> dict[str, Any]:
@@ -102,6 +112,8 @@ def edit_file(codebase: Codebase, filepath: str, content: str) -> dict[str, Any]
     try:
         file = codebase.get_file(filepath)
     except ValueError:
+        return {"error": f"File not found: {filepath}"}
+    if file is None:
         return {"error": f"File not found: {filepath}"}
 
     file.edit(content)
@@ -141,6 +153,8 @@ def delete_file(codebase: Codebase, filepath: str) -> dict[str, Any]:
         file = codebase.get_file(filepath)
     except ValueError:
         return {"error": f"File not found: {filepath}"}
+    if file is None:
+        return {"error": f"File not found: {filepath}"}
 
     file.remove()
     codebase.commit()
@@ -161,6 +175,8 @@ def rename_file(codebase: Codebase, filepath: str, new_filepath: str) -> dict[st
     try:
         file = codebase.get_file(filepath)
     except ValueError:
+        return {"error": f"File not found: {filepath}"}
+    if file is None:
         return {"error": f"File not found: {filepath}"}
 
     if codebase.has_file(new_filepath):
@@ -200,6 +216,8 @@ def move_symbol(
     try:
         source = codebase.get_file(source_file)
     except ValueError:
+        return {"error": f"Source file not found: {source_file}"}
+    if source is None:
         return {"error": f"Source file not found: {source_file}"}
 
     try:

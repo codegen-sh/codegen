@@ -1,5 +1,6 @@
 from collections.abc import Generator, Iterable
-from functools import cached_property
+from functools import cached_property as functools_cached_property
+from functools import lru_cache as functools_lru_cache
 
 from tree_sitter import Node as TSNode
 
@@ -18,7 +19,8 @@ def find_line_start_and_end_nodes(node: TSNode) -> list[tuple[TSNode, TSNode]]:
 
 def find_first_descendant(node: TSNode, type_names: list[str], max_depth: int | None = None) -> TSNode | None: ...
 
-cached_property = cached_property
+cached_property = functools_cached_property
+lru_cache = functools_lru_cache
 
 def uncache_all(): ...
 def is_descendant_of(node: TSNode, possible_parent: TSNode) -> bool: ...

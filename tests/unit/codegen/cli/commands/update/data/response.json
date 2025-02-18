@@ -1,0 +1,3351 @@
+{
+	"info": {
+		"author": null,
+		"author_email": "Codegen Team <team@codegen.sh>",
+		"bugtrack_url": null,
+		"classifiers": [
+			"Development Status :: 4 - Beta",
+			"Environment :: Console",
+			"Environment :: MacOS X",
+			"Intended Audience :: Developers",
+			"Intended Audience :: Information Technology",
+			"License :: OSI Approved",
+			"License :: OSI Approved :: Apache Software License",
+			"Operating System :: OS Independent",
+			"Programming Language :: Python",
+			"Programming Language :: Python :: 3",
+			"Programming Language :: Python :: 3.12",
+			"Programming Language :: Python :: 3.13",
+			"Topic :: Software Development",
+			"Topic :: Software Development :: Code Generators",
+			"Topic :: Software Development :: Libraries",
+			"Topic :: Software Development :: Libraries :: Python Modules"
+		],
+		"description": "<br />\n\n<p align=\"center\">\n  <a href=\"https://docs.codegen.com\">\n    <img src=\"https://i.imgur.com/6RF9W0z.jpeg\" />\n  </a>\n</p>\n\n<h2 align=\"center\">\n  Scriptable interface to a powerful, multi-lingual language server.\n</h2>\n\n<div align=\"center\">\n\n[![PyPI](https://img.shields.io/badge/PyPi-codegen-gray?style=flat-square&color=blue)](https://pypi.org/project/codegen/)\n[![Documentation](https://img.shields.io/badge/Docs-docs.codegen.com-purple?style=flat-square)](https://docs.codegen.com)\n[![Slack Community](https://img.shields.io/badge/Slack-Join-4A154B?logo=slack&style=flat-square)](https://community.codegen.com)\n[![License](https://img.shields.io/badge/Code%20License-Apache%202.0-gray?&color=gray)](https://github.com/codegen-sh/codegen-sdk/tree/develop?tab=Apache-2.0-1-ov-file)\n[![Follow on X](https://img.shields.io/twitter/follow/codegen?style=social)](https://x.com/codegen)\n\n</div>\n\n<br />\n\n[Codegen](https://docs.codegen.com) is a python library for manipulating codebases.\n\n```python\nfrom codegen import Codebase\n\n# Codegen builds a complete graph connecting\n# functions, classes, imports and their relationships\ncodebase = Codebase(\"./\")\n\n# Work with code without dealing with syntax trees or parsing\nfor function in codebase.functions:\n    # Comprehensive static analysis for references, dependencies, etc.\n    if not function.usages:\n        # Auto-handles references and imports to maintain correctness\n        function.move_to_file(\"deprecated.py\")\n```\n\nWrite code that transforms code. Codegen combines the parsing power of [Tree-sitter](https://tree-sitter.github.io/tree-sitter/) with the graph algorithms of [rustworkx](https://github.com/Qiskit/rustworkx) to enable scriptable, multi-language code manipulation at scale.\n\n## Installation and Usage\n\nWe support\n\n- Running Codegen in Python 3.12 – 3.13 (recommended: Python 3.13)\n- macOS and Linux\n  - macOS is supported on Apple Silicon\n  - Linux is supported on x86_64 and aarch64 with glibc 2.34+\n  - Windows is not supported\n- Python, Typescript, Javascript and React codebases\n\n```\n# Install inside existing project\nuv pip install codegen\n\n# Install global CLI\nuv tool install codegen\n\n# Create a codemod for a given repo\ncd path/to/repo\ncodegen init\ncodegen create test-function\n\n# Run the codemod\ncodegen run test-function\n\n# Create an isolated venv with codegen => open jupyter\ncodegen notebook\n```\n\n## Usage\n\nSee [Getting Started](https://docs.codegen.com/introduction/getting-started) for a full tutorial.\n\n```\nfrom codegen import Codebase\n```\n\n## Resources\n\n- [Docs](https://docs.codegen.com)\n- [Getting Started](https://docs.codegen.com/introduction/getting-started)\n- [Contributing](CONTRIBUTING.md)\n- [Contact Us](https://codegen.com/contact)\n\n## Why Codegen?\n\nSoftware development is fundamentally programmatic. Refactoring a codebase, enforcing patterns, or analyzing control flow - these are all operations that can (and should) be expressed as programs themselves.\n\nWe built Codegen backwards from real-world refactors performed on enterprise codebases. Instead of starting with theoretical abstractions, we focused on creating APIs that match how developers actually think about code changes:\n\n- **Natural mental model**: Write transforms that read like your thought process - \"move this function\", \"rename this variable\", \"add this parameter\". No more wrestling with ASTs or manual import management.\n\n- **Battle-tested on complex codebases**: Handle Python, TypeScript, and React codebases with millions of lines of code.\n\n- **Built for advanced intelligences**: As AI developers become more sophisticated, they need expressive yet precise tools to manipulate code. Codegen provides a programmatic interface that both humans and AI can use to express complex transformations through code itself.\n\n## Contributing\n\nPlease see our [Contributing Guide](CONTRIBUTING.md) for instructions on how to set up the development environment and submit contributions.\n\n## Enterprise\n\nFor more information on enterprise engagements, please [contact us](https://codegen.com/contact) or [request a demo](https://codegen.com/request-demo).\n",
+		"description_content_type": "text/markdown",
+		"docs_url": null,
+		"download_url": null,
+		"downloads": { "last_day": -1, "last_month": -1, "last_week": -1 },
+		"dynamic": null,
+		"home_page": null,
+		"keywords": "code generation, codebase, codebase analysis, codebase manipulation, codebase transformation, codegen, refactoring",
+		"license": "Apache-2.0",
+		"license_expression": null,
+		"license_files": ["LICENSE"],
+		"maintainer": null,
+		"maintainer_email": null,
+		"name": "codegen",
+		"package_url": "https://pypi.org/project/codegen/",
+		"platform": null,
+		"project_url": "https://pypi.org/project/codegen/",
+		"project_urls": {
+			"Changelog": "https://docs.codegen.com/changelog/changelog",
+			"Documentation": "https://docs.codegen.com",
+			"Download": "https://github.com/codegen-sh/codegen-sdk/archive/6c3817beda90af0ff1e7c77ad0b3783bf532fb3a.zip",
+			"Homepage": "https://www.codegen.com/",
+			"Issues": "https://github.com/codegen-sh/codegen-sdk/issues",
+			"Playground": "https://www.codegen.sh/",
+			"Releasenotes": "https://github.com/codegen-sh/codegen-sdk/releases",
+			"Repository": "https://github.com/codegen-sh/codegen-sdk"
+		},
+		"provides_extra": ["types"],
+		"release_url": "https://pypi.org/project/codegen/0.5.28/",
+		"requires_dist": [
+			"anthropic==0.23.1",
+			"astor<1.0.0,>=0.8.1",
+			"backoff==2.2.1",
+			"click>=8.1.7",
+			"codeowners<1.0.0,>=0.6.0",
+			"dataclasses-json<1.0.0,>=0.6.4",
+			"datamodel-code-generator>=0.26.5",
+			"dicttoxml<2.0.0,>=1.7.16",
+			"docstring-parser<1.0,>=0.16",
+			"fastapi[standard]<1.0.0,>=0.115.2",
+			"gitpython==3.1.44",
+			"giturlparse",
+			"hatch-vcs>=0.4.0",
+			"hatchling>=1.25.0",
+			"humanize<5.0.0,>=4.10.0",
+			"lazy-object-proxy>=0.0.0",
+			"mini-racer>=0.12.4",
+			"networkx>=3.4.1",
+			"openai==1.61.1",
+			"pip>=24.3.1",
+			"plotly<6.0.0,>=5.24.0",
+			"psutil>=5.8.0",
+			"pydantic-core>=2.23.4",
+			"pydantic<3.0.0,>=2.9.2",
+			"pygit2>=1.16.0",
+			"pygithub==2.5.0",
+			"pyinstrument>=5.0.0",
+			"pyjson5==1.6.8",
+			"pyright<2.0.0,>=1.1.372",
+			"pytest-snapshot>=0.9.0",
+			"python-dotenv>=1.0.1",
+			"python-levenshtein<1.0.0,>=0.25.1",
+			"python-semantic-release",
+			"requests>=2.32.3",
+			"rich-click>=1.8.5",
+			"rich<14.0.0,>=13.7.1",
+			"rustworkx>=0.15.1",
+			"sentry-sdk==2.20.0",
+			"starlette<1.0.0,>=0.16.0",
+			"tabulate<1.0.0,>=0.9.0",
+			"tenacity>=9.0.0",
+			"termcolor>=2.4.0",
+			"tiktoken<1.0.0,>=0.5.1",
+			"toml>=0.10.2",
+			"tomlkit>=0.13.2",
+			"tqdm>=4.67.1",
+			"tree-sitter-javascript>=0.23.1",
+			"tree-sitter-python>=0.23.4",
+			"tree-sitter-typescript>=0.23.2",
+			"tree-sitter>=0.23.1",
+			"typing-extensions>=4.12.2",
+			"unidiff>=0.7.5",
+			"uvicorn[standard]>=0.30.0",
+			"watchfiles<1.1.0,>=1.0.0",
+			"wrapt<2.0.0,>=1.16.0",
+			"xmltodict<1.0.0,>=0.13.0",
+			"types-networkx>=3.2.1.20240918; extra == \"types\"",
+			"types-requests>=2.32.0.20241016; extra == \"types\"",
+			"types-tabulate>=0.9.0.20240106; extra == \"types\"",
+			"types-toml>=0.10.8.20240310; extra == \"types\""
+		],
+		"requires_python": "<3.14,>=3.12",
+		"summary": "Scriptable interface to a powerful, multi-lingual language server built on top of Tree-sitter",
+		"version": "0.5.28",
+		"yanked": false,
+		"yanked_reason": null
+	},
+	"last_serial": 27331470,
+	"releases": {
+		"0.5.0": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "7a85200fd5911a2ef91720ba6729e1591cdcfca176b3e1660aa1487d5f53cdbd",
+					"md5": "77deb089582fe3a30db148c46d001ea3",
+					"sha256": "28444aeb960da0b6eed63d62cf30ed52ccc90ff26aa8bc8a0cb080cfbd0ba456"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.0-cp312-cp312-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "77deb089582fe3a30db148c46d001ea3",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 867103,
+				"upload_time": "2025-01-24T18:07:51",
+				"upload_time_iso_8601": "2025-01-24T18:07:51.356212Z",
+				"url": "https://files.pythonhosted.org/packages/7a/85/200fd5911a2ef91720ba6729e1591cdcfca176b3e1660aa1487d5f53cdbd/codegen-0.5.0-cp312-cp312-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "00ebadf4546f0d2d992552d1546b1609fc334cf47cf2eecf53673fed1f6e8a26",
+					"md5": "7e5cb967f8ddc8b8c45d9bf3c9b3ff95",
+					"sha256": "afe1eea2e6cca81c11a7e2b697db1dfecbf4cc1d9548fe178f7a84a3ac47a602"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.0-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "7e5cb967f8ddc8b8c45d9bf3c9b3ff95",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1896442,
+				"upload_time": "2025-01-24T18:07:55",
+				"upload_time_iso_8601": "2025-01-24T18:07:55.821603Z",
+				"url": "https://files.pythonhosted.org/packages/00/eb/adf4546f0d2d992552d1546b1609fc334cf47cf2eecf53673fed1f6e8a26/codegen-0.5.0-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "0aeb682ff1576373282cfa31d260318f977e343986625dbe146294b117090880",
+					"md5": "5f5be406f5281b2ba377dff76b93178f",
+					"sha256": "cf38689497db60bc7029bd6da059e5ccfd3532aae22817a6527c6f85a452473d"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.0-cp313-cp313-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "5f5be406f5281b2ba377dff76b93178f",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1050881,
+				"upload_time": "2025-01-24T18:07:57",
+				"upload_time_iso_8601": "2025-01-24T18:07:57.233481Z",
+				"url": "https://files.pythonhosted.org/packages/0a/eb/682ff1576373282cfa31d260318f977e343986625dbe146294b117090880/codegen-0.5.0-cp313-cp313-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "25c711570cecd1886c08464bb13093f9ebb9fa5863c0b1dc1dd3229f14ef0a37",
+					"md5": "c8578c32eb1b597e037776a8977d691e",
+					"sha256": "6177b571338ca2ea58e31932c18d99532dd5ce20a53509c5b8be917493df1270"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.0-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "c8578c32eb1b597e037776a8977d691e",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 3104221,
+				"upload_time": "2025-01-24T18:07:59",
+				"upload_time_iso_8601": "2025-01-24T18:07:59.214999Z",
+				"url": "https://files.pythonhosted.org/packages/25/c7/11570cecd1886c08464bb13093f9ebb9fa5863c0b1dc1dd3229f14ef0a37/codegen-0.5.0-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			}
+		],
+		"0.5.1": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "73caf21edfb034d3729aaba449fe6858d95d06dfc5c33196571e65c3e019122c",
+					"md5": "df9895277b17b76a2a13fff510bd930b",
+					"sha256": "0766c28ae499d8d27e06ad62674ef1c77a6766a3f67825a222f7c89c5cf60621"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.1-cp312-cp312-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "df9895277b17b76a2a13fff510bd930b",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 866348,
+				"upload_time": "2025-01-24T19:56:57",
+				"upload_time_iso_8601": "2025-01-24T19:56:57.341914Z",
+				"url": "https://files.pythonhosted.org/packages/73/ca/f21edfb034d3729aaba449fe6858d95d06dfc5c33196571e65c3e019122c/codegen-0.5.1-cp312-cp312-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "d36bd3237d839c0d3e9ffbf80a0cd6d65567679922ce899cebc4067934c20f1d",
+					"md5": "e06957f59059a427e20ef3f97a5101f7",
+					"sha256": "8eb1019acaec0c591a18a246090bb61636746e45ee53e61a9850eb991cf5c818"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.1-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "e06957f59059a427e20ef3f97a5101f7",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1895700,
+				"upload_time": "2025-01-24T19:56:59",
+				"upload_time_iso_8601": "2025-01-24T19:56:59.319917Z",
+				"url": "https://files.pythonhosted.org/packages/d3/6b/d3237d839c0d3e9ffbf80a0cd6d65567679922ce899cebc4067934c20f1d/codegen-0.5.1-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "7c457436a05db6edd6f729d867d257faff768cf5d06ee7b9c3d21c13632ff3f4",
+					"md5": "3ac9d1c33cb1159fa93b9a052271896b",
+					"sha256": "e6a2a226fe805eaeaa5085b9b3abe9b7c7961162a33589255656ffef90222551"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.1-cp313-cp313-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "3ac9d1c33cb1159fa93b9a052271896b",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1050124,
+				"upload_time": "2025-01-24T19:57:00",
+				"upload_time_iso_8601": "2025-01-24T19:57:00.717511Z",
+				"url": "https://files.pythonhosted.org/packages/7c/45/7436a05db6edd6f729d867d257faff768cf5d06ee7b9c3d21c13632ff3f4/codegen-0.5.1-cp313-cp313-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "3a38279f998703a711440f314871b97e6fb02e4f2b3112d721f2b38d58406bf4",
+					"md5": "ce45ec9e803bd283158606f1183b221f",
+					"sha256": "e22d18c39c30e551e8d42115ef1c063bd7de9d3f9457fd7b594898f1101e940e"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.1-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "ce45ec9e803bd283158606f1183b221f",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 3103478,
+				"upload_time": "2025-01-24T19:57:03",
+				"upload_time_iso_8601": "2025-01-24T19:57:03.136363Z",
+				"url": "https://files.pythonhosted.org/packages/3a/38/279f998703a711440f314871b97e6fb02e4f2b3112d721f2b38d58406bf4/codegen-0.5.1-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			}
+		],
+		"0.5.10": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "2f66ccde52c0e0203abfa3b12abd2a1696ea6ad7455d6b102aade0747457b479",
+					"md5": "1e3751b26e15f5b0d211275076b57cfb",
+					"sha256": "a0041214a72b1da281a801e86990d2a802b8c5f45094bb03c521504f40f9431b"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.10-cp312-cp312-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "1e3751b26e15f5b0d211275076b57cfb",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 800907,
+				"upload_time": "2025-01-29T22:29:50",
+				"upload_time_iso_8601": "2025-01-29T22:29:50.421893Z",
+				"url": "https://files.pythonhosted.org/packages/2f/66/ccde52c0e0203abfa3b12abd2a1696ea6ad7455d6b102aade0747457b479/codegen-0.5.10-cp312-cp312-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "35ff7e2225dd3a0da15066f8200c8d6f78598fe356532bd054e9671167962e39",
+					"md5": "6c810ba9e9179e976f389946cc89e27b",
+					"sha256": "2a05e58c6f56fedbb1172d650d6efdf7fd5fd7bbb44f3860295f4e06c6f6f614"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.10-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "6c810ba9e9179e976f389946cc89e27b",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1942559,
+				"upload_time": "2025-01-29T22:29:52",
+				"upload_time_iso_8601": "2025-01-29T22:29:52.741555Z",
+				"url": "https://files.pythonhosted.org/packages/35/ff/7e2225dd3a0da15066f8200c8d6f78598fe356532bd054e9671167962e39/codegen-0.5.10-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "50bab23173ee7eec09a81dccdee07ca6cdfb689201b3050a13e94ce06d0ecbf0",
+					"md5": "87558f85062f0710f31c033fdf7e425e",
+					"sha256": "6a7cb3f6d5695d3540bce59724e06464dd516d23286761d64582605d116193c4"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.10-cp313-cp313-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "87558f85062f0710f31c033fdf7e425e",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1005405,
+				"upload_time": "2025-01-29T22:29:54",
+				"upload_time_iso_8601": "2025-01-29T22:29:54.349902Z",
+				"url": "https://files.pythonhosted.org/packages/50/ba/b23173ee7eec09a81dccdee07ca6cdfb689201b3050a13e94ce06d0ecbf0/codegen-0.5.10-cp313-cp313-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "b7337ddc5fdd1705921e137ef7fe1db3d45ab0ad6877f854eec5cdc047de8574",
+					"md5": "80a5ffe3bfaa537721f25bf2a0c4a907",
+					"sha256": "721c6ffe51acd10ee10fd00f2b4cb3b388ed4dfc233c45ea423b2bddd2ea253b"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.10-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "80a5ffe3bfaa537721f25bf2a0c4a907",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 3277328,
+				"upload_time": "2025-01-29T22:29:56",
+				"upload_time_iso_8601": "2025-01-29T22:29:56.283003Z",
+				"url": "https://files.pythonhosted.org/packages/b7/33/7ddc5fdd1705921e137ef7fe1db3d45ab0ad6877f854eec5cdc047de8574/codegen-0.5.10-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			}
+		],
+		"0.5.11": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "02fdb3f2ba6a616ed5603a6bbd9a11850e3f6ba37c3b2f9902310fcde4be748d",
+					"md5": "8fef2182bcb7b848ea49ff9916f1b8b2",
+					"sha256": "2dfd8b778bac8d31fa11c3f96165233c4ddd26a3ccfdc608d39b7f80f6565736"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.11-cp312-cp312-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "8fef2182bcb7b848ea49ff9916f1b8b2",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 801026,
+				"upload_time": "2025-01-29T23:23:48",
+				"upload_time_iso_8601": "2025-01-29T23:23:48.717029Z",
+				"url": "https://files.pythonhosted.org/packages/02/fd/b3f2ba6a616ed5603a6bbd9a11850e3f6ba37c3b2f9902310fcde4be748d/codegen-0.5.11-cp312-cp312-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "efeef4d479a03fd4e538352622fca1d9c89dd3ba2dd741595756224ab7e95d92",
+					"md5": "8ddd553aa038c8b6a9551fbc8e3e2715",
+					"sha256": "661a75d33623db8fd932c674df6f34307d24d28806ee37adfaa83050d4e90c43"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.11-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "8ddd553aa038c8b6a9551fbc8e3e2715",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1942687,
+				"upload_time": "2025-01-29T23:23:51",
+				"upload_time_iso_8601": "2025-01-29T23:23:51.025360Z",
+				"url": "https://files.pythonhosted.org/packages/ef/ee/f4d479a03fd4e538352622fca1d9c89dd3ba2dd741595756224ab7e95d92/codegen-0.5.11-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "8711996394b8a2918d2f94f0cf8b4e2f6374466d85a366e1acdfa875b4e2862c",
+					"md5": "74af5579367692d3709ef99a16d946a0",
+					"sha256": "2f3756b57d4f609f1fb78f020a5bf1a55aa539d03f3a48fe0bd9c618aeca2d2d"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.11-cp313-cp313-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "74af5579367692d3709ef99a16d946a0",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1005531,
+				"upload_time": "2025-01-29T23:23:53",
+				"upload_time_iso_8601": "2025-01-29T23:23:53.152914Z",
+				"url": "https://files.pythonhosted.org/packages/87/11/996394b8a2918d2f94f0cf8b4e2f6374466d85a366e1acdfa875b4e2862c/codegen-0.5.11-cp313-cp313-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "fbfaa6f133d5ef5e895f38598583e0f34f15ca12fd159239461f12afaba41022",
+					"md5": "6910a4728eb2b886b7900e4fdcdc2010",
+					"sha256": "bccb7487b00ab592386520f77e6e2afc55cbe4ff1627c9c7a1edaca9b4e092c2"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.11-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "6910a4728eb2b886b7900e4fdcdc2010",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 3277460,
+				"upload_time": "2025-01-29T23:23:55",
+				"upload_time_iso_8601": "2025-01-29T23:23:55.090200Z",
+				"url": "https://files.pythonhosted.org/packages/fb/fa/a6f133d5ef5e895f38598583e0f34f15ca12fd159239461f12afaba41022/codegen-0.5.11-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			}
+		],
+		"0.5.12": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "c2d2bcdbf6ad185380b5bd8de844effef1075cd1c00e81b722437b6aa757aa9b",
+					"md5": "a76ae616e97619090c63c67894ad2a78",
+					"sha256": "a0fcc025720c76c298287c70cdc352daa1ddb04e4728348aa960c7d7e081c5f8"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.12-cp312-cp312-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "a76ae616e97619090c63c67894ad2a78",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 801448,
+				"upload_time": "2025-01-29T23:58:00",
+				"upload_time_iso_8601": "2025-01-29T23:58:00.830347Z",
+				"url": "https://files.pythonhosted.org/packages/c2/d2/bcdbf6ad185380b5bd8de844effef1075cd1c00e81b722437b6aa757aa9b/codegen-0.5.12-cp312-cp312-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "3e422b59a33e362c53529a95e7ca2f09db7aebd80e7a52f67141a04d49b398d2",
+					"md5": "cc34b5c76536f6faae568b131cbe2265",
+					"sha256": "0826695ff3d143093365d77c100c1faa885db4ecfd6a0ef344802c469dab2d11"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.12-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "cc34b5c76536f6faae568b131cbe2265",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1943098,
+				"upload_time": "2025-01-29T23:58:03",
+				"upload_time_iso_8601": "2025-01-29T23:58:03.121375Z",
+				"url": "https://files.pythonhosted.org/packages/3e/42/2b59a33e362c53529a95e7ca2f09db7aebd80e7a52f67141a04d49b398d2/codegen-0.5.12-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "25fc32f7361dfee8b5b76e4e6f90a8bc0f9acb34d6de2fe9534ca121ddaf3986",
+					"md5": "043a27373a9f1cf2cc04ec876a4173c0",
+					"sha256": "b39553804e53fda8587b6d661b9f324d45de59fff0c0c2119b3202ac24bc9560"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.12-cp313-cp313-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "043a27373a9f1cf2cc04ec876a4173c0",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1005945,
+				"upload_time": "2025-01-29T23:58:04",
+				"upload_time_iso_8601": "2025-01-29T23:58:04.585941Z",
+				"url": "https://files.pythonhosted.org/packages/25/fc/32f7361dfee8b5b76e4e6f90a8bc0f9acb34d6de2fe9534ca121ddaf3986/codegen-0.5.12-cp313-cp313-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "1876cc97ab73905f0be3fc4b7ba9f6f5a9b4ca9eea1e78876a8343071f451258",
+					"md5": "afd2b449d89db985cea689f4dedcaa26",
+					"sha256": "61dc24c2ed570fce02a4fa36b74a60bfbe466805b63742c2f3a05c821dd8cf0e"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.12-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "afd2b449d89db985cea689f4dedcaa26",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 3277870,
+				"upload_time": "2025-01-29T23:58:07",
+				"upload_time_iso_8601": "2025-01-29T23:58:07.148734Z",
+				"url": "https://files.pythonhosted.org/packages/18/76/cc97ab73905f0be3fc4b7ba9f6f5a9b4ca9eea1e78876a8343071f451258/codegen-0.5.12-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			}
+		],
+		"0.5.13": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "7dcc4b8e35189e71566d1afcaf3232f57d3c6fd704b5c7a2488876a991fd9b48",
+					"md5": "ae7e7864c824c9a958a8908d1ff2c05a",
+					"sha256": "8571eafd06a39c0d06679e2848a86bd52cd7e2e4c81c3b22ede4732ba677e8ba"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.13-cp312-cp312-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "ae7e7864c824c9a958a8908d1ff2c05a",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 801849,
+				"upload_time": "2025-01-30T07:27:41",
+				"upload_time_iso_8601": "2025-01-30T07:27:41.576115Z",
+				"url": "https://files.pythonhosted.org/packages/7d/cc/4b8e35189e71566d1afcaf3232f57d3c6fd704b5c7a2488876a991fd9b48/codegen-0.5.13-cp312-cp312-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "29de2b2741c24f9e74febb39530f25f904b0d4246cc3d6718ad0407423011ebb",
+					"md5": "b6e69a5bbcebfbd1b4bfd738675df9db",
+					"sha256": "2cf4c38133d51a14dc564714671231d347b55a96e04cb1b100004da557c84ba3"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.13-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "b6e69a5bbcebfbd1b4bfd738675df9db",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1943495,
+				"upload_time": "2025-01-30T07:27:44",
+				"upload_time_iso_8601": "2025-01-30T07:27:44.414076Z",
+				"url": "https://files.pythonhosted.org/packages/29/de/2b2741c24f9e74febb39530f25f904b0d4246cc3d6718ad0407423011ebb/codegen-0.5.13-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "60c866daf00a699d926a2e781d1e40918df74be1914d046887b2846ca0c86c8b",
+					"md5": "4b68605aa3a03869837905f591c2a479",
+					"sha256": "608df57cffc0637859a7f251d36ed744a123040494adf74e24baffdb92bb24ad"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.13-cp313-cp313-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "4b68605aa3a03869837905f591c2a479",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1006347,
+				"upload_time": "2025-01-30T07:27:45",
+				"upload_time_iso_8601": "2025-01-30T07:27:45.792591Z",
+				"url": "https://files.pythonhosted.org/packages/60/c8/66daf00a699d926a2e781d1e40918df74be1914d046887b2846ca0c86c8b/codegen-0.5.13-cp313-cp313-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "8068c48b43e692255452af41a3a6320467e5945651aca8238971d0bec4af370a",
+					"md5": "1fbca4300d99d4401382d368cc1627ca",
+					"sha256": "48791d61302c8c7cb66c36d767aabe3e7c8433352dd508f863c94062790c58a0"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.13-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "1fbca4300d99d4401382d368cc1627ca",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 3278265,
+				"upload_time": "2025-01-30T07:27:48",
+				"upload_time_iso_8601": "2025-01-30T07:27:48.005532Z",
+				"url": "https://files.pythonhosted.org/packages/80/68/c48b43e692255452af41a3a6320467e5945651aca8238971d0bec4af370a/codegen-0.5.13-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			}
+		],
+		"0.5.14": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "4d1bd92d92d3bbfdf3a74672f0ab780a7ea1075d1b7f82f55226ec02c7f21afe",
+					"md5": "5e1a0395cd54fa3eb40215f82c02dc9f",
+					"sha256": "8f28827b772c256a1ca886ac6c347953a51cb8a6ad93a95e07355aedeb6af72f"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.14-cp312-cp312-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "5e1a0395cd54fa3eb40215f82c02dc9f",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 801870,
+				"upload_time": "2025-01-30T07:58:19",
+				"upload_time_iso_8601": "2025-01-30T07:58:19.022809Z",
+				"url": "https://files.pythonhosted.org/packages/4d/1b/d92d92d3bbfdf3a74672f0ab780a7ea1075d1b7f82f55226ec02c7f21afe/codegen-0.5.14-cp312-cp312-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "d7ef95acbf46429271463042943e8e42973dbdc2403727496df9a1adf4f204d2",
+					"md5": "84addef3b71c4a870670ce9de7d937df",
+					"sha256": "cced2f152c7e666efc8f27ba1616c283388c6204227079a53a648baeb14d557c"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.14-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "84addef3b71c4a870670ce9de7d937df",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1943509,
+				"upload_time": "2025-01-30T07:58:21",
+				"upload_time_iso_8601": "2025-01-30T07:58:21.521852Z",
+				"url": "https://files.pythonhosted.org/packages/d7/ef/95acbf46429271463042943e8e42973dbdc2403727496df9a1adf4f204d2/codegen-0.5.14-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "fea954896e7e77013fbe416516cfb99a7fd842a2cc0446a01bc269f7605809ac",
+					"md5": "0c358b04e7ebc0d0dc7f9164d53a7781",
+					"sha256": "ddd7beda8bab9423999dc9fb6da95245f7c022cde34b92e180b1439a51abcbad"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.14-cp313-cp313-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "0c358b04e7ebc0d0dc7f9164d53a7781",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1006371,
+				"upload_time": "2025-01-30T07:58:22",
+				"upload_time_iso_8601": "2025-01-30T07:58:22.955510Z",
+				"url": "https://files.pythonhosted.org/packages/fe/a9/54896e7e77013fbe416516cfb99a7fd842a2cc0446a01bc269f7605809ac/codegen-0.5.14-cp313-cp313-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "360dfe4c381373c431592c61bd645072795c081e628f471c034aab6d472ab917",
+					"md5": "cd950ccc476fc7fa76cb655a5cc658cb",
+					"sha256": "3b40d4942e7fd2dfcfa15e37cfe54e508a14ddf09b04d0fd3e5dfd30d03f6350"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.14-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "cd950ccc476fc7fa76cb655a5cc658cb",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 3278279,
+				"upload_time": "2025-01-30T07:58:25",
+				"upload_time_iso_8601": "2025-01-30T07:58:25.749992Z",
+				"url": "https://files.pythonhosted.org/packages/36/0d/fe4c381373c431592c61bd645072795c081e628f471c034aab6d472ab917/codegen-0.5.14-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			}
+		],
+		"0.5.15": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "0e492d37fa3bf572818b5374bd4d4d319f221d2fcb84270f3ba51f0f88dddf8d",
+					"md5": "c457c1aef86bbe030ae361ca623763a3",
+					"sha256": "0be47e60e269c0bbbf34311676dcb8ca41616fee9cd2ba54044d41f345fe880c"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.15-cp312-cp312-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "c457c1aef86bbe030ae361ca623763a3",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 801885,
+				"upload_time": "2025-01-30T18:08:05",
+				"upload_time_iso_8601": "2025-01-30T18:08:05.476412Z",
+				"url": "https://files.pythonhosted.org/packages/0e/49/2d37fa3bf572818b5374bd4d4d319f221d2fcb84270f3ba51f0f88dddf8d/codegen-0.5.15-cp312-cp312-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "bad440212cce6cdad1cfa397793ba71b217e4a9b69626e30b9457c36a5c3f667",
+					"md5": "32dfb1090eb624388a871b4b4e31a54a",
+					"sha256": "e1db54ffad00e9c5fa4a78c9a0c9e48305be96b86c9d4de0402334736d5237d9"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.15-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "32dfb1090eb624388a871b4b4e31a54a",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1943527,
+				"upload_time": "2025-01-30T18:08:07",
+				"upload_time_iso_8601": "2025-01-30T18:08:07.820100Z",
+				"url": "https://files.pythonhosted.org/packages/ba/d4/40212cce6cdad1cfa397793ba71b217e4a9b69626e30b9457c36a5c3f667/codegen-0.5.15-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "731de9247207edab1392abfcfd60a5a18e01acb548f8002bb274c56332dd90a3",
+					"md5": "9c6f6863a894cdedda3fb7eeb29bc1b8",
+					"sha256": "08bfec3d4f0bc097cafe52207e52f3d771e23836cf95a3fe942d17c51aae1b42"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.15-cp313-cp313-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "9c6f6863a894cdedda3fb7eeb29bc1b8",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1006385,
+				"upload_time": "2025-01-30T18:08:09",
+				"upload_time_iso_8601": "2025-01-30T18:08:09.943391Z",
+				"url": "https://files.pythonhosted.org/packages/73/1d/e9247207edab1392abfcfd60a5a18e01acb548f8002bb274c56332dd90a3/codegen-0.5.15-cp313-cp313-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "92224fac7a1a23d44d5beed71daf83f8794f9b512378c5ec2c5c760392e8fec9",
+					"md5": "fae29209d50581ed53ddd05a5ca33a29",
+					"sha256": "22ce889f915aecfae7201ef128f2225d1bedf0edde5b9ea57f60edfee388ab2d"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.15-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "fae29209d50581ed53ddd05a5ca33a29",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 3278296,
+				"upload_time": "2025-01-30T18:08:12",
+				"upload_time_iso_8601": "2025-01-30T18:08:12.429383Z",
+				"url": "https://files.pythonhosted.org/packages/92/22/4fac7a1a23d44d5beed71daf83f8794f9b512378c5ec2c5c760392e8fec9/codegen-0.5.15-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			}
+		],
+		"0.5.16": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "926fc4817fa8f8a910fd4a21969bcaf47b92138dc685bcee4435621768c0ad34",
+					"md5": "4950761d3b14ff743771f20c15ecd569",
+					"sha256": "070d977341ceaadf6a718458ec43ec46ea8f1e8d09766fb324a2b6accae11413"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.16-cp312-cp312-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "4950761d3b14ff743771f20c15ecd569",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 801900,
+				"upload_time": "2025-01-30T20:09:29",
+				"upload_time_iso_8601": "2025-01-30T20:09:29.144670Z",
+				"url": "https://files.pythonhosted.org/packages/92/6f/c4817fa8f8a910fd4a21969bcaf47b92138dc685bcee4435621768c0ad34/codegen-0.5.16-cp312-cp312-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "1bfc86124e99b35fdd60a48ca3d40fcd5c84c7af954bc6fc113e219cf26e5105",
+					"md5": "c831f1e6fc6b0ab36b6fb77810e4bcfa",
+					"sha256": "155369ec530cf04df551332ef59a2fcbee0e8d0b1064f55d5beeb1a35ac9f08c"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.16-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "c831f1e6fc6b0ab36b6fb77810e4bcfa",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1943546,
+				"upload_time": "2025-01-30T20:09:31",
+				"upload_time_iso_8601": "2025-01-30T20:09:31.583995Z",
+				"url": "https://files.pythonhosted.org/packages/1b/fc/86124e99b35fdd60a48ca3d40fcd5c84c7af954bc6fc113e219cf26e5105/codegen-0.5.16-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "8d3d34b1658069e5ca79d45e0299215650b3738c56467f5bfe12018ce654edf7",
+					"md5": "fdccc754047c66aed06591e481950168",
+					"sha256": "af999631ec45ae9c7e03b2e5affc89b06dcb3570a108887c2b9dba7f8efe6423"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.16-cp313-cp313-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "fdccc754047c66aed06591e481950168",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1006400,
+				"upload_time": "2025-01-30T20:09:32",
+				"upload_time_iso_8601": "2025-01-30T20:09:32.987537Z",
+				"url": "https://files.pythonhosted.org/packages/8d/3d/34b1658069e5ca79d45e0299215650b3738c56467f5bfe12018ce654edf7/codegen-0.5.16-cp313-cp313-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "69fbb74e8ed4df88db351ff11027d2c9f94e6f49677bbc29c3d47c9d60f88868",
+					"md5": "611df7b425d515b6177115c1cef909d8",
+					"sha256": "a9eb185fa9472f59e8e88f1207a65400a84daa807c28fc4bace36ed89e77e407"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.16-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "611df7b425d515b6177115c1cef909d8",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 3278314,
+				"upload_time": "2025-01-30T20:09:35",
+				"upload_time_iso_8601": "2025-01-30T20:09:35.138312Z",
+				"url": "https://files.pythonhosted.org/packages/69/fb/b74e8ed4df88db351ff11027d2c9f94e6f49677bbc29c3d47c9d60f88868/codegen-0.5.16-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			}
+		],
+		"0.5.17": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "37ceeb8520222a1b9a43759a2d7d7d9d02515e11fd9badad1c53858fa3ab898d",
+					"md5": "b4ce5211011dc2b349599dfa09b17355",
+					"sha256": "b4770ec268341e489369da4ad6e3d76a029c877b558a29e9210fa9b271e586c2"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.17-cp312-cp312-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "b4ce5211011dc2b349599dfa09b17355",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 801557,
+				"upload_time": "2025-01-30T21:28:15",
+				"upload_time_iso_8601": "2025-01-30T21:28:15.268131Z",
+				"url": "https://files.pythonhosted.org/packages/37/ce/eb8520222a1b9a43759a2d7d7d9d02515e11fd9badad1c53858fa3ab898d/codegen-0.5.17-cp312-cp312-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "484849a496162a80ff060cb242bffd60b437520a4aa7904f6c29e2ff042ab6a3",
+					"md5": "b322c52959adf6a8fb9203e00ba1d29d",
+					"sha256": "2489847c452ebca1fd49daedff850bee215c32b53f9ed0b982412b8b2093ca95"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.17-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "b322c52959adf6a8fb9203e00ba1d29d",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1943209,
+				"upload_time": "2025-01-30T21:28:16",
+				"upload_time_iso_8601": "2025-01-30T21:28:16.964358Z",
+				"url": "https://files.pythonhosted.org/packages/48/48/49a496162a80ff060cb242bffd60b437520a4aa7904f6c29e2ff042ab6a3/codegen-0.5.17-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "ad9e49d5908d9bfd9b67b82200825c59124073658d4a6ede7f555d34c47cb132",
+					"md5": "fe383fc193e1954e6b2ffd10e7dbd1f8",
+					"sha256": "c8893f7f9c316c9e053377e1f55264f3666a8562c2ab9dc2aed6e96ebf2c56c5"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.17-cp313-cp313-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "fe383fc193e1954e6b2ffd10e7dbd1f8",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1006057,
+				"upload_time": "2025-01-30T21:28:19",
+				"upload_time_iso_8601": "2025-01-30T21:28:19.638534Z",
+				"url": "https://files.pythonhosted.org/packages/ad/9e/49d5908d9bfd9b67b82200825c59124073658d4a6ede7f555d34c47cb132/codegen-0.5.17-cp313-cp313-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "14568341d316e2d1eeeda78d4628345a8295961df65fa0e13592e59875f20726",
+					"md5": "32a1deed3f7870938d07152d88255b11",
+					"sha256": "65a7e8f845eb46af7e576b510510b3013968ae3adaffc0fb2bfca58ab72e1c89"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.17-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "32a1deed3f7870938d07152d88255b11",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 3277975,
+				"upload_time": "2025-01-30T21:28:21",
+				"upload_time_iso_8601": "2025-01-30T21:28:21.747084Z",
+				"url": "https://files.pythonhosted.org/packages/14/56/8341d316e2d1eeeda78d4628345a8295961df65fa0e13592e59875f20726/codegen-0.5.17-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			}
+		],
+		"0.5.18": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "c59bfe9ccb21abe897e761861e2f43ab66e3f31f7904cc0c13b6898d455e8dfd",
+					"md5": "2fd126cd12c7a0fb48b2252d19696701",
+					"sha256": "a23035da671d2ecc725d11aab2c149728597e6e4936ee594c84c8c0a435b1366"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.18-cp312-cp312-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "2fd126cd12c7a0fb48b2252d19696701",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 885144,
+				"upload_time": "2025-01-31T01:08:31",
+				"upload_time_iso_8601": "2025-01-31T01:08:31.772832Z",
+				"url": "https://files.pythonhosted.org/packages/c5/9b/fe9ccb21abe897e761861e2f43ab66e3f31f7904cc0c13b6898d455e8dfd/codegen-0.5.18-cp312-cp312-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "f2c74afbbff494094b6d50c5a9587aa6c1f3160f3938102f8aa61c54c871ddc1",
+					"md5": "f863452dff07e2a57d59715cfc5040bc",
+					"sha256": "9a177e4dbda8fa22be0c6dafbc0f23a8cef311e77dd38295755947024c4224d3"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.18-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "f863452dff07e2a57d59715cfc5040bc",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 2026786,
+				"upload_time": "2025-01-31T01:08:33",
+				"upload_time_iso_8601": "2025-01-31T01:08:33.944104Z",
+				"url": "https://files.pythonhosted.org/packages/f2/c7/4afbbff494094b6d50c5a9587aa6c1f3160f3938102f8aa61c54c871ddc1/codegen-0.5.18-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "4bd0664fd784cec8ed02c25ac40a85aba1c9135c81a5a8b2ba16158ae81d3a41",
+					"md5": "07c9beace37f56b5e08f0f3e0b036f4d",
+					"sha256": "94b33c07cd5b73a6448200a6c2908243119a4daa4ce5331db610346ae48b1c08"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.18-cp313-cp313-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "07c9beace37f56b5e08f0f3e0b036f4d",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1089644,
+				"upload_time": "2025-01-31T01:08:36",
+				"upload_time_iso_8601": "2025-01-31T01:08:36.127886Z",
+				"url": "https://files.pythonhosted.org/packages/4b/d0/664fd784cec8ed02c25ac40a85aba1c9135c81a5a8b2ba16158ae81d3a41/codegen-0.5.18-cp313-cp313-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "8a945fce404a2085a397a3dbd3a27a710f82e21085e7cb242ed2c42b5190f8e2",
+					"md5": "cd323eea3e42d9961574823923726fe0",
+					"sha256": "95650c30dc8d215cac73117ee3a8559c715ae77f7bc0d1381bf292f64e3d53ee"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.18-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "cd323eea3e42d9961574823923726fe0",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 3361556,
+				"upload_time": "2025-01-31T01:08:37",
+				"upload_time_iso_8601": "2025-01-31T01:08:37.974196Z",
+				"url": "https://files.pythonhosted.org/packages/8a/94/5fce404a2085a397a3dbd3a27a710f82e21085e7cb242ed2c42b5190f8e2/codegen-0.5.18-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			}
+		],
+		"0.5.19": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "9d5695767748085c6b2189dc8d4d58a58fcbd980d59dd7f5edd748eeb404354a",
+					"md5": "28301193a6164e0f67e317f3bf9c8fcb",
+					"sha256": "76e2da3ee2c2b3629b17ceb17e6526b05dc47aec3143dee1097f829db221551d"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.19-cp312-cp312-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "28301193a6164e0f67e317f3bf9c8fcb",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 887086,
+				"upload_time": "2025-02-03T18:35:19",
+				"upload_time_iso_8601": "2025-02-03T18:35:19.525831Z",
+				"url": "https://files.pythonhosted.org/packages/9d/56/95767748085c6b2189dc8d4d58a58fcbd980d59dd7f5edd748eeb404354a/codegen-0.5.19-cp312-cp312-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "301188fabfcac504dbc13436aea3d89dfeec1e3f89c5e9601cd767d4dd3b62f0",
+					"md5": "e2c6518bf24f2e150150215781017c7b",
+					"sha256": "480bb85b3f92f474440b323404e01bfa708ac030024da47bb6be78cbb4fdbdcd"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.19-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"has_sig": false,
+				"md5_digest": "e2c6518bf24f2e150150215781017c7b",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1975933,
+				"upload_time": "2025-02-03T18:35:21",
+				"upload_time_iso_8601": "2025-02-03T18:35:21.680465Z",
+				"url": "https://files.pythonhosted.org/packages/30/11/88fabfcac504dbc13436aea3d89dfeec1e3f89c5e9601cd767d4dd3b62f0/codegen-0.5.19-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "ddbfb46ee582d255bf52dede4f0bebd9e6b501116f94397fb11a55241a3683ad",
+					"md5": "e32b1402184c81cdf0627a99d5be9555",
+					"sha256": "8d248f46a1a3b98ca5cf7d2c786a16a63e3eceb6a371c0199bfde786d4c2b6b5"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.19-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "e32b1402184c81cdf0627a99d5be9555",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 2026221,
+				"upload_time": "2025-02-03T18:35:23",
+				"upload_time_iso_8601": "2025-02-03T18:35:23.431196Z",
+				"url": "https://files.pythonhosted.org/packages/dd/bf/b46ee582d255bf52dede4f0bebd9e6b501116f94397fb11a55241a3683ad/codegen-0.5.19-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "932e89cf3749ed6aff28c213d08d1d3004326a6e8c07029b393a5169047dbe66",
+					"md5": "1d32bf3de28edee458ea209fa23e051c",
+					"sha256": "f3a8eea2dee6f20ba962c54cfafc26e349a48e86d17b75323caba87371e7aabd"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.19-cp313-cp313-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "1d32bf3de28edee458ea209fa23e051c",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1091593,
+				"upload_time": "2025-02-03T18:35:24",
+				"upload_time_iso_8601": "2025-02-03T18:35:24.783278Z",
+				"url": "https://files.pythonhosted.org/packages/93/2e/89cf3749ed6aff28c213d08d1d3004326a6e8c07029b393a5169047dbe66/codegen-0.5.19-cp313-cp313-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "510abcd9d137922659797787348348b03ea015a2c889f4bc25a757e26d7e682f",
+					"md5": "2bca57cd6c8549734a0a76f075423ee0",
+					"sha256": "ef57635f6f8b21bde43177ea5aeb7b20f5247cc7f73c9d4d63149974b9c06a65"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.19-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"has_sig": false,
+				"md5_digest": "2bca57cd6c8549734a0a76f075423ee0",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 3262396,
+				"upload_time": "2025-02-03T18:35:26",
+				"upload_time_iso_8601": "2025-02-03T18:35:26.496331Z",
+				"url": "https://files.pythonhosted.org/packages/51/0a/bcd9d137922659797787348348b03ea015a2c889f4bc25a757e26d7e682f/codegen-0.5.19-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "47c7e3d3c3ea8cf00c7f1478f651a5b5772022b284720c5b17a313420621888d",
+					"md5": "76627dad5378e49c2438c87e8e10b6f5",
+					"sha256": "aa9f0e6c62fcb5338cdb0f086d26c89738cd331fe21c409a9f2fc59a8edc9abd"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.19-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "76627dad5378e49c2438c87e8e10b6f5",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 3360991,
+				"upload_time": "2025-02-03T18:35:28",
+				"upload_time_iso_8601": "2025-02-03T18:35:28.374983Z",
+				"url": "https://files.pythonhosted.org/packages/47/c7/e3d3c3ea8cf00c7f1478f651a5b5772022b284720c5b17a313420621888d/codegen-0.5.19-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			}
+		],
+		"0.5.2": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "33b05a69e5ea23b4bb97ae6ea762eabe714c719881e738bc198ce98e28aa0043",
+					"md5": "8456a69fd07b1da4f2bba6afa2ba7c90",
+					"sha256": "978ce1855bd0659ea33d112ca590e3da158b98356ffa770a15d844633fa58343"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.2-cp312-cp312-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "8456a69fd07b1da4f2bba6afa2ba7c90",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 871259,
+				"upload_time": "2025-01-25T00:26:00",
+				"upload_time_iso_8601": "2025-01-25T00:26:00.948441Z",
+				"url": "https://files.pythonhosted.org/packages/33/b0/5a69e5ea23b4bb97ae6ea762eabe714c719881e738bc198ce98e28aa0043/codegen-0.5.2-cp312-cp312-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "b256a575f7c1e24756d8d38ea4dab40978d9301531e4ec0950d95a7de53cdd38",
+					"md5": "ce9304a5c0c6f6538e0888e7f3b5f0a9",
+					"sha256": "c2b0891e1203bd44a8249ad5003e1346d3f8c5f15172fe07a89fd2df360b8c9c"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.2-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "ce9304a5c0c6f6538e0888e7f3b5f0a9",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1900610,
+				"upload_time": "2025-01-25T00:26:03",
+				"upload_time_iso_8601": "2025-01-25T00:26:03.202356Z",
+				"url": "https://files.pythonhosted.org/packages/b2/56/a575f7c1e24756d8d38ea4dab40978d9301531e4ec0950d95a7de53cdd38/codegen-0.5.2-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "26038622d102bcc41e7ef1c3c40e9ba7bd16467b523c06a808949dfb4d9e2e86",
+					"md5": "5cee37293053308ac15396bb70b8ca5b",
+					"sha256": "c4545ccca0d5133ed9ea10de5ed5b94ff7f25d5d8aac109c92fba01977ef70f9"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.2-cp313-cp313-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "5cee37293053308ac15396bb70b8ca5b",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1055030,
+				"upload_time": "2025-01-25T00:26:04",
+				"upload_time_iso_8601": "2025-01-25T00:26:04.516602Z",
+				"url": "https://files.pythonhosted.org/packages/26/03/8622d102bcc41e7ef1c3c40e9ba7bd16467b523c06a808949dfb4d9e2e86/codegen-0.5.2-cp313-cp313-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "514debb89e8ab66212eeaee35c25b18d5a1cad4c7e6b38d99186a0c50d267b92",
+					"md5": "9ac062e0a5f8cb2c1569e3d7b35b68b4",
+					"sha256": "e38832624fe8dd4bc737eb7cb3c37ba7580f247d08379f7982876b98a9fd656a"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.2-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "9ac062e0a5f8cb2c1569e3d7b35b68b4",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 3108387,
+				"upload_time": "2025-01-25T00:26:09",
+				"upload_time_iso_8601": "2025-01-25T00:26:09.626063Z",
+				"url": "https://files.pythonhosted.org/packages/51/4d/ebb89e8ab66212eeaee35c25b18d5a1cad4c7e6b38d99186a0c50d267b92/codegen-0.5.2-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			}
+		],
+		"0.5.21": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "9e23724c534a5d2567d10ffd0b361fe4dba05a4c68ac66361e5262dfc5f36962",
+					"md5": "da704d217f18d2dc7d1ba605166b6d96",
+					"sha256": "3816c5aca3a56105ba70c64cfc2239b685c5f40746c668f8fd9324dde311e434"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.21-cp312-cp312-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "da704d217f18d2dc7d1ba605166b6d96",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 888455,
+				"upload_time": "2025-02-04T00:58:41",
+				"upload_time_iso_8601": "2025-02-04T00:58:41.938607Z",
+				"url": "https://files.pythonhosted.org/packages/9e/23/724c534a5d2567d10ffd0b361fe4dba05a4c68ac66361e5262dfc5f36962/codegen-0.5.21-cp312-cp312-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "50920ff8a688a4c8d4d2087602160e7860e250e7c99cd34ef78659259d37ac67",
+					"md5": "ef3d2a318f645b06e2bb70efb7d754e0",
+					"sha256": "bc4d798d437e9893a71da35dfdb4c19826d06ee2097f243623c302704f87a6cb"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.21-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"has_sig": false,
+				"md5_digest": "ef3d2a318f645b06e2bb70efb7d754e0",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1977271,
+				"upload_time": "2025-02-04T00:58:44",
+				"upload_time_iso_8601": "2025-02-04T00:58:44.613628Z",
+				"url": "https://files.pythonhosted.org/packages/50/92/0ff8a688a4c8d4d2087602160e7860e250e7c99cd34ef78659259d37ac67/codegen-0.5.21-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "aefb3e90f852aca4c24f89646190e26e1dd6df8ad97d874069c7b5e595829c80",
+					"md5": "276a76bbfdc86f6238d7e3c2a7f885b4",
+					"sha256": "aaf1b75568eb79d01bac7427eda45c6672cf6fd1f593f93bf9b962981caf82d4"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.21-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "276a76bbfdc86f6238d7e3c2a7f885b4",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 2027559,
+				"upload_time": "2025-02-04T00:58:47",
+				"upload_time_iso_8601": "2025-02-04T00:58:47.877000Z",
+				"url": "https://files.pythonhosted.org/packages/ae/fb/3e90f852aca4c24f89646190e26e1dd6df8ad97d874069c7b5e595829c80/codegen-0.5.21-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "0f3ee2fd2680b1cbecd02b452a9880be88d89deb3a9045159690ddbb918136b6",
+					"md5": "4acfca9951d7e60c7796b98df0dfd685",
+					"sha256": "af2339f7267cfe7b387fef01a094a4ab9063d940557214ac7bbce09c6a48cb26"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.21-cp313-cp313-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "4acfca9951d7e60c7796b98df0dfd685",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1092967,
+				"upload_time": "2025-02-04T00:58:51",
+				"upload_time_iso_8601": "2025-02-04T00:58:51.891014Z",
+				"url": "https://files.pythonhosted.org/packages/0f/3e/e2fd2680b1cbecd02b452a9880be88d89deb3a9045159690ddbb918136b6/codegen-0.5.21-cp313-cp313-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "dd3d1c93fca1da0047b8047bd1e62b081f48bb475f1378104ec28148a89b846c",
+					"md5": "48d16bb293ec81a8689ff436153b39bb",
+					"sha256": "65f35e612f55c7ad0b941ce0e176982e7eb02e7ba0ceb03cb3ee379d2caa6480"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.21-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"has_sig": false,
+				"md5_digest": "48d16bb293ec81a8689ff436153b39bb",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 3263731,
+				"upload_time": "2025-02-04T00:58:55",
+				"upload_time_iso_8601": "2025-02-04T00:58:55.403235Z",
+				"url": "https://files.pythonhosted.org/packages/dd/3d/1c93fca1da0047b8047bd1e62b081f48bb475f1378104ec28148a89b846c/codegen-0.5.21-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "d7a0750c3c4d6a2a775ab0b69634d068a65b162572dd7a49b31093f59be93f6c",
+					"md5": "25393169ced0da990d501f26c34ecc26",
+					"sha256": "153fcff8a3fe98c726fb811fe0065e91eb486fb7eae68a5b9c8bcaec7ec7eb6c"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.21-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "25393169ced0da990d501f26c34ecc26",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 3362330,
+				"upload_time": "2025-02-04T00:58:57",
+				"upload_time_iso_8601": "2025-02-04T00:58:57.431070Z",
+				"url": "https://files.pythonhosted.org/packages/d7/a0/750c3c4d6a2a775ab0b69634d068a65b162572dd7a49b31093f59be93f6c/codegen-0.5.21-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			}
+		],
+		"0.5.22": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "90c387961892eac8331fd2529eb7a24aa882215588f82a8dd9ce07fa76a5f23e",
+					"md5": "e3c5d35062865a15d186af2059a6a7ad",
+					"sha256": "c0f153ed8eb84c8c6707894daa4254dd38f33289cbede2c835129f0fe7d5a578"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.22-cp312-cp312-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "e3c5d35062865a15d186af2059a6a7ad",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 887773,
+				"upload_time": "2025-02-04T22:54:48",
+				"upload_time_iso_8601": "2025-02-04T22:54:48.545625Z",
+				"url": "https://files.pythonhosted.org/packages/90/c3/87961892eac8331fd2529eb7a24aa882215588f82a8dd9ce07fa76a5f23e/codegen-0.5.22-cp312-cp312-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "42cd2dd2ee85e04683365105b6e67946e91ba972412e9d331e12f57f2ce336c5",
+					"md5": "a696d6a34b691c1e867b50fafde52ef4",
+					"sha256": "6e6f0305285d6837016c719ec0384ddcb4da6c33d334cffa0d1c21c69eaad155"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.22-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"has_sig": false,
+				"md5_digest": "a696d6a34b691c1e867b50fafde52ef4",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1976610,
+				"upload_time": "2025-02-04T22:54:51",
+				"upload_time_iso_8601": "2025-02-04T22:54:51.069692Z",
+				"url": "https://files.pythonhosted.org/packages/42/cd/2dd2ee85e04683365105b6e67946e91ba972412e9d331e12f57f2ce336c5/codegen-0.5.22-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "5257ee73a0007e1a3cf7412e0ce143e555754e89e6deba5547bbc1dd8574cea0",
+					"md5": "9daf2749f302832f5f37ae808e0ca988",
+					"sha256": "ba8541b89c808cc0ee3b0632c278dd874f305fc73366049b1ae3344dde857086"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.22-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "9daf2749f302832f5f37ae808e0ca988",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 2026899,
+				"upload_time": "2025-02-04T22:54:53",
+				"upload_time_iso_8601": "2025-02-04T22:54:53.079119Z",
+				"url": "https://files.pythonhosted.org/packages/52/57/ee73a0007e1a3cf7412e0ce143e555754e89e6deba5547bbc1dd8574cea0/codegen-0.5.22-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "5ca27b7127483912b6592e1039e8f778a1ecdea8dfd3f7de956a5cdb2bc7b789",
+					"md5": "a87537ce9feb0a2496a1509e584d41d8",
+					"sha256": "5482ce34457f45c91965e40de2afab32ae2fc63290d3ae6b543096906f46b23d"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.22-cp313-cp313-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "a87537ce9feb0a2496a1509e584d41d8",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1092275,
+				"upload_time": "2025-02-04T22:54:55",
+				"upload_time_iso_8601": "2025-02-04T22:54:55.713449Z",
+				"url": "https://files.pythonhosted.org/packages/5c/a2/7b7127483912b6592e1039e8f778a1ecdea8dfd3f7de956a5cdb2bc7b789/codegen-0.5.22-cp313-cp313-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "02cc02717329906e954785780919237d0042d988d7a674d595bd11e5a004f9b4",
+					"md5": "b566120a4e28109a28736eb143e0f08d",
+					"sha256": "56c27b102200bfa092bad2c833b4c2f7f4fcfa8f8ea6a7f257276e495c040428"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.22-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"has_sig": false,
+				"md5_digest": "b566120a4e28109a28736eb143e0f08d",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 3263073,
+				"upload_time": "2025-02-04T22:54:58",
+				"upload_time_iso_8601": "2025-02-04T22:54:58.148805Z",
+				"url": "https://files.pythonhosted.org/packages/02/cc/02717329906e954785780919237d0042d988d7a674d595bd11e5a004f9b4/codegen-0.5.22-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "305fb3a2e3d22f9df014445b12491834d294190f5ce86e73f221d5e9b4034ab3",
+					"md5": "aaba784d89fb4ed2a60cd3b40cb7607e",
+					"sha256": "af14d9b3cf905f52bd6faa0fdd7ec23449b78592fbeaf320d959b2677258d6dd"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.22-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "aaba784d89fb4ed2a60cd3b40cb7607e",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 3361666,
+				"upload_time": "2025-02-04T22:55:00",
+				"upload_time_iso_8601": "2025-02-04T22:55:00.320086Z",
+				"url": "https://files.pythonhosted.org/packages/30/5f/b3a2e3d22f9df014445b12491834d294190f5ce86e73f221d5e9b4034ab3/codegen-0.5.22-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			}
+		],
+		"0.5.23": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "ca2ef31d1bcd3511e73e9660271fd558a2647caf67cea2fea06edddcc77a9d52",
+					"md5": "c367094ee3fd88b051ba96040273229b",
+					"sha256": "b50a0c06da6b88526ed330a278c56f5fffcf7acbad39d3c50365da7326b10b53"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.23-cp312-cp312-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "c367094ee3fd88b051ba96040273229b",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 888567,
+				"upload_time": "2025-02-05T03:07:10",
+				"upload_time_iso_8601": "2025-02-05T03:07:10.275492Z",
+				"url": "https://files.pythonhosted.org/packages/ca/2e/f31d1bcd3511e73e9660271fd558a2647caf67cea2fea06edddcc77a9d52/codegen-0.5.23-cp312-cp312-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "1ad62fab28c3656a7481a9f85c11bd50dcaef2580d46a4e53d91ca028f7b9702",
+					"md5": "ffd1c4f73fb0a6b1fefa5e09051301ed",
+					"sha256": "bcc32605940112f2bc81291ab05cf7f66a4807fd3f19611814ea6edeff1a46d6"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.23-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"has_sig": false,
+				"md5_digest": "ffd1c4f73fb0a6b1fefa5e09051301ed",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1977402,
+				"upload_time": "2025-02-05T03:07:12",
+				"upload_time_iso_8601": "2025-02-05T03:07:12.665547Z",
+				"url": "https://files.pythonhosted.org/packages/1a/d6/2fab28c3656a7481a9f85c11bd50dcaef2580d46a4e53d91ca028f7b9702/codegen-0.5.23-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "8b77e16ef4c9ead3fc9bd77e1c787c34c6f748e47bd8c2d9b339ab01fc55f655",
+					"md5": "34a70d386a18ee7f48b769d020821c0a",
+					"sha256": "681454f572381ab0983591c9d4ebfae00a5131b8df24cb131346531e919766f6"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.23-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "34a70d386a18ee7f48b769d020821c0a",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 2027692,
+				"upload_time": "2025-02-05T03:07:15",
+				"upload_time_iso_8601": "2025-02-05T03:07:15.065997Z",
+				"url": "https://files.pythonhosted.org/packages/8b/77/e16ef4c9ead3fc9bd77e1c787c34c6f748e47bd8c2d9b339ab01fc55f655/codegen-0.5.23-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "92c69996a53f2506b4f03f20dfe70b5e1a762f740c8fbb5a3c5af3ac4213e375",
+					"md5": "8741b67acb17a00c196f3c1ac8485b08",
+					"sha256": "465dc62764a037038a037b24d3f4fe17c31d01bde227226909ab4e5cae4a4ab3"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.23-cp313-cp313-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "8741b67acb17a00c196f3c1ac8485b08",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1093074,
+				"upload_time": "2025-02-05T03:07:16",
+				"upload_time_iso_8601": "2025-02-05T03:07:16.368006Z",
+				"url": "https://files.pythonhosted.org/packages/92/c6/9996a53f2506b4f03f20dfe70b5e1a762f740c8fbb5a3c5af3ac4213e375/codegen-0.5.23-cp313-cp313-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "632772c05d0f1962c9e782e44aaa3976243c792bd97b8eb18b321453db00c014",
+					"md5": "5350f3c2decf7948663253ffe68c9585",
+					"sha256": "a5ac74ef021d46a656d6fe7b74c33830984ca0f64f5764f0952dff46064d85b7"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.23-cp313-cp313-macosx_15_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "5350f3c2decf7948663253ffe68c9585",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 871975,
+				"upload_time": "2025-02-05T05:25:49",
+				"upload_time_iso_8601": "2025-02-05T05:25:49.258767Z",
+				"url": "https://files.pythonhosted.org/packages/63/27/72c05d0f1962c9e782e44aaa3976243c792bd97b8eb18b321453db00c014/codegen-0.5.23-cp313-cp313-macosx_15_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "4665a46b703fd3c052fdd3b6d28fafcde7a2b1ad11fef1a6c78f29f40cf7f985",
+					"md5": "74f99d639d7c1e12b625f8cb45dfcf4f",
+					"sha256": "8941025450b345d4516af6f21c5053b7944f810c0c000f68e4132ca98f52260d"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.23-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"has_sig": false,
+				"md5_digest": "74f99d639d7c1e12b625f8cb45dfcf4f",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 3263863,
+				"upload_time": "2025-02-05T03:07:18",
+				"upload_time_iso_8601": "2025-02-05T03:07:18.574197Z",
+				"url": "https://files.pythonhosted.org/packages/46/65/a46b703fd3c052fdd3b6d28fafcde7a2b1ad11fef1a6c78f29f40cf7f985/codegen-0.5.23-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "74a21e278ce192b5085531998b4563266f4d26f64894af41ffc7fdb0a1c9d237",
+					"md5": "8449bcb1e0a5e36986b85a69e9e362da",
+					"sha256": "38be84e8c25c42a287c547ec7a493f4fdd6e051f234bcb899e7fc5b2964b5dcc"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.23-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "8449bcb1e0a5e36986b85a69e9e362da",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 3362459,
+				"upload_time": "2025-02-05T03:07:20",
+				"upload_time_iso_8601": "2025-02-05T03:07:20.860846Z",
+				"url": "https://files.pythonhosted.org/packages/74/a2/1e278ce192b5085531998b4563266f4d26f64894af41ffc7fdb0a1c9d237/codegen-0.5.23-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			}
+		],
+		"0.5.24": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "27dcf422db2db813df619ee0d3c72834dbc005e692f9e49d2270022a5049d658",
+					"md5": "4110cb20fce5cb4fed35819e525ba4d1",
+					"sha256": "1fc35bd21a3fd044fca8d59aaa7e318e0c5d31968a3f2b5a360a5344cf032906"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.24-cp312-cp312-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "4110cb20fce5cb4fed35819e525ba4d1",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 888899,
+				"upload_time": "2025-02-05T23:00:07",
+				"upload_time_iso_8601": "2025-02-05T23:00:07.938054Z",
+				"url": "https://files.pythonhosted.org/packages/27/dc/f422db2db813df619ee0d3c72834dbc005e692f9e49d2270022a5049d658/codegen-0.5.24-cp312-cp312-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "b76a00a4c7e2d396cd5b1d45cddbcd80d505398868ca5bbb3781bd83adc0de78",
+					"md5": "c0033d9e2c5d0d170f0f63b166f3b244",
+					"sha256": "6a0cef56797eb8fd63ab88bb9e50e17373bb128c30c5b675904bfa51eae63530"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.24-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"has_sig": false,
+				"md5_digest": "c0033d9e2c5d0d170f0f63b166f3b244",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1977735,
+				"upload_time": "2025-02-05T23:00:10",
+				"upload_time_iso_8601": "2025-02-05T23:00:10.950729Z",
+				"url": "https://files.pythonhosted.org/packages/b7/6a/00a4c7e2d396cd5b1d45cddbcd80d505398868ca5bbb3781bd83adc0de78/codegen-0.5.24-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "a147b8afb4898c17b844d5a445012ab8b86240c5a164ea3cf813eb0ef122d613",
+					"md5": "939cdc26caa99083b91987c8fc282e5e",
+					"sha256": "f339876101af672b80f69cfddbf7a55f099d8d8958bd607c6524fbc5a76d2d76"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.24-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "939cdc26caa99083b91987c8fc282e5e",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 2028022,
+				"upload_time": "2025-02-05T23:00:13",
+				"upload_time_iso_8601": "2025-02-05T23:00:13.506205Z",
+				"url": "https://files.pythonhosted.org/packages/a1/47/b8afb4898c17b844d5a445012ab8b86240c5a164ea3cf813eb0ef122d613/codegen-0.5.24-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "97d0b017a2a937bf340346d7ed90ad38132304379c3ce7b5f709f44d0cdbf34a",
+					"md5": "506d13627ab6a9d01ddd9d2ea7e81ace",
+					"sha256": "699d17d4ce94010c9e91b4fcfc26dca788520025ec19c96c1d4f8cc3edf7575b"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.24-cp313-cp313-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "506d13627ab6a9d01ddd9d2ea7e81ace",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 884679,
+				"upload_time": "2025-02-05T23:00:16",
+				"upload_time_iso_8601": "2025-02-05T23:00:16.121404Z",
+				"url": "https://files.pythonhosted.org/packages/97/d0/b017a2a937bf340346d7ed90ad38132304379c3ce7b5f709f44d0cdbf34a/codegen-0.5.24-cp313-cp313-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "08be0a3d0d16e83da81f97931d8607b22db5bf3f6ed80572e60bf61b34133138",
+					"md5": "6fdd0ff362098084e16c60364f9af98d",
+					"sha256": "ee9803f9e9fd6a6a21138e36b6dcad5fd7372c6c4da552b25e4ce778af3767b4"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.24-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"has_sig": false,
+				"md5_digest": "6fdd0ff362098084e16c60364f9af98d",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1964070,
+				"upload_time": "2025-02-05T23:00:18",
+				"upload_time_iso_8601": "2025-02-05T23:00:18.686240Z",
+				"url": "https://files.pythonhosted.org/packages/08/be/0a3d0d16e83da81f97931d8607b22db5bf3f6ed80572e60bf61b34133138/codegen-0.5.24-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "a815cb5c6c511e0bf5ced16c63f4d4be6aa1dc49d17123fc507b402b916c0d10",
+					"md5": "ca1e144630aae0be8c8471db1a9501ff",
+					"sha256": "51a161ff76d7cec3079e5506d9071c705037b0dbdde913d7f157c644a82624cd"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.24-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "ca1e144630aae0be8c8471db1a9501ff",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 2012364,
+				"upload_time": "2025-02-05T23:00:21",
+				"upload_time_iso_8601": "2025-02-05T23:00:21.333533Z",
+				"url": "https://files.pythonhosted.org/packages/a8/15/cb5c6c511e0bf5ced16c63f4d4be6aa1dc49d17123fc507b402b916c0d10/codegen-0.5.24-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			}
+		],
+		"0.5.25": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "2878050a4d6571e1a741bb7ccc547398174cbc260051e0673bbc9c543c89678d",
+					"md5": "45b61be460a6f34670a0cb5de98bf1a2",
+					"sha256": "b846b5648db2cb6b53ba1c32359269e77da0b035c0a1e266faf1dcaa75660f9d"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.25-cp312-cp312-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "45b61be460a6f34670a0cb5de98bf1a2",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 889307,
+				"upload_time": "2025-02-06T17:44:29",
+				"upload_time_iso_8601": "2025-02-06T17:44:29.233330Z",
+				"url": "https://files.pythonhosted.org/packages/28/78/050a4d6571e1a741bb7ccc547398174cbc260051e0673bbc9c543c89678d/codegen-0.5.25-cp312-cp312-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "f821c2a10ada82c87483c8492835d899c6dba7b59f7e70d1644638141e62b9ec",
+					"md5": "840fcf61a09d330fa48ec468a8db7816",
+					"sha256": "9f01ce6f6500a2af1f09af832e08946936173d43c92a76079ee20987ea05752f"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.25-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"has_sig": false,
+				"md5_digest": "840fcf61a09d330fa48ec468a8db7816",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1978171,
+				"upload_time": "2025-02-06T17:44:31",
+				"upload_time_iso_8601": "2025-02-06T17:44:31.145273Z",
+				"url": "https://files.pythonhosted.org/packages/f8/21/c2a10ada82c87483c8492835d899c6dba7b59f7e70d1644638141e62b9ec/codegen-0.5.25-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "c042421cea1cd4d39a23d65f3a327f534c55409cecad83278d805c7bbb455834",
+					"md5": "9bb7c6249bddc7feb055f098ed2b9df7",
+					"sha256": "6069a3861e4c206db3dd311ac6da0680bcaeab364966a34702fda1de36019f04"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.25-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "9bb7c6249bddc7feb055f098ed2b9df7",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 2028461,
+				"upload_time": "2025-02-06T17:44:33",
+				"upload_time_iso_8601": "2025-02-06T17:44:33.353612Z",
+				"url": "https://files.pythonhosted.org/packages/c0/42/421cea1cd4d39a23d65f3a327f534c55409cecad83278d805c7bbb455834/codegen-0.5.25-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "989d6f31f3acef514bf9b32482dcadb4b9787b30f7d427849623bff59244f4fc",
+					"md5": "cae5d9ddd3c796d98f036a5a67271890",
+					"sha256": "2e8b14b44c315a9b6c1f3b581f2ab9d9d8ebbecde00efc5511881f5fa982bc2d"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.25-cp313-cp313-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "cae5d9ddd3c796d98f036a5a67271890",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 885099,
+				"upload_time": "2025-02-06T17:44:34",
+				"upload_time_iso_8601": "2025-02-06T17:44:34.939961Z",
+				"url": "https://files.pythonhosted.org/packages/98/9d/6f31f3acef514bf9b32482dcadb4b9787b30f7d427849623bff59244f4fc/codegen-0.5.25-cp313-cp313-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "ff6c63e3b5ea936ccca3a7bf5e806c602a1f639c606a3859eaf6923b2844736d",
+					"md5": "b15f490c1769812fbcc55b90b752fd4a",
+					"sha256": "854e12b83134304af18a9feb652076eb58b058dc51915e67100f8d64d558043d"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.25-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"has_sig": false,
+				"md5_digest": "b15f490c1769812fbcc55b90b752fd4a",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1964508,
+				"upload_time": "2025-02-06T17:44:36",
+				"upload_time_iso_8601": "2025-02-06T17:44:36.898519Z",
+				"url": "https://files.pythonhosted.org/packages/ff/6c/63e3b5ea936ccca3a7bf5e806c602a1f639c606a3859eaf6923b2844736d/codegen-0.5.25-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "3002f014fc3867ff8753c212403055487c3cfc1259fe384261e1a28c73716aa1",
+					"md5": "958c29dd7276ef5538befc6091efb317",
+					"sha256": "dc3cfc0205621afecc6df61968080774ba0664c5db558ec1f0b1bc1abb92521f"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.25-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "958c29dd7276ef5538befc6091efb317",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 2012803,
+				"upload_time": "2025-02-06T17:44:40",
+				"upload_time_iso_8601": "2025-02-06T17:44:40.104059Z",
+				"url": "https://files.pythonhosted.org/packages/30/02/f014fc3867ff8753c212403055487c3cfc1259fe384261e1a28c73716aa1/codegen-0.5.25-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			}
+		],
+		"0.5.26": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "4edfd6d2e9b8dd1e79ce7a1552e26c3d4d6311bcf8e2115f542a638b9f5b4aa2",
+					"md5": "ceb399357e946c77d3ba28d88601a918",
+					"sha256": "7ca8ec48a3db972a022b419e2464bd7fe251f586ed4758dc220133ab3c5600fb"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.26-cp312-cp312-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "ceb399357e946c77d3ba28d88601a918",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 889319,
+				"upload_time": "2025-02-06T18:15:45",
+				"upload_time_iso_8601": "2025-02-06T18:15:45.683225Z",
+				"url": "https://files.pythonhosted.org/packages/4e/df/d6d2e9b8dd1e79ce7a1552e26c3d4d6311bcf8e2115f542a638b9f5b4aa2/codegen-0.5.26-cp312-cp312-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "054fadf8d4fed7f28ad01b0d48d959d8063bbe1b483eae17860f6c26110f12b6",
+					"md5": "f90247fe70b1dccd5d840042684b71c8",
+					"sha256": "19aa379935ddfd47df36a38dac8b1eec782ecf5c804e38564d8cfb41af3753a7"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.26-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"has_sig": false,
+				"md5_digest": "f90247fe70b1dccd5d840042684b71c8",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1978175,
+				"upload_time": "2025-02-06T18:15:48",
+				"upload_time_iso_8601": "2025-02-06T18:15:48.362784Z",
+				"url": "https://files.pythonhosted.org/packages/05/4f/adf8d4fed7f28ad01b0d48d959d8063bbe1b483eae17860f6c26110f12b6/codegen-0.5.26-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "0b1645d6ef4fd96ac02cb05e5a63d96f085d77164797f6f8dcd251fdac119a92",
+					"md5": "1b6b257af255c60515c3cacd168c1365",
+					"sha256": "a146ee2e5606d96264c43fe8f5ff547babb212ea0658afa1a7bacabed087dc3b"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.26-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "1b6b257af255c60515c3cacd168c1365",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 2028465,
+				"upload_time": "2025-02-06T18:15:50",
+				"upload_time_iso_8601": "2025-02-06T18:15:50.713451Z",
+				"url": "https://files.pythonhosted.org/packages/0b/16/45d6ef4fd96ac02cb05e5a63d96f085d77164797f6f8dcd251fdac119a92/codegen-0.5.26-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "d40390cccf539152cb4189044fc969cf61df81331a2c93618a8a6b8fa728828b",
+					"md5": "a2dcaac622905b334e12078661d02fba",
+					"sha256": "aa2a2876219b7bfde36f7756a55bdcc3c0e311f167edd7954650b025720e6636"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.26-cp313-cp313-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "a2dcaac622905b334e12078661d02fba",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 885114,
+				"upload_time": "2025-02-06T18:15:52",
+				"upload_time_iso_8601": "2025-02-06T18:15:52.948333Z",
+				"url": "https://files.pythonhosted.org/packages/d4/03/90cccf539152cb4189044fc969cf61df81331a2c93618a8a6b8fa728828b/codegen-0.5.26-cp313-cp313-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "29f6abc36e52ab3961e3ef6f2ade0d0a7e0e7da369b8f650339b8af492d7ee76",
+					"md5": "ecae41a465d7d11a8007062b178dbc67",
+					"sha256": "50d45a8650738b4e8805a54aa5fe734e0e3c0de4956274cacd02a0a1ed5f0773"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.26-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"has_sig": false,
+				"md5_digest": "ecae41a465d7d11a8007062b178dbc67",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1964512,
+				"upload_time": "2025-02-06T18:15:54",
+				"upload_time_iso_8601": "2025-02-06T18:15:54.345589Z",
+				"url": "https://files.pythonhosted.org/packages/29/f6/abc36e52ab3961e3ef6f2ade0d0a7e0e7da369b8f650339b8af492d7ee76/codegen-0.5.26-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "788f52804dfc7c731ea6789b19269b5c60b2fce912dcc16ff661540fbfdffb74",
+					"md5": "c165f6a330c43c8c3045ac16bbbd6e9e",
+					"sha256": "ea85fc5cb40f8cd68b2a441b94318ccf4653b43eeb574ee9917e3f456fa76ef7"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.26-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "c165f6a330c43c8c3045ac16bbbd6e9e",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 2012805,
+				"upload_time": "2025-02-06T18:15:56",
+				"upload_time_iso_8601": "2025-02-06T18:15:56.613829Z",
+				"url": "https://files.pythonhosted.org/packages/78/8f/52804dfc7c731ea6789b19269b5c60b2fce912dcc16ff661540fbfdffb74/codegen-0.5.26-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			}
+		],
+		"0.5.28": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "c0a69701e8e8736eaeac301404667b95c4e9670b0ab644b7210d0278fcfb440d",
+					"md5": "371f9ff07a6dda3bb2ab959d7d5f489f",
+					"sha256": "fdbf697c7f2e1f34d39cf8fec7c990feed1b845ddd8731281252aeb1cbe3cd15"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.28-cp312-cp312-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "371f9ff07a6dda3bb2ab959d7d5f489f",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 890800,
+				"upload_time": "2025-02-07T00:20:44",
+				"upload_time_iso_8601": "2025-02-07T00:20:44.298931Z",
+				"url": "https://files.pythonhosted.org/packages/c0/a6/9701e8e8736eaeac301404667b95c4e9670b0ab644b7210d0278fcfb440d/codegen-0.5.28-cp312-cp312-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "b2b82669544aa2bd3e97ab54ea4a24ebd5b140117f05f54960d8991ab1d95993",
+					"md5": "76ef73b646eaae9237853d4bafce57cc",
+					"sha256": "6551546e0ccc50926e7f644a069673c525bff15385898422e4ab3ff70e01ae81"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.28-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"has_sig": false,
+				"md5_digest": "76ef73b646eaae9237853d4bafce57cc",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1979648,
+				"upload_time": "2025-02-07T00:20:47",
+				"upload_time_iso_8601": "2025-02-07T00:20:47.059663Z",
+				"url": "https://files.pythonhosted.org/packages/b2/b8/2669544aa2bd3e97ab54ea4a24ebd5b140117f05f54960d8991ab1d95993/codegen-0.5.28-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "3137c21843bd72e6b99d3c880f8a554b649b02016efb5a1e9083decd0b706ea5",
+					"md5": "e73ebeab2db937564a436f47dfabee7c",
+					"sha256": "a05f73403ef2ad7bdf2964f5e296f62a120f841e94d21852586cf66700c61f7b"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.28-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "e73ebeab2db937564a436f47dfabee7c",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 2029939,
+				"upload_time": "2025-02-07T00:20:48",
+				"upload_time_iso_8601": "2025-02-07T00:20:48.918867Z",
+				"url": "https://files.pythonhosted.org/packages/31/37/c21843bd72e6b99d3c880f8a554b649b02016efb5a1e9083decd0b706ea5/codegen-0.5.28-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "aacda2a60a1c41b75fc84eac91d50dcdf4de60d549d792779794586fcaac3b62",
+					"md5": "4675b60fc29c6a5655d58e85379cef45",
+					"sha256": "d76b4af39e9233a2d50b7c0265c68cc7bef5598dd37627b97f7ea0c3471f3849"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.28-cp313-cp313-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "4675b60fc29c6a5655d58e85379cef45",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 886594,
+				"upload_time": "2025-02-07T00:20:51",
+				"upload_time_iso_8601": "2025-02-07T00:20:51.308681Z",
+				"url": "https://files.pythonhosted.org/packages/aa/cd/a2a60a1c41b75fc84eac91d50dcdf4de60d549d792779794586fcaac3b62/codegen-0.5.28-cp313-cp313-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "495173efc731ab401ecddf1157f4fabe2882749c8795297a002306930632f98a",
+					"md5": "688f1f2192d10ad2f43d5295ed177aed",
+					"sha256": "0a6735f39b8542f71192bf51ed7a109843227c1c2f22a9c9cc8cfd3713cf9655"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.28-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"has_sig": false,
+				"md5_digest": "688f1f2192d10ad2f43d5295ed177aed",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1965984,
+				"upload_time": "2025-02-07T00:20:52",
+				"upload_time_iso_8601": "2025-02-07T00:20:52.891176Z",
+				"url": "https://files.pythonhosted.org/packages/49/51/73efc731ab401ecddf1157f4fabe2882749c8795297a002306930632f98a/codegen-0.5.28-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "01d4e40c7a22e0689a497cdcae20ee712bb20bbd6a73e833d59fdb4b26bdf461",
+					"md5": "093ce3b3aa604c9684be253d5aa98ac5",
+					"sha256": "776218f07cdfdc3cf5ae0a019372711ae3d567e6c8a615dd3a5475475494c0d4"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.28-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "093ce3b3aa604c9684be253d5aa98ac5",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 2014280,
+				"upload_time": "2025-02-07T00:20:54",
+				"upload_time_iso_8601": "2025-02-07T00:20:54.638251Z",
+				"url": "https://files.pythonhosted.org/packages/01/d4/e40c7a22e0689a497cdcae20ee712bb20bbd6a73e833d59fdb4b26bdf461/codegen-0.5.28-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			}
+		],
+		"0.5.3": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "97c90256b57298e794404b43aed5fd75ef034cf31687dc3586873df49ca8dd07",
+					"md5": "1180c189668269d5860982b07f047909",
+					"sha256": "8cd0ae9f8500735962748ceacc74773483dd7a3236600f56dd853b31f7542789"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.3-cp312-cp312-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "1180c189668269d5860982b07f047909",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 783601,
+				"upload_time": "2025-01-27T19:02:55",
+				"upload_time_iso_8601": "2025-01-27T19:02:55.855938Z",
+				"url": "https://files.pythonhosted.org/packages/97/c9/0256b57298e794404b43aed5fd75ef034cf31687dc3586873df49ca8dd07/codegen-0.5.3-cp312-cp312-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "aa939b4be5f62a12aa40ad4773e174f47bc444e47bded90ae153d7b2e5eca993",
+					"md5": "66faff59ddb6c2f3278fabce25a3c4c6",
+					"sha256": "f9564dd817f56ddf5c23ea027296c41a389bf2e44021ca20cf5e6544bdfe8605"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.3-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "66faff59ddb6c2f3278fabce25a3c4c6",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1812932,
+				"upload_time": "2025-01-27T19:02:57",
+				"upload_time_iso_8601": "2025-01-27T19:02:57.449962Z",
+				"url": "https://files.pythonhosted.org/packages/aa/93/9b4be5f62a12aa40ad4773e174f47bc444e47bded90ae153d7b2e5eca993/codegen-0.5.3-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "2eb583317f43522bd938c169ad329dc1f31d783ddaba97ab0a4a280ec2291325",
+					"md5": "b190f267cc398875d274a703c85b5867",
+					"sha256": "639d33d6c091dcf1a60aaa829baeceba0a8b059e839517f0decfb698e8a7c219"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.3-cp313-cp313-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "b190f267cc398875d274a703c85b5867",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 967378,
+				"upload_time": "2025-01-27T19:02:58",
+				"upload_time_iso_8601": "2025-01-27T19:02:58.906161Z",
+				"url": "https://files.pythonhosted.org/packages/2e/b5/83317f43522bd938c169ad329dc1f31d783ddaba97ab0a4a280ec2291325/codegen-0.5.3-cp313-cp313-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "f402739c72735d2e9616b6465d016dd8ae7301971f47e190d1df786dea68972e",
+					"md5": "1955590777257d2c4068152c5dae867d",
+					"sha256": "3a04033911aa0780351b3ea6fe194301c700a57f43b51f0f894ec44273d2ae7f"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.3-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "1955590777257d2c4068152c5dae867d",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 3020702,
+				"upload_time": "2025-01-27T19:03:00",
+				"upload_time_iso_8601": "2025-01-27T19:03:00.716901Z",
+				"url": "https://files.pythonhosted.org/packages/f4/02/739c72735d2e9616b6465d016dd8ae7301971f47e190d1df786dea68972e/codegen-0.5.3-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			}
+		],
+		"0.5.4": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "d1527c7816ea0f020cea8602fe9e648f61fc242fc6e007899422c93cff9c1401",
+					"md5": "4c41629ed79be346fd1345409519cf63",
+					"sha256": "e0dd8ea5f758349a09d27341fafff8e6cae3e421f6fc3be1f7ef9aa2cfdc7959"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.4-cp312-cp312-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "4c41629ed79be346fd1345409519cf63",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 781344,
+				"upload_time": "2025-01-27T22:59:11",
+				"upload_time_iso_8601": "2025-01-27T22:59:11.334392Z",
+				"url": "https://files.pythonhosted.org/packages/d1/52/7c7816ea0f020cea8602fe9e648f61fc242fc6e007899422c93cff9c1401/codegen-0.5.4-cp312-cp312-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "2879fba0b5a208cda34609a4b97b920a3f13027a22ca49892fee21c3429eb5e8",
+					"md5": "5d8b4f6d86019e44ef71547a5ecb13a0",
+					"sha256": "d3f81d3b4fae45383f3a9b17e5d605971824f040742c16f0f0e3898744ce8032"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.4-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "5d8b4f6d86019e44ef71547a5ecb13a0",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1810668,
+				"upload_time": "2025-01-27T22:59:12",
+				"upload_time_iso_8601": "2025-01-27T22:59:12.948689Z",
+				"url": "https://files.pythonhosted.org/packages/28/79/fba0b5a208cda34609a4b97b920a3f13027a22ca49892fee21c3429eb5e8/codegen-0.5.4-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "323b7d1c97ea5473bd515ccec35262674cb8a573d4a50993607f4b6f1d61f841",
+					"md5": "66c4e8939219e3a1cddcb3e3846688e1",
+					"sha256": "9aadd0237171680bc1f7793de562ad149fe58c76655ab8b5bcf500a290199eb8"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.4-cp313-cp313-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "66c4e8939219e3a1cddcb3e3846688e1",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 965121,
+				"upload_time": "2025-01-27T22:59:14",
+				"upload_time_iso_8601": "2025-01-27T22:59:14.342745Z",
+				"url": "https://files.pythonhosted.org/packages/32/3b/7d1c97ea5473bd515ccec35262674cb8a573d4a50993607f4b6f1d61f841/codegen-0.5.4-cp313-cp313-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "5654263b541944196e03149eacdb6a123dc8efe9909cebbce1c781b50da933c9",
+					"md5": "b6bd2283901831b5f575e038d4f42787",
+					"sha256": "e60acd2cdfec2c2255cb815eccc04d800012998988fd8df40cda9bd3092cc221"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.4-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "b6bd2283901831b5f575e038d4f42787",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 3018439,
+				"upload_time": "2025-01-27T22:59:15",
+				"upload_time_iso_8601": "2025-01-27T22:59:15.738246Z",
+				"url": "https://files.pythonhosted.org/packages/56/54/263b541944196e03149eacdb6a123dc8efe9909cebbce1c781b50da933c9/codegen-0.5.4-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			}
+		],
+		"0.5.5": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "cb3ec7868dea292d429f40515a191c0944bc91d1111c6b637ffc6ebebe0c77b3",
+					"md5": "88d2fd21b3f34d51b7831a1e2bcafad2",
+					"sha256": "21427960a0f5860fee600d66fe98ed7252854dc6f2af72e9a80a2c5df66f745c"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.5-cp312-cp312-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "88d2fd21b3f34d51b7831a1e2bcafad2",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 804280,
+				"upload_time": "2025-01-28T00:57:50",
+				"upload_time_iso_8601": "2025-01-28T00:57:50.523405Z",
+				"url": "https://files.pythonhosted.org/packages/cb/3e/c7868dea292d429f40515a191c0944bc91d1111c6b637ffc6ebebe0c77b3/codegen-0.5.5-cp312-cp312-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "48d217ce9b82008d7782339d169061d48cb7fab87654ed10c0da7a26a925cd81",
+					"md5": "37bd969607b8536533ab811789434bfe",
+					"sha256": "35899f6988316d2c1bb854fa5f015b8a7f94ffa460e63ac62f5a3206ca975742"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.5-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "37bd969607b8536533ab811789434bfe",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1944378,
+				"upload_time": "2025-01-28T00:57:52",
+				"upload_time_iso_8601": "2025-01-28T00:57:52.932454Z",
+				"url": "https://files.pythonhosted.org/packages/48/d2/17ce9b82008d7782339d169061d48cb7fab87654ed10c0da7a26a925cd81/codegen-0.5.5-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "10b19fa85c7e798918bda7b70ac84357e19f5cb31341baf629494241eee148a7",
+					"md5": "b8833dda4239ec81ac53c5463f22138b",
+					"sha256": "dcdc6d558998d36030ebc1033afc156a604e53f997f62e3e657466a6ea7ddfec"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.5-cp313-cp313-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "b8833dda4239ec81ac53c5463f22138b",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1008502,
+				"upload_time": "2025-01-28T00:57:54",
+				"upload_time_iso_8601": "2025-01-28T00:57:54.382068Z",
+				"url": "https://files.pythonhosted.org/packages/10/b1/9fa85c7e798918bda7b70ac84357e19f5cb31341baf629494241eee148a7/codegen-0.5.5-cp313-cp313-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "508b127eba6c9c055394d111a71c487b9d7f920a5b5f689fa1ed9f5b3757341e",
+					"md5": "ad50b0883e47777353e5493cf1b42961",
+					"sha256": "de1c8d6dabdccef5df58e4f46afc145a40e59cd89a8bca79d52eb4b2dac8dfb5"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.5-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "ad50b0883e47777353e5493cf1b42961",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 3276749,
+				"upload_time": "2025-01-28T00:57:55",
+				"upload_time_iso_8601": "2025-01-28T00:57:55.965291Z",
+				"url": "https://files.pythonhosted.org/packages/50/8b/127eba6c9c055394d111a71c487b9d7f920a5b5f689fa1ed9f5b3757341e/codegen-0.5.5-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			}
+		],
+		"0.5.6": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "da97a079e80fffc5e39630d086311555e945cc4dde5360409ec63de321b5a86c",
+					"md5": "28b78137b5159a3cad64b1e50a8c29a9",
+					"sha256": "7e3ec648e03200e0350f686cc104c4000a1593b4816aa8ea15322bce5aa4a611"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.6-cp312-cp312-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "28b78137b5159a3cad64b1e50a8c29a9",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 804969,
+				"upload_time": "2025-01-28T02:37:31",
+				"upload_time_iso_8601": "2025-01-28T02:37:31.094079Z",
+				"url": "https://files.pythonhosted.org/packages/da/97/a079e80fffc5e39630d086311555e945cc4dde5360409ec63de321b5a86c/codegen-0.5.6-cp312-cp312-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "9f8e22a4c0f5bac1b4c41c81c78cf9e5ec1f91807e2295e7a379e9c365760545",
+					"md5": "6d55363c471e7e6b10b218588413fc8b",
+					"sha256": "fb670e3a76daa753e899fd12f0e1d3f39667a1d536def4db2941b85c9685bc07"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.6-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "6d55363c471e7e6b10b218588413fc8b",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1945066,
+				"upload_time": "2025-01-28T02:37:34",
+				"upload_time_iso_8601": "2025-01-28T02:37:34.329667Z",
+				"url": "https://files.pythonhosted.org/packages/9f/8e/22a4c0f5bac1b4c41c81c78cf9e5ec1f91807e2295e7a379e9c365760545/codegen-0.5.6-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "a3a92d48e79f8e4c58fc30ccd90d577519452dbcf29c6f79338a891a1333e89e",
+					"md5": "88a092ff0a600ad1f1174bc3705d96bd",
+					"sha256": "7485a2bb2860be45c533a8283030843765e0624ac20be73e31159643f379e02e"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.6-cp313-cp313-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "88a092ff0a600ad1f1174bc3705d96bd",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1009202,
+				"upload_time": "2025-01-28T02:37:36",
+				"upload_time_iso_8601": "2025-01-28T02:37:36.153689Z",
+				"url": "https://files.pythonhosted.org/packages/a3/a9/2d48e79f8e4c58fc30ccd90d577519452dbcf29c6f79338a891a1333e89e/codegen-0.5.6-cp313-cp313-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "ba512bbeed367de01d75957cd59675cdf7c49389002f8ffa8f4b12f96a5c1f7b",
+					"md5": "e0cf31d83efc7004647dcc3d20d6375e",
+					"sha256": "7e6b5e0ca0dbe3b2914ee2b87d0bb59d5f76a8e19fefcb02468cdce32aae0fc7"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.6-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "e0cf31d83efc7004647dcc3d20d6375e",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 3277434,
+				"upload_time": "2025-01-28T02:37:37",
+				"upload_time_iso_8601": "2025-01-28T02:37:37.681232Z",
+				"url": "https://files.pythonhosted.org/packages/ba/51/2bbeed367de01d75957cd59675cdf7c49389002f8ffa8f4b12f96a5c1f7b/codegen-0.5.6-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			}
+		],
+		"0.5.7": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "14853e8f6b7c76041f6ea68201ff2358f87544c0dfb19733bd703f3ba741af76",
+					"md5": "c402b38991508b4c6dc4c60904dbec02",
+					"sha256": "26db590ea32bef71cf4101b1a27327f4c4c2e5e057d791db87dd54e73ca56a35"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.7-cp312-cp312-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "c402b38991508b4c6dc4c60904dbec02",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 804383,
+				"upload_time": "2025-01-28T04:50:38",
+				"upload_time_iso_8601": "2025-01-28T04:50:38.164010Z",
+				"url": "https://files.pythonhosted.org/packages/14/85/3e8f6b7c76041f6ea68201ff2358f87544c0dfb19733bd703f3ba741af76/codegen-0.5.7-cp312-cp312-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "422035e358cbb29eda24a07d0d80487a501b09e4376e8ec14d79ad3f4e6dcb20",
+					"md5": "ffee0a993816ee6c7177c858d42026b5",
+					"sha256": "e6635fe6d3567dd398829bf33bee5590d56a2082f0fa5ec7e4513de27d8749f6"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.7-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "ffee0a993816ee6c7177c858d42026b5",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1944491,
+				"upload_time": "2025-01-28T04:50:40",
+				"upload_time_iso_8601": "2025-01-28T04:50:40.650588Z",
+				"url": "https://files.pythonhosted.org/packages/42/20/35e358cbb29eda24a07d0d80487a501b09e4376e8ec14d79ad3f4e6dcb20/codegen-0.5.7-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "4facdbefc17b30c2a25f3e6cb27e249a683de46ffc243445130d1f1d63eff584",
+					"md5": "4b556dd079800f3294f568d3314345d7",
+					"sha256": "30c755a26b8f986ad84cc5ecdb27d83af506c21e28e7668ddac39718f5032cb2"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.7-cp313-cp313-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "4b556dd079800f3294f568d3314345d7",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1008604,
+				"upload_time": "2025-01-28T04:50:42",
+				"upload_time_iso_8601": "2025-01-28T04:50:42.223902Z",
+				"url": "https://files.pythonhosted.org/packages/4f/ac/dbefc17b30c2a25f3e6cb27e249a683de46ffc243445130d1f1d63eff584/codegen-0.5.7-cp313-cp313-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "77959a94a9d5f3428c97966c92b9bb0f5d06c7f4f76720d067bb6da8e55abafc",
+					"md5": "bdb132a3338ae7780002d3f490b0ffee",
+					"sha256": "530376c697898027e6ac03aa7c16173e45c4941f8511e46db4e77bcd6cccc1e9"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.7-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "bdb132a3338ae7780002d3f490b0ffee",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 3276860,
+				"upload_time": "2025-01-28T04:50:44",
+				"upload_time_iso_8601": "2025-01-28T04:50:44.138594Z",
+				"url": "https://files.pythonhosted.org/packages/77/95/9a94a9d5f3428c97966c92b9bb0f5d06c7f4f76720d067bb6da8e55abafc/codegen-0.5.7-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			}
+		],
+		"0.5.8": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "7f0c90e3114e6072624fb521fc4b9b7ab6089c3d0081bbabc5713ebee572654f",
+					"md5": "35b3f79e93d1f84466305a4514e92a30",
+					"sha256": "3d13f24a43a0b649f1d207ed36fdcb59c025ad8078057a69e740c8a4dc34dc62"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.8-cp312-cp312-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "35b3f79e93d1f84466305a4514e92a30",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 802135,
+				"upload_time": "2025-01-28T20:06:12",
+				"upload_time_iso_8601": "2025-01-28T20:06:12.305565Z",
+				"url": "https://files.pythonhosted.org/packages/7f/0c/90e3114e6072624fb521fc4b9b7ab6089c3d0081bbabc5713ebee572654f/codegen-0.5.8-cp312-cp312-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "c4f0ffb62a1e41dd90d7737c959bb4f0df94e162b003ead188217b91fa59fbf8",
+					"md5": "38abeb16238796d3b9981cd484cf7fc3",
+					"sha256": "3242b6f396480d4f6a348e5a4db1ffb8131ee9ad355258021bb5ebe3bfe41a33"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.8-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "38abeb16238796d3b9981cd484cf7fc3",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1942242,
+				"upload_time": "2025-01-28T20:06:15",
+				"upload_time_iso_8601": "2025-01-28T20:06:15.977478Z",
+				"url": "https://files.pythonhosted.org/packages/c4/f0/ffb62a1e41dd90d7737c959bb4f0df94e162b003ead188217b91fa59fbf8/codegen-0.5.8-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "e5744ba51984b87a84d99cc632528b2f8863f2f8b999edef11f19381276430e2",
+					"md5": "c753e189fd2bd44b8053782a7d0d5103",
+					"sha256": "f04ddc6dbf08ac9241d2b1e997c9aeb8805f18c6571829b45e1e38aeecae36e9"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.8-cp313-cp313-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "c753e189fd2bd44b8053782a7d0d5103",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1006359,
+				"upload_time": "2025-01-28T20:06:18",
+				"upload_time_iso_8601": "2025-01-28T20:06:18.019186Z",
+				"url": "https://files.pythonhosted.org/packages/e5/74/4ba51984b87a84d99cc632528b2f8863f2f8b999edef11f19381276430e2/codegen-0.5.8-cp313-cp313-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "e9a86cec17185264edbe81bf4a705704e420bd07d60234bb6dabca72f070fcdf",
+					"md5": "11cb4d31669fe030554704a70a82d80b",
+					"sha256": "9c750a2268006814898517d4bbd0e67184f910973f24fa9fceaebff0dd6faecf"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.8-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "11cb4d31669fe030554704a70a82d80b",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 3274611,
+				"upload_time": "2025-01-28T20:06:20",
+				"upload_time_iso_8601": "2025-01-28T20:06:20.182587Z",
+				"url": "https://files.pythonhosted.org/packages/e9/a8/6cec17185264edbe81bf4a705704e420bd07d60234bb6dabca72f070fcdf/codegen-0.5.8-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			}
+		],
+		"0.5.9": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "4c955ae9f383d5dd30333e6ff7d6584c7a822e661ce249066d1c3d836b3f02cd",
+					"md5": "fc939958885313347036c7fbf26a2103",
+					"sha256": "31ea2ea638434357b2033579a57786e5cc66a71a646d12267b4282cfbe970391"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.9-cp312-cp312-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "fc939958885313347036c7fbf26a2103",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 799739,
+				"upload_time": "2025-01-29T03:10:25",
+				"upload_time_iso_8601": "2025-01-29T03:10:25.673755Z",
+				"url": "https://files.pythonhosted.org/packages/4c/95/5ae9f383d5dd30333e6ff7d6584c7a822e661ce249066d1c3d836b3f02cd/codegen-0.5.9-cp312-cp312-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "867b1df25b06098f38160d8852dc5c340fe6ad5bb8ddfcafab85b829567bbaa7",
+					"md5": "0bada43529cd0faf3283f625f9ec8800",
+					"sha256": "0315066083951c69c736d2e00fb1a33a38e404d141d9877fa7f1646c1e9e1bd3"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.9-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "0bada43529cd0faf3283f625f9ec8800",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp312",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1939875,
+				"upload_time": "2025-01-29T03:10:28",
+				"upload_time_iso_8601": "2025-01-29T03:10:28.275684Z",
+				"url": "https://files.pythonhosted.org/packages/86/7b/1df25b06098f38160d8852dc5c340fe6ad5bb8ddfcafab85b829567bbaa7/codegen-0.5.9-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "b48f6c13ba5a0b59d5ccc8d0ac18be89b0c696e5198a76b8de93ac868cd12154",
+					"md5": "24ca095e00e75bfdc1fba14a18c4867f",
+					"sha256": "15af89164c279a1e8cc7d446abd7fd2a229660869408e4c9c0a0d9f369ac4b34"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.9-cp313-cp313-macosx_11_0_arm64.whl",
+				"has_sig": false,
+				"md5_digest": "24ca095e00e75bfdc1fba14a18c4867f",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 1003956,
+				"upload_time": "2025-01-29T03:10:32",
+				"upload_time_iso_8601": "2025-01-29T03:10:32.109233Z",
+				"url": "https://files.pythonhosted.org/packages/b4/8f/6c13ba5a0b59d5ccc8d0ac18be89b0c696e5198a76b8de93ac868cd12154/codegen-0.5.9-cp313-cp313-macosx_11_0_arm64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "0e3e52e726b9f5d55a00fd6d078452960b1725e32ba050eaa935ec697116a246",
+					"md5": "b1cbca13f19573d1f9447db967de07a9",
+					"sha256": "4c8f3be5dd116c431362da1de9095b48f7d16c49d320f32a1f8ccd1adf80cdfb"
+				},
+				"downloads": -1,
+				"filename": "codegen-0.5.9-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"has_sig": false,
+				"md5_digest": "b1cbca13f19573d1f9447db967de07a9",
+				"packagetype": "bdist_wheel",
+				"python_version": "cp313",
+				"requires_python": "<3.14,>=3.12",
+				"size": 3272248,
+				"upload_time": "2025-01-29T03:10:34",
+				"upload_time_iso_8601": "2025-01-29T03:10:34.196834Z",
+				"url": "https://files.pythonhosted.org/packages/0e/3e/52e726b9f5d55a00fd6d078452960b1725e32ba050eaa935ec697116a246/codegen-0.5.9-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+				"yanked": false,
+				"yanked_reason": null
+			}
+		],
+		"1.0": [
+			{
+				"comment_text": "",
+				"digests": {
+					"blake2b_256": "7e9c91b9b9c0c67aec57aabcf7c456baca687cdafd3fb29c6195574685b6ca36",
+					"md5": "840450b171ec87cffb03c19075f4e1e7",
+					"sha256": "d14caccc4175903d79bc5ed2890d140163281b1cdff79f3657e963369e79a6ee"
+				},
+				"downloads": -1,
+				"filename": "codegen-1.0.tar.gz",
+				"has_sig": false,
+				"md5_digest": "840450b171ec87cffb03c19075f4e1e7",
+				"packagetype": "sdist",
+				"python_version": "source",
+				"requires_python": null,
+				"size": 4380,
+				"upload_time": "2012-11-14T08:58:30",
+				"upload_time_iso_8601": "2012-11-14T08:58:30.750111Z",
+				"url": "https://files.pythonhosted.org/packages/7e/9c/91b9b9c0c67aec57aabcf7c456baca687cdafd3fb29c6195574685b6ca36/codegen-1.0.tar.gz",
+				"yanked": true,
+				"yanked_reason": null
+			}
+		],
+		"1.19.0": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "60903a76eec40fc60e4c3b92f6d24ddec05a9678e8dc1fff886c94a75f0fe832",
+					"md5": "3669b9b98c876177a7f6866f86476917",
+					"sha256": "be1dcfdf59668e77fd25415a128e0124c58ce2885c0e03ffb0034c649c0c5e8d"
+				},
+				"downloads": -1,
+				"filename": "codegen-1.19.0-py3-none-any.whl",
+				"has_sig": false,
+				"md5_digest": "3669b9b98c876177a7f6866f86476917",
+				"packagetype": "bdist_wheel",
+				"python_version": "py3",
+				"requires_python": ">=3.13",
+				"size": 65448,
+				"upload_time": "2025-01-14T17:21:40",
+				"upload_time_iso_8601": "2025-01-14T17:21:40.439124Z",
+				"url": "https://files.pythonhosted.org/packages/60/90/3a76eec40fc60e4c3b92f6d24ddec05a9678e8dc1fff886c94a75f0fe832/codegen-1.19.0-py3-none-any.whl",
+				"yanked": true,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "e35cac7d285ab87e26df36ef9ea06105ade033f63e963f355717f820394a4e10",
+					"md5": "8e198334214186d305914f981b0192cd",
+					"sha256": "c81e75d05aba2bfc60510e90d7c30a3b09202bbf4da1eebfe138ece49ba0707c"
+				},
+				"downloads": -1,
+				"filename": "codegen-1.19.0.tar.gz",
+				"has_sig": false,
+				"md5_digest": "8e198334214186d305914f981b0192cd",
+				"packagetype": "sdist",
+				"python_version": "source",
+				"requires_python": ">=3.13",
+				"size": 39598,
+				"upload_time": "2025-01-14T17:21:42",
+				"upload_time_iso_8601": "2025-01-14T17:21:42.541534Z",
+				"url": "https://files.pythonhosted.org/packages/e3/5c/ac7d285ab87e26df36ef9ea06105ade033f63e963f355717f820394a4e10/codegen-1.19.0.tar.gz",
+				"yanked": true,
+				"yanked_reason": null
+			}
+		],
+		"1.20.0": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "78cd94bba14a9829d49dc016cfb48150277f0238149f8b4872ba0ce3d3a740d0",
+					"md5": "9f12113da1f5c40a4d7a62aade5a5a24",
+					"sha256": "cf764b4e44929ff682a90ebf0861095e8a8f66c2af3adf451eac6d0801a29be6"
+				},
+				"downloads": -1,
+				"filename": "codegen-1.20.0-py3-none-any.whl",
+				"has_sig": false,
+				"md5_digest": "9f12113da1f5c40a4d7a62aade5a5a24",
+				"packagetype": "bdist_wheel",
+				"python_version": "py3",
+				"requires_python": ">=3.13",
+				"size": 66398,
+				"upload_time": "2025-01-14T23:39:47",
+				"upload_time_iso_8601": "2025-01-14T23:39:47.376117Z",
+				"url": "https://files.pythonhosted.org/packages/78/cd/94bba14a9829d49dc016cfb48150277f0238149f8b4872ba0ce3d3a740d0/codegen-1.20.0-py3-none-any.whl",
+				"yanked": true,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "53c398dddd9892ec6d38fee9bdbf7e2000a858ff2943463e6cea955a9ca42f7b",
+					"md5": "9f0d3cf7be6d1f5c6b124273a2a09bfe",
+					"sha256": "4633fbfc11dd216e64e41414a98cf0c60bfbca89d7ddc20ece336a00b5b1e33a"
+				},
+				"downloads": -1,
+				"filename": "codegen-1.20.0.tar.gz",
+				"has_sig": false,
+				"md5_digest": "9f0d3cf7be6d1f5c6b124273a2a09bfe",
+				"packagetype": "sdist",
+				"python_version": "source",
+				"requires_python": ">=3.13",
+				"size": 40164,
+				"upload_time": "2025-01-14T23:39:49",
+				"upload_time_iso_8601": "2025-01-14T23:39:49.471440Z",
+				"url": "https://files.pythonhosted.org/packages/53/c3/98dddd9892ec6d38fee9bdbf7e2000a858ff2943463e6cea955a9ca42f7b/codegen-1.20.0.tar.gz",
+				"yanked": true,
+				"yanked_reason": null
+			}
+		],
+		"1.21.0": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "9ed7eb0dfe7eb76b19d81a3c887fdcbbc970891dc9466e6efc6855b535f857fa",
+					"md5": "0d50f3fa4d998d200be680e03d6a46da",
+					"sha256": "aff0370f333616f6daf70b29836ef3e4f7f29cdd8db321362254d7148206c50d"
+				},
+				"downloads": -1,
+				"filename": "codegen-1.21.0-py3-none-any.whl",
+				"has_sig": false,
+				"md5_digest": "0d50f3fa4d998d200be680e03d6a46da",
+				"packagetype": "bdist_wheel",
+				"python_version": "py3",
+				"requires_python": ">=3.13",
+				"size": 66376,
+				"upload_time": "2025-01-14T23:47:47",
+				"upload_time_iso_8601": "2025-01-14T23:47:47.698976Z",
+				"url": "https://files.pythonhosted.org/packages/9e/d7/eb0dfe7eb76b19d81a3c887fdcbbc970891dc9466e6efc6855b535f857fa/codegen-1.21.0-py3-none-any.whl",
+				"yanked": true,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "9af12937572bf479843bad72484098fe3ee86d50d5f68e31251ac298340fb270",
+					"md5": "b73848f46d15d3ac2e890d072b80faa1",
+					"sha256": "0243b2bdea068ee70bbf31f3cd47240300de3053919400707ea63e1dd6ace050"
+				},
+				"downloads": -1,
+				"filename": "codegen-1.21.0.tar.gz",
+				"has_sig": false,
+				"md5_digest": "b73848f46d15d3ac2e890d072b80faa1",
+				"packagetype": "sdist",
+				"python_version": "source",
+				"requires_python": ">=3.13",
+				"size": 40123,
+				"upload_time": "2025-01-14T23:47:50",
+				"upload_time_iso_8601": "2025-01-14T23:47:50.952015Z",
+				"url": "https://files.pythonhosted.org/packages/9a/f1/2937572bf479843bad72484098fe3ee86d50d5f68e31251ac298340fb270/codegen-1.21.0.tar.gz",
+				"yanked": true,
+				"yanked_reason": null
+			}
+		],
+		"1.22.0": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "9b53a1638bbae64de9bb66ff2cda25803651bc733a7184fb0e4e0b8583343370",
+					"md5": "43a880248d3d474fe68e2ec71aa8513c",
+					"sha256": "b30f8a183bbb3dd66ad168192f0158aafbe8ea28c79042998af9fc5678783388"
+				},
+				"downloads": -1,
+				"filename": "codegen-1.22.0-py3-none-any.whl",
+				"has_sig": false,
+				"md5_digest": "43a880248d3d474fe68e2ec71aa8513c",
+				"packagetype": "bdist_wheel",
+				"python_version": "py3",
+				"requires_python": ">=3.13",
+				"size": 70108,
+				"upload_time": "2025-01-15T23:48:26",
+				"upload_time_iso_8601": "2025-01-15T23:48:26.220617Z",
+				"url": "https://files.pythonhosted.org/packages/9b/53/a1638bbae64de9bb66ff2cda25803651bc733a7184fb0e4e0b8583343370/codegen-1.22.0-py3-none-any.whl",
+				"yanked": true,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "017181dea37bbece5dcb7b99c21a3d1126762ad9cf0b470ff9a83bf6407dfd73",
+					"md5": "b65d472322d29f8336cc4111ec141fd5",
+					"sha256": "bd52905eea8e5c99970bbe7d1d0d913b373fc00dd02ca7d235b10ac077e96ffb"
+				},
+				"downloads": -1,
+				"filename": "codegen-1.22.0.tar.gz",
+				"has_sig": false,
+				"md5_digest": "b65d472322d29f8336cc4111ec141fd5",
+				"packagetype": "sdist",
+				"python_version": "source",
+				"requires_python": ">=3.13",
+				"size": 43669,
+				"upload_time": "2025-01-15T23:48:28",
+				"upload_time_iso_8601": "2025-01-15T23:48:28.436898Z",
+				"url": "https://files.pythonhosted.org/packages/01/71/81dea37bbece5dcb7b99c21a3d1126762ad9cf0b470ff9a83bf6407dfd73/codegen-1.22.0.tar.gz",
+				"yanked": true,
+				"yanked_reason": null
+			}
+		],
+		"1.22.1": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "7f367aff51d5fc4495608ac20e0f318e564323f27760f9d8ba7071fb3b93e94a",
+					"md5": "dbe6cb422f48d5a92d23f0d4888dd0f2",
+					"sha256": "07f5406207fcbb3084b58b144ccaab9f9bfd3681109e5d002fecbc9277be9524"
+				},
+				"downloads": -1,
+				"filename": "codegen-1.22.1-py3-none-any.whl",
+				"has_sig": false,
+				"md5_digest": "dbe6cb422f48d5a92d23f0d4888dd0f2",
+				"packagetype": "bdist_wheel",
+				"python_version": "py3",
+				"requires_python": ">=3.13",
+				"size": 70105,
+				"upload_time": "2025-01-15T23:51:29",
+				"upload_time_iso_8601": "2025-01-15T23:51:29.040142Z",
+				"url": "https://files.pythonhosted.org/packages/7f/36/7aff51d5fc4495608ac20e0f318e564323f27760f9d8ba7071fb3b93e94a/codegen-1.22.1-py3-none-any.whl",
+				"yanked": true,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "cbb2dea5fae028886f3df8cea45239b29cc8d4ac79b0d1031046a17107bdfca2",
+					"md5": "3067f8b1639986f04099662eb3921624",
+					"sha256": "a47370a66e8bf1fea8cd47539a7c61bfb7a297b5ad3fd5d6a0f406c4c6db4a14"
+				},
+				"downloads": -1,
+				"filename": "codegen-1.22.1.tar.gz",
+				"has_sig": false,
+				"md5_digest": "3067f8b1639986f04099662eb3921624",
+				"packagetype": "sdist",
+				"python_version": "source",
+				"requires_python": ">=3.13",
+				"size": 43666,
+				"upload_time": "2025-01-15T23:51:30",
+				"upload_time_iso_8601": "2025-01-15T23:51:30.515209Z",
+				"url": "https://files.pythonhosted.org/packages/cb/b2/dea5fae028886f3df8cea45239b29cc8d4ac79b0d1031046a17107bdfca2/codegen-1.22.1.tar.gz",
+				"yanked": true,
+				"yanked_reason": null
+			}
+		],
+		"1.22.2": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "5b61a5267e6ece08cee0c3fc23ec66a27188633083659364946b04f709ebca3a",
+					"md5": "46d0fbdcdafcd24cd2dccc4edf90513e",
+					"sha256": "8589919871b76e58d5049c9d07072dd8e6e90f08e6d3378c67ff3e002b5fc5fc"
+				},
+				"downloads": -1,
+				"filename": "codegen-1.22.2-py3-none-any.whl",
+				"has_sig": false,
+				"md5_digest": "46d0fbdcdafcd24cd2dccc4edf90513e",
+				"packagetype": "bdist_wheel",
+				"python_version": "py3",
+				"requires_python": ">=3.13",
+				"size": 70049,
+				"upload_time": "2025-01-15T23:59:54",
+				"upload_time_iso_8601": "2025-01-15T23:59:54.804815Z",
+				"url": "https://files.pythonhosted.org/packages/5b/61/a5267e6ece08cee0c3fc23ec66a27188633083659364946b04f709ebca3a/codegen-1.22.2-py3-none-any.whl",
+				"yanked": true,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "0c3e5d29ba30debf66612eb8d570bfb8b506aabbd05d2c14c972e6dd1130b562",
+					"md5": "e74cb9e8e275e79ecd8f2ccbd146ba2a",
+					"sha256": "499037306e00abcbc6ab8627ab48220bb8902a75c521f666824ca49752d67af4"
+				},
+				"downloads": -1,
+				"filename": "codegen-1.22.2.tar.gz",
+				"has_sig": false,
+				"md5_digest": "e74cb9e8e275e79ecd8f2ccbd146ba2a",
+				"packagetype": "sdist",
+				"python_version": "source",
+				"requires_python": ">=3.13",
+				"size": 43667,
+				"upload_time": "2025-01-15T23:59:56",
+				"upload_time_iso_8601": "2025-01-15T23:59:56.973971Z",
+				"url": "https://files.pythonhosted.org/packages/0c/3e/5d29ba30debf66612eb8d570bfb8b506aabbd05d2c14c972e6dd1130b562/codegen-1.22.2.tar.gz",
+				"yanked": true,
+				"yanked_reason": null
+			}
+		],
+		"1.23.0": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "3550225aa73ce093d3002e70820d7d5e89ebc725bc53d7f7938aab2a19c983ff",
+					"md5": "50707a7221887eb5e5449570f14b5c80",
+					"sha256": "ffb2294f4805a3e7383a30385cd92c48a2f4bca51ae0d158eff98c43b62a0dd8"
+				},
+				"downloads": -1,
+				"filename": "codegen-1.23.0-py3-none-any.whl",
+				"has_sig": false,
+				"md5_digest": "50707a7221887eb5e5449570f14b5c80",
+				"packagetype": "bdist_wheel",
+				"python_version": "py3",
+				"requires_python": ">=3.13",
+				"size": 70074,
+				"upload_time": "2025-01-17T00:20:45",
+				"upload_time_iso_8601": "2025-01-17T00:20:45.543509Z",
+				"url": "https://files.pythonhosted.org/packages/35/50/225aa73ce093d3002e70820d7d5e89ebc725bc53d7f7938aab2a19c983ff/codegen-1.23.0-py3-none-any.whl",
+				"yanked": true,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "76f3cde49da3e2f65385a9b248878fc74a8ea33ca318a847e2cedf17260113ca",
+					"md5": "734c2aa68b76caafc827620682dcbca0",
+					"sha256": "480057d3e075d7800fcbcef517a9f6b49774c478f432cc75a69c3f49a7cfa884"
+				},
+				"downloads": -1,
+				"filename": "codegen-1.23.0.tar.gz",
+				"has_sig": false,
+				"md5_digest": "734c2aa68b76caafc827620682dcbca0",
+				"packagetype": "sdist",
+				"python_version": "source",
+				"requires_python": ">=3.13",
+				"size": 43688,
+				"upload_time": "2025-01-17T00:20:46",
+				"upload_time_iso_8601": "2025-01-17T00:20:46.847707Z",
+				"url": "https://files.pythonhosted.org/packages/76/f3/cde49da3e2f65385a9b248878fc74a8ea33ca318a847e2cedf17260113ca/codegen-1.23.0.tar.gz",
+				"yanked": true,
+				"yanked_reason": null
+			}
+		],
+		"1.24.0": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "d19f73e05f8ce0d694a36872b237c9e6dcbf7a315e333cdc0b71e249fe142cd6",
+					"md5": "5f68e7b098a77f1db7b2410395bc3a84",
+					"sha256": "972f2bc5487beb413a6bccd381eae65ba741e25a7712b73f1ab01cae0533d4c7"
+				},
+				"downloads": -1,
+				"filename": "codegen-1.24.0-py3-none-any.whl",
+				"has_sig": false,
+				"md5_digest": "5f68e7b098a77f1db7b2410395bc3a84",
+				"packagetype": "bdist_wheel",
+				"python_version": "py3",
+				"requires_python": ">=3.13",
+				"size": 72986,
+				"upload_time": "2025-01-17T19:21:24",
+				"upload_time_iso_8601": "2025-01-17T19:21:24.710716Z",
+				"url": "https://files.pythonhosted.org/packages/d1/9f/73e05f8ce0d694a36872b237c9e6dcbf7a315e333cdc0b71e249fe142cd6/codegen-1.24.0-py3-none-any.whl",
+				"yanked": true,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "fff5e422a43473c3864471a98e32d3f80636416f121392e344a641da28982b0e",
+					"md5": "2170fe0fdf2d2ea14ada674177649244",
+					"sha256": "ca2db759ae52022722ab93cb21adff8be465297b670c9c5dea5acccddab5a2fe"
+				},
+				"downloads": -1,
+				"filename": "codegen-1.24.0.tar.gz",
+				"has_sig": false,
+				"md5_digest": "2170fe0fdf2d2ea14ada674177649244",
+				"packagetype": "sdist",
+				"python_version": "source",
+				"requires_python": ">=3.13",
+				"size": 45746,
+				"upload_time": "2025-01-17T19:21:25",
+				"upload_time_iso_8601": "2025-01-17T19:21:25.818128Z",
+				"url": "https://files.pythonhosted.org/packages/ff/f5/e422a43473c3864471a98e32d3f80636416f121392e344a641da28982b0e/codegen-1.24.0.tar.gz",
+				"yanked": true,
+				"yanked_reason": null
+			}
+		],
+		"1.24.1": [
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "e29efa377355ea027f704b0bd8606bdd658d840cb4a7265a89fca7dc66873a87",
+					"md5": "6741d42b6a4ae7ea81767e25772ea6ab",
+					"sha256": "bea14a2c1034ef1e7284c42f7216096680a71930a169d9f5aada41efc5428efc"
+				},
+				"downloads": -1,
+				"filename": "codegen-1.24.1-py3-none-any.whl",
+				"has_sig": false,
+				"md5_digest": "6741d42b6a4ae7ea81767e25772ea6ab",
+				"packagetype": "bdist_wheel",
+				"python_version": "py3",
+				"requires_python": ">=3.13",
+				"size": 72999,
+				"upload_time": "2025-01-21T15:48:35",
+				"upload_time_iso_8601": "2025-01-21T15:48:35.933390Z",
+				"url": "https://files.pythonhosted.org/packages/e2/9e/fa377355ea027f704b0bd8606bdd658d840cb4a7265a89fca7dc66873a87/codegen-1.24.1-py3-none-any.whl",
+				"yanked": true,
+				"yanked_reason": null
+			},
+			{
+				"comment_text": null,
+				"digests": {
+					"blake2b_256": "5a62d329a1519a844a4b6be17b5064702bde271f9e0cadce44caaacab23b0965",
+					"md5": "54a95e2e3be99e07685abd910dd7820a",
+					"sha256": "12b703cbc61159f1c6d4fdeda4495a93553e64115709f4bd9096ddffc07d40a7"
+				},
+				"downloads": -1,
+				"filename": "codegen-1.24.1.tar.gz",
+				"has_sig": false,
+				"md5_digest": "54a95e2e3be99e07685abd910dd7820a",
+				"packagetype": "sdist",
+				"python_version": "source",
+				"requires_python": ">=3.13",
+				"size": 45759,
+				"upload_time": "2025-01-21T15:48:37",
+				"upload_time_iso_8601": "2025-01-21T15:48:37.057197Z",
+				"url": "https://files.pythonhosted.org/packages/5a/62/d329a1519a844a4b6be17b5064702bde271f9e0cadce44caaacab23b0965/codegen-1.24.1.tar.gz",
+				"yanked": true,
+				"yanked_reason": null
+			}
+		]
+	},
+	"urls": [
+		{
+			"comment_text": null,
+			"digests": {
+				"blake2b_256": "c0a69701e8e8736eaeac301404667b95c4e9670b0ab644b7210d0278fcfb440d",
+				"md5": "371f9ff07a6dda3bb2ab959d7d5f489f",
+				"sha256": "fdbf697c7f2e1f34d39cf8fec7c990feed1b845ddd8731281252aeb1cbe3cd15"
+			},
+			"downloads": -1,
+			"filename": "codegen-0.5.28-cp312-cp312-macosx_11_0_arm64.whl",
+			"has_sig": false,
+			"md5_digest": "371f9ff07a6dda3bb2ab959d7d5f489f",
+			"packagetype": "bdist_wheel",
+			"python_version": "cp312",
+			"requires_python": "<3.14,>=3.12",
+			"size": 890800,
+			"upload_time": "2025-02-07T00:20:44",
+			"upload_time_iso_8601": "2025-02-07T00:20:44.298931Z",
+			"url": "https://files.pythonhosted.org/packages/c0/a6/9701e8e8736eaeac301404667b95c4e9670b0ab644b7210d0278fcfb440d/codegen-0.5.28-cp312-cp312-macosx_11_0_arm64.whl",
+			"yanked": false,
+			"yanked_reason": null
+		},
+		{
+			"comment_text": null,
+			"digests": {
+				"blake2b_256": "b2b82669544aa2bd3e97ab54ea4a24ebd5b140117f05f54960d8991ab1d95993",
+				"md5": "76ef73b646eaae9237853d4bafce57cc",
+				"sha256": "6551546e0ccc50926e7f644a069673c525bff15385898422e4ab3ff70e01ae81"
+			},
+			"downloads": -1,
+			"filename": "codegen-0.5.28-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+			"has_sig": false,
+			"md5_digest": "76ef73b646eaae9237853d4bafce57cc",
+			"packagetype": "bdist_wheel",
+			"python_version": "cp312",
+			"requires_python": "<3.14,>=3.12",
+			"size": 1979648,
+			"upload_time": "2025-02-07T00:20:47",
+			"upload_time_iso_8601": "2025-02-07T00:20:47.059663Z",
+			"url": "https://files.pythonhosted.org/packages/b2/b8/2669544aa2bd3e97ab54ea4a24ebd5b140117f05f54960d8991ab1d95993/codegen-0.5.28-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+			"yanked": false,
+			"yanked_reason": null
+		},
+		{
+			"comment_text": null,
+			"digests": {
+				"blake2b_256": "3137c21843bd72e6b99d3c880f8a554b649b02016efb5a1e9083decd0b706ea5",
+				"md5": "e73ebeab2db937564a436f47dfabee7c",
+				"sha256": "a05f73403ef2ad7bdf2964f5e296f62a120f841e94d21852586cf66700c61f7b"
+			},
+			"downloads": -1,
+			"filename": "codegen-0.5.28-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+			"has_sig": false,
+			"md5_digest": "e73ebeab2db937564a436f47dfabee7c",
+			"packagetype": "bdist_wheel",
+			"python_version": "cp312",
+			"requires_python": "<3.14,>=3.12",
+			"size": 2029939,
+			"upload_time": "2025-02-07T00:20:48",
+			"upload_time_iso_8601": "2025-02-07T00:20:48.918867Z",
+			"url": "https://files.pythonhosted.org/packages/31/37/c21843bd72e6b99d3c880f8a554b649b02016efb5a1e9083decd0b706ea5/codegen-0.5.28-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+			"yanked": false,
+			"yanked_reason": null
+		},
+		{
+			"comment_text": null,
+			"digests": {
+				"blake2b_256": "aacda2a60a1c41b75fc84eac91d50dcdf4de60d549d792779794586fcaac3b62",
+				"md5": "4675b60fc29c6a5655d58e85379cef45",
+				"sha256": "d76b4af39e9233a2d50b7c0265c68cc7bef5598dd37627b97f7ea0c3471f3849"
+			},
+			"downloads": -1,
+			"filename": "codegen-0.5.28-cp313-cp313-macosx_11_0_arm64.whl",
+			"has_sig": false,
+			"md5_digest": "4675b60fc29c6a5655d58e85379cef45",
+			"packagetype": "bdist_wheel",
+			"python_version": "cp313",
+			"requires_python": "<3.14,>=3.12",
+			"size": 886594,
+			"upload_time": "2025-02-07T00:20:51",
+			"upload_time_iso_8601": "2025-02-07T00:20:51.308681Z",
+			"url": "https://files.pythonhosted.org/packages/aa/cd/a2a60a1c41b75fc84eac91d50dcdf4de60d549d792779794586fcaac3b62/codegen-0.5.28-cp313-cp313-macosx_11_0_arm64.whl",
+			"yanked": false,
+			"yanked_reason": null
+		},
+		{
+			"comment_text": null,
+			"digests": {
+				"blake2b_256": "495173efc731ab401ecddf1157f4fabe2882749c8795297a002306930632f98a",
+				"md5": "688f1f2192d10ad2f43d5295ed177aed",
+				"sha256": "0a6735f39b8542f71192bf51ed7a109843227c1c2f22a9c9cc8cfd3713cf9655"
+			},
+			"downloads": -1,
+			"filename": "codegen-0.5.28-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+			"has_sig": false,
+			"md5_digest": "688f1f2192d10ad2f43d5295ed177aed",
+			"packagetype": "bdist_wheel",
+			"python_version": "cp313",
+			"requires_python": "<3.14,>=3.12",
+			"size": 1965984,
+			"upload_time": "2025-02-07T00:20:52",
+			"upload_time_iso_8601": "2025-02-07T00:20:52.891176Z",
+			"url": "https://files.pythonhosted.org/packages/49/51/73efc731ab401ecddf1157f4fabe2882749c8795297a002306930632f98a/codegen-0.5.28-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl",
+			"yanked": false,
+			"yanked_reason": null
+		},
+		{
+			"comment_text": null,
+			"digests": {
+				"blake2b_256": "01d4e40c7a22e0689a497cdcae20ee712bb20bbd6a73e833d59fdb4b26bdf461",
+				"md5": "093ce3b3aa604c9684be253d5aa98ac5",
+				"sha256": "776218f07cdfdc3cf5ae0a019372711ae3d567e6c8a615dd3a5475475494c0d4"
+			},
+			"downloads": -1,
+			"filename": "codegen-0.5.28-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+			"has_sig": false,
+			"md5_digest": "093ce3b3aa604c9684be253d5aa98ac5",
+			"packagetype": "bdist_wheel",
+			"python_version": "cp313",
+			"requires_python": "<3.14,>=3.12",
+			"size": 2014280,
+			"upload_time": "2025-02-07T00:20:54",
+			"upload_time_iso_8601": "2025-02-07T00:20:54.638251Z",
+			"url": "https://files.pythonhosted.org/packages/01/d4/e40c7a22e0689a497cdcae20ee712bb20bbd6a73e833d59fdb4b26bdf461/codegen-0.5.28-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl",
+			"yanked": false,
+			"yanked_reason": null
+		}
+	],
+	"vulnerabilities": []
+}

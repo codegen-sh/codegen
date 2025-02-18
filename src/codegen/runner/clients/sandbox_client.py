@@ -9,9 +9,7 @@ import requests
 from fastapi import params
 
 from codegen.git.schemas.repo_config import RepoConfig
-from codegen.runner.constants.envvars import FEATURE_FLAGS_BASE64, GITHUB_TOKEN, REPO_CONFIG_BASE64
 from codegen.runner.models.apis import SANDBOX_SERVER_PORT
-from codegen.runner.models.configs import RunnerFeatureFlags
 
 logger = logging.getLogger(__name__)
 
@@ -33,15 +31,14 @@ class SandboxClient:
 
     def _start_server(self, repo_config: RepoConfig, git_access_token: str | None) -> None:
         """Start the FastAPI server in a subprocess"""
-        # encoded_flags = runner_flags_from_posthog(repo_config.name).encoded_json() # TODO: once migrated to dockerized image, uncomment this line
-        encoded_flags = RunnerFeatureFlags().encoded_json()
         env = os.environ.copy()
         env.update(
             {
-                REPO_CONFIG_BASE64: repo_config.encoded_json(),
-                FEATURE_FLAGS_BASE64: encoded_flags,
-                "OPENAI_PASS": "open-ai-password",
-                GITHUB_TOKEN: git_access_token,
+                "CODEGEN_REPOSITORY__REPO_PATH": repo_config.repo_path,
+                "CODEGEN_REPOSITORY__REPO_NAME": repo_config.name,
+                "CODEGEN_REPOSITORY__FULL_NAME": repo_config.full_name,
+                "CODEGEN_REPOSITORY__LANGUAGE": repo_config.language.value,
+                "CODEGEN_SECRETS__GITHUB_TOKEN": git_access_token,
             }
         )
 

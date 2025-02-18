@@ -6,6 +6,7 @@ import rich_click as click
 from codegen.cli.api.client import RestAPI
 from codegen.cli.auth.constants import PROMPTS_DIR
 from codegen.cli.auth.session import CodegenSession
+from codegen.cli.auth.token_manager import get_current_token
 from codegen.cli.codemod.convert import convert_to_cli
 from codegen.cli.errors import ServerError
 from codegen.cli.rich.codeblocks import format_command, format_path
@@ -85,15 +86,14 @@ def create_command(session: CodegenSession, name: str, path: Path, description: 
         pretty_print_error(f"File already exists at {format_path(rel_path)}\n\nTo overwrite the file:\n{format_command(f'codegen create {name} {rel_path} --overwrite')}")
         return
 
-    rich.print("")  # Add a newline before output
     response = None
     code = None
     try:
         if description:
             # Use API to generate implementation
             with create_spinner("Generating function (using LLM, this will take ~10s)") as status:
-                response = RestAPI(session.token).create(name=name, query=description)
-                code = convert_to_cli(response.code, session.language, name)
+                response = RestAPI(get_current_token()).create(name=name, query=description)
+                code = convert_to_cli(response.code, session.config.repository.language, name)
                 prompt_path.parent.mkdir(parents=True, exist_ok=True)
                 prompt_path.write_text(response.context)
         else:

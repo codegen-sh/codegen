@@ -5,7 +5,7 @@ from codegen.sdk.core.expressions.string import String
 from codegen.sdk.core.symbol_groups.dict import Dict
 from codegen.sdk.core.symbol_groups.list import List
 from codegen.sdk.core.symbol_groups.tuple import Tuple
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def test_builtin_types(tmpdir):

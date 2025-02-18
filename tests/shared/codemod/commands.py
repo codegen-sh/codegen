@@ -9,7 +9,7 @@ import click
 from rich.console import Console
 from rich.table import Table
 
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 from tests.shared.codemod.models import BASE_TMP_DIR, REPO_ID_TO_URL, VERIFIED_CODEMOD_DATA_DIR, ClonedRepoTestCase, Size
 from tests.shared.codemod.test_discovery import filter_repos, find_codemod_test_cases, find_codemods, find_repos, find_verified_codemod_repos
 from tests.shared.codemod.verified_codemod_utils import CodemodAPI, RepoCodemodMetadata

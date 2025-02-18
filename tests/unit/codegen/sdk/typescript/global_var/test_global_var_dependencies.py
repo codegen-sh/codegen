@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 from codegen.sdk.codebase.factory.get_session import get_codebase_graph_session
 from codegen.sdk.core.import_resolution import Import
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 if TYPE_CHECKING:
     from codegen.sdk.typescript.assignment import TSAssignment

@@ -1,0 +1,93 @@
+---
+title: "Neo4j Graph"
+sidebarTitle: "Neo4j Graph"
+icon: "database"
+iconType: "solid"
+---
+
+<Frame caption="Function call graph for a codebase">
+  <img src="/images/neo4j-call-graph.png" />
+</Frame>
+
+# Neo4j Graph
+
+Codegen can export codebase graphs to Neo4j for visualization and analysis.
+
+## Installation
+In order to use Neo4j you will need to install it and run it locally using Docker.
+
+### Neo4j
+First, install Neo4j using the official [installation guide](https://neo4j.com/docs/desktop-manual/current/installation/download-installation/).
+
+### Docker
+To run Neo4j locally using Docker, follow the instructions [here](https://neo4j.com/docs/apoc/current/installation/#docker).
+
+## Launch Neo4j Locally
+
+```bash
+docker run \
+    -p 7474:7474 -p 7687:7687 \
+    -v $PWD/data:/data -v $PWD/plugins:/plugins \
+    --name neo4j-apoc \
+    -e NEO4J_apoc_export_file_enabled=true \
+    -e NEO4J_apoc_import_file_enabled=true \
+    -e NEO4J_apoc_import_file_use__neo4j__config=true \
+    -e NEO4J_PLUGINS=\[\"apoc\"\] \
+    neo4j:latest
+```
+## Usage
+
+```python
+from codegen import Codebase
+from codegen.extensions.graph.main import visualize_codebase
+
+# parse codebase
+codebase = Codebase("path/to/codebase")
+
+# export to Neo4j
+visualize_codebase(codebase, "bolt://localhost:7687", "neo4j", "password")
+```
+
+## Visualization
+
+Once exported, you can open the Neo4j browser at `http://localhost:7474`, sign in with the username `neo4j` and the password `password`, and use the following Cypher queries to visualize the codebase:
+
+### Class Hierarchy
+
+```cypher
+Match (s: Class )-[r: INHERITS_FROM*]-> (e:Class) RETURN s, e LIMIT 10
+```
+<Frame caption="Class hierarchy for a codebase">
+  <img src="/images/neo4j-class-hierarchy.png" />
+</Frame>
+
+### Methods Defined by Each Class
+
+```cypher
+Match (s: Class )-[r: DEFINES]-> (e:Method) RETURN s, e LIMIT 10
+```
+<Frame caption="Methods defined by each class">
+  <img src="/images/neo4j-class-methods.png" />
+</Frame>
+
+### Function Calls
+
+```cypher
+Match (s: Func )-[r: CALLS]-> (e:Func) RETURN s, e LIMIT 10
+```
+
+<Frame caption="Function call graph for a codebase">
+  <img src="/images/neo4j-function-calls.png" />
+</Frame>
+
+### Call Graph
+
+```cypher
+Match path = (:(Method|Func)) -[:CALLS*5..10]-> (:(Method|Func))
+Return path 
+LIMIT 20
+```
+
+<Frame caption="Call graph for a codebase">
+  <img src="/images/neo4j-call-graph.png" />
+</Frame>

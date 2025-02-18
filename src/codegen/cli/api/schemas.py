@@ -4,8 +4,8 @@ from typing import TypeVar
 from pydantic import BaseModel
 from pydantic.fields import Field
 
-from codegen.cli.utils.constants import ProgrammingLanguage
 from codegen.cli.utils.schema import SafeBaseModel
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 T = TypeVar("T")
 

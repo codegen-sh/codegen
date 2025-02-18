@@ -1,4 +1,4 @@
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def canonical(codemod):

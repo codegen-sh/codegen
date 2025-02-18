@@ -11,7 +11,7 @@ import {HorizontalDivider} from '/snippets/HorizontalDivider.mdx';
 import {GithubLinkNote} from '/snippets/GithubLinkNote.mdx';
 import {Attribute} from '/snippets/Attribute.mdx';
 
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L430-L1185" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L411-L1167" />
 
 ### Inherits from
 [Usable](/api-reference/core/Usable), [HasBlock](/api-reference/core/HasBlock), [File](/api-reference/core/File), [Importable](/api-reference/core/Importable), [Expression](/api-reference/core/Expression), [Editable](/api-reference/core/Editable), [HasName](/api-reference/core/HasName)
@@ -33,10 +33,6 @@ import {Attribute} from '/snippets/Attribute.mdx';
 ### <span className="text-primary">decorators</span>
 <HorizontalDivider light={true} />
 <Attribute type={ <><span>list[</span> <a href="/api-reference/core/Decorator" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Decorator</a> <span>]</span></> } description="Returns list of all decorators on this Symbol." />
-
-### <span className="text-primary">dependencies</span>
-<HorizontalDivider light={true} />
-<Attribute type={ <><span>list[Union[</span> <a href="/api-reference/core/Symbol" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Symbol</a> <span>,</span> <a href="/api-reference/core/Import" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Import</a> <span>]]</span></> } description="Returns a list of symbols that this symbol depends on." />
 
 ### <span className="text-primary">directory</span>
 <HorizontalDivider light={true} />
@@ -190,7 +186,7 @@ Adds a decorator to a function or method.
 
 ### <span className="text-primary">add_import_from_import_string</span>
 Adds import to the file from a string representation of an import statement.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L994-L1018" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L976-L1000" />
 
 <ParameterWrapper>
 <Parameter
@@ -207,7 +203,7 @@ Adds import to the file from a string representation of an import statement.
 
 ### <span className="text-primary">add_symbol</span>
 Adds `symbol` to the file.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L1041-L1072" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L1023-L1054" />
 
 <ParameterWrapper>
 <Parameter
@@ -230,7 +226,7 @@ Adds `symbol` to the file.
 
 ### <span className="text-primary">add_symbol_from_source</span>
 Adds a symbol to a file from a string representation.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L1021-L1038" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L1003-L1020" />
 
 <ParameterWrapper>
 <Parameter
@@ -247,7 +243,7 @@ Adds a symbol to a file from a string representation.
 
 ### <span className="text-primary">add_symbol_import</span>
 Adds an import to a file for a given symbol.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L964-L991" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L946-L973" />
 
 <ParameterWrapper>
 <Parameter
@@ -282,15 +278,38 @@ Adds an import to a file for a given symbol.
 
 ### <span className="text-primary">ancestors</span>
 Find all ancestors of the node of the given type. Does not return itself
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1088-L1096" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1101-L1109" />
 
 
 <Return return_type={ <><span>list[</span> <a href="/api-reference/core/Editable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Editable</a> <span>]</span></> } description=""/>
 
 
+### <span className="text-primary">dependencies</span>
+Returns a list of symbols that this symbol depends on.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/importable.py#L46-L78" />
+
+<ParameterWrapper>
+<Parameter
+    name="usage_types"
+    type={ <><a href="/api-reference/core/UsageType" style={ {fontWeight: "inherit", fontSize: "inherit"} }>UsageType</a> <span>| None</span></> }
+    description="The types of dependencies to search for. Defaults to UsageType.DIRECT."
+    defaultValue="UsageType.DIRECT"
+/>
+<Parameter
+    name="max_depth"
+    type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">int | None</code> }
+    description="Maximum depth to traverse in the dependency graph. If provided, will recursively collect"
+    defaultValue="None"
+/>
+</ParameterWrapper>
+
+
+<Return return_type={ <><span>list[Union[</span> <a href="/api-reference/core/Symbol" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Symbol</a> <span>,</span> <a href="/api-reference/core/Import" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Import</a> <span>]]</span></> } description="A list of symbols and imports that this symbol depends on, sorted by file location."/>
+
+
 ### <span className="text-primary">edit</span>
 Replace the source of this file with new_src.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L354-L381" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L335-L362" />
 
 <ParameterWrapper>
 <Parameter
@@ -325,7 +344,7 @@ Replace the source of this file with new_src.
 
 ### <span className="text-primary">find</span>
 Find and return matching nodes or substrings within an Editable instance.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L482-L499" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L487-L504" />
 
 <ParameterWrapper>
 <Parameter
@@ -348,7 +367,7 @@ Find and return matching nodes or substrings within an Editable instance.
 
 ### <span className="text-primary">find_by_byte_range</span>
 Finds all editable objects that overlap with the given byte range in the file.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L1168-L1180" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L1150-L1162" />
 
 <ParameterWrapper>
 <Parameter
@@ -365,7 +384,7 @@ Finds all editable objects that overlap with the given byte range in the file.
 
 ### <span className="text-primary">find_string_literals</span>
 Returns a list of string literals within this node's source that match any of the given
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L394-L408" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L398-L412" />
 
 <ParameterWrapper>
 <Parameter
@@ -383,12 +402,12 @@ Returns a list of string literals within this node's source that match any of th
 </ParameterWrapper>
 
 
-<Return return_type={ <><span>list[</span> <a href="/api-reference/core/Editable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Editable</a> <span>]</span></> } description="A list of Editable objects representing the matching string literals."/>
+<Return return_type={ <><span>list[</span> <a href="/api-reference/core/Editable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Editable</a> <span>[</span> <a href="/api-reference/core/SourceFile" style={ {fontWeight: "inherit", fontSize: "inherit"} }>SourceFile</a> <span>]]</span></> } description="A list of Editable objects representing the matching string literals."/>
 
 
 ### <span className="text-primary">flag</span>
 Adds a visual flag comment to the end of this Editable's source text.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L926-L937" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L939-L950" />
 
 
 <Return return_type={ <><span>CodeFlag[</span> <a href="/api-reference/core/SourceFile" style={ {fontWeight: "inherit", fontSize: "inherit"} }>SourceFile</a> <span>]</span></> } description=""/>
@@ -396,7 +415,7 @@ Adds a visual flag comment to the end of this Editable's source text.
 
 ### <span className="text-primary">get_class</span>
 Returns a specific Class by full name. Returns None if not found.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L828-L841" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L810-L823" />
 
 <ParameterWrapper>
 <Parameter
@@ -413,7 +432,7 @@ Returns a specific Class by full name. Returns None if not found.
 
 ### <span className="text-primary">get_function</span>
 Returns a specific Function by name.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L857-L868" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L839-L850" />
 
 <ParameterWrapper>
 <Parameter
@@ -430,7 +449,7 @@ Returns a specific Function by name.
 
 ### <span className="text-primary">get_global_var</span>
 Returns a specific global var by name. Returns None if not found.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L803-L812" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L785-L794" />
 
 <ParameterWrapper>
 <Parameter
@@ -447,7 +466,7 @@ Returns a specific global var by name. Returns None if not found.
 
 ### <span className="text-primary">get_import</span>
 Returns the import with matching alias. Returns None if not found.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L714-L723" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L696-L705" />
 
 <ParameterWrapper>
 <Parameter
@@ -472,7 +491,7 @@ Returns the name node of the object.
 
 ### <span className="text-primary">get_symbol</span>
 Gets a symbol by its name from the file.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L752-L767" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L734-L749" />
 
 <ParameterWrapper>
 <Parameter
@@ -489,7 +508,7 @@ Gets a symbol by its name from the file.
 
 ### <span className="text-primary">get_variable_usages</span>
 Returns Editables for all TreeSitter nodes corresponding to instances of variable usage
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L902-L918" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L909-L925" />
 
 <ParameterWrapper>
 <Parameter
@@ -507,12 +526,12 @@ Returns Editables for all TreeSitter nodes corresponding to instances of variabl
 </ParameterWrapper>
 
 
-<Return return_type={ <><span>list[</span> <a href="/api-reference/core/Editable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Editable</a> <span>]</span></> } description="List of Editable objects representing variable usage nodes matching the given name."/>
+<Return return_type={ <><span>Sequence[</span> <a href="/api-reference/core/Editable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Editable</a> <span>[</span> <a href="/api-reference/core/SourceFile" style={ {fontWeight: "inherit", fontSize: "inherit"} }>SourceFile</a> <span>]]</span></> } description="List of Editable objects representing variable usage nodes matching the given name."/>
 
 
 ### <span className="text-primary">has_import</span>
 Returns True if the file has an import with the given alias.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L699-L711" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L681-L693" />
 
 <ParameterWrapper>
 <Parameter
@@ -529,7 +548,7 @@ Returns True if the file has an import with the given alias.
 
 ### <span className="text-primary">insert_after</span>
 Inserts code after this node.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L603-L629" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L608-L634" />
 
 <ParameterWrapper>
 <Parameter
@@ -570,7 +589,7 @@ Inserts code after this node.
 
 ### <span className="text-primary">insert_before</span>
 Inserts text before this node's source with optional indentation and newline handling.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L570-L600" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L575-L605" />
 
 <ParameterWrapper>
 <Parameter
@@ -611,7 +630,7 @@ Inserts text before this node's source with optional indentation and newline han
 
 ### <span className="text-primary">is_wrapped_in</span>
 Check if this node is contained another node of the given class
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1074-L1076" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1087-L1089" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">bool</code> } description=""/>
@@ -619,7 +638,7 @@ Check if this node is contained another node of the given class
 
 ### <span className="text-primary">parent_of_type</span>
 Find the first ancestor of the node of the given type. Does not return itself
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1079-L1085" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1092-L1098" />
 
 
 <Return return_type={ <><a href="/api-reference/core/Editable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Editable</a> <span>| None</span></> } description=""/>
@@ -627,7 +646,7 @@ Find the first ancestor of the node of the given type. Does not return itself
 
 ### <span className="text-primary">reduce_condition</span>
 Reduces an editable to the following condition
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1030-L1035" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1043-L1048" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
@@ -635,7 +654,7 @@ Reduces an editable to the following condition
 
 ### <span className="text-primary">remove</span>
 Removes the file from the file system and graph.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L263-L275" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L244-L256" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
@@ -643,7 +662,7 @@ Removes the file from the file system and graph.
 
 ### <span className="text-primary">remove_unused_exports</span>
 Removes unused exports from the file.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L926-L933" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L908-L915" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
@@ -674,7 +693,7 @@ Renames a symbol and updates all its references in the codebase.
 
 ### <span className="text-primary">replace</span>
 Replace occurrences of text in the file.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L384-L418" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L365-L399" />
 
 <ParameterWrapper>
 <Parameter
@@ -715,7 +734,7 @@ Replace occurrences of text in the file.
 
 ### <span className="text-primary">search</span>
 Returns a list of all regex match of `regex_pattern`, similar to python's re.search().
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L515-L531" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L520-L536" />
 
 <ParameterWrapper>
 <Parameter
@@ -778,7 +797,7 @@ Sets the name of a code element.
 
 ### <span className="text-primary">symbol_can_be_added</span>
 Checks if the file type supports adding the given symbol.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L562-L573" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L543-L554" />
 
 <ParameterWrapper>
 <Parameter
@@ -812,7 +831,7 @@ Returns a list of symbols that use or import the exportable object.
 
 ### <span className="text-primary">symbols</span>
 Returns all Symbols in the file, sorted by position in the file.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L726-L740" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L708-L722" />
 
 
 <Return return_type={ <><span>list[</span> <a href="/api-reference/core/Symbol" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Symbol</a> <span>|</span> <a href="/api-reference/core/Class" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Class</a> <span>|</span> <a href="/api-reference/core/Function" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Function</a> <span>|</span> <a href="/api-reference/core/Assignment" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Assignment</a> <span>|</span> <a href="/api-reference/typescript/TSInterface" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSInterface</a> <span>]</span></> } description="A list of all top-level symbols in the file, sorted by their position in the file. Symbols can be one of the following types: - Symbol: Base symbol class - TClass: Class definition - TFunction: Function definition - TGlobalVar: Global variable assignment - TInterface: Interface definition"/>
@@ -820,7 +839,7 @@ Returns all Symbols in the file, sorted by position in the file.
 
 ### <span className="text-primary">update_filepath</span>
 Renames the file and updates all imports to point to the new location.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L940-L961" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L922-L943" />
 
 <ParameterWrapper>
 <Parameter

@@ -1,6 +1,5 @@
 import codegen
 from codegen import Codebase
-from codegen.sdk.enums import ProgrammingLanguage
 
 
 def analyze_model_fields(method) -> dict:
@@ -262,6 +261,6 @@ def run(codebase: Codebase):
 
 if __name__ == "__main__":
     print("🎯 Starting OpenAPI decorators addition...")
-    codebase = Codebase.from_repo("mindsdb/mindsdb", commit="4b76c44bfaec789289e15fbdff7397e866009f94", programming_language=ProgrammingLanguage.PYTHON)
+    codebase = Codebase.from_repo("mindsdb/mindsdb", commit="4b76c44bfaec789289e15fbdff7397e866009f94", language="python")
     run(codebase)
     print("✅ Done! OpenAPI decorators added to all API endpoints!")

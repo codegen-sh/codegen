@@ -25,7 +25,7 @@ def run_command(
 ):
     """Run a codegen function by its label."""
     # Ensure venv is initialized
-    venv = VenvManager()
+    venv = VenvManager(session.codegen_dir)
     if not venv.is_initialized():
         msg = "Virtual environment not found. Please run 'codegen init' first."
         raise click.ClickException(msg)

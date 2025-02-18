@@ -3,7 +3,7 @@ from codegen.sdk.core.expressions.binary_expression import BinaryExpression
 from codegen.sdk.core.expressions.boolean import Boolean
 from codegen.sdk.core.statements.statement import StatementType
 from codegen.sdk.core.statements.while_statement import WhileStatement
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def test_while_statement_parse(tmpdir) -> None:

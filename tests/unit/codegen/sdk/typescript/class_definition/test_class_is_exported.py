@@ -1,5 +1,5 @@
 from codegen.sdk.codebase.factory.get_session import get_codebase_graph_session
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def test_function_export_function_is_exported(tmpdir) -> None:

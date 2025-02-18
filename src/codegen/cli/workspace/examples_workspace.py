@@ -18,9 +18,8 @@ def populate_examples(session: CodegenSession, dest: Path, examples: list[Serial
     for example in examples:
         dest_file = dest / f"{example.name}.py"
         dest_file.parent.mkdir(parents=True, exist_ok=True)
-        session.config.programming_language = example.language
-        session.write_config()
-        formatted = format_example(example, session.config.programming_language)
+        session.config.set("repository.language", str(example.language))
+        formatted = format_example(example, session.config.repository.language)
         dest_file.write_text(formatted)
 
 

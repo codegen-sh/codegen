@@ -14,9 +14,12 @@ from git import Diff, GitCommandError, InvalidGitRepositoryError, Remote
 from git import Repo as GitCLI
 from git.remote import PushInfoList
 
+from codegen.git.clients.git_repo_client import GitRepoClient
 from codegen.git.configs.constants import CODEGEN_BOT_EMAIL, CODEGEN_BOT_NAME
 from codegen.git.schemas.enums import CheckoutResult, FetchResult
-from codegen.git.schemas.repo_config import BaseRepoConfig
+from codegen.git.schemas.repo_config import RepoConfig
+from codegen.git.utils.remote_progress import CustomRemoteProgress
+from codegen.shared.configs.session_configs import config
 from codegen.shared.performance.stopwatch_utils import stopwatch
 from codegen.shared.performance.time_utils import humanize_duration
 
@@ -26,21 +29,26 @@ logger = logging.getLogger(__name__)
 class RepoOperator(ABC):
     """A wrapper around GitPython to make it easier to interact with a repo."""
 
-    repo_config: BaseRepoConfig
+    repo_config: RepoConfig
     base_dir: str
     bot_commit: bool = True
+    access_token: str | None = None
+
+    # lazy attributes
     _codeowners_parser: CodeOwnersParser | None = None
     _default_branch: str | None = None
+    _remote_git_repo: GitRepoClient | None = None
 
     def __init__(
         self,
-        repo_config: BaseRepoConfig,
-        base_dir: str = "/tmp",
+        repo_config: RepoConfig,
+        access_token: str | None = None,
         bot_commit: bool = True,
     ) -> None:
         assert repo_config is not None
         self.repo_config = repo_config
-        self.base_dir = base_dir
+        self.access_token = access_token or config.secrets.github_token
+        self.base_dir = repo_config.base_dir
         self.bot_commit = bot_commit
 
     ####################################################################################################################
@@ -54,6 +62,12 @@ class RepoOperator(ABC):
     @property
     def repo_path(self) -> str:
         return os.path.join(self.base_dir, self.repo_name)
+
+    @property
+    def remote_git_repo(self) -> GitRepoClient:
+        if not self._remote_git_repo:
+            self._remote_git_repo = GitRepoClient(self.repo_config, access_token=self.access_token)
+        return self._remote_git_repo
 
     @property
     def clone_url(self) -> str:
@@ -138,7 +152,17 @@ class RepoOperator(ABC):
 
     @property
     def default_branch(self) -> str:
-        return self._default_branch or self.git_cli.active_branch.name
+        # Priority 1: If default branch has been set
+        if self._default_branch:
+            return self._default_branch
+
+        # Priority 2: If origin/HEAD ref exists
+        origin_prefix = "origin"
+        if f"{origin_prefix}/HEAD" in self.git_cli.refs:
+            return self.git_cli.refs[f"{origin_prefix}/HEAD"].reference.name.removeprefix(f"{origin_prefix}/")
+
+        # Priority 3: Fallback to the active branch
+        return self.git_cli.active_branch.name
 
     @abstractmethod
     def codeowners_parser(self) -> CodeOwnersParser | None: ...
@@ -373,14 +397,42 @@ class RepoOperator(ABC):
             logger.info("No changes to commit. Do nothing.")
             return False
 
-    @abstractmethod
+    @stopwatch
     def push_changes(self, remote: Remote | None = None, refspec: str | None = None, force: bool = False) -> PushInfoList:
-        """Push the changes to the given refspec of the remote repository.
+        """Push the changes to the given refspec of the remote.
 
         Args:
             refspec (str | None): refspec to push. If None, the current active branch is used.
             remote (Remote | None): Remote to push too. Defaults to 'origin'.
+            force (bool): If True, force push the changes. Defaults to False.
         """
+        # Use default remote if not provided
+        if not remote:
+            remote = self.git_cli.remote(name="origin")
+
+        # Use the current active branch if no branch is specified
+        if not refspec:
+            # TODO: doesn't work with detached HEAD state
+            refspec = self.git_cli.active_branch.name
+
+        res = remote.push(refspec=refspec, force=force, progress=CustomRemoteProgress())
+        for push_info in res:
+            if push_info.flags & push_info.ERROR:
+                # Handle the error case
+                logger.warning(f"Error pushing {refspec}: {push_info.summary}")
+            elif push_info.flags & push_info.FAST_FORWARD:
+                # Successful fast-forward push
+                logger.info(f"{refspec} pushed successfully (fast-forward).")
+            elif push_info.flags & push_info.NEW_HEAD:
+                # Successful push of a new branch
+                logger.info(f"{refspec} pushed successfully as a new branch.")
+            elif push_info.flags & push_info.NEW_TAG:
+                # Successful push of a new tag (if relevant)
+                logger.info("New tag pushed successfully.")
+            else:
+                # Successful push, general case
+                logger.info(f"{refspec} pushed successfully.")
+        return res
 
     def relpath(self, abspath) -> str:
         # TODO: check if the path is an abspath (i.e. contains self.repo_path)
@@ -434,6 +486,18 @@ class RepoOperator(ABC):
         if os.listdir(self.abspath(os.path.dirname(path))) == []:
             os.rmdir(self.abspath(os.path.dirname(path)))
 
+    def get_filepaths_for_repo(self, ignore_list):
+        # Get list of files to iterate over based on gitignore setting
+        if self.repo_config.respect_gitignore:
+            filepaths = self.git_cli.git.ls_files().split("\n")
+        else:
+            filepaths = glob.glob("**", root_dir=self.repo_path, recursive=True, include_hidden=True)
+            # Filter filepaths by ignore list.
+        if ignore_list:
+            filepaths = [f for f in filepaths if not any(fnmatch.fnmatch(f, pattern) or f.startswith(pattern) for pattern in ignore_list)]
+
+        return filepaths
+
     # TODO: unify param naming i.e. subdirectories vs subdirs probably use subdirectories since that's in the DB
     def iter_files(
         self,
@@ -454,16 +518,7 @@ class RepoOperator(ABC):
             tuple: A tuple containing the relative filepath and the content of the file.
 
         """
-        # Get list of files to iterate over based on gitignore setting
-        if self.repo_config.respect_gitignore:
-            filepaths = self.git_cli.git.ls_files().split("\n")
-        else:
-            filepaths = glob.glob("**", root_dir=self.repo_path, recursive=True, include_hidden=True)
-
-        # Filter filepaths by ignore list.
-        if ignore_list:
-            filepaths = [f for f in filepaths if not any(fnmatch.fnmatch(f, pattern) or f.startswith(pattern) for pattern in ignore_list)]
-
+        filepaths = self.get_filepaths_for_repo(ignore_list)
         # Iterate through files and yield contents
         for rel_filepath in filepaths:
             rel_filepath: str
@@ -549,3 +604,57 @@ class RepoOperator(ABC):
 
     def stash_pop(self) -> None:
         self.git_cli.git.stash("pop")
+
+    ####################################################################################################################
+    # PR UTILITIES
+    ####################################################################################################################
+
+    def get_pr_data(self, pr_number: int) -> dict:
+        """Returns the data associated with a PR"""
+        return self.remote_git_repo.get_pr_data(pr_number)
+
+    def create_pr_comment(self, pr_number: int, body: str) -> None:
+        """Create a general comment on a pull request.
+
+        Args:
+            pr_number (int): The PR number to comment on
+            body (str): The comment text
+        """
+        pr = self.remote_git_repo.get_pull_safe(pr_number)
+        if pr:
+            self.remote_git_repo.create_issue_comment(pr, body)
+
+    def create_pr_review_comment(
+        self,
+        pr_number: int,
+        body: str,
+        commit_sha: str,
+        path: str,
+        line: int | None = None,
+        side: str | None = None,
+        start_line: int | None = None,
+    ) -> None:
+        """Create an inline review comment on a specific line in a pull request.
+
+        Args:
+            pr_number (int): The PR number to comment on
+            body (str): The comment text
+            commit_sha (str): The commit SHA to attach the comment to
+            path (str): The file path to comment on
+            line (int | None, optional): The line number to comment on. Defaults to None.
+            side (str | None, optional): Which version of the file to comment on ('LEFT' or 'RIGHT'). Defaults to None.
+            start_line (int | None, optional): For multi-line comments, the starting line. Defaults to None.
+        """
+        pr = self.remote_git_repo.get_pull_safe(pr_number)
+        if pr:
+            commit = self.remote_git_repo.get_commit_safe(commit_sha)
+            if commit:
+                self.remote_git_repo.create_review_comment(
+                    pull=pr,
+                    body=body,
+                    commit=commit,
+                    path=path,
+                    line=line,
+                    side=side,
+                    start_line=start_line,
+                )

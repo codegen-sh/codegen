@@ -52,10 +52,6 @@ class GitRepoClient:
     ####################################################################################################################
 
     @property
-    def id(self) -> int:
-        return self.repo_config.id
-
-    @property
     def default_branch(self) -> str:
         return self.repo.default_branch
 

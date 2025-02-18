@@ -1,9 +1,6 @@
 import codegen
 from codegen import Codebase
-
 from codegen.sdk.typescript.file import TSImport
-
-from codegen.sdk.enums import ProgrammingLanguage
 
 processed_imports = set()
 
@@ -125,6 +122,6 @@ def run(codebase: Codebase):
 
 if __name__ == "__main__":
     print("🎯 Starting reexport organization...")
-    codebase = Codebase("./", programming_language=ProgrammingLanguage.TYPESCRIPT)
+    codebase = Codebase("./", language="typescript")
     run(codebase)
     print("✅ Done! All reexports organized successfully!")

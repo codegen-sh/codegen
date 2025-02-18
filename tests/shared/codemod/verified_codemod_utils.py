@@ -8,7 +8,7 @@ from pathlib import Path
 import requests
 from pydantic import BaseModel
 
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 from tests.shared.codemod.constants import GET_CODEMODS_URL_SUFFIX, UPDATE_CODEMOD_DIFF_URL_SUFFIX
 
 logger = logging.getLogger(__name__)
