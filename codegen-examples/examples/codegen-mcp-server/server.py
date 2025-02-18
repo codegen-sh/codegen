@@ -82,8 +82,12 @@ async def execute_codemod(codemod: Annotated[str, "The python codemod code to ex
         return {"error": f"Error executing codemod: {str(e)}", "details": {"type": type(e).__name__, "message": str(e)}}
 
 
-if __name__ == "__main__":
+def main():
     print("starting codegen-mcp-server")
     run = mcp.run_stdio_async()
     print("codegen-mcp-server started")
     asyncio.run(run)
+
+
+if __name__ == "__main__":
+    main()
