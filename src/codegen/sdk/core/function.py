@@ -1,10 +1,16 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Generic, Self, TypeVar, override
+from typing import TYPE_CHECKING, Generic, Self, override
+
+from typing_extensions import TypeVar
 
 from codegen.sdk.codebase.resolution_stack import ResolutionStack
 from codegen.sdk.core.autocommit import reader, writer
+from codegen.sdk.core.detached_symbols.code_block import CodeBlock
+from codegen.sdk.core.detached_symbols.decorator import Decorator
+from codegen.sdk.core.detached_symbols.parameter import Parameter
+from codegen.sdk.core.expressions.type import Type
 from codegen.sdk.core.interfaces.callable import Callable
 from codegen.sdk.core.interfaces.chainable import Chainable
 from codegen.sdk.core.interfaces.has_block import HasBlock
@@ -19,12 +25,8 @@ from codegen.visualizations.enums import VizNode
 if TYPE_CHECKING:
     from collections.abc import Generator, Sequence
 
-    from codegen.sdk.core.detached_symbols.code_block import CodeBlock
-    from codegen.sdk.core.detached_symbols.decorator import Decorator
     from codegen.sdk.core.detached_symbols.function_call import FunctionCall
-    from codegen.sdk.core.detached_symbols.parameter import Parameter
     from codegen.sdk.core.export import Export
-    from codegen.sdk.core.expressions.type import Type
     from codegen.sdk.core.file import File
     from codegen.sdk.core.import_resolution import Import, WildcardImport
     from codegen.sdk.core.interfaces.importable import Importable
@@ -32,11 +34,10 @@ if TYPE_CHECKING:
     from codegen.sdk.core.symbol import Symbol
 
 
-TFunction = TypeVar("TFunction", bound="Function")
-TDecorator = TypeVar("TDecorator", bound="Decorator")
-TCodeBlock = TypeVar("TCodeBlock", bound="CodeBlock")
-TParameter = TypeVar("TParameter", bound="Parameter")
-TType = TypeVar("TType", bound="Type")
+TDecorator = TypeVar("TDecorator", bound="Decorator", default=Decorator)
+TCodeBlock = TypeVar("TCodeBlock", bound="CodeBlock", default=CodeBlock)
+TParameter = TypeVar("TParameter", bound="Parameter", default=Parameter)
+TType = TypeVar("TType", bound="Type", default=Type)
 
 
 @apidoc
@@ -45,7 +46,7 @@ class Function(
     HasBlock[TCodeBlock, TDecorator],
     Callable[TParameter, TType],
     Chainable,
-    Generic[TFunction, TDecorator, TCodeBlock, TParameter, TType],
+    Generic[TDecorator, TCodeBlock, TParameter, TType],
 ):
     """Abstract representation of a Function.
 
@@ -209,15 +210,15 @@ class Function(
 
     @property
     @reader
-    def nested_functions(self) -> list[TFunction]:
+    def nested_functions(self) -> list[Self]:
         """Returns a list of nested functions defined within this function's code block.
 
         Retrieves all functions that are defined within the current function's body. The functions are sorted by their position in the file.
 
         Returns:
-            list[TFunction]: A list of Function objects representing nested functions within this function's body, sorted by position in the file.
+            list[Self]: A list of Function objects representing nested functions within this function's body, sorted by position in the file.
         """
-        functions = [m.symbol for m in self.code_block.symbol_statements if isinstance(m.symbol, Function)]
+        functions = [m.symbol for m in self.code_block.symbol_statements if isinstance(m.symbol, self.__class__)]
         return functions
 
     ####################################################################################################################

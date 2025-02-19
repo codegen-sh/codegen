@@ -1,0 +1,274 @@
+---
+title: "Converting Promise Chains to Async/Await"
+sidebarTitle: "Promise to Async/Await"
+icon: "code-merge"
+iconType: "solid"
+---
+
+Modern JavaScript/TypeScript codebases often need to migrate from Promise-based code to the more readable async/await syntax. Codegen provides powerful tools to automate this conversion while preserving business logic and handling complex scenarios.
+
+<Info>
+You can find the complete example code in our [examples repository](https://github.com/codegen-sh/codegen-sdk/blob/develop/codegen-examples/examples/promises_to_async_await/promises_to_async_await.ipynb).
+</Info>
+
+
+## Finding Promise Chains
+
+Codegen offers multiple ways to locate Promise chains in your codebase:
+- In files
+- In functions
+- Part of a function call chain
+
+### Promise Chains in a File
+
+Find all Promise chains in a file:
+
+```python
+ts_file = codebase.get_file("api_client.ts")
+promise_chains = ts_file.promise_chains
+
+print(f"Found {len(promise_chains)} Promise chains")
+```
+
+### Promise Chains in a Function
+
+Find Promise chains within a specific function:
+
+```python
+ts_func = codebase.get_function("getUserData")
+chains = ts_func.promise_chains
+
+for chain in chains:
+    print(f"Found chain starting with: {chain.name}")
+```
+
+### Promise Chain starting from a Function Call
+
+Find Promise chains starting from a specific function call:
+
+```python
+# Assuming the function call is part of a promise chain
+fetch_call = codebase.get_function("fetchUserData").function_calls[2]
+chain = fetch_call.promise_chain
+```
+
+
+## Converting Promise Chains
+
+### In-Place Conversion
+
+Convert Promise chains directly in your codebase:
+
+```python
+# Find and convert all Promise chains in a file
+for chain in typescript_file.promise_chains:
+    chain.convert_to_async_await()
+```
+
+### Handle Business Logic Without In-Place Edit
+
+Generate the transformed code without inplace edit by returning the new code as a string. This is useful when you want to add additional business logic to the overall conversion.
+
+```python
+async_await_code = chain.convert_to_async_await(inplace_edit=False)
+print("Converted code:", async_await_code)
+
+promise_statement = chain.parent_statement
+new_code = promise_statement.edit(
+    f"""
+    {async_await_code}
+
+    // handle additional business logic here
+    """
+)
+```
+
+
+## Supported Promise Chain Patterns
+
+- Basic `promise.then()` statements of any length
+- Catch `promise.then().catch()` statements of any length
+- Finally `promise.then().catch().finally()` statements of any length
+- Desctructure `promise.then((var1, var2))` statements -> `let [var1, var2] = await statement;`
+- Implicit returns -> `return promise.then(() => console.log("hello"))`
+- Top level variable assignments -> `let assigned_var = promise.then()`
+- Top level variable assignments -> `let assigned_var = promise.then()`
+- Ambiguous/conditional return blocks
+
+<Info>
+A list of all the covered cases can be found in the [example notebook](codegen-examples/examples/promises_to_async_await/promise_to_async_await.ipynb).
+</Info>
+
+
+## Examples
+### 1. Basic Promise Chains
+
+```typescript
+// Before
+function getValue(): Promise<number> {
+    return Promise.resolve(10)
+        .then(value => value * 2);
+}
+```
+
+***Applying the conversion...***
+```python
+promise_chain = codebase.get_function("getValue").promise_chains[0]
+promise_chain.convert_to_async_await()
+codebase.commit()
+```
+
+```typescript
+// After
+async function getValue(): Promise<number> {
+    let value = await Promise.resolve(10);
+    return value * 2;
+}
+```
+
+### 2. Error Handling with Catch/Finally
+
+```typescript
+// Before
+function processData(): Promise<void> {
+    return fetchData()
+        .then(data => processData(data))
+        .catch(error => {
+            console.error("Error:", error);
+            throw error;
+        })
+        .finally(() => {
+            cleanup();
+        });
+}
+```
+
+***Applying the conversion...***
+```python
+promise_chain = codebase.get_function("processData").promise_chains[0]
+promise_chain.convert_to_async_await()
+codebase.commit()
+```
+
+```typescript
+// After
+async function processData(): Promise<void> {
+    try {
+        let data = await fetchData();
+        return processData(data);
+    } catch (error) {
+        console.error("Error:", error);
+        throw error;
+    } finally {
+        cleanup();
+    }
+}
+```
+
+### 3. Promise.all with Destructuring
+
+```typescript
+// Before
+function getAllUserInfo(userId: number) {
+    return Promise.all([
+        fetchUserData(userId),
+        fetchUserPosts(userId)
+    ]).then(([user, posts]) => {
+        return { user, posts };
+    });
+}
+```
+
+***Applying the conversion...***
+```python
+promise_chain = codebase.get_function("getAllUserInfo").promise_chains[0]
+promise_chain.convert_to_async_await()
+codebase.commit()
+```
+
+
+```typescript
+// After
+async function getAllUserInfo(userId: number) {
+    const [user, posts] = await Promise.all([
+        fetchUserData(userId),
+        fetchUserPosts(userId)
+    ]);
+    return { user, posts };
+}
+```
+
+
+### 4. Handling Ambiguous Returns Using Anonymous functions
+
+
+For `then` blocks that have more than one return statement, Codegen will add an anonymous function to handle the ambiguous return to guarantee a deterministic conversion.
+
+```typescript
+// Before
+function create(opts: any): Promise<any> {
+	let qResponse = request(opts);
+	qResponse = qResponse.then(function success(response) {
+		if (response.statusCode < 200 || response.statusCode >= 300) {
+			throw new Error(JSON.stringify(response));
+		}
+		if (typeof response.body === "string") {
+			return JSON.parse(response.body);
+		}
+		return response.body;
+	});
+
+	return qResponse;
+}
+
+```
+
+***Applying the conversion...***
+```python
+promise_chain = codebase.get_function("create").promise_chains[0]
+promise_chain.convert_to_async_await()
+codebase.commit()
+```
+```typescript
+// After
+async function create(opts): Promise<any> {
+	let qResponse = request(opts);
+	let response = await qResponse;
+	qResponse = (async (response) => {
+		if (response.statusCode < 200 || response.statusCode >= 300) {
+			throw new Error(JSON.stringify(response));
+		}
+		if (typeof response.body === "string") {
+			return JSON.parse(response.body);
+		}
+		return response.body;
+	})(response);
+
+	return qResponse;
+}
+```
+
+
+
+## Handling Top-Level Assignment Variables
+
+When converting Promise chains that involve top-level assignment variables, you can specify the variable name of your choice or pick the default which is the original variable assignment name.
+
+```python
+# Convert with custom variable names for clarity
+chain.convert_to_async_await(
+    assignment_variable_name="operationResult",
+)
+```
+
+
+## Next Steps
+
+
+Converting Promise chains to async/await improves code readability and maintainability. Codegen's tools make this migration process automated and reliable, handling complex cases while preserving business logic.
+Here are some next steps to ensure a successful migration:
+
+1. Ensure to run `npx prettier --write .` after the migration to fix indentation + linting
+2. **Incremental Migration**: Convert one module at a time
+3. **Handle Additional Business Logic**: Use `.promise_statement.edit()` to modify the entire chain and handle external business logic
+4. If the specific conversion case is not covered, open an issue on the [Codegen](https://github.com/codegen-sh/codegen-sdk) repository or try to right your own transformation logic using the codegen-sdk

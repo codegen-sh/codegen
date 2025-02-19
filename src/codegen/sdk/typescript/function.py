@@ -29,12 +29,13 @@ if TYPE_CHECKING:
     from codegen.sdk.core.statements.symbol_statement import SymbolStatement
     from codegen.sdk.core.symbol import Symbol
     from codegen.sdk.typescript.detached_symbols.code_block import TSCodeBlock
+    from codegen.sdk.typescript.detached_symbols.promise_chain import TSPromiseChain
 _VALID_TYPE_NAMES = {function_type.value for function_type in TSFunctionTypeNames}
 logger = logging.getLogger(__name__)
 
 
 @ts_apidoc
-class TSFunction(Function["TSFunction", TSDecorator, "TSCodeBlock", TSParameter, TSType], TSHasBlock, TSSymbol):
+class TSFunction(Function[TSDecorator, "TSCodeBlock", TSParameter, TSType], TSHasBlock, TSSymbol):
     """Representation of a Function in JavaScript/TypeScript"""
 
     @noapidoc
@@ -427,3 +428,22 @@ class TSFunction(Function["TSFunction", TSDecorator, "TSCodeBlock", TSParameter,
                     self.parameters[0].edit(interface_name)
                 else:
                     self.insert_at(self.parameters.ts_node.end_byte - 1, f": {interface_name}")
+
+    @property
+    @reader
+    def promise_chains(self) -> list[TSPromiseChain]:
+        """Returns a list of promise chains in the function.
+
+        Returns:
+            list[TSPromiseChain]: A list of promise chains in the function.
+        """
+        promise_chains = []
+        visited_base_functions = set()
+        function_calls = self.function_calls
+
+        for function_call in function_calls:
+            if function_call.name == "then" and function_call.base not in visited_base_functions:
+                promise_chains.append(function_call.promise_chain)
+                visited_base_functions.add(function_call.base)
+
+        return promise_chains

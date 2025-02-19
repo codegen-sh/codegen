@@ -89,6 +89,7 @@
 				"tutorials/codebase-visualization",
 				"tutorials/migrating-apis",
 				"tutorials/organize-your-codebase",
+				"tutorials/promise-to-async-await",
 				"tutorials/modularity",
 				"tutorials/manage-feature-flags",
 				"tutorials/deleting-dead-code",
@@ -161,7 +162,12 @@
 		},
 		{
 			"group": "Blog",
-			"pages": ["blog/posts", "blog/act-via-code", "blog/fixing-import-loops"]
+			"pages": [
+				"blog/posts",
+				"blog/act-via-code",
+				"blog/promise-to-async-await-twilio",
+				"blog/fixing-import-loops"
+			]
 		},
 		{
 			"group": "API Reference",
