@@ -7,8 +7,10 @@ import pytest
 
 from codegen.sdk.codebase.codebase_context import CodebaseContext
 from codegen.sdk.codebase.config import CodebaseConfig
+from codegen.sdk.codebase.factory.get_session import get_codebase_session
 from codegen.sdk.core.directory import Directory
 from codegen.sdk.core.file import File
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 @pytest.fixture
@@ -220,3 +222,15 @@ def test_get_set_delete_item(mock_directory):
 
     with pytest.raises(KeyError, match="subdir_2"):
         del mock_directory["subdir_2"]
+
+
+def test_unicode_in_filename(tmpdir) -> None:
+    with get_codebase_session(
+        tmpdir=tmpdir,
+        files={"ascii.py": "print('Hello, world!')", "test/我很喜欢冰激淋/test-file 12\'3_🍦.py": "print('Hello, world!')"},
+        programming_language=ProgrammingLanguage.PYTHON,
+        verify_output=True,
+    ) as codebase:
+        file = codebase.get_file("test/我很喜欢冰激淋/test-file 12\'3_🍦.py")
+        assert file is not None
+        assert file.content == "print('Hello, world!')"
