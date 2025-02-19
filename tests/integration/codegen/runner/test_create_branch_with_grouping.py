@@ -5,7 +5,7 @@ import pytest
 
 from codegen.git.clients.git_repo_client import GitRepoClient
 from codegen.git.repo_operator.remote_repo_operator import RemoteRepoOperator
-from codegen.runner.clients.sandbox_client import SandboxClient
+from codegen.runner.clients.codebase_client import CodebaseClient
 from codegen.runner.models.apis import BRANCH_ENDPOINT, CreateBranchRequest, CreateBranchResponse
 from codegen.runner.models.codemod import BranchConfig, Codemod, GroupingConfig
 from codegen.sdk.codebase.flagging.groupers.enums import GroupBy
@@ -13,7 +13,7 @@ from codegen.sdk.codebase.flagging.groupers.enums import GroupBy
 
 @pytest.mark.timeout(120)
 @pytest.mark.parametrize("group_by", [GroupBy.INSTANCE, GroupBy.FILE])
-def test_create_branch_with_grouping(sandbox_client: SandboxClient, git_repo_client: GitRepoClient, op: RemoteRepoOperator, group_by: GroupBy):
+def test_create_branch_with_grouping(codebase_client: CodebaseClient, git_repo_client: GitRepoClient, op: RemoteRepoOperator, group_by: GroupBy):
     codemod_source = """
 for file in codebase.files[:5]:
     flag = codebase.flag_instance(file)
@@ -31,7 +31,7 @@ for file in codebase.files[:5]:
     )
 
     # execute
-    response = sandbox_client.post(endpoint=BRANCH_ENDPOINT, data=request.model_dump())
+    response = codebase_client.post(endpoint=BRANCH_ENDPOINT, data=request.model_dump())
     assert response.status_code == HTTPStatus.OK
 
     # verify
