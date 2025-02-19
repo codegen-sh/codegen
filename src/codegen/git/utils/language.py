@@ -120,10 +120,6 @@ def _determine_language_by_git_file_count(folder_path: str) -> ProgrammingLangua
         if file_path.is_dir() or file_path.name.startswith("."):
             continue
 
-        # Skip common directories to ignore
-        if any(ignore in str(file_path) for ignore in [".git", "node_modules", "__pycache__", "venv", ".env"]):
-            continue
-
         # Count files for each language based on extensions
         for language, exts in EXTENSIONS.items():
             if file_path.suffix in exts:
