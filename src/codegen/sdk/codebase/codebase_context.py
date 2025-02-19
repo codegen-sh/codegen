@@ -75,8 +75,9 @@ def get_node_classes(programming_language: ProgrammingLanguage) -> NodeClasses:
 
         return TSNodeClasses
     else:
-        msg = f"Unsupported programming language: {programming_language}!"
-        raise ValueError(msg)
+        from codegen.sdk.codebase.node_classes.generic_node_classes import GenericNodeClasses
+
+        return GenericNodeClasses
 
 
 class CodebaseContext:
@@ -147,6 +148,7 @@ class CodebaseContext:
         self.config = config
         self.repo_name = context.repo_operator.repo_name
         self.repo_path = str(Path(context.repo_operator.repo_path).resolve())
+        self.full_path = os.path.join(self.repo_path, context.base_path) if context.base_path else self.repo_path
         self.codeowners_parser = context.repo_operator.codeowners_parser
         self.base_url = context.repo_operator.base_url
         # =====[ computed attributes ]=====
@@ -162,6 +164,11 @@ class CodebaseContext:
         self.dependency_manager = get_dependency_manager(context.programming_language, self)
         self.language_engine = get_language_engine(context.programming_language, self)
         self.programming_language = context.programming_language
+
+        # Raise warning if language is not supported
+        if self.programming_language is ProgrammingLanguage.UNSUPPORTED or self.programming_language is ProgrammingLanguage.OTHER:
+            logger.warning("WARNING: The codebase is using an unsupported language!")
+            logger.warning("Some features may not work as expected. Advanced static analysis will be disabled but simple file IO will still work.")
 
         # Build the graph
         self.build_graph(context.repo_operator)

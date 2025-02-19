@@ -129,8 +129,23 @@ a = 1
 def square(x: a):
     return x * x
     """
-    with get_codebase_session(tmpdir=tmpdir, files={"dir/file0.py": file0_content, ".gitignore": gitignore_content}, programming_language=ProgrammingLanguage.PYTHON) as codebase:
-        assert len(codebase.files) == 0
+    file1_content = """
+from dir.file0 import square
+
+class MyClass:
+    def foo(self, arg1, arg2):
+        return arg1 + square(arg2)
+    """
+    with get_codebase_session(
+        tmpdir=tmpdir,
+        files={
+            "dir/file0.py": file0_content,
+            "dir/file1.py": file1_content,
+            ".gitignore": gitignore_content,
+        },
+        programming_language=ProgrammingLanguage.PYTHON,
+    ) as codebase:
+        assert len(codebase.files) == 1
         codebase.reset()
         codebase.checkout(branch="test-branch", create_if_missing=True)
         codebase.commit(sync_graph=True)

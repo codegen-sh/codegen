@@ -258,7 +258,11 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         By default, this only returns source files. Setting `extensions='*'` will return all files in the codebase, and
         `extensions=[...]` will return all files with the specified extensions.
 
-        `extensions='*'` is REQUIRED for listing all non source code files. Or else, codebase.files will ONLY return source files (e.g. .py, .ts).
+        For Python and Typescript repos WITH file parsing enabled,
+        `extensions='*'` is REQUIRED for listing all non source code files.
+        Or else, codebase.files will ONLY return source files (e.g. .py, .ts).
+
+        For repos with file parsing disabled or repos with other languages, this will return all files in the codebase.
 
         Returns all Files in the codebase, sorted alphabetically. For Python codebases, returns PyFiles (python files).
         For Typescript codebases, returns TSFiles (typescript files).
@@ -266,7 +270,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         Returns:
             list[TSourceFile]: A sorted list of source files in the codebase.
         """
-        if extensions is None:
+        if extensions is None and len(self.ctx.get_nodes(NodeType.FILE)) > 0:
+            # If extensions is None AND there is at least one file in the codebase (This checks for unsupported languages or parse-off repos),
             # Return all source files
             files = self.ctx.get_nodes(NodeType.FILE)
         elif isinstance(extensions, str) and extensions != "*":
