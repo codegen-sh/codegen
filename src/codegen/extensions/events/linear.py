@@ -27,7 +27,6 @@ class Linear(EventHandlerManagerProtocol):
         self.registered_handlers = {}
         self._webhook_url = None
 
-
     def subscribe_handler_to_webhook(self, handler: RegisteredWebhookHandler):
         client = LinearClient(access_token=self.access_token)
         web_url = modal.Function.from_name(app_name=self.app.name, name=handler.handler_func.__qualname__).web_url
@@ -55,7 +54,6 @@ class Linear(EventHandlerManagerProtocol):
     def unsubscribe_all_handlers(self):
         for handler in self.registered_handlers:
             self.unsubscribe_handler_to_webhook(self.registered_handlers[handler])
-
 
     def event(self, event_name):
         """Decorator for registering an event handler.
