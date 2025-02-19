@@ -13,14 +13,9 @@ from langchain_openai import ChatOpenAI
 from codegen import Codebase
 
 from .tools import (
-    CommitTool,
     CreateFileTool,
     DeleteFileTool,
     EditFileTool,
-    GithubCreatePRCommentTool,
-    GithubCreatePRReviewCommentTool,
-    GithubCreatePRTool,
-    GithubViewPRTool,
     ListDirectoryTool,
     MoveSymbolTool,
     RenameFileTool,
@@ -69,11 +64,11 @@ def create_codebase_agent(
         RevealSymbolTool(codebase),
         SemanticEditTool(codebase),
         SemanticSearchTool(codebase),
-        CommitTool(codebase),
-        GithubCreatePRTool(codebase),
-        GithubViewPRTool(codebase),
-        GithubCreatePRCommentTool(codebase),
-        GithubCreatePRReviewCommentTool(codebase),
+        # CommitTool(codebase),
+        # GithubCreatePRTool(codebase),
+        # GithubViewPRTool(codebase),
+        # GithubCreatePRCommentTool(codebase),
+        # GithubCreatePRReviewCommentTool(codebase),
     ]
 
     prompt = ChatPromptTemplate.from_messages(
@@ -102,7 +97,6 @@ def create_codebase_agent(
         - Analyze affected code structures
         - Preview changes before applying
         - Ensure code quality with linting
-
 
         4. Code Search:
         - Text-based and semantic search

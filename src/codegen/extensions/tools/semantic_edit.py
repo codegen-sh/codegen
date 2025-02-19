@@ -47,9 +47,9 @@ def _extract_code_block(llm_response: str) -> str:
     Raises:
         ValueError: If response is not properly formatted with code blocks
     """
-    # Find content between ``` markers
-    pattern = r"```(?:\w*\n)?(.*?)```"
-    matches = re.findall(pattern, llm_response, re.DOTALL)
+    # Find content between ``` markers, allowing for any language identifier
+    pattern = r"```[^`\n]*\n?(.*?)```"
+    matches = re.findall(pattern, llm_response.strip(), re.DOTALL)
 
     if not matches:
         raise ValueError("LLM response must contain code wrapped in ``` blocks. Got response: " + llm_response[:200] + "...")
