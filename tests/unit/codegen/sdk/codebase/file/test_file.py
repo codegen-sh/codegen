@@ -61,7 +61,9 @@ def test_codebase_files(tmpdir) -> None:
 
 
 def test_codebase_files_other_language(tmpdir) -> None:
-    with get_codebase_session(tmpdir=tmpdir, files={"file1.py": "print(123)", "file2.py": "print(456)", "file3.bin": b"\x89PNG", "file4": "Hello world!"}, programming_language=ProgrammingLanguage.OTHER) as codebase:
+    with get_codebase_session(
+        tmpdir=tmpdir, files={"file1.py": "print(123)", "file2.py": "print(456)", "file3.bin": b"\x89PNG", "file4": "Hello world!"}, programming_language=ProgrammingLanguage.OTHER
+    ) as codebase:
         file1 = codebase.get_file("file1.py")
         file2 = codebase.get_file("file2.py")
         file3 = codebase.get_file("file3.bin")
