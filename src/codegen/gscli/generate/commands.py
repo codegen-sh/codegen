@@ -213,7 +213,7 @@ iconType: "solid"
 ---
 """
 
-    client = get_openai_client(openai_key=openai_key)
+    client = get_openai_client(openai_key)
 
     if complete:
         entire_release_history = generate_changelog(client)
