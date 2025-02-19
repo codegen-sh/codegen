@@ -65,3 +65,51 @@ def get_swe_bench_examples() -> list[SweBenchExample]:
         examples.append(example)
 
     return examples
+
+
+def get_swe_bench_example(instance_id: str) -> SweBenchExample:
+    """Fetch a single example from the SWE-bench dataset by its instance ID.
+
+    Args:
+        instance_id: The unique identifier of the example to fetch
+
+    Returns:
+        SweBenchExample object
+
+    Raises:
+        ValueError: If no example found with the given ID
+        requests.RequestException: If the API request fails
+    """
+    url = "https://datasets-server.huggingface.co/filter"
+    params = {
+        "dataset": "princeton-nlp/SWE-bench",
+        "config": "default",
+        "split": "dev",
+        "where": f"instance_id='{instance_id}'",
+        "offset": 0,
+        "length": 1,
+    }
+
+    response = requests.get(url, params=params)
+    response.raise_for_status()
+    data = response.json()
+
+    if not data["rows"]:
+        msg = f"No example found with instance_id: {instance_id}"
+        raise ValueError(msg)
+
+    row = data["rows"][0]["row"]
+    return SweBenchExample(
+        repo=row["repo"],
+        instance_id=row["instance_id"],
+        base_commit=row["base_commit"],
+        patch=row["patch"],
+        test_patch=row["test_patch"],
+        problem_statement=row["problem_statement"],
+        hints_text=row.get("hints_text"),
+        created_at=row["created_at"],
+        version=row["version"],
+        fail_to_pass=row["FAIL_TO_PASS"],
+        pass_to_pass=row.get("PASS_TO_PASS"),
+        environment_setup_commit=row.get("environment_setup_commit"),
+    )
