@@ -12,6 +12,7 @@ from codegen.extensions.tools import (
     list_directory,
     move_symbol,
     rename_file,
+    replacement_edit,
     reveal_symbol,
     search,
     semantic_edit,
@@ -179,3 +180,63 @@ def test_create_pr_review_comment(codebase):
     assert "error" not in result
     assert result["status"] == "success"
     assert result["message"] == "Review comment created successfully"
+
+
+def test_replacement_edit(codebase):
+    """Test regex-based replacement editing."""
+    # Test basic replacement
+    result = replacement_edit(
+        codebase,
+        filepath="src/main.py",
+        pattern=r'print\("Hello, world!"\)',
+        replacement='print("Goodbye, world!")',
+    )
+    assert "error" not in result
+    assert result["status"] == "success"
+    assert 'print("Goodbye, world!")' in result["new_content"]
+
+    # Test with line range
+    result = replacement_edit(
+        codebase,
+        filepath="src/main.py",
+        pattern=r"Greeter",
+        replacement="Welcomer",
+        start=5,  # Class definition line
+        end=7,
+    )
+    assert "error" not in result
+    assert result["status"] == "success"
+    assert "class Welcomer" in result["new_content"]
+
+    # Test with regex groups
+    result = replacement_edit(
+        codebase,
+        filepath="src/main.py",
+        pattern=r"def (\w+)\(\):",
+        replacement=r"def \1_function():",
+    )
+    assert "error" not in result
+    assert result["status"] == "success"
+    assert "def hello_function():" in result["new_content"]
+
+    # Test with count limit
+    result = replacement_edit(
+        codebase,
+        filepath="src/main.py",
+        pattern=r"def",
+        replacement="async def",
+        count=1,  # Only replace first occurrence
+    )
+    assert "error" not in result
+    assert result["status"] == "success"
+    assert result["new_content"].count("async def") == 1
+
+    # Test no matches
+    result = replacement_edit(
+        codebase,
+        filepath="src/main.py",
+        pattern=r"nonexistent_pattern",
+        replacement="replacement",
+    )
+    assert result["status"] == "unchanged"
+    assert "No matches found" in result["message"]
