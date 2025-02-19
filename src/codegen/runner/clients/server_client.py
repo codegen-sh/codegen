@@ -36,7 +36,7 @@ class LocalServerClient:
             self._process.terminate()
             self._process.wait()
 
-    def _get_envs(self):
+    def _get_envs(self) -> dict:
         return os.environ.copy()
 
     def _start_server(self, server_path: str) -> None:
@@ -57,7 +57,7 @@ class LocalServerClient:
         )
         self._wait_for_server()
 
-    def _wait_for_server(self, timeout: int = 60, interval: float = 0.1) -> None:
+    def _wait_for_server(self, timeout: int = 10, interval: float = 0.1) -> None:
         """Wait for the server to start by polling the health endpoint"""
         start_time = time.time()
         while (time.time() - start_time) < timeout:
