@@ -49,10 +49,10 @@ def cli():
 )
 def run_one(
     url: str,
-    cache_dir: str = cachedir,
-    output_path: Path = "metrics.csv",
+    cache_dir: str | Path = str(cachedir),
+    output_path: str = "metrics.csv",
     commit_hash: str | None = None,
-    error_output_path: Path = cachedir / "errors.log",
+    error_output_path: Path = str(cachedir / "errors.log"),
     debug: bool = False,
 ):
     """
@@ -69,7 +69,7 @@ def run_one(
 @cli.command()
 @click.option(
     "--source",
-    type=click.Choice(all_sources.keys()),
+    type=click.Choice(list(all_sources.keys())),
     default="csv",
 )
 @click.option(
@@ -97,9 +97,9 @@ def run_one(
 )
 def run(
     source: str,
-    output_path: Path,
-    error_output_path: Path,
-    cache_dir: Path,
+    output_path: str,
+    error_output_path: str,
+    cache_dir: str,
     debug: bool,
 ):
     """

@@ -1,5 +1,5 @@
 from collections.abc import Iterator
-from typing import ClassVar, Literal
+from typing import TYPE_CHECKING, ClassVar, Literal
 
 from github import Auth, Github  # nosemgrep
 
@@ -26,9 +26,16 @@ class GithubSettings(SourceSettings, env_prefix="GITHUB_"):
 
 
 class GithubSource(RepoSource[GithubSettings]):
+    """
+    Source for Github repositories via Github Search API
+    """
+
+    if TYPE_CHECKING:
+        github_client: Github
+        settings: GithubSettings
+
     source_type: ClassVar[str] = "github"
-    settings_cls: ClassVar[type[SourceSettings]] = GithubSettings
-    github_client: Github
+    settings_cls: ClassVar[type[GithubSettings]] = GithubSettings
 
     def __init__(self) -> None:
         super().__init__()

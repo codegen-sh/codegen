@@ -33,7 +33,7 @@ class RepoSource(Generic[SettingsType]):
     """
 
     source_type: ClassVar[str]
-    settings_cls: ClassVar[type[SettingsType]]
+    settings_cls: ClassVar[type[SourceSettings]]
 
     if TYPE_CHECKING:
         settings: SourceSettings

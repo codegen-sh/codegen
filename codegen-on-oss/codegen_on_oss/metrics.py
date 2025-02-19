@@ -3,10 +3,14 @@ import json
 import os
 import time
 from contextlib import contextmanager
-from typing import Any
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 import psutil
-from loguru import _Logger as LoggerType
+
+if TYPE_CHECKING:
+    # Logger only available in type checking context.
+    from loguru import Logger  # type: ignore[attr-defined]
 
 
 class MetricsProfiler:
@@ -30,7 +34,7 @@ class MetricsProfiler:
         self.output_path = output_path
 
     @contextmanager
-    def start_profiler(self, name: str, revision: str, logger: LoggerType):
+    def start_profiler(self, name: str, revision: str, logger: "Logger"):
         """
         Starts a new profiling session for a given profile name.
         Returns a MetricsProfile instance that you can use to mark measurements.
@@ -55,14 +59,17 @@ class MetricsProfile:
     to a CSV file.
     """
 
+    if TYPE_CHECKING:
+        logger: "Logger"
+        measurements: list[dict[str, Any]]
+
     def __init__(
-        self, name: str, revision: str, output_path: str | None, logger: LoggerType
+        self, name: str, revision: str, output_path: str | None, logger: "Logger"
     ):
         self.name = name
         self.revision = revision
         self.output_path = output_path
         self.logger = logger
-        self.measurements = []
 
         # Capture initial metrics.
         self.start_time = time.perf_counter()
@@ -152,6 +159,8 @@ class MetricsProfile:
             return
 
         file_exists = os.path.isfile(self.output_path)
+        if not file_exists:
+            Path(self.output_path).parent.mkdir(parents=True, exist_ok=True)
 
         with open(self.output_path, mode="a", newline="") as csv_file:
             writer = csv.DictWriter(csv_file, fieldnames=measurement.keys())

@@ -66,7 +66,7 @@ def parse_repo_on_modal(
         except Exception as e:
             logger.exception(f"Error parsing repository {repo_url}: {e}")
 
-    BucketStore(bucket_name=os.getenv("BUCKET_NAME")).upload_run(
+    BucketStore(bucket_name=os.getenv("BUCKET_NAME", "codegen-oss-parse")).upload_run(
         repo_source,
         log_output_path,
         metrics_output_path,

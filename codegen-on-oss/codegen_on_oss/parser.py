@@ -76,7 +76,7 @@ class CodegenParser:
                         raise ParseRunError(validation_status)
 
             ProfiledCodebase.from_repo(
-                repo_name, tmp_dir=self.repo_dir, commit=commit_hash
+                repo_name, tmp_dir=str(self.repo_dir.absolute()), commit=commit_hash
             )
 
     def gc(self):
