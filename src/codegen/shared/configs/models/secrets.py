@@ -25,7 +25,6 @@ class SecretsConfig(BaseSettings):
         """Initialize secrets, loading from .env if needed."""
         super().__init__(**kwargs)
 
-        print("HERE")
         # Load .env file if it exists
         env_path = Path(".env")
         if env_path.exists():
@@ -35,6 +34,5 @@ class SecretsConfig(BaseSettings):
         if not self.github_token:
             self.github_token = os.getenv("GITHUB_TOKEN")
 
-        print(os.getenv("OPENAI_API_KEY"))
         if not self.openai_api_key:
             self.openai_api_key = os.getenv("OPENAI_API_KEY")
