@@ -1,5 +1,6 @@
 """Base class for tool observations/responses."""
 
+import json
 from typing import Any, ClassVar, Optional
 
 from pydantic import BaseModel, Field
@@ -49,3 +50,7 @@ class Observation(BaseModel):
     def __repr__(self) -> str:
         """Get detailed string representation of the observation."""
         return f"{self.__class__.__name__}({self.model_dump_json()})"
+
+    def render(self) -> str:
+        """Render the observation as a string."""
+        return json.dumps(self.model_dump(), indent=2)
