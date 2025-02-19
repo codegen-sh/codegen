@@ -1,8 +1,7 @@
 """Demo implementation of an agent with Codegen tools."""
 
-from langchain.agents import AgentExecutor
+from langchain.agents import AgentExecutor, create_tool_calling_agent
 from langchain.agents.openai_functions_agent.base import OpenAIFunctionsAgent
-from langchain.agents.react.agent import create_react_agent
 from langchain.hub import pull
 from langchain.tools import BaseTool
 from langchain_anthropic import ChatAnthropic
@@ -71,7 +70,8 @@ def create_codebase_agent(
         RevealSymbolTool(codebase),
         SemanticEditTool(codebase),
         SemanticSearchTool(codebase),
-        # CommitTool(codebase),
+        # =====[ Github Integration ]=====
+        # Enable Github integration
         # GithubCreatePRTool(codebase),
         # GithubViewPRTool(codebase),
         # GithubCreatePRCommentTool(codebase),
@@ -140,7 +140,7 @@ def create_codebase_agent(
     #     tools=tools,
     #     prompt=prompt,
     # )
-    agent = create_react_agent(
+    agent = create_tool_calling_agent(
         llm=llm,
         tools=tools,
         prompt=prompt,
