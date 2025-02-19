@@ -18,6 +18,7 @@ from codegen.extensions.tools.linear.linear import (
     linear_search_issues_tool,
 )
 from codegen.extensions.tools.link_annotation import add_links_to_message
+from codegen.extensions.tools.replacement_edit import replacement_edit
 from codegen.extensions.tools.reveal_symbol import reveal_symbol
 from codegen.extensions.tools.search import search
 from codegen.extensions.tools.semantic_edit import semantic_edit
@@ -37,7 +38,7 @@ from ..tools import (
     view_file,
     view_pr,
 )
-from ..tools.tool_prompts import _FILE_EDIT_DESCRIPTION
+from ..tools.semantic_edit_prompts import FILE_EDIT_PROMPT
 
 
 class ViewFileInput(BaseModel):
@@ -257,7 +258,7 @@ class SemanticEditInput(BaseModel):
     """Input for semantic editing."""
 
     filepath: str = Field(..., description="Path of the file relative to workspace root")
-    edit_content: str = Field(..., description=_FILE_EDIT_DESCRIPTION)
+    edit_content: str = Field(..., description=FILE_EDIT_PROMPT)
     start: int = Field(default=1, description="Starting line number (1-indexed, inclusive). Default is 1.")
     end: int = Field(default=-1, description="Ending line number (1-indexed, inclusive). Default is -1 (end of file).")
 
@@ -706,6 +707,7 @@ def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
         ListDirectoryTool(codebase),
         MoveSymbolTool(codebase),
         RenameFileTool(codebase),
+        ReplacementEditTool(codebase),
         RevealSymbolTool(codebase),
         RunBashCommandTool(),  # Note: This tool doesn't need the codebase
         SearchTool(codebase),
@@ -725,3 +727,46 @@ def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
         LinearCreateIssueTool(codebase),
         LinearGetTeamsTool(codebase),
     ]
+
+
+class ReplacementEditInput(BaseModel):
+    """Input for regex-based replacement editing."""
+
+    filepath: str = Field(..., description="Path to the file to edit")
+    pattern: str = Field(..., description="Regex pattern to match")
+    replacement: str = Field(..., description="Replacement text (can include regex groups)")
+    start: int = Field(default=1, description="Starting line number (1-indexed, inclusive). Default is 1.")
+    end: int = Field(default=-1, description="Ending line number (1-indexed, inclusive). Default is -1 (end of file).")
+    count: Optional[int] = Field(default=None, description="Maximum number of replacements. Default is None (replace all).")
+
+
+class ReplacementEditTool(BaseTool):
+    """Tool for regex-based replacement editing of files."""
+
+    name: ClassVar[str] = "replace"
+    description: ClassVar[str] = "Replace text in a file using regex pattern matching. For files over 300 lines, specify a line range."
+    args_schema: ClassVar[type[BaseModel]] = ReplacementEditInput
+    codebase: Codebase = Field(exclude=True)
+
+    def __init__(self, codebase: Codebase) -> None:
+        super().__init__(codebase=codebase)
+
+    def _run(
+        self,
+        filepath: str,
+        pattern: str,
+        replacement: str,
+        start: int = 1,
+        end: int = -1,
+        count: Optional[int] = None,
+    ) -> str:
+        result = replacement_edit(
+            self.codebase,
+            filepath=filepath,
+            pattern=pattern,
+            replacement=replacement,
+            start=start,
+            end=end,
+            count=count,
+        )
+        return json.dumps(result, indent=2)

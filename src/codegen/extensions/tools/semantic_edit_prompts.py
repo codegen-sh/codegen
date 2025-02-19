@@ -1,4 +1,4 @@
-_FILE_EDIT_DESCRIPTION = (
+FILE_EDIT_PROMPT = (
     """Edit a file in plain-text format.
 * The assistant can edit files by specifying the file path and providing a draft of the new file content.
 * The draft content doesn't need to be exactly the same as the existing file; the assistant may skip unchanged lines using comments like `# unchanged` to indicate unchanged sections.
@@ -274,7 +274,7 @@ def helper():
 )
 
 
-_SYSTEM_PROMPT_DRAFT_EDITOR = """You are an expert code editor.
+COMMANDER_SYSTEM_PROMPT = """You are an expert code editor.
 
 Another agent has determined an edit needs to be made to this file.
 

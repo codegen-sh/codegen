@@ -8,7 +8,7 @@ from langchain_core.prompts import ChatPromptTemplate
 
 from codegen import Codebase
 
-from .tool_prompts import _HUMAN_PROMPT_DRAFT_EDITOR, _SYSTEM_PROMPT_DRAFT_EDITOR
+from .semantic_edit_prompts import _HUMAN_PROMPT_DRAFT_EDITOR, COMMANDER_SYSTEM_PROMPT
 from .view_file import add_line_numbers
 
 
@@ -152,7 +152,7 @@ def semantic_edit(codebase: Codebase, filepath: str, edit_content: str, start: i
     original_file_section = "\n".join(context_lines)
 
     # =====[ Get the LLM ]=====
-    system_message = _SYSTEM_PROMPT_DRAFT_EDITOR
+    system_message = COMMANDER_SYSTEM_PROMPT
     human_message = _HUMAN_PROMPT_DRAFT_EDITOR
     prompt = ChatPromptTemplate.from_messages([system_message, human_message])
     llm = ChatAnthropic(
