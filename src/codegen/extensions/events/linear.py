@@ -68,9 +68,6 @@ class Linear(EventHandlerManagerProtocol):
             # Register the handler with the app's registry.
             modal_ready_func = func
             func_name = func.__qualname__
-            app_name = self.app.name
-            web_url = modal.Function.from_name(app_name=app_name, name=func_name).web_url
-
             self.registered_handlers[func_name] = RegisteredWebhookHandler(handler_func=modal_ready_func, event_name=event_name)
 
             @functools.wraps(func)
