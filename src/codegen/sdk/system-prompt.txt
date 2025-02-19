@@ -1441,7 +1441,7 @@ Here's an example:
 
 ```python
 from codegen import Codebase
-from codegen.git.repo_operator.local_repo_operator import LocalRepoOperator
+from codegen.git.repo_operator.local_repo_operator import RepoOperator
 from codegen.git.schemas.repo_config import BaseRepoConfig
 from codegen.sdk.codebase.config import ProjectConfig
 

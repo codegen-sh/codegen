@@ -4,7 +4,7 @@ import logging
 from pathlib import Path
 from typing import TypedDict
 
-from codegen.git.repo_operator.local_repo_operator import LocalRepoOperator
+from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.sdk.codebase.config import CodebaseConfig, DefaultConfig, ProjectConfig
 from codegen.sdk.core.codebase import Codebase, CodebaseType
@@ -40,7 +40,7 @@ def get_current_code_codebase(config: CodebaseConfig = DefaultConfig, subdirecto
 
     repo_config = RepoConfig.from_repo_path(codegen_repo_path)
     repo_config.respect_gitignore = False
-    op = LocalRepoOperator(repo_config=repo_config, bot_commit=False)
+    op = RepoOperator(repo_config=repo_config, bot_commit=False)
 
     config = config.model_copy(update={"base_path": base_dir})
     projects = [ProjectConfig(repo_operator=op, programming_language=ProgrammingLanguage.PYTHON, subdirectories=subdirectories, base_path=base_dir)]

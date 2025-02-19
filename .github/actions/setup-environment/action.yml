@@ -26,5 +26,5 @@ runs:
     - name: Install codecov
       shell: bash
       run: |
-        uv tool install codecov-cli --python 3.10
+        uv tool install codecov-cli@10.0.1 --python 3.10
         uv tool update-shell

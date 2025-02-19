@@ -10,7 +10,7 @@ from codegen.shared.performance.stopwatch_utils import subprocess_with_stopwatch
 logger = logging.getLogger(__name__)
 
 
-# TODO: move into LocalRepoOperator
+# TODO: move into RepoOperator
 def clone_repo(
     repo_path: str,
     clone_url: str,
@@ -29,7 +29,7 @@ def clone_repo(
     return repo_path
 
 
-# TODO: update to use GitPython instead + move into LocalRepoOperator
+# TODO: update to use GitPython instead + move into RepoOperator
 def clone_or_pull_repo(
     repo_path: str,
     clone_url: str,
@@ -44,7 +44,7 @@ def clone_or_pull_repo(
     return repo_path
 
 
-# TODO: update to use GitPython instead + move into LocalRepoOperators
+# TODO: update to use GitPython instead + move into RepoOperator
 def pull_repo(
     repo_path: str,
     clone_url: str,
