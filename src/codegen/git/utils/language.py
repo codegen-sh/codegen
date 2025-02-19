@@ -1,9 +1,12 @@
+import logging
 from collections import Counter
 from pathlib import Path
 from typing import Literal
 
 from codegen.git.utils.file_utils import split_git_path
 from codegen.shared.enums.programming_language import ProgrammingLanguage
+
+logger = logging.getLogger(__name__)
 
 # Minimum ratio of files that must match the dominant language
 MIN_LANGUAGE_RATIO = 0.1
@@ -83,6 +86,8 @@ def _determine_language_by_file_count(folder_path: str) -> ProgrammingLanguage:
     # Get the most common language and its count
     most_common_language, count = language_counts.most_common(1)[0]
 
+    logger.debug(f"Most common language: {most_common_language}, count: {count}, total files: {total_files}")
+
     # Check if the most common language makes up at least MIN_LANGUAGE_RATIO of all files
     if total_files > 0 and (count / total_files) < MIN_LANGUAGE_RATIO:
         return ProgrammingLanguage.UNSUPPORTED
@@ -148,6 +153,8 @@ def _determine_language_by_git_file_count(folder_path: str) -> ProgrammingLangua
     # Get the most common language and its count
     most_common_language, count = language_counts.most_common(1)[0]
 
+    logger.debug(f"Most common language: {most_common_language}, count: {count}, total files: {total_files}")
+
     # Check if the most common language makes up at least MIN_LANGUAGE_RATIO of all files
     if total_files > 0 and (count / total_files) < MIN_LANGUAGE_RATIO:
         return ProgrammingLanguage.UNSUPPORTED
@@ -167,6 +174,8 @@ def _determine_language_by_package_json(folder_path: str) -> ProgrammingLanguage
     """
     package_json_path = Path(folder_path) / "package.json"
     if package_json_path.exists():
+        logger.debug(f"Found package.json at {package_json_path}")
         return ProgrammingLanguage.TYPESCRIPT
     else:
+        logger.debug(f"No package.json found at {package_json_path}")
         return ProgrammingLanguage.PYTHON
