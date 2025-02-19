@@ -271,15 +271,6 @@ wheels = [
 ]
 
 [[package]]
-name = "backoff"
-version = "2.2.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/47/d7/5bbeb12c44d7c4f2fb5b56abce497eb5ed9f34d85701de869acedd602619/backoff-2.2.1.tar.gz", hash = "sha256:03f829f5bb1923180821643f8753b0502c3b682293992485b0eef2807afa5cba", size = 17001 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/df/73/b6e24bd22e6720ca8ee9a85a0c4a2971af8497d8f3193fa05390cbd46e09/backoff-2.2.1-py3-none-any.whl", hash = "sha256:63579f9a0628e06278f7e47b7d7d5b6ce20dc65c5e96a6f3ca99a6adca0396e8", size = 15148 },
-]
-
-[[package]]
 name = "bashlex"
 version = "0.18"
 source = { registry = "https://pypi.org/simple" }
@@ -539,9 +530,7 @@ wheels = [
 name = "codegen"
 source = { editable = "." }
 dependencies = [
-    { name = "anthropic" },
     { name = "astor" },
-    { name = "backoff" },
     { name = "click" },
     { name = "codeowners" },
     { name = "dataclasses-json" },
@@ -590,7 +579,6 @@ dependencies = [
     { name = "slack-sdk" },
     { name = "starlette" },
     { name = "tabulate" },
-    { name = "tenacity" },
     { name = "termcolor" },
     { name = "tiktoken" },
     { name = "toml" },
@@ -661,10 +649,8 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "anthropic", specifier = "==0.46.0" },
     { name = "astor", specifier = ">=0.8.1,<1.0.0" },
     { name = "attrs", marker = "extra == 'lsp'", specifier = ">=25.1.0" },
-    { name = "backoff", specifier = "==2.2.1" },
     { name = "click", specifier = ">=8.1.7" },
     { name = "codeowners", specifier = ">=0.6.0,<1.0.0" },
     { name = "dataclasses-json", specifier = ">=0.6.4,<1.0.0" },
@@ -678,7 +664,7 @@ requires-dist = [
     { name = "hatchling", specifier = ">=1.25.0" },
     { name = "humanize", specifier = ">=4.10.0,<5.0.0" },
     { name = "langchain", extras = ["openai"] },
-    { name = "langchain-anthropic" },
+    { name = "langchain-anthropic", specifier = ">=0.3.7" },
     { name = "langchain-core" },
     { name = "langchain-openai" },
     { name = "lazy-object-proxy", specifier = ">=0.0.0" },
@@ -715,7 +701,6 @@ requires-dist = [
     { name = "slack-sdk" },
     { name = "starlette", specifier = ">=0.16.0,<1.0.0" },
     { name = "tabulate", specifier = ">=0.9.0,<1.0.0" },
-    { name = "tenacity", specifier = ">=9.0.0" },
     { name = "termcolor", specifier = ">=2.4.0" },
     { name = "tiktoken", specifier = ">=0.5.1,<1.0.0" },
     { name = "toml", specifier = ">=0.10.2" },

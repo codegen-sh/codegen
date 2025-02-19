@@ -69,18 +69,12 @@ def semantic_search(
 
         # Format results with previews
         formatted_results = []
-        for filepath, score in results:
-            try:
-                file = codebase.get_file(filepath)
-                preview = file.content[:preview_length].replace("\n", " ").strip()
-                if len(file.content) > preview_length:
-                    preview += "..."
+        for file, score in results:
+            preview = file.content[:preview_length].replace("\n", " ").strip()
+            if len(file.content) > preview_length:
+                preview += "..."
 
-                formatted_results.append({"filepath": filepath, "score": float(score), "preview": preview})
-            except Exception as e:
-                # Skip files that can't be read
-                # print(f"Warning: Could not read file {filepath}: {e}")
-                continue
+            formatted_results.append({"filepath": file.filepath, "score": float(score), "preview": preview})
 
         return {"status": "success", "query": query, "results": formatted_results}
 
