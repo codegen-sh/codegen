@@ -164,6 +164,11 @@ class CodebaseContext:
         self.language_engine = get_language_engine(context.programming_language, self)
         self.programming_language = context.programming_language
 
+        # Raise warning if language is not supported
+        if self.programming_language is ProgrammingLanguage.UNSUPPORTED or self.programming_language is ProgrammingLanguage.OTHER:
+            logger.warning("WARNING: The codebase is using an unsupported language!")
+            logger.warning("Some features may not work as expected. Advanced static analysis will be disabled but simple file IO will still work.")
+
         # Build the graph
         self.build_graph(context.repo_operator)
         try:
