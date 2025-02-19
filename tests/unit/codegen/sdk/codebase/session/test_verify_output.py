@@ -17,5 +17,3 @@ def test_verify_output_python(tmpdir) -> None:
         raise Exception(msg)
     except SyntaxError:
         pass
-
-

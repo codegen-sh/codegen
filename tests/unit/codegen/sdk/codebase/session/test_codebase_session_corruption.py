@@ -34,5 +34,3 @@ def test_get_codebase_session(tmpdir) -> None:
 
     # Verify the file on codegen-sdk was not edited
     assert open(target_file).read() == target_orig_content
-
-
