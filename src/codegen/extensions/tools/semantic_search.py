@@ -79,7 +79,7 @@ def semantic_search(
                 formatted_results.append({"filepath": filepath, "score": float(score), "preview": preview})
             except Exception as e:
                 # Skip files that can't be read
-                print(f"Warning: Could not read file {filepath}: {e}")
+                # print(f"Warning: Could not read file {filepath}: {e}")
                 continue
 
         return {"status": "success", "query": query, "results": formatted_results}

@@ -3,12 +3,13 @@
 import difflib
 import re
 
+from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
 
 from codegen import Codebase
 
 from .tool_prompts import _HUMAN_PROMPT_DRAFT_EDITOR, _SYSTEM_PROMPT_DRAFT_EDITOR
+from .view_file import add_line_numbers
 
 
 def generate_diff(original: str, modified: str) -> str:
@@ -154,10 +155,10 @@ def semantic_edit(codebase: Codebase, filepath: str, edit_content: str, start: i
     system_message = _SYSTEM_PROMPT_DRAFT_EDITOR
     human_message = _HUMAN_PROMPT_DRAFT_EDITOR
     prompt = ChatPromptTemplate.from_messages([system_message, human_message])
-    llm = ChatOpenAI(
-        model="gpt-4o",
+    llm = ChatAnthropic(
+        model="claude-3-5-sonnet-latest",
         temperature=0,
-        max_tokens=10000,
+        max_tokens=5000,
     )
     chain = prompt | llm
     response = chain.invoke({"original_file_section": original_file_section, "edit_content": edit_content})
@@ -183,4 +184,4 @@ def semantic_edit(codebase: Codebase, filepath: str, edit_content: str, start: i
     file.edit(new_content)
     codebase.commit()
 
-    return {"filepath": filepath, "diff": diff, "status": "success"}
+    return {"filepath": filepath, "diff": diff, "status": "success", "new_content": add_line_numbers(new_content)}
