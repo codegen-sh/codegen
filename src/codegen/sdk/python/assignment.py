@@ -101,6 +101,34 @@ class PyAssignment(Assignment["PyAssignmentStatement"], PySymbol):
         # HACK: This is a temporary solution until comments are fixed
         return PyCommentGroup.from_symbol_inline_comments(self, self.ts_node.parent)
 
+    @noapidoc
+    def _partial_remove_when_tuple(self,name, delete_formatting: bool = True, priority: int = 0, dedupe: bool = True):
+        idx = self.parent.left.index(name)
+        value = self.value[idx]
+        self.parent._values_scheduled_for_removal.append(value)
+        #Special case for removing brackets of value
+        if len(self.value) - len(self.parent._values_scheduled_for_removal) == 1:
+            remainder = str(next(x for x in self.value if x not in self.parent._values_scheduled_for_removal and x != value))
+            r_t = RemoveTransaction(self.value.start_byte, self.value.end_byte, self.file, priority=priority)
+            self.transaction_manager.add_transaction(r_t)
+            self.value.insert_at(self.value.start_byte, remainder, priority=priority)
+        else:
+            #Normal just remove one value
+            value.remove(delete_formatting=delete_formatting, priority=priority, dedupe=dedupe)
+        #Remove assignment name
+        name.remove(delete_formatting=delete_formatting, priority=priority, dedupe=dedupe)
+
+    @noapidoc
+    def _active_transactions_on_assignment_names(self,transaction_order:TransactionPriority) -> int:
+        return[
+                any(
+                    self.transaction_manager.get_transactions_at_range(
+                        self.file.path, start_byte=asgnmt.get_name().start_byte, end_byte=asgnmt.get_name().end_byte, transaction_order=transaction_order
+                    )
+                )
+                for asgnmt in self.parent.assignments
+            ].count(True)
+
     @remover
     def remove(self, delete_formatting: bool = True, priority: int = 0, dedupe: bool = True) -> None:
         """Deletes this assignment and its related extended nodes (e.g. decorators, comments).
@@ -117,53 +145,23 @@ class PyAssignment(Assignment["PyAssignmentStatement"], PySymbol):
         Returns:
             None
         """
-        if isinstance(self.parent, AssignmentStatement) and len(self.parent.assignments) > 1:
-            # Unpacking assignments
-            name = self.get_name()
-            if isinstance(self.value, Collection):
-                # Tuples
-                transaction_count = [
-                    any(
-                        self.transaction_manager.get_transactions_at_range(
-                            self.file.path, start_byte=asgnmt.get_name().start_byte, end_byte=asgnmt.get_name().end_byte, transaction_order=TransactionPriority.Remove
-                        )
-                    )
-                    for asgnmt in self.parent.assignments
-                ].count(True)
-                # Check for existing transactions
-                if transaction_count < len(self.parent.assignments) - 1:
-                    idx = self.parent.left.index(name)
-                    value = self.value[idx]
-                    removal_queue_values = getattr(self.parent, "removal_queue", [])
-                    self.parent.removal_queue = removal_queue_values
-                    removal_queue_values.append(str(value))
-                    if len(self.value) - transaction_count == 2:
-                        remainder = str(next(x for x in self.value if x not in removal_queue_values))
-                        r_t = RemoveTransaction(self.value.start_byte, self.value.end_byte, self.file, priority=priority)
-                        self.transaction_manager.add_transaction(r_t)
-                        self.value.insert_at(self.value.start_byte, remainder, priority=priority)
+        if self.ctx.config.feature_flags.unpacking_assignment_partial_removal:
+            if isinstance(self.parent, AssignmentStatement) and len(self.parent.assignments) > 1:
+                # Unpacking assignments
+                name = self.get_name()
+                if isinstance(self.value, Collection):
+                    if len(self.parent._values_scheduled_for_removal) < len(self.parent.assignments) - 1:
+                        self._partial_remove_when_tuple(name,delete_formatting,priority,dedupe)
+                        return
                     else:
-                        value.remove(delete_formatting=delete_formatting, priority=priority, dedupe=dedupe)
-                    name.remove(delete_formatting=delete_formatting, priority=priority, dedupe=dedupe)
-                    return
-            else:
-                transaction_count = [
-                    any(
-                        self.transaction_manager.get_transactions_at_range(
-                            self.file.path, start_byte=asgnmt.get_name().start_byte, end_byte=asgnmt.get_name().end_byte, transaction_order=TransactionPriority.Edit
-                        )
-                    )
-                    for asgnmt in self.parent.assignments
-                ].count(True)
-                throwaway = [asgnmt.name == "_" for asgnmt in self.parent.assignments].count(True)
-                if transaction_count + throwaway < len(self.parent.assignments) - 1:
-                    name.edit("_", priority=priority, dedupe=dedupe)
-                    return
-        if getattr(self.parent, "removal_queue", None):
-            for node in self.extended_nodes:
-                transactions = self.transaction_manager.get_transactions_at_range(self.file.path, start_byte=node.start_byte, end_byte=node.end_byte)
-                for transaction in transactions:
-                    self.transaction_manager.queued_transactions[self.file.path].remove(transaction)
+                        self.parent._values_scheduled_for_removal=[]
+                else:
+                    transaction_count=self._active_transactions_on_assignment_names(TransactionPriority.Edit)
+                    throwaway = [asgnmt.name == "_" for asgnmt in self.parent.assignments].count(True)
+                    #Only edit if we didn't already omit all the other assignments, otherwise just remove the whole thing
+                    if transaction_count + throwaway < len(self.parent.assignments) - 1:
+                        name.edit("_", priority=priority, dedupe=dedupe)
+                        return
 
         for node in self.extended_nodes:
             node._remove(delete_formatting=delete_formatting, priority=priority, dedupe=dedupe)

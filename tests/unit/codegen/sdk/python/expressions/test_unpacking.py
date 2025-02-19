@@ -98,19 +98,63 @@ def test_remove_unpacking_assignment_funct(tmpdir) -> None:
 
 def test_remove_unpacking_assignment_num(tmpdir) -> None:
     # language=python
-    content = """foo,bar,buzz = (1, 2, 3)"""
+    content = """a,b,c,d,e,f = (1, 2, 2, 4, 5, 3)"""
 
-    with get_codebase_session(tmpdir=tmpdir, files={"test1.py": content}) as codebase:
+    with get_codebase_session(tmpdir=tmpdir, files={"test1.py": content,"test2.py":content}) as codebase:
         file1 = codebase.get_file("test1.py")
 
-        foo = file1.get_symbol("foo")
-        buzz = file1.get_symbol("buzz")
+        a = file1.get_symbol("a")
+        d = file1.get_symbol("d")
 
-        foo.remove()
-        buzz.remove()
+        a.remove()
+        d.remove()
+        codebase.commit()
+
+        assert len(file1.symbols) == 4
+        statement = file1.symbols[0].parent
+        assert len(statement.assignments) == 4
+        assert file1.source == """b,c,e,f = (2, 2, 5, 3)"""
+
+        e = file1.get_symbol("e")
+        c = file1.get_symbol("c")
+
+        e.remove()
+        c.remove()
+        codebase.commit()
+
+        assert len(file1.symbols) == 2
+        statement = file1.symbols[0].parent
+        assert len(statement.assignments) == 2
+        assert file1.source == """b,f = (2, 3)"""
+
+        f = file1.get_symbol("f")
+
+        f.remove()
         codebase.commit()
 
         assert len(file1.symbols) == 1
         statement = file1.symbols[0].parent
         assert len(statement.assignments) == 1
-        assert file1.source == """bar = 2"""
+        assert file1.source == """b = 2"""
+        file2 = codebase.get_file("test2.py")
+        a = file2.get_symbol("a")
+        d = file2.get_symbol("d")
+        e = file2.get_symbol("e")
+        c = file2.get_symbol("c")
+        f = file2.get_symbol("f")
+        b = file2.get_symbol("b")
+
+        a.remove()
+        b.remove()
+        c.remove()
+        d.remove()
+        e.remove()
+        f.remove()
+
+        codebase.commit()
+
+        assert len(file2.symbols) == 0
+        assert file2.source == """"""
+
+
+
