@@ -1,0 +1,27 @@
+{
+    "instance_id": "psf__requests-1963",
+    "model_patch": "diff --git a/requests/sessions.py b/requests/sessions.py\nindex 425db22..d7afd2a 100644\n--- a/requests/sessions.py\n+++ b/requests/sessions.py\n@@ -86,6 +86,7 @@ class SessionRedirectMixin(object):\n         \"\"\"Receives a Response. Returns a generator of Responses.\"\"\"\n \n         i = 0\n+        method = req.method  # Track the current method\n \n         while resp.is_redirect:\n             prepared_request = req.copy()\n@@ -99,7 +100,6 @@ class SessionRedirectMixin(object):\n             resp.close()\n \n             url = resp.headers['location']\n-            method = req.method\n \n             # Handle redirection without scheme (see: RFC 1808 Section 4)\n             if url.startswith('//'):\n@@ -156,7 +156,7 @@ class SessionRedirectMixin(object):\n \n             if 'Authorization' in headers:\n                 # If we get redirected to a new host, we should strip out any\n-                #\u00a0authentication headers.\n+                # authentication headers.\n                 original_parsed = urlparse(resp.request.url)\n                 redirect_parsed = urlparse(url)\n \n@@ -568,4 +568,4 @@ class Session(SessionRedirectMixin):\n def session():\n     \"\"\"Returns a :class:`Session` for context-management.\"\"\"\n \n-    return Session()\n+    return Session()\n\\ No newline at end of file\n",
+    "gold_files": [
+        "requests/sessions.py"
+    ],
+    "edited_files": [
+        "requests/sessions.py"
+    ],
+    "try": 1,
+    "tries": 1,
+    "all_results": [
+        {
+            "instance_id": "psf__requests-1963",
+            "model_patch": "diff --git a/requests/sessions.py b/requests/sessions.py\nindex 425db22..d7afd2a 100644\n--- a/requests/sessions.py\n+++ b/requests/sessions.py\n@@ -86,6 +86,7 @@ class SessionRedirectMixin(object):\n         \"\"\"Receives a Response. Returns a generator of Responses.\"\"\"\n \n         i = 0\n+        method = req.method  # Track the current method\n \n         while resp.is_redirect:\n             prepared_request = req.copy()\n@@ -99,7 +100,6 @@ class SessionRedirectMixin(object):\n             resp.close()\n \n             url = resp.headers['location']\n-            method = req.method\n \n             # Handle redirection without scheme (see: RFC 1808 Section 4)\n             if url.startswith('//'):\n@@ -156,7 +156,7 @@ class SessionRedirectMixin(object):\n \n             if 'Authorization' in headers:\n                 # If we get redirected to a new host, we should strip out any\n-                #\u00a0authentication headers.\n+                # authentication headers.\n                 original_parsed = urlparse(resp.request.url)\n                 redirect_parsed = urlparse(url)\n \n@@ -568,4 +568,4 @@ class Session(SessionRedirectMixin):\n def session():\n     \"\"\"Returns a :class:`Session` for context-management.\"\"\"\n \n-    return Session()\n+    return Session()\n\\ No newline at end of file\n",
+            "gold_files": [
+                "requests/sessions.py"
+            ],
+            "edited_files": [
+                "requests/sessions.py"
+            ],
+            "try": 1
+        }
+    ],
+    "cost": 0,
+    "resolved": false
+}

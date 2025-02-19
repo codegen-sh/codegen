@@ -1,0 +1,29 @@
+{
+    "instance_id": "pallets__flask-4992",
+    "model_patch": "diff --git a/src/flask/config.py b/src/flask/config.py\nindex d4fc310..f0a2fc0 100644\n--- a/src/flask/config.py\n+++ b/src/flask/config.py\n@@ -234,6 +234,7 @@ class Config(dict):\n         filename: str,\n         load: t.Callable[[t.IO[t.Any]], t.Mapping],\n         silent: bool = False,\n+        mode: str = 'r',  # Add mode parameter with default 'r'\n     ) -> bool:\n         \"\"\"Update the values in the config from a file that is loaded\n         using the ``load`` parameter. The loaded data is passed to the\n@@ -254,6 +255,7 @@ class Config(dict):\n         :type load: ``Callable[[Reader], Mapping]`` where ``Reader``\n             implements a ``read`` method.\n         :param silent: Ignore the file if it doesn't exist.\n+        :param mode: The mode in which to open the file. Default is 'r'.\n         :return: ``True`` if the file was loaded successfully.\n \n         .. versionadded:: 2.0\n@@ -261,7 +263,7 @@ class Config(dict):\n         filename = os.path.join(self.root_path, filename)\n \n         try:\n-            with open(filename) as f:\n+            with open(filename, mode=mode) as f:  # Use the mode parameter\n                 obj = load(f)\n         except OSError as e:\n             if silent and e.errno in (errno.ENOENT, errno.EISDIR):\n@@ -335,4 +337,4 @@ class Config(dict):\n         return rv\n \n     def __repr__(self) -> str:\n-        return f\"<{type(self).__name__} {dict.__repr__(self)}>\"\n+        return f\"<{type(self).__name__} {dict.__repr__(self)}>\"\n\\ No newline at end of file\ndiff --git a/tests/test_config.py b/tests/test_config.py\nindex 76c5d27..782897b 100644\n--- a/tests/test_config.py\n+++ b/tests/test_config.py\n@@ -1,6 +1,7 @@\n import json\n import os\n import textwrap\n+import tomllib\n \n import pytest\n \n@@ -239,11 +240,18 @@ def test_from_pyfile_weird_encoding(tmpdir, encoding):\n         textwrap.dedent(\n             f\"\"\"\n             # -*- coding: {encoding} -*-\n-            TEST_VALUE = \"f\u00f6\u00f6\"\n+            TEST_VALUE = \"f\u000f\u000f\"\n             \"\"\"\n         ).encode(encoding)\n     )\n     app = flask.Flask(__name__)\n     app.config.from_pyfile(str(f))\n     value = app.config[\"TEST_VALUE\"]\n-    assert value == \"f\u00f6\u00f6\"\n+    assert value == \"f\u000f\u000f\"\n+\n+\n+def test_config_from_toml_file():\n+    app = flask.Flask(__name__)\n+    current_dir = os.path.dirname(os.path.abspath(__file__))\n+    app.config.from_file(os.path.join(current_dir, \"static\", \"config.toml\"), tomllib.load, mode=\"rb\")\n+    common_object_test(app)\n",
+    "gold_files": [
+        "src/flask/config.py"
+    ],
+    "edited_files": [
+        "src/flask/config.py",
+        "tests/test_config.py"
+    ],
+    "try": 1,
+    "tries": 1,
+    "all_results": [
+        {
+            "instance_id": "pallets__flask-4992",
+            "model_patch": "diff --git a/src/flask/config.py b/src/flask/config.py\nindex d4fc310..f0a2fc0 100644\n--- a/src/flask/config.py\n+++ b/src/flask/config.py\n@@ -234,6 +234,7 @@ class Config(dict):\n         filename: str,\n         load: t.Callable[[t.IO[t.Any]], t.Mapping],\n         silent: bool = False,\n+        mode: str = 'r',  # Add mode parameter with default 'r'\n     ) -> bool:\n         \"\"\"Update the values in the config from a file that is loaded\n         using the ``load`` parameter. The loaded data is passed to the\n@@ -254,6 +255,7 @@ class Config(dict):\n         :type load: ``Callable[[Reader], Mapping]`` where ``Reader``\n             implements a ``read`` method.\n         :param silent: Ignore the file if it doesn't exist.\n+        :param mode: The mode in which to open the file. Default is 'r'.\n         :return: ``True`` if the file was loaded successfully.\n \n         .. versionadded:: 2.0\n@@ -261,7 +263,7 @@ class Config(dict):\n         filename = os.path.join(self.root_path, filename)\n \n         try:\n-            with open(filename) as f:\n+            with open(filename, mode=mode) as f:  # Use the mode parameter\n                 obj = load(f)\n         except OSError as e:\n             if silent and e.errno in (errno.ENOENT, errno.EISDIR):\n@@ -335,4 +337,4 @@ class Config(dict):\n         return rv\n \n     def __repr__(self) -> str:\n-        return f\"<{type(self).__name__} {dict.__repr__(self)}>\"\n+        return f\"<{type(self).__name__} {dict.__repr__(self)}>\"\n\\ No newline at end of file\ndiff --git a/tests/test_config.py b/tests/test_config.py\nindex 76c5d27..782897b 100644\n--- a/tests/test_config.py\n+++ b/tests/test_config.py\n@@ -1,6 +1,7 @@\n import json\n import os\n import textwrap\n+import tomllib\n \n import pytest\n \n@@ -239,11 +240,18 @@ def test_from_pyfile_weird_encoding(tmpdir, encoding):\n         textwrap.dedent(\n             f\"\"\"\n             # -*- coding: {encoding} -*-\n-            TEST_VALUE = \"f\u00f6\u00f6\"\n+            TEST_VALUE = \"f\u000f\u000f\"\n             \"\"\"\n         ).encode(encoding)\n     )\n     app = flask.Flask(__name__)\n     app.config.from_pyfile(str(f))\n     value = app.config[\"TEST_VALUE\"]\n-    assert value == \"f\u00f6\u00f6\"\n+    assert value == \"f\u000f\u000f\"\n+\n+\n+def test_config_from_toml_file():\n+    app = flask.Flask(__name__)\n+    current_dir = os.path.dirname(os.path.abspath(__file__))\n+    app.config.from_file(os.path.join(current_dir, \"static\", \"config.toml\"), tomllib.load, mode=\"rb\")\n+    common_object_test(app)\n",
+            "gold_files": [
+                "src/flask/config.py"
+            ],
+            "edited_files": [
+                "src/flask/config.py",
+                "tests/test_config.py"
+            ],
+            "try": 1
+        }
+    ],
+    "cost": 0,
+    "resolved": false
+}

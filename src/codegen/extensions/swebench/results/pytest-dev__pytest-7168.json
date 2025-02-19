@@ -1,0 +1,27 @@
+{
+    "instance_id": "pytest-dev__pytest-7168",
+    "model_patch": "diff --git a/src/_pytest/_io/saferepr.py b/src/_pytest/_io/saferepr.py\nindex 23af4d0..eb03600 100644\n--- a/src/_pytest/_io/saferepr.py\n+++ b/src/_pytest/_io/saferepr.py\n@@ -17,6 +17,8 @@ def _format_repr_exception(exc: BaseException, obj: Any) -> str:\n         exc_info = _try_repr_or_str(exc)\n     except (KeyboardInterrupt, SystemExit):\n         raise\n+    except RuntimeError as exc:\n+        exc_info = \"RuntimeError: No active exception to reraise\"\n     except BaseException as exc:\n         exc_info = \"unpresentable exception ({})\".format(_try_repr_or_str(exc))\n     return \"<[{} raised in repr()] {} object at 0x{:x}>\".format(\n@@ -100,4 +102,4 @@ class AlwaysDispatchingPrettyPrinter(pprint.PrettyPrinter):\n def _pformat_dispatch(object, indent=1, width=80, depth=None, *, compact=False):\n     return AlwaysDispatchingPrettyPrinter(\n         indent=indent, width=width, depth=depth, compact=compact\n-    ).pformat(object)\n+    ).pformat(object)\n\\ No newline at end of file\n",
+    "gold_files": [
+        "src/_pytest/_io/saferepr.py"
+    ],
+    "edited_files": [
+        "src/_pytest/_io/saferepr.py"
+    ],
+    "try": 1,
+    "tries": 1,
+    "all_results": [
+        {
+            "instance_id": "pytest-dev__pytest-7168",
+            "model_patch": "diff --git a/src/_pytest/_io/saferepr.py b/src/_pytest/_io/saferepr.py\nindex 23af4d0..eb03600 100644\n--- a/src/_pytest/_io/saferepr.py\n+++ b/src/_pytest/_io/saferepr.py\n@@ -17,6 +17,8 @@ def _format_repr_exception(exc: BaseException, obj: Any) -> str:\n         exc_info = _try_repr_or_str(exc)\n     except (KeyboardInterrupt, SystemExit):\n         raise\n+    except RuntimeError as exc:\n+        exc_info = \"RuntimeError: No active exception to reraise\"\n     except BaseException as exc:\n         exc_info = \"unpresentable exception ({})\".format(_try_repr_or_str(exc))\n     return \"<[{} raised in repr()] {} object at 0x{:x}>\".format(\n@@ -100,4 +102,4 @@ class AlwaysDispatchingPrettyPrinter(pprint.PrettyPrinter):\n def _pformat_dispatch(object, indent=1, width=80, depth=None, *, compact=False):\n     return AlwaysDispatchingPrettyPrinter(\n         indent=indent, width=width, depth=depth, compact=compact\n-    ).pformat(object)\n+    ).pformat(object)\n\\ No newline at end of file\n",
+            "gold_files": [
+                "src/_pytest/_io/saferepr.py"
+            ],
+            "edited_files": [
+                "src/_pytest/_io/saferepr.py"
+            ],
+            "try": 1
+        }
+    ],
+    "cost": 0,
+    "resolved": false
+}
