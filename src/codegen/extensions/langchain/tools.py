@@ -234,10 +234,23 @@ class RevealSymbolTool(BaseTool):
         return json.dumps(result, indent=2)
 
 
-_SEMANTIC_EDIT_BRIEF = """Tool for semantic editing of files.
-* Allows editing files by providing a draft of the new content
-* For large files, specify line ranges to edit
-* Will intelligently handle unchanged sections of code. Also supports appending to the end of a file."""
+_SEMANTIC_EDIT_BRIEF = """Tool for file editing via an LLM delegate. Describe the changes you want to make and an expert will apply them to the file.
+
+Specify the changes you want to make in the edit_content field, with helpful comments, like so:
+```
+# ... existing code ...
+
+# edit: change function name and body
+def function_redefinition():
+    return 'new_function_body'
+
+# ... existing code ...
+```
+
+Another agent will be responsible for applying your edit and will only see the `edit_content` and the range you specify, so be clear what you are looking to change.
+
+For large files, specify a range slightly larger than the edit you want to make, and be clear in your description what should and shouldn't change.
+"""
 
 
 class SemanticEditInput(BaseModel):
