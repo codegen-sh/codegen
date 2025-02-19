@@ -148,8 +148,6 @@ def _determine_language_by_git_file_count(folder_path: str) -> ProgrammingLangua
     # Get the most common language and its count
     most_common_language, count = language_counts.most_common(1)[0]
 
-    print(f"Most common language: {most_common_language}, count: {count}, total files: {total_files}")
-
     # Check if the most common language makes up at least MIN_LANGUAGE_RATIO of all files
     if total_files > 0 and (count / total_files) < MIN_LANGUAGE_RATIO:
         return ProgrammingLanguage.UNSUPPORTED
