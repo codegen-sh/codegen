@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Generic, Literal, Self, TypeVar, overload, override
+from typing import TYPE_CHECKING, Generic, Literal, Self, overload, override
+
+from typing_extensions import TypeVar
 
 from codegen.sdk._proxy import proxy_property
 from codegen.sdk.core.autocommit import commiter, reader, writer
@@ -42,11 +44,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-TFunction = TypeVar("TFunction", bound="Function")
-TDecorator = TypeVar("TDecorator", bound="Decorator")
-TCodeBlock = TypeVar("TCodeBlock", bound="CodeBlock")
-TParameter = TypeVar("TParameter", bound="Parameter")
-TType = TypeVar("TType", bound="Type")
+TFunction = TypeVar("TFunction", bound="Function", default="Function")
+TDecorator = TypeVar("TDecorator", bound="Decorator", default="Decorator")
+TCodeBlock = TypeVar("TCodeBlock", bound="CodeBlock", default="CodeBlock")
+TParameter = TypeVar("TParameter", bound="Parameter", default="Parameter")
+TType = TypeVar("TType", bound="Type", default="Type")
 
 
 @apidoc

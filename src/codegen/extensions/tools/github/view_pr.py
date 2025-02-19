@@ -18,4 +18,4 @@ def view_pr(codebase: Codebase, pr_id: int) -> dict[str, Any]:
     modified_symbols, patch = codebase.get_modified_symbols_in_pr(pr_id)
 
     # Convert modified_symbols set to list for JSON serialization
-    return {"status": "success", "modified_symbols": list(modified_symbols), "patch": patch}
+    return {"status": "success", "patch": patch}

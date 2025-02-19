@@ -39,7 +39,7 @@ async def lifespan(server: FastAPI):
     global runner
 
     try:
-        server_info = ServerInfo(repo_name=config.repository.full_name)
+        server_info = ServerInfo(repo_name=config.repository.full_name or config.repository.repo_name)
         logger.info(f"Starting up sandbox fastapi server for repo_name={server_info.repo_name}")
         repo_config = RepoConfig(
             name=config.repository.repo_name,
@@ -54,7 +54,6 @@ async def lifespan(server: FastAPI):
     except Exception:
         logger.exception("Failed to build graph during warmup")
         server_info.warmup_state = WarmupState.FAILED
-        raise
 
     logger.info("Sandbox fastapi server is ready to accept requests")
     yield

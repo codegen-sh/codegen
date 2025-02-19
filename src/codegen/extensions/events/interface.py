@@ -1,6 +1,6 @@
 from typing import Protocol
 
-import modal
+import modal  # deptry: ignore
 
 
 class EventHandlerManagerProtocol(Protocol):

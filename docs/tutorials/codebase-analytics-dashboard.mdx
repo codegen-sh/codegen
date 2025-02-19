@@ -1,0 +1,157 @@
+---
+title: "Building a Codebase Analytics Dashboard with Codegen"
+sidebarTitle: "Analytics Dashboard"
+icon: "calculator"
+iconType: "solid"
+---
+
+This tutorial explains how codebase metrics are effiently calculated using the `codegen` library in the Codebase Analytics Dashboard. The metrics include indeces of codebase maintainabilith and complexity.
+
+View the full code and setup instructions in our [codebase-analytics repository](https://github.com/codegen-sh/codebase-analytics).
+
+## Line Metrics
+
+Line metrics are used to determine the size and maintainability of the codebase.
+
+### Lines of Code
+Lines of Code refers to the total number of lines in the source code, including blank lines and comments. This is accomplished with a simple count of all lines in the source file
+
+### Logical Lines of Code (LLOC)
+LLOC is the amount of lines of code which contain actual functional statements. It excludes comments, blank lines, and other lines which do not contribute to the utility of the codebase.
+
+### Source Lines of Code (SLOC)
+SLOC refers to the number of lines containing actual code, excluding blank lines. This includes programming language keywords and comments.
+
+### Comment Density
+Comment density is calculated by dividing the lines of code which contain comments by the total lines of code in the codebase. The formula is:
+
+```python
+"comment_density": (total_comments / total_loc * 100)
+```
+
+It measures the proportion of comments in the codebase and is a good indicator of how much code is properly documented. Accordingly, it can show how maintainable and easy to understand the codebase is.
+
+## Complexity Metrics
+
+### Cyclomatic Complexity
+Cyclomatic Complexity measures the number of linearly independent paths through the codebase, making it a valuable indicator of how difficult code will be to test and maintain.
+
+**Calculation Method**:
+  - Base complexity of 1
+  - +1 for each:
+    - if statement
+    - elif statement
+    - for loop
+    - while loop
+  - +1 for each boolean operator (and, or) in conditions
+  - +1 for each except block in try-catch statements
+
+The `calculate_cyclomatic_complexity()` function traverses the Codgen codebase object and uses the above rules to find statement objects within each function and calculate the overall cyclomatic complexity of the codebase.
+
+```python
+def calculate_cyclomatic_complexity(function):
+    def analyze_statement(statement):
+        complexity = 0
+
+        if isinstance(statement, IfBlockStatement):
+            complexity += 1
+            if hasattr(statement, "elif_statements"):
+                complexity += len(statement.elif_statements)
+
+        elif isinstance(statement, (ForLoopStatement, WhileStatement)):
+            complexity += 1
+
+        return complexity
+```
+
+### Halstead Volume
+Halstead Volume is a software metric which measures the complexity of a codebase by counting the number of unique operators and operands. It is calculated by multiplying the sum of unique operators and operands by the logarithm base 2 of the sum of unique operators and operands.
+
+**Halstead Volume**: `V = (N1 + N2) * log2(n1 + n2)`
+
+This calculation uses codegen's expression types to make this calculation very efficient - these include BinaryExpression, UnaryExpression and ComparisonExpression. The function extracts operators and operands from the codebase object and calculated in `calculate_halstead_volume()` function.
+
+```python
+def calculate_halstead_volume(operators, operands):
+    n1 = len(set(operators))
+    n2 = len(set(operands))
+
+    N1 = len(operators)
+    N2 = len(operands)
+
+    N = N1 + N2
+    n = n1 + n2
+
+    if n > 0:
+        volume = N * math.log2(n)
+        return volume, N1, N2, n1, n2
+    return 0, N1, N2, n1, n2
+```
+
+### Depth of Inheritance (DOI)
+Depth of Inheritance measures the length of inheritance chain for each class. It is calculated by counting the length of the superclasses list for each class in the codebase.  The implementation is handled through a simple calculation using codegen's class information in the `calculate_doi()` function.
+
+```python
+def calculate_doi(cls):
+    return len(cls.superclasses)
+```
+
+## Maintainability Index
+Maintainability Index is a software metric which measures how maintainable a codebase is. Maintainability is described as ease to support and change the code. This index is calculated as a factored formula consisting of SLOC (Source Lines Of Code), Cyclomatic Complexity and Halstead volume.
+
+**Maintainability Index**: `M = 171 - 5.2 * ln(HV) - 0.23 * CC - 16.2 * ln(SLOC)`
+
+This formula is then normalized to a scale of 0-100, where 100 is the maximum maintainability.
+
+The implementation is handled through the `calculate_maintainability_index()` function. The codegen codebase object is used to efficiently extract the Cyclomatic Complexity and Halstead Volume for each function and class in the codebase, which are then used to calculate the maintainability index.
+
+```python
+def calculate_maintainability_index(
+    halstead_volume: float, cyclomatic_complexity: float, loc: int
+) -> int:
+    """Calculate the normalized maintainability index for a given function."""
+    if loc <= 0:
+        return 100
+
+    try:
+        raw_mi = (
+            171
+            - 5.2 * math.log(max(1, halstead_volume))
+            - 0.23 * cyclomatic_complexity
+            - 16.2 * math.log(max(1, loc))
+        )
+        normalized_mi = max(0, min(100, raw_mi * 100 / 171))
+        return int(normalized_mi)
+    except (ValueError, TypeError):
+        return 0
+```
+
+## General Codebase Statistics
+The number of files is determined by traversing codegen's FileNode objects in the parsed codebase. The number of functions is calculated by counting FunctionDef nodes across all parsed files. The number of classes is obtained by summing ClassDef nodes throughout the codebase.
+
+```python
+num_files = len(codebase.files(extensions="*"))
+num_functions = len(codebase.functions)
+num_classes = len(codebase.classes)
+```
+
+The commit activity is calculated by using the git history of the repository. The number of commits is counted for each month in the last 12 months.
+
+## Using the Analysis Tool (Modal Server)
+
+The tool is implemented as a FastAPI application wrapped in a Modal deployment. To analyze a repository:
+
+1. Send a POST request to `/analyze_repo` with the repository URL
+2. The tool will:
+   - Clone the repository
+   - Parse the codebase using codegen
+   - Calculate all metrics
+   - Return a comprehensive JSON response with all metrics
+
+This is the only endpoint in the FastAPI server, as it takes care of the entire analysis process.
+
+To run the FastAPI server locally, install all dependencies and run the server with `modal serve modal_main.py`.
+
+## Frontend Dashboard
+
+The frontend dashboard is implemented as a Next.js application. It is built using Shadcn/UI and uses the `@/components` directory for components.
