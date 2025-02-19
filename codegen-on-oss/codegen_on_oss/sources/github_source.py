@@ -1,0 +1,50 @@
+from collections.abc import Iterator
+from typing import ClassVar, Literal
+
+from github import Auth, Github  # nosemgrep
+
+from .base import RepoSource, SourceSettings
+
+
+class GithubSettings(SourceSettings, env_prefix="GITHUB_"):
+    """
+    Settings for the Github source.
+    """
+
+    language: Literal["python", "typescript"] = "python"
+    heuristic: Literal[
+        "stars",
+        "forks",
+        "updated",
+        # "watchers",
+        # "contributors",
+        # "commit_activity",
+        # "issues",
+        # "dependency",
+    ] = "stars"
+    token: str | None = None
+
+
+class GithubSource(RepoSource[GithubSettings]):
+    source_type: ClassVar[str] = "github"
+    settings_cls: ClassVar[type[SourceSettings]] = GithubSettings
+    github_client: Github
+
+    def __init__(self) -> None:
+        super().__init__()
+        if self.settings.token is None:
+            self.github_client = Github()
+        else:
+            self.github_client = Github(auth=Auth.Token(self.settings.token))
+
+    def __iter__(self) -> Iterator[tuple[str, str | None]]:
+        repositories = self.github_client.search_repositories(
+            query=f"language:{self.settings.language}",
+            sort=self.settings.heuristic,
+            order="desc",
+        )
+
+        for idx, repository in enumerate(repositories):
+            if idx >= self.settings.num_repos:
+                break
+            yield repository.clone_url, None
