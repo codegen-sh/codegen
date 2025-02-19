@@ -1,11 +1,25 @@
 """Tool for deleting files."""
 
-from typing import Any
+from typing import ClassVar
+
+from pydantic import Field
 
 from codegen import Codebase
 
+from .observation import Observation
 
-def delete_file(codebase: Codebase, filepath: str) -> dict[str, Any]:
+
+class DeleteFileObservation(Observation):
+    """Response from deleting a file."""
+
+    filepath: str = Field(
+        description="Path to the deleted file",
+    )
+
+    str_template: ClassVar[str] = "Deleted file {filepath}"
+
+
+def delete_file(codebase: Codebase, filepath: str) -> DeleteFileObservation:
     """Delete a file.
 
     Args:
@@ -13,15 +27,34 @@ def delete_file(codebase: Codebase, filepath: str) -> dict[str, Any]:
         filepath: Path to the file to delete
 
     Returns:
-        Dict containing deletion status, or error information if file not found
+        DeleteFileObservation containing deletion status, or error if file not found
     """
     try:
         file = codebase.get_file(filepath)
     except ValueError:
-        return {"error": f"File not found: {filepath}"}
-    if file is None:
-        return {"error": f"File not found: {filepath}"}
+        return DeleteFileObservation(
+            status="error",
+            error=f"File not found: {filepath}",
+            filepath=filepath,
+        )
 
-    file.remove()
-    codebase.commit()
-    return {"status": "success", "deleted_file": filepath}
+    if file is None:
+        return DeleteFileObservation(
+            status="error",
+            error=f"File not found: {filepath}",
+            filepath=filepath,
+        )
+
+    try:
+        file.remove()
+        codebase.commit()
+        return DeleteFileObservation(
+            status="success",
+            filepath=filepath,
+        )
+    except Exception as e:
+        return DeleteFileObservation(
+            status="error",
+            error=f"Failed to delete file: {e!s}",
+            filepath=filepath,
+        )

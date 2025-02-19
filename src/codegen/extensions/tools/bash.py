@@ -3,7 +3,11 @@
 import re
 import shlex
 import subprocess
-from typing import Any
+from typing import ClassVar, Optional
+
+from pydantic import Field
+
+from .observation import Observation
 
 # Whitelist of allowed commands and their flags
 ALLOWED_COMMANDS = {
@@ -20,6 +24,28 @@ ALLOWED_COMMANDS = {
     "du": {"-h", "-s"},
     "wc": {"-l", "-w", "-c"},
 }
+
+
+class RunBashCommandObservation(Observation):
+    """Response from running a bash command."""
+
+    stdout: Optional[str] = Field(
+        default=None,
+        description="Standard output from the command",
+    )
+    stderr: Optional[str] = Field(
+        default=None,
+        description="Standard error from the command",
+    )
+    command: str = Field(
+        description="The command that was executed",
+    )
+    pid: Optional[int] = Field(
+        default=None,
+        description="Process ID for background commands",
+    )
+
+    str_template: ClassVar[str] = "Command '{command}' completed"
 
 
 def validate_command(command: str) -> tuple[bool, str]:
@@ -90,7 +116,7 @@ def validate_command(command: str) -> tuple[bool, str]:
         return False, f"Failed to validate command: {e!s}"
 
 
-def run_bash_command(command: str, is_background: bool = False) -> dict[str, Any]:
+def run_bash_command(command: str, is_background: bool = False) -> RunBashCommandObservation:
     """Run a bash command and return its output.
 
     Args:
@@ -98,15 +124,16 @@ def run_bash_command(command: str, is_background: bool = False) -> dict[str, Any
         is_background: Whether to run the command in the background
 
     Returns:
-        Dictionary containing the command output or error
+        RunBashCommandObservation containing the command output or error
     """
     # First validate the command
     is_valid, error_message = validate_command(command)
     if not is_valid:
-        return {
-            "status": "error",
-            "error": f"Invalid command: {error_message}",
-        }
+        return RunBashCommandObservation(
+            status="error",
+            error=f"Invalid command: {error_message}",
+            command=command,
+        )
 
     try:
         if is_background:
@@ -118,10 +145,11 @@ def run_bash_command(command: str, is_background: bool = False) -> dict[str, Any
                 stderr=subprocess.PIPE,
                 text=True,
             )
-            return {
-                "status": "success",
-                "message": f"Command '{command}' started in background with PID {process.pid}",
-            }
+            return RunBashCommandObservation(
+                status="success",
+                command=command,
+                pid=process.pid,
+            )
 
         # For foreground processes, we wait for completion
         result = subprocess.run(
@@ -132,20 +160,24 @@ def run_bash_command(command: str, is_background: bool = False) -> dict[str, Any
             check=True,  # This will raise CalledProcessError if command fails
         )
 
-        return {
-            "status": "success",
-            "stdout": result.stdout,
-            "stderr": result.stderr,
-        }
+        return RunBashCommandObservation(
+            status="success",
+            command=command,
+            stdout=result.stdout,
+            stderr=result.stderr,
+        )
+
     except subprocess.CalledProcessError as e:
-        return {
-            "status": "error",
-            "error": f"Command failed with exit code {e.returncode}",
-            "stdout": e.stdout,
-            "stderr": e.stderr,
-        }
+        return RunBashCommandObservation(
+            status="error",
+            error=f"Command failed with exit code {e.returncode}",
+            command=command,
+            stdout=e.stdout,
+            stderr=e.stderr,
+        )
     except Exception as e:
-        return {
-            "status": "error",
-            "error": f"Failed to run command: {e!s}",
-        }
+        return RunBashCommandObservation(
+            status="error",
+            error=f"Failed to run command: {e!s}",
+            command=command,
+        )
