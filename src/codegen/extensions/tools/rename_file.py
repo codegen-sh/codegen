@@ -1,13 +1,32 @@
 """Tool for renaming files and updating imports."""
 
-from typing import Any
+from typing import ClassVar
+
+from pydantic import Field
 
 from codegen import Codebase
 
-from .view_file import view_file
+from .observation import Observation
+from .view_file import ViewFileObservation, view_file
 
 
-def rename_file(codebase: Codebase, filepath: str, new_filepath: str) -> dict[str, Any]:
+class RenameFileObservation(Observation):
+    """Response from renaming a file."""
+
+    old_filepath: str = Field(
+        description="Original path of the file",
+    )
+    new_filepath: str = Field(
+        description="New path of the file",
+    )
+    file_info: ViewFileObservation = Field(
+        description="Information about the renamed file",
+    )
+
+    str_template: ClassVar[str] = "Renamed file from {old_filepath} to {new_filepath}"
+
+
+def rename_file(codebase: Codebase, filepath: str, new_filepath: str) -> RenameFileObservation:
     """Rename a file and update all imports to point to the new location.
 
     Args:
@@ -16,21 +35,61 @@ def rename_file(codebase: Codebase, filepath: str, new_filepath: str) -> dict[st
         new_filepath: New path for the file relative to workspace root
 
     Returns:
-        Dict containing rename status and new file info, or error information if file not found
+        RenameFileObservation containing rename status and new file info
     """
     try:
         file = codebase.get_file(filepath)
     except ValueError:
-        return {"error": f"File not found: {filepath}"}
-    if file is None:
-        return {"error": f"File not found: {filepath}"}
+        return RenameFileObservation(
+            status="error",
+            error=f"File not found: {filepath}",
+            old_filepath=filepath,
+            new_filepath=new_filepath,
+            file_info=ViewFileObservation(
+                status="error",
+                error=f"File not found: {filepath}",
+                filepath=filepath,
+                content="",
+                line_count=0,
+            ),
+        )
 
     if codebase.has_file(new_filepath):
-        return {"error": f"Destination file already exists: {new_filepath}"}
+        return RenameFileObservation(
+            status="error",
+            error=f"Destination file already exists: {new_filepath}",
+            old_filepath=filepath,
+            new_filepath=new_filepath,
+            file_info=ViewFileObservation(
+                status="error",
+                error=f"Destination file already exists: {new_filepath}",
+                filepath=new_filepath,
+                content="",
+                line_count=0,
+            ),
+        )
 
     try:
         file.update_filepath(new_filepath)
         codebase.commit()
-        return {"status": "success", "old_filepath": filepath, "new_filepath": new_filepath, "file_info": view_file(codebase, new_filepath)}
+
+        return RenameFileObservation(
+            status="success",
+            old_filepath=filepath,
+            new_filepath=new_filepath,
+            file_info=view_file(codebase, new_filepath),
+        )
     except Exception as e:
-        return {"error": f"Failed to rename file: {e!s}"}
+        return RenameFileObservation(
+            status="error",
+            error=f"Failed to rename file: {e!s}",
+            old_filepath=filepath,
+            new_filepath=new_filepath,
+            file_info=ViewFileObservation(
+                status="error",
+                error=f"Failed to rename file: {e!s}",
+                filepath=filepath,
+                content="",
+                line_count=0,
+            ),
+        )

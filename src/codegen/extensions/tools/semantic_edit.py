@@ -2,14 +2,39 @@
 
 import difflib
 import re
+from typing import ClassVar, Optional
 
 from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import ChatPromptTemplate
+from pydantic import Field
 
 from codegen import Codebase
 
+from .observation import Observation
 from .semantic_edit_prompts import _HUMAN_PROMPT_DRAFT_EDITOR, COMMANDER_SYSTEM_PROMPT
 from .view_file import add_line_numbers
+
+
+class SemanticEditObservation(Observation):
+    """Response from making semantic edits to a file."""
+
+    filepath: str = Field(
+        description="Path to the edited file",
+    )
+    diff: Optional[str] = Field(
+        default=None,
+        description="Unified diff showing the changes made",
+    )
+    new_content: Optional[str] = Field(
+        default=None,
+        description="New content with line numbers",
+    )
+    line_count: Optional[int] = Field(
+        default=None,
+        description="Total number of lines in file",
+    )
+
+    str_template: ClassVar[str] = "Edited file {filepath}"
 
 
 def generate_diff(original: str, modified: str) -> str:
@@ -53,7 +78,8 @@ def _extract_code_block(llm_response: str) -> str:
     matches = re.findall(pattern, llm_response.strip(), re.DOTALL)
 
     if not matches:
-        raise ValueError("LLM response must contain code wrapped in ``` blocks. Got response: " + llm_response[:200] + "...")
+        msg = "LLM response must contain code wrapped in ``` blocks. Got response: " + llm_response[:200] + "..."
+        raise ValueError(msg)
 
     # Return the last code block exactly as is
     return matches[-1]
@@ -106,7 +132,7 @@ def _validate_edit_boundaries(original_lines: list[str], modified_lines: list[st
             raise ValueError(msg)
 
 
-def semantic_edit(codebase: Codebase, filepath: str, edit_content: str, start: int = 1, end: int = -1) -> dict[str, str]:
+def semantic_edit(codebase: Codebase, filepath: str, edit_content: str, start: int = 1, end: int = -1) -> SemanticEditObservation:
     """Edit a file using semantic editing with line range support. This is an internal api and should not be called by the LLM."""
     try:
         file = codebase.get_file(filepath)
@@ -121,15 +147,16 @@ def semantic_edit(codebase: Codebase, filepath: str, edit_content: str, start: i
     # Check if file is too large for full edit
     MAX_LINES = 300
     if len(original_lines) > MAX_LINES and start == 1 and end == -1:
-        return {
-            "error": (
+        return SemanticEditObservation(
+            status="error",
+            error=(
                 f"File is {len(original_lines)} lines long. For files longer than {MAX_LINES} lines, "
                 "please specify a line range using start and end parameters. "
                 "You may need to make multiple targeted edits."
             ),
-            "status": "error",
-            "line_count": len(original_lines),
-        }
+            filepath=filepath,
+            line_count=len(original_lines),
+        )
 
     # Handle append mode
     if start == -1 and end == -1:
@@ -137,7 +164,12 @@ def semantic_edit(codebase: Codebase, filepath: str, edit_content: str, start: i
             file.add_symbol_from_source(edit_content)
             codebase.commit()
 
-            return {"filepath": filepath, "content": file.content, "diff": generate_diff(original_content, file.content), "status": "success"}
+            return SemanticEditObservation(
+                status="success",
+                filepath=filepath,
+                new_content=file.content,
+                diff=generate_diff(original_content, file.content),
+            )
         except Exception as e:
             msg = f"Failed to append content: {e!s}"
             raise ValueError(msg)
@@ -167,21 +199,43 @@ def semantic_edit(codebase: Codebase, filepath: str, edit_content: str, start: i
     try:
         modified_segment = _extract_code_block(response.content)
     except ValueError as e:
-        msg = f"Failed to parse LLM response: {e!s}"
-        raise ValueError(msg)
+        return SemanticEditObservation(
+            status="error",
+            error=f"Failed to parse LLM response: {e!s}",
+            filepath=filepath,
+        )
 
     # Merge the edited content with the original
     new_content = _merge_content(original_content, modified_segment, start, end)
     new_lines = new_content.splitlines()
 
     # Validate that no changes were made before the start line
-    _validate_edit_boundaries(original_lines, new_lines, start_idx, end_idx)
+    try:
+        _validate_edit_boundaries(original_lines, new_lines, start_idx, end_idx)
+    except ValueError as e:
+        return SemanticEditObservation(
+            status="error",
+            error=str(e),
+            filepath=filepath,
+        )
 
     # Generate diff
     diff = generate_diff(original_content, new_content)
 
     # Apply the edit
-    file.edit(new_content)
-    codebase.commit()
+    try:
+        file.edit(new_content)
+        codebase.commit()
+    except Exception as e:
+        return SemanticEditObservation(
+            status="error",
+            error=f"Failed to apply edit: {e!s}",
+            filepath=filepath,
+        )
 
-    return {"filepath": filepath, "diff": diff, "status": "success", "new_content": add_line_numbers(new_content)}
+    return SemanticEditObservation(
+        status="success",
+        filepath=filepath,
+        diff=diff,
+        new_content=add_line_numbers(new_content),
+    )

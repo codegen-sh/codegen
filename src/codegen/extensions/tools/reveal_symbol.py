@@ -1,12 +1,57 @@
-from typing import Any, Optional
+"""Tool for revealing symbol dependencies and usages."""
+
+from typing import Any, ClassVar, Optional
 
 import tiktoken
+from pydantic import Field
 
 from codegen import Codebase
 from codegen.sdk.ai.utils import count_tokens
 from codegen.sdk.core.external_module import ExternalModule
 from codegen.sdk.core.import_resolution import Import
 from codegen.sdk.core.symbol import Symbol
+
+from .observation import Observation
+
+
+class SymbolInfo(Observation):
+    """Information about a symbol."""
+
+    name: str = Field(description="Name of the symbol")
+    filepath: Optional[str] = Field(description="Path to the file containing the symbol")
+    source: str = Field(description="Source code of the symbol")
+
+    str_template: ClassVar[str] = "{name} in {filepath}"
+
+
+class RevealSymbolObservation(Observation):
+    """Response from revealing symbol dependencies and usages."""
+
+    dependencies: Optional[list[SymbolInfo]] = Field(
+        default=None,
+        description="List of symbols this symbol depends on",
+    )
+    usages: Optional[list[SymbolInfo]] = Field(
+        default=None,
+        description="List of symbols that use this symbol",
+    )
+    truncated: bool = Field(
+        default=False,
+        description="Whether results were truncated due to token limit",
+    )
+    valid_filepaths: Optional[list[str]] = Field(
+        default=None,
+        description="List of valid filepaths when symbol is ambiguous",
+    )
+
+    str_template: ClassVar[str] = "Symbol info: {dependencies_count} dependencies, {usages_count} usages"
+
+    def _get_details(self) -> dict[str, Any]:
+        """Get details for string representation."""
+        return {
+            "dependencies_count": len(self.dependencies or []),
+            "usages_count": len(self.usages or []),
+        }
 
 
 def truncate_source(source: str, max_tokens: int) -> str:
@@ -70,7 +115,7 @@ def truncate_source(source: str, max_tokens: int) -> str:
     return "".join(result)
 
 
-def get_symbol_info(symbol: Symbol, max_tokens: Optional[int] = None) -> dict[str, Any]:
+def get_symbol_info(symbol: Symbol, max_tokens: Optional[int] = None) -> SymbolInfo:
     """Get relevant information about a symbol.
 
     Args:
@@ -84,11 +129,12 @@ def get_symbol_info(symbol: Symbol, max_tokens: Optional[int] = None) -> dict[st
     if max_tokens:
         source = truncate_source(source, max_tokens)
 
-    return {
-        "name": symbol.name,
-        "filepath": symbol.file.filepath if symbol.file else None,
-        "source": source,
-    }
+    return SymbolInfo(
+        status="success",
+        name=symbol.name,
+        filepath=symbol.file.filepath if symbol.file else None,
+        source=source,
+    )
 
 
 def hop_through_imports(symbol: Symbol, seen_imports: Optional[set[str]] = None) -> Symbol:
@@ -122,7 +168,7 @@ def get_extended_context(
     total_tokens: int = 0,
     collect_dependencies: bool = True,
     collect_usages: bool = True,
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]], int]:
+) -> tuple[list[SymbolInfo], list[SymbolInfo], int]:
     """Recursively collect dependencies and usages up to specified degree.
 
     Args:
@@ -164,7 +210,7 @@ def get_extended_context(
             if dep not in seen_symbols:
                 # Calculate tokens for this symbol
                 info = get_symbol_info(dep, max_tokens=max_tokens)
-                symbol_tokens = count_tokens(info["source"]) if info["source"] else 0
+                symbol_tokens = count_tokens(info.source) if info.source else 0
 
                 if max_tokens and total_tokens + symbol_tokens > max_tokens:
                     continue
@@ -189,7 +235,7 @@ def get_extended_context(
             if usage not in seen_symbols:
                 # Calculate tokens for this symbol
                 info = get_symbol_info(usage, max_tokens=max_tokens)
-                symbol_tokens = count_tokens(info["source"]) if info["source"] else 0
+                symbol_tokens = count_tokens(info.source) if info.source else 0
 
                 if max_tokens and total_tokens + symbol_tokens > max_tokens:
                     continue
@@ -214,7 +260,7 @@ def reveal_symbol(
     max_tokens: Optional[int] = None,
     collect_dependencies: Optional[bool] = True,
     collect_usages: Optional[bool] = True,
-) -> dict[str, Any]:
+) -> RevealSymbolObservation:
     """Reveal the dependencies and usages of a symbol up to N degrees.
 
     Args:
@@ -235,22 +281,36 @@ def reveal_symbol(
     """
     symbols = codebase.get_symbols(symbol_name=symbol_name)
     if len(symbols) == 0:
-        return {"error": f"{symbol_name} not found"}
+        return RevealSymbolObservation(
+            status="error",
+            error=f"{symbol_name} not found",
+        )
     if len(symbols) > 1:
-        return {"error": f"{symbol_name} is ambiguious", "valid_filepaths": [s.file.filepath for s in symbols]}
+        return RevealSymbolObservation(
+            status="error",
+            error=f"{symbol_name} is ambiguous",
+            valid_filepaths=[s.file.filepath for s in symbols],
+        )
     symbol = symbols[0]
     if filepath:
         if symbol.file.filepath != filepath:
-            return {"error": f"{symbol_name} not found at {filepath}", "valid_filepaths": [s.file.filepath for s in symbols]}
+            return RevealSymbolObservation(
+                status="error",
+                error=f"{symbol_name} not found at {filepath}",
+                valid_filepaths=[s.file.filepath for s in symbols],
+            )
 
     # Get dependencies and usages up to specified degree
     dependencies, usages, total_tokens = get_extended_context(symbol, max_depth, max_tokens, collect_dependencies=collect_dependencies, collect_usages=collect_usages)
 
     was_truncated = max_tokens is not None and total_tokens >= max_tokens
 
-    result = {"truncated": was_truncated}
+    result = RevealSymbolObservation(
+        status="success",
+        truncated=was_truncated,
+    )
     if collect_dependencies:
-        result["dependencies"] = dependencies
+        result.dependencies = dependencies
     if collect_usages:
-        result["usages"] = usages
+        result.usages = usages
     return result

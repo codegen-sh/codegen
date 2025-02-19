@@ -1,10 +1,35 @@
 """Tool for moving symbols between files."""
 
-from typing import Any, Literal
+from typing import ClassVar, Literal
+
+from pydantic import Field
 
 from codegen import Codebase
 
-from .view_file import view_file
+from .observation import Observation
+from .view_file import ViewFileObservation, view_file
+
+
+class MoveSymbolObservation(Observation):
+    """Response from moving a symbol between files."""
+
+    symbol_name: str = Field(
+        description="Name of the symbol that was moved",
+    )
+    source_file: str = Field(
+        description="Path to the source file",
+    )
+    target_file: str = Field(
+        description="Path to the target file",
+    )
+    source_file_info: ViewFileObservation = Field(
+        description="Information about the source file after move",
+    )
+    target_file_info: ViewFileObservation = Field(
+        description="Information about the target file after move",
+    )
+
+    str_template: ClassVar[str] = "Moved symbol {symbol_name} from {source_file} to {target_file}"
 
 
 def move_symbol(
@@ -14,7 +39,7 @@ def move_symbol(
     target_file: str,
     strategy: Literal["update_all_imports", "add_back_edge"] = "update_all_imports",
     include_dependencies: bool = True,
-) -> dict[str, Any]:
+) -> MoveSymbolObservation:
     """Move a symbol from one file to another.
 
     Args:
@@ -28,34 +53,89 @@ def move_symbol(
         include_dependencies: Whether to move dependencies along with the symbol
 
     Returns:
-        Dict containing move status and updated file info, or error information if operation fails
+        MoveSymbolObservation containing move status and updated file info
     """
     try:
         source = codebase.get_file(source_file)
     except ValueError:
-        return {"error": f"Source file not found: {source_file}"}
-    if source is None:
-        return {"error": f"Source file not found: {source_file}"}
+        return MoveSymbolObservation(
+            status="error",
+            error=f"Source file not found: {source_file}",
+            symbol_name=symbol_name,
+            source_file=source_file,
+            target_file=target_file,
+            source_file_info=ViewFileObservation(
+                status="error",
+                error=f"Source file not found: {source_file}",
+                filepath=source_file,
+                content="",
+                line_count=0,
+            ),
+            target_file_info=ViewFileObservation(
+                status="error",
+                error=f"Source file not found: {source_file}",
+                filepath=target_file,
+                content="",
+                line_count=0,
+            ),
+        )
 
     try:
         target = codebase.get_file(target_file)
     except ValueError:
-        return {"error": f"Target file not found: {target_file}"}
+        return MoveSymbolObservation(
+            status="error",
+            error=f"Target file not found: {target_file}",
+            symbol_name=symbol_name,
+            source_file=source_file,
+            target_file=target_file,
+            source_file_info=ViewFileObservation(
+                status="error",
+                error=f"Target file not found: {target_file}",
+                filepath=source_file,
+                content="",
+                line_count=0,
+            ),
+            target_file_info=ViewFileObservation(
+                status="error",
+                error=f"Target file not found: {target_file}",
+                filepath=target_file,
+                content="",
+                line_count=0,
+            ),
+        )
 
     symbol = source.get_symbol(symbol_name)
     if not symbol:
-        return {"error": f"Symbol '{symbol_name}' not found in {source_file}"}
+        return MoveSymbolObservation(
+            status="error",
+            error=f"Symbol '{symbol_name}' not found in {source_file}",
+            symbol_name=symbol_name,
+            source_file=source_file,
+            target_file=target_file,
+            source_file_info=view_file(codebase, source_file),
+            target_file_info=view_file(codebase, target_file),
+        )
 
     try:
         symbol.move_to_file(target, include_dependencies=include_dependencies, strategy=strategy)
         codebase.commit()
-        return {
-            "status": "success",
-            "symbol": symbol_name,
-            "source_file": source_file,
-            "target_file": target_file,
-            "source_file_info": view_file(codebase, source_file),
-            "target_file_info": view_file(codebase, target_file),
-        }
+
+        return MoveSymbolObservation(
+            status="success",
+            symbol_name=symbol_name,
+            source_file=source_file,
+            target_file=target_file,
+            source_file_info=view_file(codebase, source_file),
+            target_file_info=view_file(codebase, target_file),
+        )
     except Exception as e:
-        return {"error": f"Failed to move symbol: {e!s}"}
+        return MoveSymbolObservation(
+            status="error",
+            error=f"Failed to move symbol: {e!s}",
+            symbol_name=symbol_name,
+            source_file=source_file,
+            target_file=target_file,
+            source_file_info=view_file(codebase, source_file),
+            target_file_info=view_file(codebase, target_file),
+        )
