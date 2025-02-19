@@ -3,7 +3,7 @@
 import json
 from typing import Callable, ClassVar, Literal, Optional
 
-from langchain.tools import BaseTool
+from langchain_core.tools.base import BaseTool
 from pydantic import BaseModel, Field
 
 from codegen import Codebase
@@ -18,6 +18,10 @@ from codegen.extensions.tools.linear.linear import (
     linear_search_issues_tool,
 )
 from codegen.extensions.tools.link_annotation import add_links_to_message
+from codegen.extensions.tools.reveal_symbol import reveal_symbol
+from codegen.extensions.tools.search import search
+from codegen.extensions.tools.semantic_edit import semantic_edit
+from codegen.extensions.tools.semantic_search import semantic_search
 
 from ..tools import (
     commit,
@@ -30,13 +34,10 @@ from ..tools import (
     list_directory,
     move_symbol,
     rename_file,
-    reveal_symbol,
-    search,
-    semantic_edit,
-    semantic_search,
     view_file,
     view_pr,
 )
+from ..tools.tool_prompts import _FILE_EDIT_DESCRIPTION
 
 
 class ViewFileInput(BaseModel):
@@ -118,7 +119,7 @@ class EditFileTool(BaseTool):
     """Tool for editing files."""
 
     name: ClassVar[str] = "edit_file"
-    description: ClassVar[str] = "Edit a file by replacing its entire content"
+    description: ClassVar[str] = "Edit a file by replacing its entire content. This tool should only be used for replacing entire file contents."
     args_schema: ClassVar[type[BaseModel]] = EditFileInput
     codebase: Codebase = Field(exclude=True)
 
@@ -233,36 +234,35 @@ class RevealSymbolTool(BaseTool):
         return json.dumps(result, indent=2)
 
 
+_SEMANTIC_EDIT_BRIEF = """Tool for semantic editing of files.
+* Allows editing files by providing a draft of the new content
+* For large files, specify line ranges to edit
+* Will intelligently handle unchanged sections of code. Also supports appending to the end of a file."""
+
+
 class SemanticEditInput(BaseModel):
     """Input for semantic editing."""
 
-    filepath: str = Field(..., description="Path to the file to edit")
-    edit_spec: str = Field(
-        ...,
-        description="""The edit specification showing desired changes.
-Must contain code blocks between '# ... existing code ...' markers.
-Example:
-# ... existing code ...
-def new_function():
-    print("Hello")
-# ... existing code ...
-""",
-    )
+    filepath: str = Field(..., description="Path of the file relative to workspace root")
+    edit_content: str = Field(..., description=_FILE_EDIT_DESCRIPTION)
+    start: int = Field(default=1, description="Starting line number (1-indexed, inclusive). Default is 1.")
+    end: int = Field(default=-1, description="Ending line number (1-indexed, inclusive). Default is -1 (end of file).")
 
 
 class SemanticEditTool(BaseTool):
     """Tool for semantic editing of files."""
 
     name: ClassVar[str] = "semantic_edit"
-    description: ClassVar[str] = "Edit a file using a semantic edit specification with code blocks"
+    description: ClassVar[str] = _SEMANTIC_EDIT_BRIEF  # Short description
     args_schema: ClassVar[type[BaseModel]] = SemanticEditInput
     codebase: Codebase = Field(exclude=True)
 
     def __init__(self, codebase: Codebase) -> None:
         super().__init__(codebase=codebase)
 
-    def _run(self, filepath: str, edit_spec: str) -> str:
-        result = semantic_edit(self.codebase, filepath, edit_spec)
+    def _run(self, filepath: str, edit_content: str, start: int = 1, end: int = -1) -> str:
+        # Create the the draft editor mini llm
+        result = semantic_edit(self.codebase, filepath, edit_content, start=start, end=end)
         return json.dumps(result, indent=2)
 
 
