@@ -1,4 +1,4 @@
-from codegen.git.repo_operator.remote_repo_operator import RemoteRepoOperator
+from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.sdk.codebase.flagging.code_flag import CodeFlag
 from codegen.sdk.codebase.flagging.group import Group
 from codegen.sdk.codebase.flagging.groupers.base_grouper import BaseGrouper
@@ -18,7 +18,7 @@ class CodeownerGrouper(BaseGrouper):
     type: GroupBy = GroupBy.CODEOWNER
 
     @staticmethod
-    def create_all_groups(flags: list[CodeFlag], repo_operator: RemoteRepoOperator | None = None) -> list[Group]:
+    def create_all_groups(flags: list[CodeFlag], repo_operator: RepoOperator | None = None) -> list[Group]:
         owner_to_group: dict[str, Group] = {}
         no_owner_group = Group(group_by=GroupBy.CODEOWNER, segment="@no-owner", flags=[])
         for idx, flag in enumerate(flags):
@@ -36,6 +36,6 @@ class CodeownerGrouper(BaseGrouper):
         return [*list(owner_to_group.values()), no_owner_group]
 
     @staticmethod
-    def create_single_group(flags: list[CodeFlag], segment: str, repo_operator: RemoteRepoOperator | None = None) -> Group:
+    def create_single_group(flags: list[CodeFlag], segment: str, repo_operator: RepoOperator | None = None) -> Group:
         msg = "TODO: implement single group creation"
         raise NotImplementedError(msg)

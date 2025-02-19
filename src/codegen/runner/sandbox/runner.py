@@ -3,7 +3,8 @@ import sys
 
 from git import Commit as GitCommit
 
-from codegen.git.repo_operator.remote_repo_operator import RemoteRepoOperator
+from codegen.git.repo_operator.repo_operator import RepoOperator
+from codegen.git.schemas.enums import SetupOption
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.runner.models.apis import CreateBranchRequest, CreateBranchResponse, GetDiffRequest, GetDiffResponse
 from codegen.runner.sandbox.executor import SandboxExecutor
@@ -24,7 +25,7 @@ class SandboxRunner:
     # =====[ __init__ instance attributes ]=====
     repo: RepoConfig
     commit: GitCommit
-    op: RemoteRepoOperator | None
+    op: RepoOperator | None
 
     # =====[ computed instance attributes ]=====
     codebase: CodebaseType
@@ -32,7 +33,7 @@ class SandboxRunner:
 
     def __init__(self, repo_config: RepoConfig, access_token: str) -> None:
         self.repo = repo_config
-        self.op = RemoteRepoOperator(repo_config=self.repo, access_token=access_token)
+        self.op = RepoOperator(repo_config=self.repo, access_token=access_token, setup_option=SetupOption.PULL_OR_CLONE)
         self.commit = self.op.git_cli.head.commit
 
     async def warmup(self) -> None:
@@ -56,7 +57,7 @@ class SandboxRunner:
 
         At the start of every job the runner should be in the following state:
         - Codebase is checked out to the pinned commit (i.e. self.commit)
-        - Codebase LRP (LocalRepoOperator) has only the origin remote and no branches
+        - Codebase RP (RepoOperator) has only the origin remote and no branches
 
         This method puts the runner in the above state and should be called at the end of every job.
         """

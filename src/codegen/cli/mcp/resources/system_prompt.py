@@ -1420,7 +1420,7 @@ Here's an example:
 
 ```python
 from codegen import Codebase
-from codegen.git.repo_operator.local_repo_operator import LocalRepoOperator
+from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.sdk.codebase.config import ProjectConfig
 from codegen.shared.enums.programming_language import ProgrammingLanguage
@@ -1428,7 +1428,7 @@ from codegen.shared.enums.programming_language import ProgrammingLanguage
 codebase = Codebase(
     projects = [
         ProjectConfig(
-            repo_operator=LocalRepoOperator(
+            repo_operator=RepoOperator(
                 repo_config=RepoConfig(name="codegen-sdk"),
                 bot_commit=True
             ),
@@ -6026,9 +6026,9 @@ Explore our tutorials to learn how to use Codegen for various code transformatio
     Update API calls, handle breaking changes, and manage bulk updates across your codebase.
   </Card>
   <Card
-    title="SQLAlchemy 1.6 to 2.0"
+    title="SQLAlchemy 1.4 to 2.0"
     icon="layer-group"
-    href="/tutorials/sqlalchemy-1.6-to-2.0"
+    href="/tutorials/sqlalchemy-1.4-to-2.0"
   >
     Update SQLAlchemy code to use the new 2.0-style query interface and patterns.
   </Card>
@@ -9045,17 +9045,17 @@ def temp_dir():
 
 
 ---
-title: "Migrating from SQLAlchemy 1.6 to 2.0"
-sidebarTitle: "SQLAlchemy 1.6 to 2.0"
-description: "Learn how to migrate SQLAlchemy 1.6 codebases to 2.0 using Codegen"
+title: "Migrating from SQLAlchemy 1.4 to 2.0"
+sidebarTitle: "SQLAlchemy 1.4 to 2.0"
+description: "Learn how to migrate SQLAlchemy 1.4 codebases to 2.0 using Codegen"
 icon: "layer-group"
 iconType: "solid"
 ---
 
-Migrating from [SQLAlchemy](https://www.sqlalchemy.org/) 1.6 to 2.0 involves several API changes to support the new 2.0-style query interface. This guide will walk you through using Codegen to automate this migration, handling query syntax, session usage, and ORM patterns.
+Migrating from [SQLAlchemy](https://www.sqlalchemy.org/) 1.4 to 2.0 involves several API changes to support the new 2.0-style query interface. This guide will walk you through using Codegen to automate this migration, handling query syntax, session usage, and ORM patterns.
 
 <Info>
-You can find the complete example code in our [examples repository](https://github.com/codegen-sh/codegen-examples/tree/7b978091c3153b687c32928fe10f05425e22f6a5/examples/sqlalchemy_1.6_to_2.0).
+You can find the complete example code in our [examples repository](https://github.com/codegen-sh/codegen-examples/tree/7b978091c3153b687c32928fe10f05425e22f6a5/examples/sqlalchemy_1.4_to_2.0).
 </Info>
 
 ## Overview
