@@ -148,6 +148,7 @@ class CodebaseContext:
         self.config = config
         self.repo_name = context.repo_operator.repo_name
         self.repo_path = str(Path(context.repo_operator.repo_path).resolve())
+        self.full_path = os.path.join(self.repo_path, context.base_path) if context.base_path else self.repo_path
         self.codeowners_parser = context.repo_operator.codeowners_parser
         self.base_url = context.repo_operator.base_url
         # =====[ computed attributes ]=====
