@@ -11,7 +11,6 @@ from _pytest.python import Metafunc
 from pyinstrument import Profiler
 
 from codegen.git.repo_operator.repo_operator import RepoOperator
-from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.sdk.codebase.config import CodebaseConfig, ProjectConfig
 from codegen.sdk.core.codebase import Codebase
 from codegen.shared.configs.models.feature_flags import CodebaseFeatureFlags

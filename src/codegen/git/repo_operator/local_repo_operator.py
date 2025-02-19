@@ -2,13 +2,10 @@ import logging
 import os
 
 from git import Repo as GitCLI
-from github.PullRequest import PullRequest
 
-from codegen.git.clients.git_repo_client import GitRepoClient
-from codegen.git.repo_operator.repo_operator import RepoOperator
-from codegen.git.schemas.enums import FetchResult
-from codegen.git.schemas.repo_config import RepoConfig
 from codegen.git.repo_operator.local_git_repo import LocalGitRepo
+from codegen.git.repo_operator.repo_operator import RepoOperator
+from codegen.git.schemas.repo_config import RepoConfig
 
 logger = logging.getLogger(__name__)
 
@@ -38,4 +35,3 @@ class LocalRepoOperator(RepoOperator):
         self._local_git_repo = LocalGitRepo(repo_path=repo_config.repo_path)
         if repo_config.full_name is None:
             repo_config.full_name = self._local_git_repo.full_name
-

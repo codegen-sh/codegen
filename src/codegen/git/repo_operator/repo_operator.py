@@ -18,6 +18,7 @@ from github.PullRequest import PullRequest
 
 from codegen.git.clients.git_repo_client import GitRepoClient
 from codegen.git.configs.constants import CODEGEN_BOT_EMAIL, CODEGEN_BOT_NAME
+from codegen.git.repo_operator.local_git_repo import LocalGitRepo
 from codegen.git.schemas.enums import CheckoutResult, FetchResult, SetupOption
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.git.utils.clone import clone_or_pull_repo, clone_repo, pull_repo
@@ -28,7 +29,6 @@ from codegen.git.utils.remote_progress import CustomRemoteProgress
 from codegen.shared.configs.session_configs import config
 from codegen.shared.performance.stopwatch_utils import stopwatch
 from codegen.shared.performance.time_utils import humanize_duration
-from codegen.git.repo_operator.local_git_repo import LocalGitRepo
 
 logger = logging.getLogger(__name__)
 
@@ -75,8 +75,6 @@ class RepoOperator(ABC):
             if repo_config.full_name is None:
                 print(self._local_git_repo)
                 repo_config.full_name = self._local_git_repo.full_name
-
-
 
     ####################################################################################################################
     # PROPERTIES
@@ -770,8 +768,6 @@ class RepoOperator(ABC):
             logger.warning(f"Failed to get PR {pr_number}: {e!s}")
             return None
 
-
-
     ####################################################################################################################
     # CLASS METHODS
     ####################################################################################################################
@@ -863,4 +859,3 @@ class RepoOperator(ABC):
             logger.exception("Please authenticate with a valid token and ensure the repository is properly initialized.")
             return None
         return cls(repo_config=RepoConfig.from_repo_path(repo_path), bot_commit=False, access_token=access_token)
-
