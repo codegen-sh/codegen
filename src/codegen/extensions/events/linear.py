@@ -35,8 +35,9 @@ class Linear(EventHandlerManagerProtocol):
         return result
 
     def subscribe_all_handlers(self):
-        for handler in self.registered_handlers:
-            result = self.subscribe_handler_to_webhook(handler=handler)
+        for handler_key in self.registered_handlers:
+            handler = self.registered_handlers[handler_key]
+            result = self.subscribe_handler_to_webhook(handler=self.registered_handlers[handler_key])
             handler.webhook_id = result
 
     def unsubscribe_handler_to_webhook(self, registered_handler: RegisteredWebhookHandler):
