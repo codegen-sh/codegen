@@ -1,8 +1,32 @@
 """Tool for creating PR review comments."""
 
-from typing import Any, Optional
+from typing import ClassVar, Optional
+
+from pydantic import Field
 
 from codegen import Codebase
+
+from ..observation import Observation
+
+
+class PRReviewCommentObservation(Observation):
+    """Response from creating a PR review comment."""
+
+    pr_number: int = Field(
+        description="PR number the comment was added to",
+    )
+    path: str = Field(
+        description="File path the comment was added to",
+    )
+    line: Optional[int] = Field(
+        default=None,
+        description="Line number the comment was added to",
+    )
+    body: str = Field(
+        description="Content of the comment",
+    )
+
+    str_template: ClassVar[str] = "Added review comment to PR #{pr_number} at {path}:{line}"
 
 
 def create_pr_review_comment(
@@ -14,7 +38,7 @@ def create_pr_review_comment(
     line: Optional[int] = None,
     side: Optional[str] = None,
     start_line: Optional[int] = None,
-) -> dict[str, Any]:
+) -> PRReviewCommentObservation:
     """Create an inline review comment on a specific line in a pull request.
 
     Args:
@@ -26,9 +50,6 @@ def create_pr_review_comment(
         line: The line number to comment on
         side: Which version of the file to comment on ('LEFT' or 'RIGHT')
         start_line: For multi-line comments, the starting line
-
-    Returns:
-        Dict containing comment status
     """
     try:
         codebase.create_pr_review_comment(
@@ -40,12 +61,19 @@ def create_pr_review_comment(
             side=side,
             start_line=start_line,
         )
-        return {
-            "status": "success",
-            "message": "Review comment created successfully",
-            "pr_number": pr_number,
-            "path": path,
-            "line": line,
-        }
+        return PRReviewCommentObservation(
+            status="success",
+            pr_number=pr_number,
+            path=path,
+            line=line,
+            body=body,
+        )
     except Exception as e:
-        return {"error": f"Failed to create PR review comment: {e!s}"}
+        return PRReviewCommentObservation(
+            status="error",
+            error=f"Failed to create PR review comment: {e!s}",
+            pr_number=pr_number,
+            path=path,
+            line=line,
+            body=body,
+        )

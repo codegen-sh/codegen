@@ -1,21 +1,47 @@
 """Tool for viewing PR contents and modified symbols."""
 
-from typing import Any
+from typing import ClassVar
+
+from pydantic import Field
 
 from codegen import Codebase
 
+from ..observation import Observation
 
-def view_pr(codebase: Codebase, pr_id: int) -> dict[str, Any]:
+
+class ViewPRObservation(Observation):
+    """Response from viewing a PR."""
+
+    pr_id: int = Field(
+        description="ID of the PR",
+    )
+    patch: str = Field(
+        description="The PR's patch/diff content",
+    )
+
+    str_template: ClassVar[str] = "PR #{pr_id}"
+
+
+def view_pr(codebase: Codebase, pr_id: int) -> ViewPRObservation:
     """Get the diff and modified symbols of a PR.
 
     Args:
         codebase: The codebase to operate on
         pr_id: Number of the PR to get the contents for
-
-    Returns:
-        Dict containing modified symbols and patch
     """
-    modified_symbols, patch = codebase.get_modified_symbols_in_pr(pr_id)
+    try:
+        modified_symbols, patch = codebase.get_modified_symbols_in_pr(pr_id)
 
-    # Convert modified_symbols set to list for JSON serialization
-    return {"status": "success", "patch": patch}
+        return ViewPRObservation(
+            status="success",
+            pr_id=pr_id,
+            patch=patch,
+        )
+
+    except Exception as e:
+        return ViewPRObservation(
+            status="error",
+            error=f"Failed to view PR: {e!s}",
+            pr_id=pr_id,
+            patch="",
+        )
