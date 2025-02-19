@@ -21,7 +21,7 @@ from networkx import Graph
 from rich.console import Console
 from typing_extensions import TypeVar, deprecated
 
-from codegen.git.repo_operator.local_repo_operator import LocalRepoOperator
+from codegen.git.repo_operator.local_repo_operator import RepoOperator
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.enums import CheckoutResult
 from codegen.git.utils.pr_review import CodegenPR
@@ -116,7 +116,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         console: Manages console output for the codebase.
     """
 
-    _op: RepoOperator | LocalRepoOperator
+    _op: RepoOperator
     viz: VisualizationManager
     repo_path: Path
     console: Console
@@ -1274,13 +1274,13 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         logger.info(f"Will clone {repo_url} to {repo_path}")
 
         try:
-            # Use LocalRepoOperator to fetch the repository
+            # Use RepoOperator to fetch the repository
             logger.info("Cloning repository...")
             if commit is None:
-                repo_operator = LocalRepoOperator.create_from_repo(repo_path=repo_path, url=repo_url, access_token=config.secrets.github_api_key if config.secrets else None)
+                repo_operator = RepoOperator.create_from_repo(repo_path=repo_path, url=repo_url, access_token=config.secrets.github_api_key if config.secrets else None)
             else:
                 # Ensure the operator can handle remote operations
-                repo_operator = LocalRepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url, access_token=config.secrets.github_api_key if config.secrets else None)
+                repo_operator = RepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url, access_token=config.secrets.github_api_key if config.secrets else None)
             logger.info("Clone completed successfully")
 
             # Initialize and return codebase with proper context

@@ -4,7 +4,7 @@ from collections.abc import Generator
 from contextlib import AbstractContextManager, contextmanager
 from typing import Literal, overload
 
-from codegen.git.repo_operator.local_repo_operator import LocalRepoOperator
+from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.sdk.codebase.codebase_context import CodebaseContext
 from codegen.sdk.codebase.config import CodebaseConfig, ProjectConfig, SessionOptions, TestFlags
 from codegen.sdk.codebase.factory.codebase_factory import CodebaseFactory
@@ -106,7 +106,7 @@ def get_codebase_graph_session(
     session_options: SessionOptions = SessionOptions(),
 ) -> Generator[CodebaseContext, None, None]:
     """Gives you a Codebase2 operating on the files you provided as a dict"""
-    op = LocalRepoOperator.create_from_files(repo_path=tmpdir, files=files)
+    op = RepoOperator.create_from_files(repo_path=tmpdir, files=files)
     config = CodebaseConfig(feature_flags=TestFlags)
     projects = [ProjectConfig(repo_operator=op, programming_language=programming_language)]
     graph = CodebaseContext(projects=projects, config=config)

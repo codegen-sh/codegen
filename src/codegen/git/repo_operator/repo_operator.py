@@ -14,6 +14,7 @@ from git import Commit as GitCommit
 from git import Diff, GitCommandError, InvalidGitRepositoryError, Remote
 from git import Repo as GitCLI
 from git.remote import PushInfoList
+from github.PullRequest import PullRequest
 
 from codegen.git.clients.git_repo_client import GitRepoClient
 from codegen.git.configs.constants import CODEGEN_BOT_EMAIL, CODEGEN_BOT_NAME
@@ -27,6 +28,7 @@ from codegen.git.utils.remote_progress import CustomRemoteProgress
 from codegen.shared.configs.session_configs import config
 from codegen.shared.performance.stopwatch_utils import stopwatch
 from codegen.shared.performance.time_utils import humanize_duration
+from codegen.git.repo_operator.local_git_repo import LocalGitRepo
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +45,7 @@ class RepoOperator(ABC):
     _codeowners_parser: CodeOwnersParser | None = None
     _default_branch: str | None = None
     _remote_git_repo: GitRepoClient | None = None
+    _local_git_repo: LocalGitRepo | None = None
 
     def __init__(
         self,
@@ -57,11 +60,23 @@ class RepoOperator(ABC):
         self.access_token = access_token or config.secrets.github_token
         self.base_dir = repo_config.base_dir
         self.bot_commit = bot_commit
+
         if setup_option:
             if shallow is not None:
                 self.setup_repo_dir(setup_option=setup_option, shallow=shallow)
             else:
                 self.setup_repo_dir(setup_option=setup_option)
+
+        else:
+            os.makedirs(self.repo_path, exist_ok=True)
+            GitCLI.init(self.repo_path)
+            self._local_git_repo = LocalGitRepo(repo_path=repo_config.repo_path)
+
+            if repo_config.full_name is None:
+                print(self._local_git_repo)
+                repo_config.full_name = self._local_git_repo.full_name
+
+
 
     ####################################################################################################################
     # PROPERTIES
@@ -77,6 +92,10 @@ class RepoOperator(ABC):
 
     @property
     def remote_git_repo(self) -> GitRepoClient:
+        if not self.access_token:
+            msg = "Must initialize with access_token to get remote"
+            raise ValueError(msg)
+
         if not self._remote_git_repo:
             self._remote_git_repo = GitRepoClient(self.repo_config, access_token=self.access_token)
         return self._remote_git_repo
@@ -144,7 +163,7 @@ class RepoOperator(ABC):
             # Case 2: username is set to the bot's at the repo level, but something else is set at the user level: unset it
             elif username != CODEGEN_BOT_NAME and user_level != "repository":
                 self._unset_bot_username(git_cli)
-            # Case 3: username is only set at the repo level: do nothing
+            #  3: Caseusername is only set at the repo level: do nothing
             else:
                 pass  # no-op to make the logic clearer
             # Repeat for email
@@ -728,12 +747,37 @@ class RepoOperator(ABC):
                     start_line=start_line,
                 )
 
+    def get_pull_request(self, pr_number: int) -> PullRequest | None:
+        """Get a GitHub Pull Request object for the given PR number.
+
+        Args:
+            pr_number (int): The PR number to fetch
+
+        Returns:
+            PullRequest | None: The PyGitHub PullRequest object if found, None otherwise
+
+        Note:
+            This requires a GitHub API key to be set when creating the RepoOperator
+        """
+        try:
+            # Create GitHub client and get the PR
+            repo = self.remote_git_repo
+            if repo is None:
+                logger.warning("GitHub API key is required to fetch pull requests")
+                return None
+            return repo.get_pull_safe(pr_number)
+        except Exception as e:
+            logger.warning(f"Failed to get PR {pr_number}: {e!s}")
+            return None
+
+
+
     ####################################################################################################################
     # CLASS METHODS
     ####################################################################################################################
     @classmethod
     def create_from_files(cls, repo_path: str, files: dict[str, str], bot_commit: bool = True) -> Self:
-        """Used when you want to create a directory from a set of files and then create a LocalRepoOperator that points to that directory.
+        """Used when you want to create a directory from a set of files and then create a RepoOperator that points to that directory.
         Use cases:
         - Unit testing
         - Playground
@@ -819,3 +863,4 @@ class RepoOperator(ABC):
             logger.exception("Please authenticate with a valid token and ensure the repository is properly initialized.")
             return None
         return cls(repo_config=RepoConfig.from_repo_path(repo_path), bot_commit=False, access_token=access_token)
+
