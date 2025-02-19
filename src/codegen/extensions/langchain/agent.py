@@ -31,7 +31,7 @@ from .tools import (
 
 def create_codebase_agent(
     codebase: Codebase,
-    model_name: str = "gpt-4o",
+    model_name: str = "claude-3-5-sonnet-latest",
     temperature: float = 0,
     verbose: bool = True,
     chat_history: list[BaseMessage] = [],
