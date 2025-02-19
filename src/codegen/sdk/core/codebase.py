@@ -21,7 +21,6 @@ from networkx import Graph
 from rich.console import Console
 from typing_extensions import TypeVar, deprecated
 
-from codegen.git.repo_operator.local_repo_operator import RepoOperator
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.enums import CheckoutResult
 from codegen.git.utils.pr_review import CodegenPR
