@@ -173,4 +173,4 @@ def semantic_edit(codebase: Codebase, filepath: str, edit_content: str, start: i
     file.edit(new_content)
     codebase.commit()
 
-    return {"filepath": filepath, "content": new_content, "diff": diff, "status": "success"}
+    return {"filepath": filepath, "diff": diff, "status": "success"}
