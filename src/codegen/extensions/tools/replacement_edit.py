@@ -117,7 +117,10 @@ def replacement_edit(
         raise ValueError(msg)
 
     # Perform the replacement
-    new_section = regex.sub(replacement, section_content, count=count)
+    if count is None:
+        new_section = regex.sub(replacement, section_content)
+    else:
+        new_section = regex.sub(replacement, section_content, count=count)
 
     # If no changes were made, return early
     if new_section == section_content:
