@@ -64,7 +64,7 @@ def test_edit_file(codebase):
     """Test editing a file."""
     result = edit_file(codebase, "src/main.py", "print('edited')")
     assert "error" not in result
-    assert result["content"] == "print('edited')"
+    assert result["content"] == "1|print('edited')"
 
 
 def test_create_file(codebase):
@@ -72,7 +72,7 @@ def test_create_file(codebase):
     result = create_file(codebase, "src/new.py", "print('new')")
     assert "error" not in result
     assert result["filepath"] == "src/new.py"
-    assert result["content"] == "print('new')"
+    assert result["content"] == "1|print('new')"
 
 
 def test_delete_file(codebase):

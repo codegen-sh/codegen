@@ -607,6 +607,8 @@ class Import(Usable[ImportStatement], Chainable, Generic[TSourceFile], HasAttrib
                     imp.file.invalidate()
 
                 return
+            elif self.resolved_symbol is None:
+                self._resolving_wildcards = False
         yield self.name, self
 
     @property

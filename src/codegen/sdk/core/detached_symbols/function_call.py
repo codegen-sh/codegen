@@ -16,6 +16,7 @@ from codegen.sdk.core.symbol_groups.collection import Collection
 from codegen.sdk.enums import NodeType
 from codegen.sdk.extensions.sort import sort_editables
 from codegen.sdk.extensions.utils import cached_property, is_descendant_of
+from codegen.sdk.typescript.detached_symbols.promise_chain import TSPromiseChain
 from codegen.sdk.typescript.enums import TSFunctionTypeNames
 from codegen.sdk.utils import find_first_ancestor
 from codegen.shared.decorators.docs import apidoc, noapidoc
@@ -706,3 +707,15 @@ class FunctionCall(Expression[Parent], HasName, Resolvable, Generic[Parent]):
             else:
                 name = name.object
         return name
+
+    @property
+    @reader
+    def promise_chain(self) -> TSPromiseChain | None:
+        """Return the promise chain associated with this function call, if a then call is found.
+
+        Returns:
+            TSPromiseChain | None: The promise chain associated with this function call, if a then call is found.
+        """
+        if any(call.name == "then" for call in self.call_chain) is True:
+            return TSPromiseChain(self.attribute_chain)
+        return None

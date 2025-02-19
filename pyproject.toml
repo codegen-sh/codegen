@@ -7,7 +7,7 @@ readme = "README.md"
 requires-python = ">=3.12, <3.14"
 dependencies = [
   "backoff==2.2.1",
-  "openai==1.61.1",
+  "openai==1.63.2",
   "tiktoken<1.0.0,>=0.5.1",
   "tabulate>=0.9.0,<1.0.0",
   "codeowners<1.0.0,>=0.6.0",
@@ -37,7 +37,7 @@ dependencies = [
   "rustworkx>=0.15.1",
   "typing-extensions>=4.12.2",
   "termcolor>=2.4.0",
-  "sentry-sdk==2.20.0",
+  "sentry-sdk==2.22.0",
   "tenacity>=9.0.0",
   "click>=8.1.7",
   "requests>=2.32.3",
@@ -54,7 +54,7 @@ dependencies = [
   "unidiff>=0.7.5",
   "datamodel-code-generator>=0.26.5",
   "toml>=0.10.2",
-  "PyGithub==2.5.0",
+  "PyGithub==2.6.0",
   "GitPython==3.1.44",
   "psutil>=5.8.0",
   "fastapi[standard]<1.0.0,>=0.115.2",
@@ -70,6 +70,8 @@ dependencies = [
   "numpy>=2.2.2",
   "mcp[cli]",
   "neo4j",
+  "modal>=0.73.45",
+  "slack-sdk",
 ]
 
 license = { text = "Apache-2.0" }

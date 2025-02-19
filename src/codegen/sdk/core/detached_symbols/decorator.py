@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Generic, TypeVar
+from typing import TYPE_CHECKING, Generic
+
+from typing_extensions import TypeVar
 
 from codegen.sdk.core.autocommit import reader
 from codegen.sdk.core.dataclasses.usage import UsageKind
@@ -19,9 +21,9 @@ if TYPE_CHECKING:
     from codegen.sdk.core.function import Function
 
 
-TClass = TypeVar("TClass", bound="Class")
-TFunction = TypeVar("TFunction", bound="Function")
-TParameter = TypeVar("TParameter", bound="Parameter")
+TClass = TypeVar("TClass", bound="Class", default="Class")
+TFunction = TypeVar("TFunction", bound="Function", default="Function")
+TParameter = TypeVar("TParameter", bound="Parameter", default="Parameter")
 
 
 @apidoc

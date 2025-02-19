@@ -1,6 +1,7 @@
 import rich_click as click
 from rich.traceback import install
 
+from codegen.cli.commands.agent.main import agent_command
 from codegen.cli.commands.config.main import config_command
 from codegen.cli.commands.create.main import create_command
 from codegen.cli.commands.deploy.main import deploy_command
@@ -29,6 +30,7 @@ def main():
 
 
 # Wrap commands with error handler
+main.add_command(agent_command)
 main.add_command(init_command)
 main.add_command(logout_command)
 main.add_command(login_command)

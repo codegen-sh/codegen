@@ -1,8 +1,8 @@
-# SQLAlchemy 1.6 to 2.0 Migration Example
+# SQLAlchemy 1.4 to 2.0 Migration Example
 
-[![Documentation](https://img.shields.io/badge/docs-docs.codegen.com-blue)](https://docs.codegen.com/tutorials/sqlalchemy-1.6-to-2.0)
+[![Documentation](https://img.shields.io/badge/docs-docs.codegen.com-blue)](https://docs.codegen.com/tutorials/sqlalchemy-1.4-to-2.0)
 
-This example demonstrates how to use Codegen to automatically migrate SQLAlchemy 1.6 code to the new 2.0-style query interface. For a complete walkthrough, check out our [tutorial](https://docs.codegen.com/tutorials/sqlalchemy-1.6-to-2.0).
+This example demonstrates how to use Codegen to automatically migrate SQLAlchemy 1.4 code to the new 2.0-style query interface. For a complete walkthrough, check out our [tutorial](https://docs.codegen.com/tutorials/sqlalchemy-1.4-to-2.0).
 
 ## How the Migration Script Works
 
@@ -94,7 +94,7 @@ python run.py
 
 ## Learn More
 
-- [Full Tutorial](https://docs.codegen.com/tutorials/sqlalchemy-1.6-to-2.0)
+- [Full Tutorial](https://docs.codegen.com/tutorials/sqlalchemy-1.4-to-2.0)
 - [SQLAlchemy Documentation](https://docs.sqlalchemy.org/en/20/)
 - [What's New in SQLAlchemy 2.0](https://docs.sqlalchemy.org/en/20/changelog/migration_20.html)
 - [Codegen Documentation](https://docs.codegen.com)

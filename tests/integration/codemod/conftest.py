@@ -10,7 +10,6 @@ import pytest
 from _pytest.python import Metafunc
 from pyinstrument import Profiler
 
-from codegen.git.repo_operator.local_repo_operator import LocalRepoOperator
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.sdk.codebase.config import CodebaseConfig, ProjectConfig
 from codegen.sdk.core.codebase import Codebase
@@ -130,7 +129,7 @@ def token(request):
 
 
 @pytest.fixture(scope="session")
-def op(repo: Repo, token: str | None) -> YieldFixture[LocalRepoOperator]:
+def op(repo: Repo, token: str | None) -> YieldFixture[RepoOperator]:
     with filelock.FileLock(BASE_TMP_DIR / "locks" / repo.name):
         op = repo.to_op(repo.name, token)
         yield op

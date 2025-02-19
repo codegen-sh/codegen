@@ -1,12 +1,27 @@
 """Langchain tools for workspace operations."""
 
 import json
-from typing import ClassVar, Literal, Optional
+from typing import Callable, ClassVar, Literal, Optional
 
-from langchain.tools import BaseTool
+from langchain_core.tools.base import BaseTool
 from pydantic import BaseModel, Field
 
 from codegen import Codebase
+from codegen.extensions.linear.linear_client import LinearClient
+from codegen.extensions.tools.bash import run_bash_command
+from codegen.extensions.tools.linear.linear import (
+    linear_comment_on_issue_tool,
+    linear_create_issue_tool,
+    linear_get_issue_comments_tool,
+    linear_get_issue_tool,
+    linear_get_teams_tool,
+    linear_search_issues_tool,
+)
+from codegen.extensions.tools.link_annotation import add_links_to_message
+from codegen.extensions.tools.reveal_symbol import reveal_symbol
+from codegen.extensions.tools.search import search
+from codegen.extensions.tools.semantic_edit import semantic_edit
+from codegen.extensions.tools.semantic_search import semantic_search
 
 from ..tools import (
     commit,
@@ -19,13 +34,10 @@ from ..tools import (
     list_directory,
     move_symbol,
     rename_file,
-    reveal_symbol,
-    search,
-    semantic_edit,
-    semantic_search,
     view_file,
     view_pr,
 )
+from ..tools.tool_prompts import _FILE_EDIT_DESCRIPTION
 
 
 class ViewFileInput(BaseModel):
@@ -107,7 +119,7 @@ class EditFileTool(BaseTool):
     """Tool for editing files."""
 
     name: ClassVar[str] = "edit_file"
-    description: ClassVar[str] = "Edit a file by replacing its entire content"
+    description: ClassVar[str] = "Edit a file by replacing its entire content. This tool should only be used for replacing entire file contents."
     args_schema: ClassVar[type[BaseModel]] = EditFileInput
     codebase: Codebase = Field(exclude=True)
 
@@ -184,7 +196,10 @@ class RevealSymbolInput(BaseModel):
 
     symbol_name: str = Field(..., description="Name of the symbol to analyze")
     degree: int = Field(default=1, description="How many degrees of separation to traverse")
-    max_tokens: Optional[int] = Field(default=None, description="Optional maximum number of tokens for all source code combined")
+    max_tokens: Optional[int] = Field(
+        default=None,
+        description="Optional maximum number of tokens for all source code combined",
+    )
     collect_dependencies: bool = Field(default=True, description="Whether to collect dependencies")
     collect_usages: bool = Field(default=True, description="Whether to collect usages")
 
@@ -219,36 +234,48 @@ class RevealSymbolTool(BaseTool):
         return json.dumps(result, indent=2)
 
 
+_SEMANTIC_EDIT_BRIEF = """Tool for file editing via an LLM delegate. Describe the changes you want to make and an expert will apply them to the file.
+
+Specify the changes you want to make in the edit_content field, with helpful comments, like so:
+```
+# ... existing code ...
+
+# edit: change function name and body
+def function_redefinition():
+    return 'new_function_body'
+
+# ... existing code ...
+```
+
+Another agent will be responsible for applying your edit and will only see the `edit_content` and the range you specify, so be clear what you are looking to change.
+
+For large files, specify a range slightly larger than the edit you want to make, and be clear in your description what should and shouldn't change.
+"""
+
+
 class SemanticEditInput(BaseModel):
     """Input for semantic editing."""
 
-    filepath: str = Field(..., description="Path to the file to edit")
-    edit_spec: str = Field(
-        ...,
-        description="""The edit specification showing desired changes.
-Must contain code blocks between '# ... existing code ...' markers.
-Example:
-# ... existing code ...
-def new_function():
-    print("Hello")
-# ... existing code ...
-""",
-    )
+    filepath: str = Field(..., description="Path of the file relative to workspace root")
+    edit_content: str = Field(..., description=_FILE_EDIT_DESCRIPTION)
+    start: int = Field(default=1, description="Starting line number (1-indexed, inclusive). Default is 1.")
+    end: int = Field(default=-1, description="Ending line number (1-indexed, inclusive). Default is -1 (end of file).")
 
 
 class SemanticEditTool(BaseTool):
     """Tool for semantic editing of files."""
 
     name: ClassVar[str] = "semantic_edit"
-    description: ClassVar[str] = "Edit a file using a semantic edit specification with code blocks"
+    description: ClassVar[str] = _SEMANTIC_EDIT_BRIEF  # Short description
     args_schema: ClassVar[type[BaseModel]] = SemanticEditInput
     codebase: Codebase = Field(exclude=True)
 
     def __init__(self, codebase: Codebase) -> None:
         super().__init__(codebase=codebase)
 
-    def _run(self, filepath: str, edit_spec: str) -> str:
-        result = semantic_edit(self.codebase, filepath, edit_spec)
+    def _run(self, filepath: str, edit_content: str, start: int = 1, end: int = -1) -> str:
+        # Create the the draft editor mini llm
+        result = semantic_edit(self.codebase, filepath, edit_content, start=start, end=end)
         return json.dumps(result, indent=2)
 
 
@@ -281,7 +308,10 @@ class MoveSymbolInput(BaseModel):
     source_file: str = Field(..., description="Path to the file containing the symbol")
     symbol_name: str = Field(..., description="Name of the symbol to move")
     target_file: str = Field(..., description="Path to the destination file")
-    strategy: Literal["update_all_imports", "add_back_edge"] = Field(default="update_all_imports", description="Strategy for handling imports: 'update_all_imports' (default) or 'add_back_edge'")
+    strategy: Literal["update_all_imports", "add_back_edge"] = Field(
+        default="update_all_imports",
+        description="Strategy for handling imports: 'update_all_imports' (default) or 'add_back_edge'",
+    )
     include_dependencies: bool = Field(default=True, description="Whether to move dependencies along with the symbol")
 
 
@@ -339,19 +369,48 @@ class SemanticSearchTool(BaseTool):
         return json.dumps(result, indent=2)
 
 
-class CreatePRInput(BaseModel):
+########################################################################################################################
+# BASH
+########################################################################################################################
+
+
+class RunBashCommandInput(BaseModel):
+    """Input for running a bash command."""
+
+    command: str = Field(..., description="The command to run")
+    is_background: bool = Field(default=False, description="Whether to run the command in the background")
+
+
+class RunBashCommandTool(BaseTool):
+    """Tool for running bash commands."""
+
+    name: ClassVar[str] = "run_bash_command"
+    description: ClassVar[str] = "Run a bash command and return its output"
+    args_schema: ClassVar[type[BaseModel]] = RunBashCommandInput
+
+    def _run(self, command: str, is_background: bool = False) -> str:
+        result = run_bash_command(command, is_background)
+        return json.dumps(result, indent=2)
+
+
+########################################################################################################################
+# GITHUB
+########################################################################################################################
+
+
+class GithubCreatePRInput(BaseModel):
     """Input for creating a PR"""
 
     title: str = Field(..., description="The title of the PR")
     body: str = Field(..., description="The body of the PR")
 
 
-class CreatePRTool(BaseTool):
+class GithubCreatePRTool(BaseTool):
     """Tool for creating a PR."""
 
     name: ClassVar[str] = "create_pr"
     description: ClassVar[str] = "Create a PR for the current branch"
-    args_schema: ClassVar[type[BaseModel]] = CreatePRInput
+    args_schema: ClassVar[type[BaseModel]] = GithubCreatePRInput
     codebase: Codebase = Field(exclude=True)
 
     def __init__(self, codebase: Codebase) -> None:
@@ -362,18 +421,18 @@ class CreatePRTool(BaseTool):
         return json.dumps(result, indent=2)
 
 
-class GetPRContentsInput(BaseModel):
+class GithubViewPRInput(BaseModel):
     """Input for getting PR contents."""
 
     pr_id: int = Field(..., description="Number of the PR to get the contents for")
 
 
-class GetPRcontentsTool(BaseTool):
+class GithubViewPRTool(BaseTool):
     """Tool for getting PR data."""
 
-    name: ClassVar[str] = "get_pr_contents"
-    description: ClassVar[str] = "Get the diff and modified symbols of a PR along with the dependencies of the modified symbols"
-    args_schema: ClassVar[type[BaseModel]] = GetPRContentsInput
+    name: ClassVar[str] = "view_pr"
+    description: ClassVar[str] = "View the diff and associated context for a pull request"
+    args_schema: ClassVar[type[BaseModel]] = GithubViewPRInput
     codebase: Codebase = Field(exclude=True)
 
     def __init__(self, codebase: Codebase) -> None:
@@ -384,19 +443,19 @@ class GetPRcontentsTool(BaseTool):
         return json.dumps(result, indent=2)
 
 
-class CreatePRCommentInput(BaseModel):
+class GithubCreatePRCommentInput(BaseModel):
     """Input for creating a PR comment"""
 
     pr_number: int = Field(..., description="The PR number to comment on")
     body: str = Field(..., description="The comment text")
 
 
-class CreatePRCommentTool(BaseTool):
+class GithubCreatePRCommentTool(BaseTool):
     """Tool for creating a general PR comment."""
 
     name: ClassVar[str] = "create_pr_comment"
     description: ClassVar[str] = "Create a general comment on a pull request"
-    args_schema: ClassVar[type[BaseModel]] = CreatePRCommentInput
+    args_schema: ClassVar[type[BaseModel]] = GithubCreatePRCommentInput
     codebase: Codebase = Field(exclude=True)
 
     def __init__(self, codebase: Codebase) -> None:
@@ -407,7 +466,7 @@ class CreatePRCommentTool(BaseTool):
         return json.dumps(result, indent=2)
 
 
-class CreatePRReviewCommentInput(BaseModel):
+class GithubCreatePRReviewCommentInput(BaseModel):
     """Input for creating an inline PR review comment"""
 
     pr_number: int = Field(..., description="The PR number to comment on")
@@ -419,12 +478,12 @@ class CreatePRReviewCommentInput(BaseModel):
     start_line: int | None = Field(None, description="For multi-line comments, the starting line")
 
 
-class CreatePRReviewCommentTool(BaseTool):
+class GithubCreatePRReviewCommentTool(BaseTool):
     """Tool for creating inline PR review comments."""
 
     name: ClassVar[str] = "create_pr_review_comment"
     description: ClassVar[str] = "Create an inline review comment on a specific line in a pull request"
-    args_schema: ClassVar[type[BaseModel]] = CreatePRReviewCommentInput
+    args_schema: ClassVar[type[BaseModel]] = GithubCreatePRReviewCommentInput
     codebase: Codebase = Field(exclude=True)
 
     def __init__(self, codebase: Codebase) -> None:
@@ -453,6 +512,182 @@ class CreatePRReviewCommentTool(BaseTool):
         return json.dumps(result, indent=2)
 
 
+########################################################################################################################
+# LINEAR
+########################################################################################################################
+
+
+class LinearGetIssueInput(BaseModel):
+    """Input for getting a Linear issue."""
+
+    issue_id: str = Field(..., description="ID of the Linear issue to retrieve")
+
+
+class LinearGetIssueTool(BaseTool):
+    """Tool for getting Linear issue details."""
+
+    name: ClassVar[str] = "linear_get_issue"
+    description: ClassVar[str] = "Get details of a Linear issue by its ID"
+    args_schema: ClassVar[type[BaseModel]] = LinearGetIssueInput
+    client: LinearClient = Field(exclude=True)
+
+    def __init__(self, client: LinearClient) -> None:
+        super().__init__(client=client)
+
+    def _run(self, issue_id: str) -> str:
+        result = linear_get_issue_tool(self.client, issue_id)
+        return json.dumps(result, indent=2)
+
+
+class LinearGetIssueCommentsInput(BaseModel):
+    """Input for getting Linear issue comments."""
+
+    issue_id: str = Field(..., description="ID of the Linear issue to get comments for")
+
+
+class LinearGetIssueCommentsTool(BaseTool):
+    """Tool for getting Linear issue comments."""
+
+    name: ClassVar[str] = "linear_get_issue_comments"
+    description: ClassVar[str] = "Get all comments on a Linear issue"
+    args_schema: ClassVar[type[BaseModel]] = LinearGetIssueCommentsInput
+    client: LinearClient = Field(exclude=True)
+
+    def __init__(self, client: LinearClient) -> None:
+        super().__init__(client=client)
+
+    def _run(self, issue_id: str) -> str:
+        result = linear_get_issue_comments_tool(self.client, issue_id)
+        return json.dumps(result, indent=2)
+
+
+class LinearCommentOnIssueInput(BaseModel):
+    """Input for commenting on a Linear issue."""
+
+    issue_id: str = Field(..., description="ID of the Linear issue to comment on")
+    body: str = Field(..., description="The comment text")
+
+
+class LinearCommentOnIssueTool(BaseTool):
+    """Tool for commenting on Linear issues."""
+
+    name: ClassVar[str] = "linear_comment_on_issue"
+    description: ClassVar[str] = "Add a comment to a Linear issue"
+    args_schema: ClassVar[type[BaseModel]] = LinearCommentOnIssueInput
+    client: LinearClient = Field(exclude=True)
+
+    def __init__(self, client: LinearClient) -> None:
+        super().__init__(client=client)
+
+    def _run(self, issue_id: str, body: str) -> str:
+        result = linear_comment_on_issue_tool(self.client, issue_id, body)
+        return json.dumps(result, indent=2)
+
+
+class LinearSearchIssuesInput(BaseModel):
+    """Input for searching Linear issues."""
+
+    query: str = Field(..., description="Search query string")
+    limit: int = Field(default=10, description="Maximum number of issues to return")
+
+
+class LinearSearchIssuesTool(BaseTool):
+    """Tool for searching Linear issues."""
+
+    name: ClassVar[str] = "linear_search_issues"
+    description: ClassVar[str] = "Search for Linear issues using a query string"
+    args_schema: ClassVar[type[BaseModel]] = LinearSearchIssuesInput
+    client: LinearClient = Field(exclude=True)
+
+    def __init__(self, client: LinearClient) -> None:
+        super().__init__(client=client)
+
+    def _run(self, query: str, limit: int = 10) -> str:
+        result = linear_search_issues_tool(self.client, query, limit)
+        return json.dumps(result, indent=2)
+
+
+class LinearCreateIssueInput(BaseModel):
+    """Input for creating a Linear issue."""
+
+    title: str = Field(..., description="Title of the issue")
+    description: str | None = Field(None, description="Optional description of the issue")
+    team_id: str | None = Field(None, description="Optional team ID. If not provided, uses the default team_id (recommended)")
+
+
+class LinearCreateIssueTool(BaseTool):
+    """Tool for creating Linear issues."""
+
+    name: ClassVar[str] = "linear_create_issue"
+    description: ClassVar[str] = "Create a new Linear issue"
+    args_schema: ClassVar[type[BaseModel]] = LinearCreateIssueInput
+    client: LinearClient = Field(exclude=True)
+
+    def __init__(self, client: LinearClient) -> None:
+        super().__init__(client=client)
+
+    def _run(self, title: str, description: str | None = None, team_id: str | None = None) -> str:
+        result = linear_create_issue_tool(self.client, title, description, team_id)
+        return json.dumps(result, indent=2)
+
+
+class LinearGetTeamsTool(BaseTool):
+    """Tool for getting Linear teams."""
+
+    name: ClassVar[str] = "linear_get_teams"
+    description: ClassVar[str] = "Get all Linear teams the authenticated user has access to"
+    client: LinearClient = Field(exclude=True)
+
+    def __init__(self, client: LinearClient) -> None:
+        super().__init__(client=client)
+
+    def _run(self) -> str:
+        result = linear_get_teams_tool(self.client)
+        return json.dumps(result, indent=2)
+
+
+########################################################################################################################
+# SLACK
+########################################################################################################################
+
+
+class SlackSendMessageInput(BaseModel):
+    """Input for sending a message to Slack."""
+
+    content: str = Field(..., description="Message to send to Slack")
+
+
+class SlackSendMessageTool(BaseTool):
+    """Tool for sending a message to Slack."""
+
+    name: ClassVar[str] = "send_slack_message"
+    description: ClassVar[str] = (
+        "Send a message via Slack."
+        "Write symbol names (classes, functions, etc.) or full filepaths in single backticks and they will be auto-linked to the code."
+        "Use Slack-style markdown for other links."
+    )
+    args_schema: ClassVar[type[BaseModel]] = SlackSendMessageInput
+    say: Callable[[str], None] = Field(exclude=True)
+    codebase: Codebase = Field(exclude=True)
+
+    def __init__(self, codebase: Codebase, say: Callable[[str], None]) -> None:
+        super().__init__(say=say, codebase=codebase)
+        self.say = say
+        self.codebase = codebase
+
+    def _run(self, content: str) -> str:
+        print("> Adding links to message")
+        content_formatted = add_links_to_message(content, self.codebase)
+        print("> Sending message to Slack")
+        self.say(content_formatted)
+        return "✅ Message sent successfully"
+
+
+########################################################################################################################
+# EXPORT
+########################################################################################################################
+
+
 def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
     """Get all workspace tools initialized with a codebase.
 
@@ -465,18 +700,28 @@ def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
     return [
         CommitTool(codebase),
         CreateFileTool(codebase),
-        CreatePRTool(codebase),
-        CreatePRCommentTool(codebase),
-        CreatePRReviewCommentTool(codebase),
         DeleteFileTool(codebase),
         EditFileTool(codebase),
-        GetPRcontentsTool(codebase),
+        GithubViewPRTool(codebase),
         ListDirectoryTool(codebase),
         MoveSymbolTool(codebase),
         RenameFileTool(codebase),
         RevealSymbolTool(codebase),
+        RunBashCommandTool(),  # Note: This tool doesn't need the codebase
         SearchTool(codebase),
         SemanticEditTool(codebase),
         SemanticSearchTool(codebase),
         ViewFileTool(codebase),
+        # Github
+        GithubCreatePRTool(codebase),
+        GithubCreatePRCommentTool(codebase),
+        GithubCreatePRReviewCommentTool(codebase),
+        GithubViewPRTool(codebase),
+        # Linear
+        LinearGetIssueTool(codebase),
+        LinearGetIssueCommentsTool(codebase),
+        LinearCommentOnIssueTool(codebase),
+        LinearSearchIssuesTool(codebase),
+        LinearCreateIssueTool(codebase),
+        LinearGetTeamsTool(codebase),
     ]

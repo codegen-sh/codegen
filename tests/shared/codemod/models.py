@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, NamedTuple
 
 from pydantic import BaseModel, ConfigDict
 
-from codegen.git.repo_operator.local_repo_operator import LocalRepoOperator
+from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.shared.configs.models.feature_flags import CodebaseFeatureFlags
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 from tests.shared.codemod.constants import DIFF_FILEPATH
@@ -60,7 +60,7 @@ class Repo(BaseModel):
     def from_json(cls, json_str: str) -> "Repo":
         return cls.model_validate(json.loads(json_str))
 
-    def to_op(self, name: str, token: str | None) -> LocalRepoOperator:
+    def to_op(self, name: str, token: str | None) -> RepoOperator:
         base_path = BASE_TMP_DIR / ("extra_repos" if self.extra_repo else "oss_repos") / name
         base_path.mkdir(exist_ok=True, parents=True)
         url = self.url
@@ -73,7 +73,7 @@ class Repo(BaseModel):
             if '[credential "https://github.codegen.app"]' not in (Path.home() / ".gitconfig").read_text():
                 os.system("gh auth login -h github.codegen.app")
                 os.system("gh auth setup-git -h github.codegen.app")
-        return LocalRepoOperator.create_from_commit(str(base_path), self.commit, url)
+        return RepoOperator.create_from_commit(str(base_path), self.commit, url)
 
 
 @dataclass

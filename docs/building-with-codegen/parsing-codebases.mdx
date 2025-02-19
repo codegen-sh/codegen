@@ -44,13 +44,12 @@ codebase = Codebase("./", language="typescript")
 To fetch and parse a repository directly from GitHub, use the `from_repo` function.
 
 ```python
-import codegen
-
+from codegen import Codebase
 # Fetch and parse a repository (defaults to /tmp/codegen/{repo_name})
-codebase = codegen.from_repo('fastapi/fastapi')
+codebase = Codebase.from_repo('fastapi/fastapi')
 
 # Customize temp directory, clone depth, specific commit, or programming language
-codebase = codegen.from_repo(
+codebase = Codebase.from_repo(
     'fastapi/fastapi',
     tmp_dir='/custom/temp/dir',  # Optional: custom temp directory
     commit='786a8ada7ed0c7f9d8b04d49f24596865e4b7901',  # Optional: specific commit
@@ -70,7 +69,7 @@ You can customize the behavior of your Codebase instance by passing a `CodebaseC
 
 ```python
 from codegen import Codebase
-from codegen.sdk.codebase.config import CodebaseConfig, GSFeatureFlags, Secrets
+from codegen.sdk.codebase.config import CodebaseConfig, Secrets
 
 codebase = Codebase(
     "path/to/repository",
@@ -78,10 +77,6 @@ codebase = Codebase(
         secrets=Secrets(
             openai_key="your-openai-key"  # For AI-powered features
         ),
-        feature_flags=GSFeatureFlags(
-            sync_enabled=True,  # Enable graph synchronization
-            ...  # Add other feature flags as needed
-        )
     )
 )
 ```

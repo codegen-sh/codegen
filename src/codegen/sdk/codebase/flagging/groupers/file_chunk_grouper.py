@@ -1,6 +1,6 @@
 import logging
 
-from codegen.git.repo_operator.remote_repo_operator import RemoteRepoOperator
+from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.sdk.codebase.flagging.code_flag import CodeFlag
 from codegen.sdk.codebase.flagging.group import Group
 from codegen.sdk.codebase.flagging.groupers.base_grouper import BaseGrouper
@@ -23,7 +23,7 @@ class FileChunkGrouper(BaseGrouper):
     type: GroupBy = GroupBy.FILE_CHUNK
 
     @staticmethod
-    def create_all_groups(flags: list[CodeFlag], repo_operator: RemoteRepoOperator | None = None) -> list[Group]:
+    def create_all_groups(flags: list[CodeFlag], repo_operator: RepoOperator | None = None) -> list[Group]:
         map = {f.filepath: f for f in flags}
         filenames = sorted(map.keys())
         chunks = chunk_list(filenames, DEFAULT_CHUNK_SIZE)
@@ -34,7 +34,7 @@ class FileChunkGrouper(BaseGrouper):
         return groups
 
     @staticmethod
-    def create_single_group(flags: list[CodeFlag], segment: str, repo_operator: RemoteRepoOperator | None = None) -> Group:
+    def create_single_group(flags: list[CodeFlag], segment: str, repo_operator: RepoOperator | None = None) -> Group:
         segment_filepaths = comma_separated_to_list(segment)
         all_segment_flags = [f for f in flags if f.filepath in segment_filepaths]
         if len(all_segment_flags) == 0:
