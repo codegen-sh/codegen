@@ -9,6 +9,7 @@ from codegen.sdk.codebase.codebase_context import CodebaseContext
 from codegen.sdk.codebase.config import CodebaseConfig, ProjectConfig, SessionOptions, TestFlags
 from codegen.sdk.codebase.factory.codebase_factory import CodebaseFactory
 from codegen.sdk.core.codebase import Codebase, PyCodebaseType, TSCodebaseType
+from codegen.sdk.core.file import SourceFile
 from codegen.sdk.tree_sitter_parser import print_errors
 from codegen.shared.configs.models.feature_flags import CodebaseFeatureFlags
 from codegen.shared.configs.models.secrets import SecretsConfig
@@ -83,9 +84,15 @@ def get_codebase_session(
     ):
         if verify_input:
             for file in codebase.files:
-                if os.path.exists(file.filepath):
-                    print_errors(file.filepath, file.content)
-                    assert not file.ts_node.has_error, "Invalid syntax in test case"
+                # NOTE: We only check SourceFiles for syntax errors
+                abs_filepath = os.path.join(tmpdir, file.filepath)
+                if os.path.exists(abs_filepath):
+                    if isinstance(file, SourceFile):
+                        # Check for syntax errors
+                        print_errors(abs_filepath, file.content)
+                        if file.ts_node.has_error:
+                            msg = "Invalid syntax in test case"
+                            raise SyntaxError(msg)
         yield codebase
 
     if verify_output:

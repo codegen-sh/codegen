@@ -200,7 +200,7 @@ def test_codebase_reset_large_file(codebase: Codebase, assert_expected):
 @pytest.mark.parametrize(
     "original, expected",
     [
-        ({"src/a.py": "original content"}, {"src/a.py": "modified content", "src/b.py": "new file content"}),
+        ({"src/a.py": "# original content"}, {"src/a.py": "# modified content", "src/b.py": "# new file content"}),
     ],
     indirect=["original", "expected"],
 )
@@ -208,10 +208,10 @@ def test_codebase_reset_preserves_external_changes(codebase: Codebase, assert_ex
     # Make external changes to existing file
     src_dir = tmp_path / "src"
     src_dir.mkdir(exist_ok=True)
-    (src_dir / "a.py").write_text("modified content")
+    (src_dir / "a.py").write_text("# modified content")
 
     # Add new file externally
-    (src_dir / "b.py").write_text("new file content")
+    (src_dir / "b.py").write_text("# new file content")
 
     # Reset should detect and preserve these changes
     codebase.commit()
