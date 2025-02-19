@@ -8,71 +8,73 @@ import time
 import requests
 from fastapi import params
 
-from codegen.git.schemas.repo_config import RepoConfig
-from codegen.runner.models.apis import SANDBOX_SERVER_PORT
-
 logger = logging.getLogger(__name__)
 
+DEFAULT_SERVER_PORT = 4002
 
-class SandboxClient:
-    """Client for interacting with the locally hosted sandbox server."""
+EPHEMERAL_SERVER_PATH = "codegen.runner.sandbox.ephemeral_server:app"
+
+
+class LocalServerClient:
+    """Client for interacting with the sandbox server."""
 
     host: str
     port: int
     base_url: str
     _process: subprocess.Popen | None
 
-    def __init__(self, repo_config: RepoConfig, git_access_token: str | None, host: str = "127.0.0.1", port: int = SANDBOX_SERVER_PORT):
+    def __init__(self, server_path: str = EPHEMERAL_SERVER_PATH, host: str = "127.0.0.1", port: int = DEFAULT_SERVER_PORT):
         self.host = host
         self.port = port
         self.base_url = f"http://{host}:{port}"
         self._process = None
-        self._start_server(repo_config, git_access_token)
-
-    def _start_server(self, repo_config: RepoConfig, git_access_token: str | None) -> None:
-        """Start the FastAPI server in a subprocess"""
-        env = os.environ.copy()
-        env.update(
-            {
-                "CODEGEN_REPOSITORY__REPO_PATH": repo_config.repo_path,
-                "CODEGEN_REPOSITORY__REPO_NAME": repo_config.name,
-                "CODEGEN_REPOSITORY__FULL_NAME": repo_config.full_name,
-                "CODEGEN_REPOSITORY__LANGUAGE": repo_config.language.value,
-                "CODEGEN_SECRETS__GITHUB_TOKEN": git_access_token,
-            }
-        )
-
-        logger.info(f"Starting local sandbox server on {self.base_url} with repo setup in base_dir {repo_config.base_dir}")
-        self._process = subprocess.Popen(
-            [
-                "uvicorn",
-                "codegen.runner.sandbox.server:app",
-                "--host",
-                self.host,
-                "--port",
-                str(self.port),
-            ],
-            env=env,
-        )
-        self._wait_for_server()
-
-    def _wait_for_server(self, timeout: int = 60, interval: float = 0.1) -> None:
-        """Wait for the server to start by polling the health endpoint"""
-        start_time = time.time()
-        while (time.time() - start_time) < timeout:
-            try:
-                self.get("/")
-                return
-            except requests.ConnectionError:
-                time.sleep(interval)
-        msg = "Server failed to start within timeout period"
-        raise TimeoutError(msg)
+        self._start_server(server_path)
 
     def __del__(self):
         """Cleanup the subprocess when the client is destroyed"""
         if self._process is not None:
             self._process.terminate()
             self._process.wait()
+
+    def _get_envs(self) -> dict:
+        return os.environ.copy()
+
+    def _start_server(self, server_path: str) -> None:
+        """Start the FastAPI server in a subprocess"""
+        envs = self._get_envs()
+        logger.info(f"Starting local server on {self.base_url} with envvars: {envs}")
+
+        self._process = subprocess.Popen(
+            [
+                "uvicorn",
+                server_path,
+                "--host",
+                self.host,
+                "--port",
+                str(self.port),
+            ],
+            env=envs,
+        )
+        self._wait_for_server()
+
+    def _wait_for_server(self, timeout: int = 10, interval: float = 0.1) -> None:
+        """Wait for the server to start by polling the health endpoint"""
+        start_time = time.time()
+        while (time.time() - start_time) < timeout:
+            if self.healthcheck(raise_on_error=False):
+                return
+            time.sleep(interval)
+        msg = "Server failed to start within timeout period"
+        raise TimeoutError(msg)
+
+    def healthcheck(self, raise_on_error: bool = True) -> bool:
+        try:
+            self.get("/")
+            return True
+        except requests.exceptions.ConnectionError:
+            if raise_on_error:
+                raise
+            return False
 
     def get(self, endpoint: str, data: dict | None = None) -> requests.Response:
         url = f"{self.base_url}{endpoint}"

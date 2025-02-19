@@ -54,14 +54,23 @@ def update_codebase(future: asyncio.Future):
 
 
 
+def update_codebase(future: asyncio.Future):
+    try:
+        result = future.result()
+        if result is not None:
+            state.parsed_codebase = result
+        else:
+            state.parsed_codebase = None
+    except Exception:
+        pass
+
+
 @mcp.tool(name="parse_codebase", description="Initiate codebase parsing")
 async def parse_codebase(codebase_path: Annotated[str, "path to the codebase to be parsed"]) -> Dict[str, str]:
     if not state.parse_task or state.parse_task.done():
         state.parse_task = asyncio.get_event_loop().run_in_executor(None, lambda: state.parse(codebase_path))
         state.parse_task.add_done_callback(update_codebase)
-        return {
-            "message": "Codebase parsing initiated, this may take some time depending on the size of the codebase. Use the `check_parsing_status` tool to check if the parse has completed."
-        }
+        return {"message": "Codebase parsing initiated, this may take some time depending on the size of the codebase. Use the `check_parsing_status` tool to check if the parse has completed."}
     return {"message": "Codebase is already being parsed.", "status": "error"}
 
 
@@ -81,7 +90,7 @@ async def execute_codemod(codemod: Annotated[str, "The python codemod code to ex
 
     try:
         await state.parse_task
-        if (state.parsed_codebase is None):
+        if state.parsed_codebase is None:
             return {"error": "Codebase path is not set."}
         else:
             # TODO: Implement proper sandboxing for code execution
