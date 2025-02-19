@@ -31,21 +31,14 @@ class Observation(BaseModel):
         Override this in subclasses to customize string output.
         By default, includes all fields except status and error.
         """
-        return {k: v for k, v in self.model_dump().items() if k not in {"status", "error"} and v is not None}
+        return self.model_dump()
 
     def __str__(self) -> str:
         """Get string representation of the observation."""
         if self.status == "error":
             return f"Error: {self.error}"
-
         details = self._get_details()
-        if not details:
-            return self.status
-
-        return self.str_template.format(
-            status=self.status,
-            details=", ".join(f"{k}={v}" for k, v in details.items()),
-        )
+        return self.render()
 
     def __repr__(self) -> str:
         """Get detailed string representation of the observation."""

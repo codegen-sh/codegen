@@ -26,8 +26,12 @@ class ReplacementEditObservation(Observation):
         default=None,
         description="New content with line numbers",
     )
+    message: Optional[str] = Field(
+        default=None,
+        description="Message describing the result",
+    )
 
-    str_template: ClassVar[str] = "Edited file {filepath}"
+    str_template: ClassVar[str] = "{message}" if "{message}" else "Edited file {filepath}"
 
 
 def generate_diff(original: str, modified: str) -> str:
