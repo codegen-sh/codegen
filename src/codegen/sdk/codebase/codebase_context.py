@@ -75,8 +75,9 @@ def get_node_classes(programming_language: ProgrammingLanguage) -> NodeClasses:
 
         return TSNodeClasses
     else:
-        msg = f"Unsupported programming language: {programming_language}!"
-        raise ValueError(msg)
+        from codegen.sdk.codebase.node_classes.generic_node_classes import GenericNodeClasses
+
+        return GenericNodeClasses
 
 
 class CodebaseContext:
