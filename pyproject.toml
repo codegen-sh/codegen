@@ -72,6 +72,7 @@ dependencies = [
   "neo4j",
   "modal>=0.73.45",
   "slack-sdk",
+  "datasets",
 ]
 
 license = { text = "Apache-2.0" }
