@@ -42,53 +42,53 @@ class Greeter:
 def test_view_file(codebase):
     """Test viewing a file."""
     result = view_file(codebase, "src/main.py")
-    assert "error" not in result
-    assert result["filepath"] == "src/main.py"
-    assert "hello()" in result["content"]
+    assert result.status == "success"
+    assert result.filepath == "src/main.py"
+    assert "hello()" in result.content
 
 
 def test_list_directory(codebase):
     """Test listing directory contents."""
     result = list_directory(codebase, "./")
-    assert "error" not in result
-    assert "src" in result["subdirectories"]
+    assert result.status == "success"
+    assert "src" in result.directory_info.subdirectories
 
 
 def test_search(codebase):
     """Test searching the codebase."""
     result = search(codebase, "hello")
-    assert "error" not in result
-    assert len(result["results"]) > 0
+    assert result.status == "success"
+    assert len(result.results) > 0
 
 
 def test_edit_file(codebase):
     """Test editing a file."""
     result = edit_file(codebase, "src/main.py", "print('edited')")
-    assert "error" not in result
-    assert result["content"] == "1|print('edited')"
+    assert result.status == "success"
+    assert result.file_info.content == "1|print('edited')"
 
 
 def test_create_file(codebase):
     """Test creating a file."""
     result = create_file(codebase, "src/new.py", "print('new')")
-    assert "error" not in result
-    assert result["filepath"] == "src/new.py"
-    assert result["content"] == "1|print('new')"
+    assert result.status == "success"
+    assert result.filepath == "src/new.py"
+    assert result.file_info.content == "1|print('new')"
 
 
 def test_delete_file(codebase):
     """Test deleting a file."""
     result = delete_file(codebase, "src/main.py")
-    assert "error" not in result
-    assert result["status"] == "success"
+    assert result.status == "success"
+    assert result.filepath == "src/main.py"
 
 
 def test_rename_file(codebase):
     """Test renaming a file."""
     result = rename_file(codebase, "src/main.py", "src/renamed.py")
-    assert "error" not in result
-    assert result["status"] == "success"
-    assert result["new_filepath"] == "src/renamed.py"
+    assert result.status == "success"
+    assert result.old_filepath == "src/main.py"
+    assert result.new_filepath == "src/renamed.py"
 
 
 def test_move_symbol(codebase):
@@ -102,8 +102,10 @@ def test_move_symbol(codebase):
         symbol_name="hello",
         target_file="src/target.py",
     )
-    assert "error" not in result
-    assert result["status"] == "success"
+    assert result.status == "success"
+    assert result.symbol_name == "hello"
+    assert result.source_file == "src/main.py"
+    assert result.target_file == "src/target.py"
 
 
 def test_reveal_symbol(codebase):
@@ -113,8 +115,8 @@ def test_reveal_symbol(codebase):
         symbol_name="hello",
         max_depth=1,
     )
-    assert "error" not in result
-    assert not result["truncated"]
+    assert result.status == "success"
+    assert not result.truncated
 
 
 @pytest.mark.skip("TODO")
@@ -127,43 +129,42 @@ def hello():
 # ... existing code ...
 """
     result = semantic_edit(codebase, "src/main.py", edit_spec)
-    assert "error" not in result
-    assert result["status"] == "success"
+    assert result.status == "success"
+    assert "Hello from semantic edit!" in result.new_content
 
 
 @pytest.mark.skip("TODO")
 def test_semantic_search(codebase):
     """Test semantic search."""
     result = semantic_search(codebase, "function that prints hello")
-    assert "error" not in result
-    assert result["status"] == "success"
+    assert result.status == "success"
+    assert len(result.results) > 0
 
 
 @pytest.mark.skip("TODO: Github tests")
 def test_create_pr(codebase):
     """Test creating a PR."""
     result = create_pr(codebase, "Test PR", "This is a test PR")
-    assert "error" not in result
-    assert result["status"] == "success"
+    assert result.status == "success"
+    assert result.title == "Test PR"
 
 
 @pytest.mark.skip("TODO: Github tests")
 def test_view_pr(codebase):
     """Test viewing a PR."""
     result = view_pr(codebase, 1)
-    assert "error" not in result
-    assert result["status"] == "success"
-    assert "modified_symbols" in result
-    assert "patch" in result
+    assert result.status == "success"
+    assert result.pr_id == 1
+    assert result.patch != ""
 
 
 @pytest.mark.skip("TODO: Github tests")
 def test_create_pr_comment(codebase):
     """Test creating a PR comment."""
     result = create_pr_comment(codebase, 1, "Test comment")
-    assert "error" not in result
-    assert result["status"] == "success"
-    assert result["message"] == "Comment created successfully"
+    assert result.status == "success"
+    assert result.pr_number == 1
+    assert result.body == "Test comment"
 
 
 @pytest.mark.skip("TODO: Github tests")
@@ -177,9 +178,11 @@ def test_create_pr_review_comment(codebase):
         path="src/main.py",
         line=1,
     )
-    assert "error" not in result
-    assert result["status"] == "success"
-    assert result["message"] == "Review comment created successfully"
+    assert result.status == "success"
+    assert result.pr_number == 1
+    assert result.path == "src/main.py"
+    assert result.line == 1
+    assert result.body == "Test review comment"
 
 
 def test_replacement_edit(codebase):
@@ -191,9 +194,8 @@ def test_replacement_edit(codebase):
         pattern=r'print\("Hello, world!"\)',
         replacement='print("Goodbye, world!")',
     )
-    assert "error" not in result
-    assert result["status"] == "success"
-    assert 'print("Goodbye, world!")' in result["new_content"]
+    assert result.status == "success"
+    assert 'print("Goodbye, world!")' in result.new_content
 
     # Test with line range
     result = replacement_edit(
@@ -204,9 +206,8 @@ def test_replacement_edit(codebase):
         start=5,  # Class definition line
         end=7,
     )
-    assert "error" not in result
-    assert result["status"] == "success"
-    assert "class Welcomer" in result["new_content"]
+    assert result.status == "success"
+    assert "class Welcomer" in result.new_content
 
     # Test with regex groups
     result = replacement_edit(
@@ -215,9 +216,8 @@ def test_replacement_edit(codebase):
         pattern=r"def (\w+)\(\):",
         replacement=r"def \1_function():",
     )
-    assert "error" not in result
-    assert result["status"] == "success"
-    assert "def hello_function():" in result["new_content"]
+    assert result.status == "success"
+    assert "def hello_function():" in result.new_content
 
     # Test with count limit
     result = replacement_edit(
@@ -227,9 +227,8 @@ def test_replacement_edit(codebase):
         replacement="async def",
         count=1,  # Only replace first occurrence
     )
-    assert "error" not in result
-    assert result["status"] == "success"
-    assert result["new_content"].count("async def") == 1
+    assert result.status == "success"
+    assert result.new_content.count("async def") == 1
 
     # Test no matches
     result = replacement_edit(
@@ -238,5 +237,5 @@ def test_replacement_edit(codebase):
         pattern=r"nonexistent_pattern",
         replacement="replacement",
     )
-    assert result["status"] == "unchanged"
-    assert "No matches found" in result["message"]
+    assert result.status == "unchanged"
+    assert "No matches found" in str(result)
