@@ -4,6 +4,7 @@ import sys
 from git import Commit as GitCommit
 
 from codegen.git.repo_operator.repo_operator import RepoOperator
+from codegen.git.schemas.enums import SetupOption
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.runner.models.apis import CreateBranchRequest, CreateBranchResponse, GetDiffRequest, GetDiffResponse
 from codegen.runner.sandbox.executor import SandboxExecutor
@@ -14,7 +15,6 @@ from codegen.sdk.secrets import Secrets
 from codegen.shared.compilation.string_to_code import create_execute_function_from_codeblock
 from codegen.shared.configs.session_configs import config
 from codegen.shared.performance.stopwatch_utils import stopwatch
-from codegen.git.schemas.enums import SetupOption
 
 logger = logging.getLogger(__name__)
 

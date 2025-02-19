@@ -1,11 +1,8 @@
 import logging
 import os
-from functools import cached_property
-from typing import Self, override
+from typing import override
 
-from codeowners import CodeOwners as CodeOwnersParser
 from git import Repo as GitCLI
-from git import GitCommandError
 from github.PullRequest import PullRequest
 
 from codegen.git.clients.git_repo_client import GitRepoClient
@@ -13,8 +10,6 @@ from codegen.git.repo_operator.local_git_repo import LocalGitRepo
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.enums import FetchResult
 from codegen.git.schemas.repo_config import RepoConfig
-from codegen.git.utils.file_utils import create_files
-from codegen.shared.configs.session_configs import config
 
 logger = logging.getLogger(__name__)
 
@@ -66,11 +61,9 @@ class LocalRepoOperator(RepoOperator):
     # CLASS METHODS
     ####################################################################################################################
 
-
     ####################################################################################################################
     # PROPERTIES
     ####################################################################################################################
-
 
     @override
     def pull_repo(self) -> None:

@@ -2,7 +2,7 @@ import fnmatch
 import glob
 import logging
 import os
-from abc import ABC, abstractmethod
+from abc import ABC
 from collections.abc import Generator
 from datetime import UTC, datetime
 from functools import cached_property
@@ -17,17 +17,16 @@ from git.remote import PushInfoList
 
 from codegen.git.clients.git_repo_client import GitRepoClient
 from codegen.git.configs.constants import CODEGEN_BOT_EMAIL, CODEGEN_BOT_NAME
+from codegen.git.schemas.enums import CheckoutResult, FetchResult, SetupOption
 from codegen.git.schemas.repo_config import RepoConfig
+from codegen.git.utils.clone import clone_or_pull_repo, clone_repo, pull_repo
+from codegen.git.utils.clone_url import add_access_token_to_url, get_authenticated_clone_url_for_repo_config, get_clone_url_for_repo_config, url_to_github
+from codegen.git.utils.codeowner_utils import create_codeowners_parser_for_repo
+from codegen.git.utils.file_utils import create_files
 from codegen.git.utils.remote_progress import CustomRemoteProgress
 from codegen.shared.configs.session_configs import config
 from codegen.shared.performance.stopwatch_utils import stopwatch
 from codegen.shared.performance.time_utils import humanize_duration
-from codegen.git.utils.codeowner_utils import create_codeowners_parser_for_repo
-from codegen.git.utils.clone_url import get_authenticated_clone_url_for_repo_config, get_clone_url_for_repo_config, url_to_github
-from codegen.git.utils.file_utils import create_files
-from codegen.git.utils.clone_url import add_access_token_to_url
-from codegen.git.utils.clone import clone_or_pull_repo, clone_repo, pull_repo
-from codegen.git.schemas.enums import CheckoutResult, FetchResult, SetupOption
 
 logger = logging.getLogger(__name__)
 
@@ -182,7 +181,6 @@ class RepoOperator(ABC):
         # Priority 3: Fallback to the active branch
         return self.git_cli.active_branch.name
 
-
     @property
     def codeowners_parser(self) -> CodeOwnersParser | None:
         if not self._codeowners_parser:
@@ -274,7 +272,6 @@ class RepoOperator(ABC):
             self.clean_repo()
         clone_or_pull_repo(repo_path=self.repo_path, clone_url=self.clone_url, shallow=shallow)
 
-
     ####################################################################################################################
     # CHECKOUT, BRANCHES & COMMITS
     ####################################################################################################################
@@ -323,6 +320,7 @@ class RepoOperator(ABC):
                 return FetchResult.REFSPEC_NOT_FOUND
             else:
                 raise e
+
     def delete_remote(self, remote_name: str) -> None:
         remote = self.git_cli.remote(remote_name)
         if remote:
@@ -730,7 +728,6 @@ class RepoOperator(ABC):
                     start_line=start_line,
                 )
 
-
     ####################################################################################################################
     # CLASS METHODS
     ####################################################################################################################
@@ -801,8 +798,7 @@ class RepoOperator(ABC):
                     remote_head = git_cli.remotes.origin.refs[git_cli.active_branch.name].commit
                     # If up to date, use existing repo
                     if local_head.hexsha == remote_head.hexsha:
-                        return cls(repo_config=RepoConfig.from_repo_path(repo_path), bot_commit=False,
-                                   access_token=access_token)
+                        return cls(repo_config=RepoConfig.from_repo_path(repo_path), bot_commit=False, access_token=access_token)
             except Exception:
                 # If any git operations fail, fallback to fresh clone
                 pass
@@ -813,14 +809,13 @@ class RepoOperator(ABC):
 
             shutil.rmtree(repo_path)
         try:
-
             # Clone the repository
             GitCLI.clone_from(url=url, to_path=repo_path, depth=1)
 
             # Initialize with the cloned repo
             git_cli = GitCLI(repo_path)
         except (GitCommandError, ValueError) as e:
-            logger.error(f"Failed to initialize Git repository:")
-            logger.error("Please authenticate with a valid token and ensure the repository is properly initialized.")
+            logger.exception("Failed to initialize Git repository:")
+            logger.exception("Please authenticate with a valid token and ensure the repository is properly initialized.")
             return None
         return cls(repo_config=RepoConfig.from_repo_path(repo_path), bot_commit=False, access_token=access_token)
