@@ -1,8 +1,6 @@
 import asyncio
 from dataclasses import dataclass, field
-import json
-from types import coroutine
-from typing import Annotated, Coroutine, Optional, Dict, Any, List
+from typing import Annotated, Optional, Dict, Any, List
 from mcp.server.fastmcp import FastMCP
 from codegen import Codebase
 
@@ -41,17 +39,6 @@ def capture_output(*args, **kwargs) -> None:
     """Capture and log output messages."""
     for arg in args:
         state.log_buffer.append(str(arg))
-
-def update_codebase(future: asyncio.Future):
-    try:
-        result = future.result()
-        if result is not None:
-            state.parsed_codebase = result
-        else:
-            state.parsed_codebase = None
-    except Exception as e:
-        pass
-
 
 
 def update_codebase(future: asyncio.Future):
