@@ -5,6 +5,9 @@ from typing import Literal
 from codegen.git.utils.file_utils import split_git_path
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 
+# Minimum ratio of files that must match the dominant language
+MIN_LANGUAGE_RATIO = 0.1
+
 
 def determine_project_language(folder_path: str, strategy: Literal["most_common", "git_most_common", "package_json"] = "git_most_common") -> ProgrammingLanguage:
     """Determines the primary programming language of a project.
@@ -28,7 +31,6 @@ def determine_project_language(folder_path: str, strategy: Literal["most_common"
         msg = f"Invalid strategy: {strategy}"
         raise ValueError(msg)
 
-
 def _determine_language_by_file_count(folder_path: str) -> ProgrammingLanguage:
     """Analyzes a folder to determine the primary programming language based on file extensions.
     Returns the language with the most matching files.
@@ -38,6 +40,7 @@ def _determine_language_by_file_count(folder_path: str) -> ProgrammingLanguage:
 
     Returns:
         ProgrammingLanguage: The dominant programming language, or UNSUPPORTED if no matching files found
+        or if less than MIN_LANGUAGE_RATIO of files match the dominant language
     """
     from codegen.sdk.python import PyFile
     from codegen.sdk.typescript.file import TSFile
@@ -54,6 +57,7 @@ def _determine_language_by_file_count(folder_path: str) -> ProgrammingLanguage:
 
     # Initialize counters for each language
     language_counts = Counter()
+    total_files = 0
 
     # Walk through the directory
     for file_path in folder.rglob("*"):
@@ -65,6 +69,8 @@ def _determine_language_by_file_count(folder_path: str) -> ProgrammingLanguage:
         if any(ignore in str(file_path) for ignore in [".git", "node_modules", "__pycache__", "venv", ".env"]):
             continue
 
+        total_files += 1
+
         # Count files for each language based on extensions
         for language, exts in EXTENSIONS.items():
             if file_path.suffix in exts:
@@ -74,8 +80,14 @@ def _determine_language_by_file_count(folder_path: str) -> ProgrammingLanguage:
     if not language_counts:
         return ProgrammingLanguage.UNSUPPORTED
 
-    # Return the language with the highest count
-    return language_counts.most_common(1)[0][0]
+    # Get the most common language and its count
+    most_common_language, count = language_counts.most_common(1)[0]
+
+    # Check if the most common language makes up at least MIN_LANGUAGE_RATIO of all files
+    if total_files > 0 and (count / total_files) < MIN_LANGUAGE_RATIO:
+        return ProgrammingLanguage.UNSUPPORTED
+
+    return most_common_language
 
 
 def _determine_language_by_git_file_count(folder_path: str) -> ProgrammingLanguage:
@@ -87,6 +99,7 @@ def _determine_language_by_git_file_count(folder_path: str) -> ProgrammingLangua
 
     Returns:
         ProgrammingLanguage: The dominant programming language, or UNSUPPORTED if no matching files found
+        or if less than MIN_LANGUAGE_RATIO of files match the dominant language
     """
     from codegen.git.repo_operator.local_repo_operator import LocalRepoOperator
     from codegen.git.schemas.repo_config import RepoConfig
@@ -105,6 +118,7 @@ def _determine_language_by_git_file_count(folder_path: str) -> ProgrammingLangua
 
     # Initialize counters for each language
     language_counts = Counter()
+    total_files = 0
 
     # Initiate LocalRepoOperator
     git_root, base_path = split_git_path(folder_path)
@@ -120,6 +134,8 @@ def _determine_language_by_git_file_count(folder_path: str) -> ProgrammingLangua
         if file_path.is_dir() or file_path.name.startswith("."):
             continue
 
+        total_files += 1
+
         # Count files for each language based on extensions
         for language, exts in EXTENSIONS.items():
             if file_path.suffix in exts:
@@ -129,8 +145,16 @@ def _determine_language_by_git_file_count(folder_path: str) -> ProgrammingLangua
     if not language_counts:
         return ProgrammingLanguage.UNSUPPORTED
 
-    # Return the language with the highest count
-    return language_counts.most_common(1)[0][0]
+    # Get the most common language and its count
+    most_common_language, count = language_counts.most_common(1)[0]
+
+    print(f"Most common language: {most_common_language}, count: {count}, total files: {total_files}")
+
+    # Check if the most common language makes up at least MIN_LANGUAGE_RATIO of all files
+    if total_files > 0 and (count / total_files) < MIN_LANGUAGE_RATIO:
+        return ProgrammingLanguage.UNSUPPORTED
+
+    return most_common_language
 
 
 def _determine_language_by_package_json(folder_path: str) -> ProgrammingLanguage:
