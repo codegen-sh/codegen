@@ -253,4 +253,4 @@ def run(codebase: Codebase):
 """
     result = run_codemod(codebase, codemod_source)
     assert result["status"] == "success"
-    assert "+# hello, world" in result["diffs"]["src/main.py"]
+    assert "+# hello, world" in result["diff"]

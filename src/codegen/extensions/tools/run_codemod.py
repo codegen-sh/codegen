@@ -1,6 +1,5 @@
 """Tool for running custom codemod functions on the codebase."""
 
-import difflib
 import importlib.util
 import sys
 from pathlib import Path
@@ -8,30 +7,6 @@ from tempfile import NamedTemporaryFile
 from typing import Any
 
 from codegen import Codebase
-
-
-def generate_diff(original: str, modified: str) -> str:
-    """Generate a unified diff between two strings.
-
-    Args:
-        original: Original content
-        modified: Modified content
-
-    Returns:
-        Unified diff as a string
-    """
-    original_lines = original.splitlines(keepends=True)
-    modified_lines = modified.splitlines(keepends=True)
-
-    diff = difflib.unified_diff(
-        original_lines,
-        modified_lines,
-        fromfile="original",
-        tofile="modified",
-        lineterm="",
-    )
-
-    return "".join(diff)
 
 
 def run_codemod(codebase: Codebase, codemod_source: str) -> dict[str, Any]:
@@ -54,9 +29,6 @@ def run_codemod(codebase: Codebase, codemod_source: str) -> dict[str, Any]:
     Raises:
         ValueError: If codemod source is invalid or execution fails
     """
-    # Get initial state of all files
-    initial_states = {file.filepath: file.content for file in codebase.files if not getattr(file, "_binary", False) and not file.filepath.startswith(".codegen")}
-
     # Create a temporary module to run the codemod
     with NamedTemporaryFile(suffix=".py", mode="w", delete=False) as temp_file:
         # Add imports and write the codemod source
@@ -83,18 +55,11 @@ def run_codemod(codebase: Codebase, codemod_source: str) -> dict[str, Any]:
             # Run the codemod
             module.run(codebase)
             codebase.commit()
-
-            # Get final state and compute diffs
-            diffs = {}
-            for filepath, initial_content in initial_states.items():
-                file = codebase.get_file(filepath)
-                if file and file.content != initial_content:
-                    diffs[filepath] = generate_diff(initial_content, file.content)
+            diff = codebase.get_diff()
 
             return {
                 "status": "success",
-                "diffs": diffs,
-                "files_changed": len(diffs),
+                "diff": diff,
             }
 
         except Exception as e:
