@@ -83,9 +83,12 @@ def get_codebase_session(
     ):
         if verify_input:
             for file in codebase.files:
-                if os.path.exists(file.filepath):
-                    print_errors(file.filepath, file.content)
-                    assert not file.ts_node.has_error, "Invalid syntax in test case"
+                abs_filepath = os.path.join(tmpdir, file.filepath)
+                if os.path.exists(abs_filepath):
+                    print_errors(abs_filepath, file.content)
+                    if file.ts_node.has_error:
+                        msg = "Invalid syntax in test case"
+                        raise SyntaxError(msg)
         yield codebase
 
     if verify_output:
