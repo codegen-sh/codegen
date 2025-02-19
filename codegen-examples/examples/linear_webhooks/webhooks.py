@@ -2,7 +2,7 @@ import modal.running_app
 from codegen.extensions.events.app import CodegenApp
 import modal
 
-image = modal.Image.debian_slim(python_version="3.13").apt_install("git").pip_install("fastapi[standard]", "codegen>=0.14.4")
+image = modal.Image.debian_slim(python_version="3.13").apt_install("git").pip_install("fastapi[standard]", "codegen>=0.22.1")
 
 app = CodegenApp(name="test-linear", modal_api_key="", image=image)
 
