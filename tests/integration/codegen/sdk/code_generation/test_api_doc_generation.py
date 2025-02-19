@@ -1,6 +1,6 @@
 import pytest
 
-from codegen.sdk.ai.helpers import count_tokens
+from codegen.sdk.ai.utils import count_tokens
 from codegen.sdk.code_generation.doc_utils.generate_docs_json import generate_docs_json
 from codegen.sdk.code_generation.prompts.api_docs import get_codegen_sdk_codebase, get_codegen_sdk_docs
 from codegen.sdk.core.symbol import Symbol

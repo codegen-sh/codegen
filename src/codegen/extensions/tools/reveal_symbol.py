@@ -3,15 +3,10 @@ from typing import Any, Optional
 import tiktoken
 
 from codegen import Codebase
+from codegen.sdk.ai.utils import count_tokens
 from codegen.sdk.core.external_module import ExternalModule
 from codegen.sdk.core.import_resolution import Import
 from codegen.sdk.core.symbol import Symbol
-
-
-def count_tokens(text: str) -> int:
-    """Count the number of tokens in a string using GPT tokenizer."""
-    enc = tiktoken.get_encoding("cl100k_base")  # GPT-4 encoding
-    return len(enc.encode(text))
 
 
 def truncate_source(source: str, max_tokens: int) -> str:
