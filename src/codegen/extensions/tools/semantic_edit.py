@@ -117,14 +117,24 @@ def semantic_edit(codebase: Codebase, filepath: str, edit_content: str, start: i
     original_content = file.content
     original_lines = original_content.split("\n")
 
+    # Check if file is too large for full edit
+    MAX_LINES = 300
+    if len(original_lines) > MAX_LINES and start == 1 and end == -1:
+        return {
+            "error": (
+                f"File is {len(original_lines)} lines long. For files longer than {MAX_LINES} lines, "
+                "please specify a line range using start and end parameters. "
+                "You may need to make multiple targeted edits."
+            ),
+            "status": "error",
+            "line_count": len(original_lines),
+        }
+
     # Handle append mode
     if start == -1 and end == -1:
         try:
             file.add_symbol_from_source(edit_content)
             codebase.commit()
-
-            # Analyze changes for append
-            new_lines = file.content.split("\n")
 
             return {"filepath": filepath, "content": file.content, "diff": generate_diff(original_content, file.content), "status": "success"}
         except Exception as e:
