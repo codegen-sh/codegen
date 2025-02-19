@@ -22,7 +22,6 @@ from rich.console import Console
 from typing_extensions import deprecated
 
 from codegen.git.repo_operator.local_repo_operator import LocalRepoOperator
-from codegen.git.repo_operator.remote_repo_operator import RemoteRepoOperator
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.enums import CheckoutResult
 from codegen.git.utils.pr_review import CodegenPR
@@ -119,7 +118,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         console: Manages console output for the codebase.
     """
 
-    _op: RepoOperator | RemoteRepoOperator | LocalRepoOperator
+    _op: RepoOperator | LocalRepoOperator
     viz: VisualizationManager
     repo_path: Path
     console: Console

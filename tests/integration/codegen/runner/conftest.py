@@ -6,11 +6,12 @@ from unittest.mock import Mock
 import pytest
 
 from codegen.git.clients.git_repo_client import GitRepoClient
-from codegen.git.repo_operator.remote_repo_operator import RemoteRepoOperator
+from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.runner.clients.sandbox_client import SandboxClient
 from codegen.shared.configs.session_configs import config
 from codegen.shared.enums.programming_language import ProgrammingLanguage
+from codegen.git.schemas.enums import SetupOption
 
 
 @pytest.fixture
@@ -35,8 +36,8 @@ def repo_config(tmpdir) -> Generator[RepoConfig, None, None]:
 
 
 @pytest.fixture
-def op(repo_config: RepoConfig) -> Generator[RemoteRepoOperator, None, None]:
-    yield RemoteRepoOperator(repo_config=repo_config, access_token=config.secrets.github_token)
+def op(repo_config: RepoConfig) -> Generator[RepoOperator, None, None]:
+    yield RepoOperator(repo_config=repo_config, access_token=config.secrets.github_token, setup_option=SetupOption.PULL_OR_CLONE)
 
 
 @pytest.fixture

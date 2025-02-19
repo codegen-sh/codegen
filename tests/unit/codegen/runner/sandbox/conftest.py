@@ -26,7 +26,7 @@ def executor(codebase: Codebase) -> Generator[SandboxExecutor]:
 
 @pytest.fixture
 def runner(codebase: Codebase, tmpdir):
-    with patch("codegen.runner.sandbox.runner.RemoteRepoOperator") as mock_op:
+    with patch("codegen.runner.sandbox.runner.RepoOperator") as mock_op:
         with patch.object(SandboxRunner, "_build_graph") as mock_init_codebase:
             mock_init_codebase.return_value = codebase
             mock_op.return_value = codebase.op
