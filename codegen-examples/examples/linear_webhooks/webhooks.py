@@ -9,12 +9,8 @@ app = CodegenApp(name="test-linear", modal_api_key="", image=image)
 # The @app.linear.event() decorator takes care of subscribing to the webhook and also unsubscribing when the deployment spun
 # Load environment variables from .env file
 
-<<<<<<< Updated upstream
 
-@app.cls(secrets=[modal.Secret.from_dotenv()])
-=======
 @app.cls(secrets=[modal.Secret.from_dotenv()], keep_warm=1)
->>>>>>> Stashed changes
 class LinearEventHandlers:
     @modal.enter()
     def enter(self):
