@@ -9,9 +9,9 @@ from codegen.sdk.codebase.codebase_context import CodebaseContext
 from codegen.sdk.codebase.config import CodebaseConfig, ProjectConfig, SessionOptions, TestFlags
 from codegen.sdk.codebase.factory.codebase_factory import CodebaseFactory
 from codegen.sdk.core.codebase import Codebase, PyCodebaseType, TSCodebaseType
-from codegen.sdk.secrets import Secrets
 from codegen.sdk.tree_sitter_parser import print_errors
 from codegen.shared.configs.models.feature_flags import CodebaseFeatureFlags
+from codegen.shared.configs.models.secrets import SecretsConfig
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
@@ -26,7 +26,7 @@ def get_codebase_session(
     verify_output: bool = True,
     feature_flags: CodebaseFeatureFlags = TestFlags,
     session_options: SessionOptions = SessionOptions(),
-    secrets: Secrets = Secrets(),
+    secrets: SecretsConfig = SecretsConfig(),
 ) -> AbstractContextManager[PyCodebaseType]: ...
 
 
@@ -41,7 +41,7 @@ def get_codebase_session(
     verify_output: bool = True,
     feature_flags: CodebaseFeatureFlags = TestFlags,
     session_options: SessionOptions = SessionOptions(),
-    secrets: Secrets = Secrets(),
+    secrets: SecretsConfig = SecretsConfig(),
 ) -> AbstractContextManager[PyCodebaseType]: ...
 
 
@@ -56,7 +56,7 @@ def get_codebase_session(
     verify_output: bool = True,
     feature_flags: CodebaseFeatureFlags = TestFlags,
     session_options: SessionOptions = SessionOptions(),
-    secrets: Secrets = Secrets(),
+    secrets: SecretsConfig = SecretsConfig(),
 ) -> AbstractContextManager[TSCodebaseType]: ...
 
 
@@ -71,7 +71,7 @@ def get_codebase_session(
     verify_output: bool = True,
     feature_flags: CodebaseFeatureFlags = TestFlags,
     session_options: SessionOptions = SessionOptions(),
-    secrets: Secrets = Secrets(),
+    secrets: SecretsConfig = SecretsConfig(),
 ) -> Generator[Codebase, None, None]:
     """Gives you a Codebase operating on the files you provided as a dict"""
     config = CodebaseConfig(feature_flags=feature_flags, secrets=secrets)
