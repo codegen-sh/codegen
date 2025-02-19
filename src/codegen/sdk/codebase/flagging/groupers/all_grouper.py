@@ -1,4 +1,4 @@
-from codegen.git.repo_operator.remote_repo_operator import RemoteRepoOperator
+from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.sdk.codebase.flagging.code_flag import CodeFlag
 from codegen.sdk.codebase.flagging.group import Group
 from codegen.sdk.codebase.flagging.groupers.base_grouper import BaseGrouper
@@ -11,11 +11,11 @@ class AllGrouper(BaseGrouper):
     type: GroupBy = GroupBy.ALL
 
     @staticmethod
-    def create_all_groups(flags: list[CodeFlag], repo_operator: RemoteRepoOperator | None = None) -> list[Group]:
+    def create_all_groups(flags: list[CodeFlag], repo_operator: RepoOperator | None = None) -> list[Group]:
         return [Group(group_by=GroupBy.ALL, segment="all", flags=flags)] if flags else []
 
     @staticmethod
-    def create_single_group(flags: list[CodeFlag], segment: str, repo_operator: RemoteRepoOperator | None = None) -> Group:
+    def create_single_group(flags: list[CodeFlag], segment: str, repo_operator: RepoOperator | None = None) -> Group:
         if segment != "all":
             msg = f"❌ Invalid segment for AllGrouper: {segment}. Only 'all' is a valid segment."
             raise ValueError(msg)

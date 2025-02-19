@@ -11,20 +11,16 @@ class CodebaseState:
 
     parse_task: Optional[asyncio.Future] = None
     parsed_codebase: Optional[Codebase] = None
-    codebase_path: Optional[str] = None
     log_buffer: List[str] = field(default_factory=list)
 
-    async def parse(self, path: str) -> Codebase:
+    def parse(self, path: str) -> Codebase:
         """Parse the codebase at the given path."""
         codebase = Codebase(path)
         self.parsed_codebase = codebase
-        self.codebase_path = path
         return codebase
 
     def reset(self) -> None:
         """Reset the state."""
-        if self.parsed_codebase:
-            self.parsed_codebase.reset()
         self.log_buffer.clear()
 
 
@@ -45,12 +41,24 @@ def capture_output(*args, **kwargs) -> None:
         state.log_buffer.append(str(arg))
 
 
+def update_codebase(future: asyncio.Future):
+    try:
+        result = future.result()
+        if result is not None:
+            state.parsed_codebase = result
+        else:
+            state.parsed_codebase = None
+    except Exception:
+        pass
+
+
 @mcp.tool(name="parse_codebase", description="Initiate codebase parsing")
 async def parse_codebase(codebase_path: Annotated[str, "path to the codebase to be parsed"]) -> Dict[str, str]:
     if not state.parse_task or state.parse_task.done():
         state.parse_task = asyncio.get_event_loop().run_in_executor(None, lambda: state.parse(codebase_path))
+        state.parse_task.add_done_callback(update_codebase)
         return {"message": "Codebase parsing initiated, this may take some time depending on the size of the codebase. Use the `check_parsing_status` tool to check if the parse has completed."}
-    return {"message": "Codebase is already being parsed."}
+    return {"message": "Codebase is already being parsed.", "status": "error"}
 
 
 @mcp.tool(name="check_parse_status", description="Check if codebase parsing has completed")
@@ -69,17 +77,19 @@ async def execute_codemod(codemod: Annotated[str, "The python codemod code to ex
 
     try:
         await state.parse_task
-        # TODO: Implement proper sandboxing for code execution
-        context = {
-            "codebase": state.parsed_codebase,
-            "print": capture_output,
-        }
-        exec(codemod, context)
+        if state.parsed_codebase is None:
+            return {"error": "Codebase path is not set."}
+        else:
+            # TODO: Implement proper sandboxing for code execution
+            context = {
+                "codebase": state.parsed_codebase,
+                "print": capture_output,
+            }
+            exec(codemod, context)
 
         logs = "\n".join(state.log_buffer)
-
         state.reset()
-        return {"message": "Codemod executed and codebase reset.", "logs": logs}
+        return {"message": "Codemod executed, view the logs for any output and your source code for any resulting updates.", "logs": logs}
     except Exception as e:
         return {"error": f"Error executing codemod: {str(e)}", "details": {"type": type(e).__name__, "message": str(e)}}
 

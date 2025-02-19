@@ -1420,7 +1420,7 @@ Here's an example:
 
 ```python
 from codegen import Codebase
-from codegen.git.repo_operator.local_repo_operator import LocalRepoOperator
+from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.sdk.codebase.config import ProjectConfig
 from codegen.shared.enums.programming_language import ProgrammingLanguage
@@ -1428,7 +1428,7 @@ from codegen.shared.enums.programming_language import ProgrammingLanguage
 codebase = Codebase(
     projects = [
         ProjectConfig(
-            repo_operator=LocalRepoOperator(
+            repo_operator=RepoOperator(
                 repo_config=RepoConfig(name="codegen-sdk"),
                 bot_commit=True
             ),

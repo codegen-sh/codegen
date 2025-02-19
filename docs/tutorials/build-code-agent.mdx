@@ -13,40 +13,33 @@ This agent access to powerful code viewing and manipulation tools powered by Cod
 - `SemanticEditTool`: implementation of Cursor-style smart file editing
 - `SemanticSearchTool`: search over an index of vector embeddings for files
 
-<Info>View the full code in our [examples repository](https://github.com/codegen-sh/codegen-sdk/tree/develop/src/codegen/extensions/langchain)</Info>
+<Info>View the full code for the default tools and agent implementation in our [examples repository](https://github.com/codegen-sh/codegen-sdk/tree/develop/src/codegen/extensions/langchain)</Info>
 
-## Step 1: Setting Up the Agent
+# Agent Starter Code
 
-First, let's import the necessary components and create our agent:
+Below is a code snippet you can run as-is to solve SWE bench issues.
 
 ```python
-from langchain_openai import ChatOpenAI
 from codegen import Codebase
-from codegen.extensions.langchain.agent import create_codebase_agent
-
-# Initialize codebase
-codebase = Codebase.from_repo("fastapi/fastapi")
-
-# Create the agent with GPT-4
-agent = create_codebase_agent(
-    codebase=codebase,
-    model_name="gpt-4o",
-    temperature=0,
-    verbose=True
+from codegen.extensions.langchain.agent import create_agent_with_tools
+from codegen.extensions.langchain.tools import (
+    CreateFileTool,
+    DeleteFileTool,
+    EditFileTool,
+    ListDirectoryTool,
+    MoveSymbolTool,
+    RenameFileTool,
+    RevealSymbolTool,
+    SearchTool,
+    SemanticEditTool,
+    ViewFileTool,
 )
-```
 
-The agent is initialized with:
-- A Codebase instance to operate on
-- An LLM (GPT-4 in this case)
-- Tools for code manipulation
-- A conversation memory to maintain context
+# Parse Codebase
+# Using a repo + commit from SWE-Bench
+codebase = Codebase.from_repo('sqlfluff/sqlfluff', commit='a820c139ccbe6d1865d73c4a459945cd69899f8f', language='python')
 
-## Step 2: Available Tools
-
-The agent comes with several built-in tools for code operations:
-
-```python
+# Define tools
 tools = [
     ViewFileTool(codebase),      # View file contents
     ListDirectoryTool(codebase),  # List directory contents
@@ -58,9 +51,84 @@ tools = [
     MoveSymbolTool(codebase),    # Move functions/classes
     RevealSymbolTool(codebase),  # Analyze symbol relationships
     SemanticEditTool(codebase),  # Make semantic edits
-    CommitTool(codebase),        # Commit changes
+]
+
+
+agent = create_agent_with_tools(codebase, tools)
+
+# Using a prompt from SWE Bench
+issue = """Enable quiet mode/no-verbose in CLI for use in pre-commit hook There seems to be only an option to increase the level of verbosity when using SQLFluff [CLI](https://docs.sqlfluff.com/en/stable/cli.html), not to limit it further. It would be great to have an option to further limit the amount of prints when running `sqlfluff fix`, especially in combination with deployment using a pre-commit hook. For example, only print the return status and the number of fixes applied, similar to how it is when using `black` in a pre-commit hook: ![image](https://user-images.githubusercontent.com/10177212/140480676-dc98d00b-4383-44f2-bb90-3301a6eedec2.png) This hides the potentially long list of fixes that are being applied to the SQL files, which can get quite verbose."""
+prompt = f"""
+Hey CodegenBot!
+
+Here's a SWE task for you. Please solve this task diligently.
+
+>>>>> ISSUE TEXT <<<<<
+{issue}
+>>>>> ISSUE TEXT <<<<<
+
+Godspeed, CodegenBot! 🚀
+"""
+
+# Run the agent
+result = agent.invoke(
+    {'input': prompt},
+    config={"configurable": {"session_id": "demo"}}
+)
+```
+
+## Step 1: Tool Configuration
+
+The agent comes with several built-in tools for code operations:
+
+```python
+from codegen.extensions.langchain.tools import (
+    CreateFileTool,
+    DeleteFileTool,
+    EditFileTool,
+    ListDirectoryTool,
+    MoveSymbolTool,
+    RenameFileTool,
+    RevealSymbolTool,
+    SearchTool,
+    SemanticEditTool,
+    ViewFileTool,
+)
+
+tools = [
+    ViewFileTool(codebase),      # View file contents
+    ListDirectoryTool(codebase),  # List directory contents
+    SearchTool(codebase),        # Search code
+    EditFileTool(codebase),      # Edit files
+    CreateFileTool(codebase),    # Create new files
+    DeleteFileTool(codebase),    # Delete files
+    RenameFileTool(codebase),    # Rename files
+    MoveSymbolTool(codebase),    # Move functions/classes
+    RevealSymbolTool(codebase),  # Analyze symbol relationships
+    SemanticEditTool(codebase),  # Make semantic edits
 ]
 ```
+
+## Step 2: Setting Up the Agent
+
+You can create an agent using `create_agent_with_tools`:
+
+```python
+from langchain_openai import ChatOpenAI
+from codegen import Codebase
+from codegen.extensions.langchain.agent import create_agent_with_tools
+
+# Create the agent with GPT-4
+agent = create_agent_with_tools(codebase=codebase, tools=tools)
+```
+
+The agent is initialized with:
+- A Codebase instance to operate on
+- An LLM (GPT-4o in this case)
+- Tools for code manipulation
+- A conversation memory to maintain context
+
+
 
 Each tool provides specific capabilities to the agent, allowing it to perform complex code operations.
 
@@ -72,7 +140,7 @@ Let's see some examples of how to interact with the agent:
 # Analyze dependencies
 result = agent.invoke(
     {"input": "What are the dependencies of the FastAPI class?"},
-    confeg={"configurable": {"session_id": "demo"}}
+    config={"configurable": {"session_id": "demo"}}
 )
 print(result["output"])
 

@@ -107,7 +107,7 @@ def _determine_language_by_git_file_count(folder_path: str) -> ProgrammingLangua
         ProgrammingLanguage: The dominant programming language, or OTHER if no matching files found
         or if less than MIN_LANGUAGE_RATIO of files match the dominant language
     """
-    from codegen.git.repo_operator.local_repo_operator import LocalRepoOperator
+    from codegen.git.repo_operator.repo_operator import RepoOperator
     from codegen.git.schemas.repo_config import RepoConfig
     from codegen.sdk.python import PyFile
     from codegen.sdk.typescript.file import TSFile
@@ -126,10 +126,10 @@ def _determine_language_by_git_file_count(folder_path: str) -> ProgrammingLangua
     language_counts = Counter()
     total_files = 0
 
-    # Initiate LocalRepoOperator
+    # Initiate RepoOperator
     git_root, base_path = split_git_path(folder_path)
     repo_config = RepoConfig.from_repo_path(repo_path=git_root)
-    repo_operator = LocalRepoOperator(repo_config=repo_config)
+    repo_operator = RepoOperator(repo_config=repo_config)
 
     # Walk through the directory
     for rel_path, _ in repo_operator.iter_files(subdirs=[base_path] if base_path else None):

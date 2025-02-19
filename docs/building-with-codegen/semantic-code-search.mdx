@@ -68,7 +68,7 @@ The `FileIndex` operates at the file level:
 - Simpler and faster to create/update
 
 ```python
-from codegen import FileIndex
+from codegen.extensions.index.file_index import FileIndex
 
 index = FileIndex(codebase)
 index.create()
@@ -82,7 +82,7 @@ The `SymbolIndex` operates at the symbol level:
 - More granular search results
 
 ```python
-from codegen import SymbolIndex
+from codegen.extensions.index.symbol_index import SymbolIndex
 
 index = SymbolIndex(codebase)
 index.create()

@@ -5,7 +5,6 @@ from pydantic import BaseModel
 from pydantic.config import ConfigDict
 from pydantic.fields import Field
 
-from codegen.git.repo_operator.local_repo_operator import LocalRepoOperator
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.git.utils.file_utils import split_git_path
@@ -55,7 +54,7 @@ class ProjectConfig(BaseModel):
         repo_config.subdirectories = subdirectories
         # Create main project
         return cls(
-            repo_operator=LocalRepoOperator(repo_config=repo_config),
+            repo_operator=RepoOperator(repo_config=repo_config),
             programming_language=programming_language,
             base_path=base_path,
             subdirectories=subdirectories,
