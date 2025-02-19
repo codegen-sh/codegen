@@ -4,7 +4,7 @@ import pytest
 from github.MainClass import Github
 
 from codegen.git.repo_operator.repo_operator import RepoOperator
-from codegen.git.schemas.enums import CheckoutResult
+from codegen.git.schemas.enums import CheckoutResult, SetupOption
 from codegen.git.utils.file_utils import create_files
 
 shallow_options = [True, False]
@@ -12,7 +12,7 @@ shallow_options = [True, False]
 
 @pytest.fixture
 def op(repo_config, request):
-    op = RepoOperator(repo_config, shallow=request.param if hasattr(request, "param") else True, bot_commit=False)
+    op = RepoOperator(repo_config, shallow=request.param if hasattr(request, "param") else True, bot_commit=False, setup_option=SetupOption.PULL_OR_CLONE)
     yield op
 
 
