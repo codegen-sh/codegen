@@ -6,7 +6,7 @@ from github.PullRequest import PullRequest
 from unidiff import PatchSet
 
 from codegen.git.models.pull_request_context import PullRequestContext
-from codegen.git.repo_operator.local_repo_operator import RepoOperator
+from codegen.git.repo_operator.repo_operator import RepoOperator
 
 if TYPE_CHECKING:
     from codegen.sdk.core.codebase import Codebase, Editable, File, Symbol

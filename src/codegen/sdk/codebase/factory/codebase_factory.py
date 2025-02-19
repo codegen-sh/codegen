@@ -1,4 +1,4 @@
-from codegen.git.repo_operator.local_repo_operator import RepoOperator
+from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.sdk.codebase.config import CodebaseConfig, ProjectConfig
 from codegen.sdk.core.codebase import (
     Codebase,
