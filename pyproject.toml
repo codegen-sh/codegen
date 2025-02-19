@@ -31,7 +31,7 @@ dependencies = [
   "plotly>=5.24.0,<7.0.0",
   "humanize<5.0.0,>=4.10.0",
   "pytest-snapshot>=0.9.0",
-  "anthropic==0.23.1",
+  "anthropic==0.46.0",
   "pyjson5==1.6.8",
   "mini-racer>=0.12.4",
   "rustworkx>=0.15.1",
