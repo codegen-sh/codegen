@@ -227,10 +227,10 @@ def test_get_set_delete_item(mock_directory):
 def test_unicode_in_filename(tmpdir) -> None:
     with get_codebase_session(
         tmpdir=tmpdir,
-        files={"ascii.py": "print('Hello, world!')", "test/我很喜欢冰激淋/test-file 12\'3_🍦.py": "print('Hello, world!')"},
+        files={"ascii.py": "print('Hello, world!')", "test/我很喜欢冰激淋/test-file 12'3_🍦.py": "print('Hello, world!')"},
         programming_language=ProgrammingLanguage.PYTHON,
         verify_output=True,
     ) as codebase:
-        file = codebase.get_file("test/我很喜欢冰激淋/test-file 12\'3_🍦.py")
+        file = codebase.get_file("test/我很喜欢冰激淋/test-file 12'3_🍦.py")
         assert file is not None
         assert file.content == "print('Hello, world!')"

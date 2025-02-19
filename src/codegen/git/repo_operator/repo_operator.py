@@ -581,18 +581,18 @@ class RepoOperator(ABC):
         # Fix bug where unicode characters are not handled correctly
         for i, filepath in enumerate(filepaths):
             # Check if it is one of the broken cases
-            if filepath.startswith("\""):
+            if filepath.startswith('"'):
                 # Step 1: Strip the quotes
-                filepath = filepath.strip("\"").strip("'")
+                filepath = filepath.strip('"').strip("'")
 
                 # Step 2: Convert the Python string to raw ASCII bytes (so \\ stays as two 0x5C).
-                raw_filepath = filepath.encode('ascii')
+                raw_filepath = filepath.encode("ascii")
 
                 # Step 3: Use escape_decode to process backslash escapes like \346 -> 0xE6
                 decoded_filepath, _ = codecs.escape_decode(raw_filepath)
 
                 # Step 4: Decode those bytes as UTF-8 to get the actual Unicode text
-                filepath = decoded_filepath.decode('utf-8')
+                filepath = decoded_filepath.decode("utf-8")
 
                 # Step 5: Replace the original filepath with the decoded filepath
                 filepaths[i] = filepath
