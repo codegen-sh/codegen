@@ -5,10 +5,10 @@
     ":automergeLinters",
     ":automergeMinor",
     ":automergePatch",
-    ":enablePreCommit",
+    // ":enablePreCommit",
     ":maintainLockFilesWeekly",
-    ":automergeLinters",
-    "group:githubArtifactActions"
+    "group:githubArtifactActions",
+    "schedule:automergeWeekly"
   ],
   lockFileMaintenance: {
     enabled: true,

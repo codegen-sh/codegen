@@ -71,6 +71,7 @@ def did_close(server: CodegenLanguageServer, params: types.DidCloseTextDocumentP
 
 @server.feature(
     types.TEXT_DOCUMENT_RENAME,
+    options=types.RenameOptions(work_done_progress=True),
 )
 def rename(server: CodegenLanguageServer, params: types.RenameParams) -> types.RenameResult:
     symbol = server.get_symbol(params.text_document.uri, params.position)
@@ -78,28 +79,38 @@ def rename(server: CodegenLanguageServer, params: types.RenameParams) -> types.R
         logger.warning(f"No symbol found at {params.text_document.uri}:{params.position}")
         return
     logger.info(f"Renaming symbol {symbol.name} to {params.new_name}")
+    task = server.progress_manager.begin_with_token(f"Renaming symbol {symbol.name} to {params.new_name}", params.work_done_token)
     symbol.rename(params.new_name)
+    task.update("Committing changes")
     server.codebase.commit()
+    task.end()
     return server.io.get_workspace_edit()
 
 
 @server.feature(
     types.TEXT_DOCUMENT_DOCUMENT_SYMBOL,
+    options=types.DocumentSymbolOptions(work_done_progress=True),
 )
 def document_symbol(server: CodegenLanguageServer, params: types.DocumentSymbolParams) -> types.DocumentSymbolResult:
     file = server.get_file(params.text_document.uri)
     symbols = []
-    for symbol in file.symbols:
+    task = server.progress_manager.begin_with_token(f"Getting document symbols for {params.text_document.uri}", params.work_done_token, count=len(file.symbols))
+    for idx, symbol in enumerate(file.symbols):
+        task.update(f"Getting document symbols for {params.text_document.uri}", count=idx)
         symbols.append(get_document_symbol(symbol))
+    task.end()
     return symbols
 
 
 @server.feature(
     types.TEXT_DOCUMENT_DEFINITION,
+    options=types.DefinitionOptions(work_done_progress=True),
 )
 def definition(server: CodegenLanguageServer, params: types.DefinitionParams):
     node = server.get_node_under_cursor(params.text_document.uri, params.position)
+    task = server.progress_manager.begin_with_token(f"Getting definition for {params.text_document.uri}", params.work_done_token)
     resolved = go_to_definition(node, params.text_document.uri, params.position)
+    task.end()
     return types.Location(
         uri=resolved.file.path.as_uri(),
         range=get_range(resolved),
@@ -108,15 +119,11 @@ def definition(server: CodegenLanguageServer, params: types.DefinitionParams):
 
 @server.feature(
     types.TEXT_DOCUMENT_CODE_ACTION,
-    options=types.CodeActionOptions(resolve_provider=True),
+    options=types.CodeActionOptions(resolve_provider=True, work_done_progress=True),
 )
 def code_action(server: CodegenLanguageServer, params: types.CodeActionParams) -> types.CodeActionResult:
     logger.info(f"Received code action: {params}")
-    if params.context.only:
-        only = [types.CodeActionKind(kind) for kind in params.context.only]
-    else:
-        only = None
-    actions = server.get_actions_for_range(params.text_document.uri, params.range, only)
+    actions = server.get_actions_for_range(params)
     return actions
 
 

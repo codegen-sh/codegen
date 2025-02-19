@@ -1,7 +1,6 @@
 import codegen
-from codegen import Codebase
-from codegen.shared.enums.programming_language import ProgrammingLanguage
 import networkx as nx
+from codegen import Codebase
 
 
 @codegen.function("visualize-modules-dependencies")
@@ -35,5 +34,5 @@ def run(codebase: Codebase):
 
 
 if __name__ == "__main__":
-    codebase = Codebase.from_repo("getsentry/sentry", commit="fb0d53b2210cc896fc3e2cf32dae149ea8a8a45a", programming_language=ProgrammingLanguage.PYTHON)
+    codebase = Codebase.from_repo("getsentry/sentry", commit="fb0d53b2210cc896fc3e2cf32dae149ea8a8a45a", language="python")
     run(codebase)

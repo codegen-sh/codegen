@@ -10,7 +10,8 @@ from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 mcp = FastMCP(
     "codebase-tools-mcp",
-    instructions="Use this server to access any information from your codebase. This tool can provide information ranging from AST Symbol details and information from across the codebase. Use this tool for all questions, queries regarding your codebase.",
+    instructions="""Use this server to access any information from your codebase. This tool can provide information ranging from AST Symbol details and information from across the codebase.
+    Use this tool for all questions, queries regarding your codebase.""",
 )
 
 
@@ -20,21 +21,16 @@ def reveal_symbol_tool(
     target_file: Annotated[Optional[str], "The file path of the file containing the symbol to inspect"],
     codebase_dir: Annotated[str, "The root directory of your codebase"],
     codebase_language: Annotated[ProgrammingLanguage, "The language the codebase is written in"],
-    degree: Annotated[Optional[int], "depth do which symbol information is retrieved"],
+    max_depth: Annotated[Optional[int], "depth up to which symbol information is retrieved"],
     collect_dependencies: Annotated[Optional[bool], "includes dependencies of symbol"],
     collect_usages: Annotated[Optional[bool], "includes usages of symbol"],
 ):
-    codebase = Codebase(repo_path=codebase_dir, programming_language=codebase_language)
-    found_symbol = None
-    if target_file:
-        file = codebase.get_file(target_file)
-        found_symbol = file.get_symbol(symbol_name)
-    else:
-        found_symbol = codebase.get_symbol(symbol_name)
-
+    codebase = Codebase(repo_path=codebase_dir, language=codebase_language)
     result = reveal_symbol(
-        found_symbol,
-        degree,
+        codebase=codebase,
+        symbol_name=symbol_name,
+        filepath=target_file,
+        max_depth=max_depth,
         collect_dependencies=collect_dependencies,
         collect_usages=collect_usages,
     )
@@ -49,7 +45,7 @@ def search_codebase_tool(
     codebase_language: Annotated[ProgrammingLanguage, "The language the codebase is written in"],
     use_regex: Annotated[bool, "use regex for the search query"],
 ):
-    codebase = Codebase(repo_path=codebase_dir, programming_language=codebase_language)
+    codebase = Codebase(repo_path=codebase_dir, language=codebase_language)
     result = search(codebase, query, target_directories, use_regex=use_regex)
     return json.dumps(result, indent=2)
 

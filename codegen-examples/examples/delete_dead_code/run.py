@@ -1,6 +1,5 @@
 import codegen
 from codegen import Codebase
-from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 @codegen.function("delete-dead-code")
@@ -38,7 +37,7 @@ def run(codebase: Codebase):
 
 if __name__ == "__main__":
     print("🔍 Analyzing codebase...")
-    codebase = Codebase.from_repo("tox-dev/tox", programming_language=ProgrammingLanguage.PYTHON, commit="b588b696e0940c1813014b31b68d7660d8a1914f")
+    codebase = Codebase.from_repo("tox-dev/tox", language="python", commit="b588b696e0940c1813014b31b68d7660d8a1914f")
 
     print("🚮 Deleting dead code...")
     run(codebase)

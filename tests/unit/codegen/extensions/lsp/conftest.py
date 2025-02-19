@@ -18,6 +18,16 @@ from codegen.sdk.core.codebase import Codebase
         server_command=[sys.executable, "-m", "codegen.extensions.lsp.lsp"],
     ),
 )
+async def lsp_client_uninitialized(lsp_client: LanguageClient):
+    yield lsp_client
+    await lsp_client.shutdown_session()
+
+
+@pytest_lsp.fixture(
+    config=ClientServerConfig(
+        server_command=[sys.executable, "-m", "codegen.extensions.lsp.lsp"],
+    ),
+)
 async def client(lsp_client: LanguageClient, codebase: Codebase):
     # Setup
     response = await lsp_client.initialize_session(

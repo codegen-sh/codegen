@@ -230,7 +230,7 @@ class Editable(JSONable, Generic[Parent]):
     @cached_property
     @noapidoc
     @reader
-    def _source(self):
+    def _source(self) -> str:
         """Text representation of the Editable instance."""
         return self.ts_node.text.decode("utf-8")
 
@@ -485,7 +485,7 @@ class Editable(JSONable, Generic[Parent]):
 
     @reader
     def find(self, strings_to_match: list[str] | str, *, exact: bool = False) -> list[Editable]:
-        """Find and return matching nodes or substrings within an Editable instance.
+        r"""Find and return matching nodes or substrings \within an Editable instance.
 
         This method searches through the extended_nodes of the Editable instance and returns all nodes or substrings that match the given search criteria.
 

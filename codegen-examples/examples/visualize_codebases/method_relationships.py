@@ -1,11 +1,10 @@
 import codegen
-from codegen import Codebase
-from codegen.shared.enums.programming_language import ProgrammingLanguage
 import networkx as nx
-from codegen.sdk.core.detached_symbols.function_call import FunctionCall
-from codegen.sdk.core.function import Function
-from codegen.sdk.core.external_module import ExternalModule
+from codegen import Codebase
 from codegen.sdk.core.class_definition import Class
+from codegen.sdk.core.detached_symbols.function_call import FunctionCall
+from codegen.sdk.core.external_module import ExternalModule
+from codegen.sdk.core.function import Function
 
 G = nx.DiGraph()
 
@@ -100,7 +99,7 @@ def run(codebase: Codebase):
 
 if __name__ == "__main__":
     print("Initializing codebase...")
-    codebase = Codebase.from_repo("codegen-oss/modal-client", commit="00bf226a1526f9d775d2d70fc7711406aaf42958", programming_language=ProgrammingLanguage.PYTHON)
+    codebase = Codebase.from_repo("codegen-oss/modal-client", commit="00bf226a1526f9d775d2d70fc7711406aaf42958", language="python")
     print(f"Codebase with {len(codebase.files)} files and {len(codebase.functions)} functions.")
     print("Creating graph...")
 

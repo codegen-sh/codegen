@@ -53,9 +53,9 @@ from codegen.extensions.tools.semantic_search import semantic_search
 
 @mcp.tool('codebase_semantic_search', "search codebase with the provided query")
 def search(query: Annotated[str, "search query to run against codebase"]):
-  codebase = Codebase("provide location to codebase", programming_language="provide codebase Language")
-  # use the semantic search tool from codegen.extenstions.tools OR write your own   
-  results = semantic_search(codebase=codebase, query=query) 
+  codebase = Codebase("provide location to codebase", language="provide codebase Language")
+  # use the semantic search tool from codegen.extensions.tools OR write your own
+  results = semantic_search(codebase=codebase, query=query)
   return results
 
 ....
@@ -72,4 +72,4 @@ mcp dev server.py
 If you'd like to integrate this into an IDE checkout out this [setup guide](/introduction/ide-usage#mcp-server-setup)
 
 And that's a wrap, chime in at our [community
-  Slack](https://community.codegen.com) if you have quesions or ideas for additional MCP tools/capabilities
+  Slack](https://community.codegen.com) if you have questions or ideas for additional MCP tools/capabilities

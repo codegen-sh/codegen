@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.statements.export_statement import ExportStatement
     from codegen.sdk.core.symbol import Symbol
+    from codegen.sdk.typescript.detached_symbols.promise_chain import TSPromiseChain
     from codegen.sdk.typescript.symbol import TSSymbol
     from codegen.sdk.typescript.ts_config import TSConfig
     from codegen.sdk.typescript.type_alias import TSTypeAlias
@@ -446,3 +447,17 @@ class TSFile(SourceFile[TSImport, TSFunction, TSClass, TSAssignment, TSInterface
             TSNamespace | None: The namespace with the specified name if found, None otherwise.
         """
         return next((x for x in self.symbols if isinstance(x, TSNamespace) and x.name == name), None)
+
+    @property
+    @reader
+    def promise_chains(self) -> list[TSPromiseChain]:
+        """Returns all promise chains in the file.
+
+        Returns:
+            list[TSPromiseChain]: A list of promise chains in the file.
+        """
+        promise_chains = []
+        for function in self.functions:
+            for promise_chain in function.promise_chains:
+                promise_chains.append(promise_chain)
+        return promise_chains

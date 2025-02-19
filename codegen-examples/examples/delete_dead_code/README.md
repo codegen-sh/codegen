@@ -12,7 +12,7 @@ The script (`run.py`) performs the dead code removal in several key steps:
 1. **Codebase Loading**
 
    ```python
-   codebase = Codebase.from_repo("tox-dev/tox", programming_language=ProgrammingLanguage.PYTHON)
+   codebase = Codebase.from_repo("tox-dev/tox", language="python")
    ```
 
    - Loads a codebase using the `Codebase.from_repo` method

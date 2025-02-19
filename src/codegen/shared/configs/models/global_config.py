@@ -6,11 +6,13 @@ from pathlib import Path
 from pydantic_settings import BaseSettings
 
 from codegen.shared.configs.constants import SESSION_FILE
+from codegen.shared.configs.models.session import SessionConfig
 
 
-class GlobalSessionConfig(BaseSettings):
+class GlobalConfig(BaseSettings):
     active_session_path: str | None = None
     sessions: list[str]
+    global_session: SessionConfig
 
     def get_session(self, session_root_path: Path) -> str | None:
         return next((s for s in self.sessions if s == str(session_root_path)), None)
@@ -27,8 +29,8 @@ class GlobalSessionConfig(BaseSettings):
             raise ValueError(msg)
 
         self.active_session_path = str(session_root_path)
-        if session_root_path.name not in self.sessions:
-            self.sessions.append(str(session_root_path))
+        if self.active_session_path not in self.sessions:
+            self.sessions.append(self.active_session_path)
 
         self.save()
 
@@ -38,3 +40,11 @@ class GlobalSessionConfig(BaseSettings):
 
         with open(SESSION_FILE, "w") as f:
             json.dump(self.model_dump(), f)
+
+        self.global_session.save()
+
+    def __str__(self) -> str:
+        active = self.active_session_path or "None"
+        sessions_str = "\n    ".join(self.sessions) if self.sessions else "None"
+
+        return f"GlobalConfig:\n  Active Session: {active}\n  Sessions:\n    {sessions_str}\n  Global Session:\n    {self.global_session}"

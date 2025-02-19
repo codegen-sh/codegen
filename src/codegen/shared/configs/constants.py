@@ -18,3 +18,4 @@ EXAMPLES_DIR = Path(CODEGEN_DIR_NAME) / "examples"
 GLOBAL_CONFIG_DIR = Path("~/.config/codegen-sh").expanduser()
 AUTH_FILE = GLOBAL_CONFIG_DIR / "auth.json"
 SESSION_FILE = GLOBAL_CONFIG_DIR / "session.json"
+GLOBAL_CONFIG_PATH = GLOBAL_CONFIG_DIR / CONFIG_FILENAME

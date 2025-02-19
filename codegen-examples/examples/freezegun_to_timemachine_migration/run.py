@@ -1,5 +1,4 @@
 import codegen
-from codegen.shared.enums.programming_language import ProgrammingLanguage
 from codegen import Codebase
 
 
@@ -59,5 +58,5 @@ def run(codebase: Codebase):
 
 
 if __name__ == "__main__":
-    codebase = Codebase.from_repo("getmoto/moto", commit="786a8ada7ed0c7f9d8b04d49f24596865e4b7901", programming_language=ProgrammingLanguage.PYTHON)
+    codebase = Codebase.from_repo("getmoto/moto", commit="786a8ada7ed0c7f9d8b04d49f24596865e4b7901", language="python")
     run(codebase)

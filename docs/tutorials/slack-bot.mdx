@@ -28,14 +28,13 @@ First, we initialize the codebase and create a vector index for semantic search:
 ```python
 from codegen import Codebase
 from codegen.extensions import VectorIndex
-from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 def initialize_codebase():
     """Initialize and index the codebase."""
     # Initialize codebase with smart caching
     codebase = Codebase.from_repo(
         "codegen-sh/codegen-sdk",
-        programming_language=ProgrammingLanguage.PYTHON,
+        language="python",
         tmp_dir="/root"
     )
 
@@ -215,4 +214,4 @@ While this example demonstrates a simple RAG-based bot, you can extend it to bui
   >
     Understand RAG patterns and best practices for better results.
   </Card>
-</CardGroup> 
+</CardGroup>

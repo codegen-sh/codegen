@@ -486,6 +486,18 @@ class RepoOperator(ABC):
         if os.listdir(self.abspath(os.path.dirname(path))) == []:
             os.rmdir(self.abspath(os.path.dirname(path)))
 
+    def get_filepaths_for_repo(self, ignore_list):
+        # Get list of files to iterate over based on gitignore setting
+        if self.repo_config.respect_gitignore:
+            filepaths = self.git_cli.git.ls_files().split("\n")
+        else:
+            filepaths = glob.glob("**", root_dir=self.repo_path, recursive=True, include_hidden=True)
+            # Filter filepaths by ignore list.
+        if ignore_list:
+            filepaths = [f for f in filepaths if not any(fnmatch.fnmatch(f, pattern) or f.startswith(pattern) for pattern in ignore_list)]
+
+        return filepaths
+
     # TODO: unify param naming i.e. subdirectories vs subdirs probably use subdirectories since that's in the DB
     def iter_files(
         self,
@@ -506,16 +518,7 @@ class RepoOperator(ABC):
             tuple: A tuple containing the relative filepath and the content of the file.
 
         """
-        # Get list of files to iterate over based on gitignore setting
-        if self.repo_config.respect_gitignore:
-            filepaths = self.git_cli.git.ls_files().split("\n")
-        else:
-            filepaths = glob.glob("**", root_dir=self.repo_path, recursive=True, include_hidden=True)
-
-        # Filter filepaths by ignore list.
-        if ignore_list:
-            filepaths = [f for f in filepaths if not any(fnmatch.fnmatch(f, pattern) or f.startswith(pattern) for pattern in ignore_list)]
-
+        filepaths = self.get_filepaths_for_repo(ignore_list)
         # Iterate through files and yield contents
         for rel_filepath in filepaths:
             rel_filepath: str

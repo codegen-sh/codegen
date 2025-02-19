@@ -5,14 +5,14 @@ import pytest
 
 from codegen.git.clients.git_repo_client import GitRepoClient
 from codegen.git.repo_operator.remote_repo_operator import RemoteRepoOperator
-from codegen.runner.clients.sandbox_client import SandboxClient
+from codegen.runner.clients.codebase_client import CodebaseClient
 from codegen.runner.models.apis import BRANCH_ENDPOINT, CreateBranchRequest, CreateBranchResponse
 from codegen.runner.models.codemod import BranchConfig, Codemod, GroupingConfig
 
 
 @pytest.mark.asyncio
 @pytest.mark.timeout(60)
-async def test_create_branch(sandbox_client: SandboxClient, git_repo_client: GitRepoClient, op: RemoteRepoOperator):
+async def test_create_branch(codebase_client: CodebaseClient, git_repo_client: GitRepoClient, op: RemoteRepoOperator):
     # set-up
     codemod_source = """
 for file in codebase.files:
@@ -29,7 +29,7 @@ for file in codebase.files:
     )
 
     # execute
-    response = sandbox_client.post(endpoint=BRANCH_ENDPOINT, data=request.model_dump())
+    response = codebase_client.post(endpoint=BRANCH_ENDPOINT, data=request.model_dump())
     assert response.status_code == HTTPStatus.OK
 
     # verify

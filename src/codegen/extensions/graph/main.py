@@ -1,7 +1,6 @@
 from codegen import Codebase
 from codegen.extensions.graph.create_graph import create_codebase_graph
 from codegen.extensions.graph.neo4j_exporter import Neo4jExporter
-from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def visualize_codebase(codebase, neo4j_uri: str, username: str, password: str):
@@ -39,5 +38,5 @@ def visualize_codebase(codebase, neo4j_uri: str, username: str, password: str):
 
 if __name__ == "__main__":
     # Initialize codebase
-    codebase = Codebase("../../", programming_language=ProgrammingLanguage.PYTHON)
+    codebase = Codebase("../../", language="python")
     visualize_codebase(codebase, "bolt://localhost:7687", "neo4j", "password")

@@ -22,6 +22,7 @@ repos:
     rev: "v0.6.1"
     hooks:
       - id: biome-check
+        language: node
         additional_dependencies: ["@biomejs/biome@1.9.4"]
         exclude: (src/codemods/eval)|(tests/unit/skills/snapshots)|(tests/unit/codegen/sdk/output)|(tests/integration/verified_codemods)|(docs/samples)
   - repo: https://github.com/MarcoGorelli/cython-lint
@@ -62,6 +63,7 @@ repos:
     rev: v2.4.1
     hooks:
       - id: codespell
+        language: python
         additional_dependencies:
           - tomli
         files: "docs/.*/.*.mdx"
@@ -103,6 +105,7 @@ repos:
     rev: 0.7.22  # Use the ref you want to point at
     hooks:
     - id: mdformat
+      language: python
       # Optionally add plugins
       additional_dependencies:
       - mdformat-gfm

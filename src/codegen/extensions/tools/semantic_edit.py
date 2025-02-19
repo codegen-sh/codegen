@@ -3,9 +3,12 @@
 import difflib
 import re
 
-from langchain_core.runnables import Runnable
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
 
 from codegen import Codebase
+
+from .tool_prompts import _HUMAN_PROMPT_DRAFT_EDITOR, _SYSTEM_PROMPT_DRAFT_EDITOR
 
 
 def generate_diff(original: str, modified: str) -> str:
@@ -102,7 +105,7 @@ def _validate_edit_boundaries(original_lines: list[str], modified_lines: list[st
             raise ValueError(msg)
 
 
-def semantic_edit(codebase: Codebase, filepath: str, edit_content: str, llm: Runnable, start: int = 1, end: int = -1) -> dict[str, str]:
+def semantic_edit(codebase: Codebase, filepath: str, edit_content: str, start: int = 1, end: int = -1) -> dict[str, str]:
     """Edit a file using semantic editing with line range support. This is an internal api and should not be called by the LLM."""
     try:
         file = codebase.get_file(filepath)
@@ -137,7 +140,17 @@ def semantic_edit(codebase: Codebase, filepath: str, edit_content: str, llm: Run
     context_lines = original_lines[start_idx : end_idx + 1]
     original_file_section = "\n".join(context_lines)
 
-    response = llm.invoke({"original_file_section": original_file_section, "edit_content": edit_content})
+    # =====[ Get the LLM ]=====
+    system_message = _SYSTEM_PROMPT_DRAFT_EDITOR
+    human_message = _HUMAN_PROMPT_DRAFT_EDITOR
+    prompt = ChatPromptTemplate.from_messages([system_message, human_message])
+    llm = ChatOpenAI(
+        model="gpt-4o",
+        temperature=0,
+        max_tokens=10000,
+    )
+    chain = prompt | llm
+    response = chain.invoke({"original_file_section": original_file_section, "edit_content": edit_content})
 
     # Extract code from markdown code block
     try:

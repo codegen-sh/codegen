@@ -14,7 +14,6 @@ from codegen.extensions.langchain.tools import (
     SemanticEditTool,
     ViewFileTool,
 )
-from codegen.shared.enums.programming_language import ProgrammingLanguage
 from langchain import hub
 from langchain.agents import AgentExecutor
 from langchain.agents.openai_functions_agent.base import OpenAIFunctionsAgent
@@ -93,7 +92,7 @@ def create_codebase_agent(
 if __name__ == "__main__":
     # Initialize codebase
     print("Initializing codebase...")
-    codebase = Codebase.from_repo("fastapi/fastapi", programming_language=ProgrammingLanguage.PYTHON)
+    codebase = Codebase.from_repo("fastapi/fastapi", language="python")
 
     # Create agent with history
     print("Creating agent...")

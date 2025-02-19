@@ -127,7 +127,7 @@ This codemod includes support for running without the graph feature enabled. Thi
 To run in no-graph mode:
 
 ```python
-codebase = Codebase(str(repo_path), programming_language=ProgrammingLanguage.PYTHON, config=CodebaseConfig(feature_flags=GSFeatureFlags(disable_graph=True)))
+codebase = Codebase(str(repo_path), language="python", config=CodebaseConfig(feature_flags=GSFeatureFlags(disable_graph=True)))
 ```
 
 ## Running the Conversion

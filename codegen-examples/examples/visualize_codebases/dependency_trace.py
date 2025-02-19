@@ -1,10 +1,9 @@
 import codegen
-from codegen import Codebase
-from codegen.shared.enums.programming_language import ProgrammingLanguage
 import networkx as nx
+from codegen import Codebase
 from codegen.sdk.core.class_definition import Class
-from codegen.sdk.core.symbol import Symbol
 from codegen.sdk.core.import_resolution import Import
+from codegen.sdk.core.symbol import Symbol
 
 G = nx.DiGraph()
 
@@ -76,7 +75,7 @@ def run(codebase: Codebase):
 
 if __name__ == "__main__":
     print("Initializing codebase...")
-    codebase = Codebase.from_repo("codegen-oss/posthog", commit="b174f2221ea4ae50e715eb6a7e70e9a2b0760800", programming_language=ProgrammingLanguage.PYTHON)
+    codebase = Codebase.from_repo("codegen-oss/posthog", commit="b174f2221ea4ae50e715eb6a7e70e9a2b0760800", language="python")
     print(f"Codebase with {len(codebase.files)} files and {len(codebase.functions)} functions.")
     print("Creating graph...")
 

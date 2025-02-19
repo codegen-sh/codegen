@@ -4,15 +4,15 @@ from codegen.sdk.core.detached_symbols.function_call import FunctionCall
 from codegen.sdk.core.expressions.chained_attribute import ChainedAttribute
 
 
-@codegen.function("sqlalchemy-1.6-to-2.0")
+@codegen.function("sqlalchemy-1.4-to-2.0")
 def run(codebase: Codebase):
     """
-    Convert SQLAlchemy 1.6 codebases to 2.0.
+    Convert SQLAlchemy 1.4 codebases to 2.0.
     """
     files_modified = 0
     functions_modified = 0
 
-    print("\nStarting SQLAlchemy 1.6 to 2.0 migration...")
+    print("\nStarting SQLAlchemy 1.4 to 2.0 migration...")
 
     for file in codebase.files:
         file_modified = False
@@ -101,5 +101,5 @@ if __name__ == "__main__":
     repo_path = "./input_repo"
     print("Initializing codebase...")
     codebase = Codebase(repo_path)
-    print("Running SQLAlchemy 1.6 to 2.0 codemod...")
+    print("Running SQLAlchemy 1.4 to 2.0 codemod...")
     run(codebase)

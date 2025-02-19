@@ -1,5 +1,4 @@
 import logging
-from collections.abc import Sequence
 from typing import Any, Optional
 
 from lsprotocol import types
@@ -8,8 +7,9 @@ from pygls.lsp.server import LanguageServer
 
 from codegen.extensions.lsp.codemods import ACTIONS
 from codegen.extensions.lsp.codemods.base import CodeAction
-from codegen.extensions.lsp.execute import execute_action, get_execute_action
+from codegen.extensions.lsp.execute import execute_action
 from codegen.extensions.lsp.io import LSPIO
+from codegen.extensions.lsp.progress import LSPProgress
 from codegen.extensions.lsp.range import get_tree_sitter_range
 from codegen.extensions.lsp.utils import get_path
 from codegen.sdk.core.codebase import Codebase
@@ -23,13 +23,14 @@ logger = logging.getLogger(__name__)
 class CodegenLanguageServer(LanguageServer):
     codebase: Optional[Codebase]
     io: Optional[LSPIO]
+    progress_manager: Optional[LSPProgress]
     actions: dict[str, CodeAction]
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.actions = {action.command_name(): action for action in ACTIONS}
-        for action in self.actions.values():
-            self.command(action.command_name())(get_execute_action(action))
+        # for action in self.actions.values():
+        #     self.command(action.command_name())(get_execute_action(action))
 
     def get_file(self, uri: str) -> SourceFile | File:
         path = get_path(uri)
@@ -68,19 +69,25 @@ class CodegenLanguageServer(LanguageServer):
             return node
         return None
 
-    def get_actions_for_range(self, uri: str, range: Range, only: Sequence[types.CodeActionKind] | None = None) -> list[types.CodeAction]:
-        node = self.get_node_under_cursor(uri, range.start, range.end)
+    def get_actions_for_range(self, params: types.CodeActionParams) -> list[types.CodeAction]:
+        if params.context.only is not None:
+            only = [types.CodeActionKind(kind) for kind in params.context.only]
+        else:
+            only = None
+        node = self.get_node_under_cursor(params.text_document.uri, params.range.start)
         if node is None:
-            logger.warning(f"No node found for range {range} in {uri}")
+            logger.warning(f"No node found for range {params.range} in {params.text_document.uri}")
             return []
         actions = []
-        for action in self.actions.values():
+        task = self.progress_manager.begin_with_token(f"Getting code actions for {params.text_document.uri}", params.work_done_token, count=len(self.actions))
+        for idx, action in enumerate(self.actions.values()):
+            task.update(f"Checking action {action.name}", idx)
             if only and action.kind not in only:
                 logger.warning(f"Skipping action {action.kind} because it is not in {only}")
                 continue
             if action.is_applicable(self, node):
-                actions.append(action.to_lsp(uri, range))
-
+                actions.append(action.to_lsp(params.text_document.uri, params.range))
+        task.end()
         return actions
 
     def resolve_action(self, action: types.CodeAction) -> types.CodeAction:

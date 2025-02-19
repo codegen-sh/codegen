@@ -1,5 +1,4 @@
 import codegen
-from codegen.shared.enums.programming_language import ProgrammingLanguage
 from codegen import Codebase
 
 
@@ -97,7 +96,7 @@ def run(codebase: Codebase):
 
 if __name__ == "__main__":
     print("Initializing codebase...")
-    codebase = Codebase.from_repo("modal-labs/modal-client", commit="81941c24897889a2ff2f627c693fa734967e693c", programming_language=ProgrammingLanguage.PYTHON)
+    codebase = Codebase.from_repo("modal-labs/modal-client", commit="81941c24897889a2ff2f627c693fa734967e693c", language="python")
 
     print("Running codemod...")
     run(codebase)

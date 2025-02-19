@@ -8,7 +8,7 @@ import pytest
 from codegen.git.clients.git_repo_client import GitRepoClient
 from codegen.git.repo_operator.remote_repo_operator import RemoteRepoOperator
 from codegen.git.schemas.repo_config import RepoConfig
-from codegen.runner.clients.sandbox_client import SandboxClient
+from codegen.runner.clients.codebase_client import CodebaseClient
 from codegen.shared.configs.session_configs import config
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 
@@ -45,7 +45,7 @@ def git_repo_client(repo_config: RepoConfig) -> Generator[GitRepoClient, None, N
 
 
 @pytest.fixture
-def sandbox_client(repo_config: RepoConfig, get_free_port) -> Generator[SandboxClient, None, None]:
-    sb_client = SandboxClient(repo_config=repo_config, port=get_free_port, git_access_token=config.secrets.github_token)
+def codebase_client(repo_config: RepoConfig, get_free_port) -> Generator[CodebaseClient, None, None]:
+    sb_client = CodebaseClient(repo_config=repo_config, port=get_free_port, git_access_token=config.secrets.github_token)
     sb_client.runner = Mock()
     yield sb_client

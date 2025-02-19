@@ -7,6 +7,7 @@ from rich.table import Table
 
 from codegen.cli.auth.session import CodegenSession
 from codegen.cli.workspace.decorators import requires_init
+from codegen.shared.configs.session_configs import global_config
 
 
 @click.group(name="config")
@@ -17,7 +18,8 @@ def config_command():
 
 @config_command.command(name="list")
 @requires_init
-def list_command(session: CodegenSession):
+@click.option("--global", "is_global", is_flag=True, help="Lists the global configuration values")
+def list_command(session: CodegenSession, is_global: bool):
     """List current configuration values."""
     table = Table(title="Configuration Values", border_style="blue", show_header=True)
     table.add_column("Key", style="cyan", no_wrap=True)
@@ -37,7 +39,8 @@ def list_command(session: CodegenSession):
         return items
 
     # Get flattened config and sort by keys
-    flat_config = flatten_dict(session.config.model_dump())
+    config = global_config.global_session if is_global else session.config
+    flat_config = flatten_dict(config.model_dump())
     sorted_items = sorted(flat_config.items(), key=lambda x: x[0])
 
     # Group by top-level prefix
@@ -58,9 +61,11 @@ def list_command(session: CodegenSession):
 @config_command.command(name="get")
 @requires_init
 @click.argument("key")
-def get_command(session: CodegenSession, key: str):
+@click.option("--global", "is_global", is_flag=True, help="Get the global configuration value")
+def get_command(session: CodegenSession, key: str, is_global: bool):
     """Get a configuration value."""
-    value = session.config.get(key)
+    config = global_config.global_session if is_global else session.config
+    value = config.get(key)
     if value is None:
         rich.print(f"[red]Error: Configuration key '{key}' not found[/red]")
         return
@@ -72,16 +77,18 @@ def get_command(session: CodegenSession, key: str):
 @requires_init
 @click.argument("key")
 @click.argument("value")
-def set_command(session: CodegenSession, key: str, value: str):
+@click.option("--global", "is_global", is_flag=True, help="Sets the global configuration value")
+def set_command(session: CodegenSession, key: str, value: str, is_global: bool):
     """Set a configuration value and write to config.toml."""
-    cur_value = session.config.get(key)
+    config = global_config.global_session if is_global else session.config
+    cur_value = config.get(key)
     if cur_value is None:
         rich.print(f"[red]Error: Configuration key '{key}' not found[/red]")
         return
 
     if cur_value.lower() != value.lower():
         try:
-            session.config.set(key, value)
+            config.set(key, value)
         except Exception as e:
             logging.exception(e)
             rich.print(f"[red]{e}[/red]")

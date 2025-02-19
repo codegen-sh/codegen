@@ -9,7 +9,7 @@ from collections.abc import Generator
 from contextlib import contextmanager
 from functools import cached_property
 from pathlib import Path
-from typing import TYPE_CHECKING, Generic, Literal, TypeVar, Unpack, overload
+from typing import Generic, Literal, Unpack, overload
 
 import plotly.graph_objects as go
 import rich.repr
@@ -19,7 +19,7 @@ from git.remote import PushInfoList
 from github.PullRequest import PullRequest
 from networkx import Graph
 from rich.console import Console
-from typing_extensions import deprecated
+from typing_extensions import TypeVar, deprecated
 
 from codegen.git.repo_operator.local_repo_operator import LocalRepoOperator
 from codegen.git.repo_operator.remote_repo_operator import RemoteRepoOperator
@@ -36,6 +36,7 @@ from codegen.sdk.codebase.flagging.code_flag import CodeFlag
 from codegen.sdk.codebase.flagging.enums import FlagKwargs
 from codegen.sdk.codebase.flagging.group import Group
 from codegen.sdk.codebase.io.io import IO
+from codegen.sdk.codebase.progress.progress import Progress
 from codegen.sdk.codebase.span import Span
 from codegen.sdk.core.assignment import Assignment
 from codegen.sdk.core.class_definition import Class
@@ -43,6 +44,7 @@ from codegen.sdk.core.codeowner import CodeOwner
 from codegen.sdk.core.detached_symbols.code_block import CodeBlock
 from codegen.sdk.core.detached_symbols.parameter import Parameter
 from codegen.sdk.core.directory import Directory
+from codegen.sdk.core.export import Export
 from codegen.sdk.core.external_module import ExternalModule
 from codegen.sdk.core.file import File, SourceFile
 from codegen.sdk.core.function import Function
@@ -83,27 +85,24 @@ from codegen.shared.exceptions.control_flow import MaxAIRequestsError
 from codegen.shared.performance.stopwatch_utils import stopwatch
 from codegen.visualizations.visualization_manager import VisualizationManager
 
-if TYPE_CHECKING:
-    from codegen.sdk.core.export import Export
-
 logger = logging.getLogger(__name__)
 MAX_LINES = 10000  # Maximum number of lines of text allowed to be logged
 
 
-TSourceFile = TypeVar("TSourceFile", bound="SourceFile")
-TDirectory = TypeVar("TDirectory", bound="Directory")
-TSymbol = TypeVar("TSymbol", bound="Symbol")
-TClass = TypeVar("TClass", bound="Class")
-TFunction = TypeVar("TFunction", bound="Function")
-TImport = TypeVar("TImport", bound="Import")
-TGlobalVar = TypeVar("TGlobalVar", bound="Assignment")
-TInterface = TypeVar("TInterface", bound="Interface")
-TTypeAlias = TypeVar("TTypeAlias", bound="TypeAlias")
-TParameter = TypeVar("TParameter", bound="Parameter")
-TCodeBlock = TypeVar("TCodeBlock", bound="CodeBlock")
-TExport = TypeVar("TExport", bound="Export")
-TSGlobalVar = TypeVar("TSGlobalVar", bound="Assignment")
-PyGlobalVar = TypeVar("PyGlobalVar", bound="Assignment")
+TSourceFile = TypeVar("TSourceFile", bound="SourceFile", default=SourceFile)
+TDirectory = TypeVar("TDirectory", bound="Directory", default=Directory)
+TSymbol = TypeVar("TSymbol", bound="Symbol", default=Symbol)
+TClass = TypeVar("TClass", bound="Class", default=Class)
+TFunction = TypeVar("TFunction", bound="Function", default=Function)
+TImport = TypeVar("TImport", bound="Import", default=Import)
+TGlobalVar = TypeVar("TGlobalVar", bound="Assignment", default=Assignment)
+TInterface = TypeVar("TInterface", bound="Interface", default=Interface)
+TTypeAlias = TypeVar("TTypeAlias", bound="TypeAlias", default=TypeAlias)
+TParameter = TypeVar("TParameter", bound="Parameter", default=Parameter)
+TCodeBlock = TypeVar("TCodeBlock", bound="CodeBlock", default=CodeBlock)
+TExport = TypeVar("TExport", bound="Export", default=Export)
+TSGlobalVar = TypeVar("TSGlobalVar", bound="Assignment", default=Assignment)
+PyGlobalVar = TypeVar("PyGlobalVar", bound="Assignment", default=Assignment)
 TSDirectory = Directory[TSFile, TSSymbol, TSImportStatement, TSGlobalVar, TSClass, TSFunction, TSImport]
 PyDirectory = Directory[PyFile, PySymbol, PyImportStatement, PyGlobalVar, PyClass, PyFunction, PyImport]
 
@@ -128,10 +127,11 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         self,
         repo_path: None = None,
         *,
-        programming_language: None = None,
+        language: None = None,
         projects: list[ProjectConfig] | ProjectConfig,
         config: CodebaseConfig = DefaultConfig,
         io: IO | None = None,
+        progress: Progress | None = None,
     ) -> None: ...
 
     @overload
@@ -139,20 +139,22 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         self,
         repo_path: str,
         *,
-        programming_language: ProgrammingLanguage | None = None,
+        language: Literal["python", "typescript"] | ProgrammingLanguage | None = None,
         projects: None = None,
         config: CodebaseConfig = DefaultConfig,
         io: IO | None = None,
+        progress: Progress | None = None,
     ) -> None: ...
 
     def __init__(
         self,
         repo_path: str | None = None,
         *,
-        programming_language: ProgrammingLanguage | None = None,
+        language: Literal["python", "typescript"] | ProgrammingLanguage | None = None,
         projects: list[ProjectConfig] | ProjectConfig | None = None,
         config: CodebaseConfig = DefaultConfig,
         io: IO | None = None,
+        progress: Progress | None = None,
     ) -> None:
         # Sanity check inputs
         if repo_path is not None and projects is not None:
@@ -163,8 +165,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             msg = "Must specify either repo_path or projects"
             raise ValueError(msg)
 
-        if projects is not None and programming_language is not None:
-            msg = "Cannot specify both projects and programming_language. Use ProjectConfig.from_path() to create projects with a custom programming_language."
+        if projects is not None and language is not None:
+            msg = "Cannot specify both projects and language. Use ProjectConfig.from_path() to create projects with a custom language."
             raise ValueError(msg)
 
         # If projects is a single ProjectConfig, convert it to a list
@@ -173,7 +175,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
 
         # Initialize project with repo_path if projects is None
         if repo_path is not None:
-            main_project = ProjectConfig.from_path(repo_path, programming_language=programming_language)
+            main_project = ProjectConfig.from_path(repo_path, programming_language=ProgrammingLanguage(language.upper()) if language else None)
             projects = [main_project]
         else:
             main_project = projects[0]
@@ -182,7 +184,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         self._op = main_project.repo_operator
         self.viz = VisualizationManager(op=self._op)
         self.repo_path = Path(self._op.repo_path)
-        self.ctx = CodebaseContext(projects, config=config, io=io)
+        self.ctx = CodebaseContext(projects, config=config, io=io, progress=progress)
         self.console = Console(record=True, soft_wrap=True)
 
     @noapidoc
@@ -204,6 +206,20 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
     @deprecated("Please do not use the local repo operator directly")
     @noapidoc
     def op(self) -> RepoOperator:
+        return self._op
+
+    @property
+    def github(self) -> RepoOperator:
+        """Access GitHub operations through the repo operator.
+
+        This property provides access to GitHub operations like creating PRs,
+        working with branches, commenting on PRs, etc. The implementation is built
+        on top of PyGitHub (python-github library) and provides a simplified interface
+        for common GitHub operations.
+
+        Returns:
+            RepoOperator: The repo operator instance that handles GitHub operations.
+        """
         return self._op
 
     ####################################################################################################################
@@ -722,7 +738,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
     ####################################################################################################################
 
     def git_commit(self, message: str, *, verify: bool = False) -> GitCommit | None:
-        """Commits all staged changes to the codebase and git.
+        """Stages + commits all changes to the codebase and git.
 
         Args:
             message (str): The commit message
@@ -735,6 +751,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         if self._op.stage_and_commit_all_changes(message, verify):
             logger.info(f"Commited repository to {self._op.head_commit} on {self._op.get_active_branch_or_commit()}")
             return self._op.head_commit
+        else:
+            logger.info("No changes to commit")
         return None
 
     def commit(self, sync_graph: bool = True) -> None:
@@ -1223,7 +1241,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         *,
         tmp_dir: str | None = "/tmp/codegen",
         commit: str | None = None,
-        programming_language: ProgrammingLanguage | None = None,
+        language: Literal["python", "typescript"] | ProgrammingLanguage | None = None,
         config: CodebaseConfig = DefaultConfig,
     ) -> "Codebase":
         """Fetches a codebase from GitHub and returns a Codebase instance.
@@ -1233,7 +1251,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             tmp_dir (Optional[str]): The directory to clone the repo into. Defaults to /tmp/codegen
             commit (Optional[str]): The specific commit hash to clone. Defaults to HEAD
             shallow (bool): Whether to do a shallow clone. Defaults to True
-            programming_language (ProgrammingLanguage | None): The programming language of the repo. Defaults to None.
+            language (Literal["python", "typescript"] | ProgrammingLanguage | None): The programming language of the repo. Defaults to None.
             config (CodebaseConfig): Configuration for the codebase. Defaults to DefaultConfig.
 
         Returns:
@@ -1268,7 +1286,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
 
             # Initialize and return codebase with proper context
             logger.info("Initializing Codebase...")
-            project = ProjectConfig.from_repo_operator(repo_operator=repo_operator, programming_language=programming_language)
+            project = ProjectConfig.from_repo_operator(repo_operator=repo_operator, programming_language=ProgrammingLanguage(language.upper()) if language else None)
             codebase = Codebase(projects=[project], config=config)
             logger.info("Codebase initialization complete")
             return codebase

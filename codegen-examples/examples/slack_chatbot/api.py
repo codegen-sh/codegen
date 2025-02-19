@@ -6,7 +6,6 @@ from typing import Any
 import modal
 from codegen import Codebase
 from codegen.extensions import VectorIndex
-from codegen.shared.enums.programming_language import ProgrammingLanguage
 from fastapi import FastAPI, Request
 from openai import OpenAI
 from slack_bolt import App
@@ -29,7 +28,7 @@ def format_response(answer: str, context: list[tuple[str, int]]) -> str:
 def answer_question(query: str) -> tuple[str, list[tuple[str, int]]]:
     """Use RAG to answer a question about FastAPI."""
     # Initialize codebase. Smart about caching.
-    codebase = Codebase.from_repo("codegen-sh/codegen-sdk", programming_language=ProgrammingLanguage.PYTHON, tmp_dir="/root")
+    codebase = Codebase.from_repo("codegen-sh/codegen-sdk", language="python", tmp_dir="/root")
 
     # Initialize vector index
     index = VectorIndex(codebase)

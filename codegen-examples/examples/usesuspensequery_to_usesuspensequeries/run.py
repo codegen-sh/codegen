@@ -1,6 +1,5 @@
 import codegen
 from codegen import Codebase
-from codegen.shared.enums.programming_language import ProgrammingLanguage
 from codegen.sdk.core.detached_symbols.function_call import FunctionCall
 
 
@@ -82,6 +81,6 @@ def run(codebase: Codebase):
 
 if __name__ == "__main__":
     print("Initializing codebase...")
-    codebase = Codebase.from_repo("deepfence/ThreatMapper", programming_language=ProgrammingLanguage.TYPESCRIPT)
+    codebase = Codebase.from_repo("deepfence/ThreatMapper", language="typescript")
     print("Running codemod...")
     run(codebase)

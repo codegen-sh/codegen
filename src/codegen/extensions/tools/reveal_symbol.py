@@ -2,6 +2,7 @@ from typing import Any, Optional
 
 import tiktoken
 
+from codegen import Codebase
 from codegen.sdk.core.external_module import ExternalModule
 from codegen.sdk.core.import_resolution import Import
 from codegen.sdk.core.symbol import Symbol
@@ -211,8 +212,10 @@ def get_extended_context(
 
 
 def reveal_symbol(
-    symbol: Symbol,
-    degree: Optional[int] = 1,
+    codebase: Codebase,
+    symbol_name: str,
+    filepath: Optional[str] = None,
+    max_depth: Optional[int] = 1,
     max_tokens: Optional[int] = None,
     collect_dependencies: Optional[bool] = True,
     collect_usages: Optional[bool] = True,
@@ -220,8 +223,10 @@ def reveal_symbol(
     """Reveal the dependencies and usages of a symbol up to N degrees.
 
     Args:
-        symbol: The symbol to analyze
-        degree: How many degrees of separation to traverse (default: 1)
+        codebase: The codebase to analyze
+        symbol_name: The name of the symbol to analyze
+        filepath: Optional filepath to the symbol to analyze
+        max_depth: How many degrees of separation to traverse (default: 1)
         max_tokens: Optional maximum number of tokens for all source code combined
         collect_dependencies: Whether to collect dependencies (default: True)
         collect_usages: Whether to collect usages (default: True)
@@ -233,12 +238,18 @@ def reveal_symbol(
             - truncated: Whether the results were truncated due to max_tokens
             - error: Optional error message if the symbol was not found
     """
-    # Check if we got a valid symbol
-    if symbol is None:
-        return {"error": "Symbol not found", "truncated": False, "dependencies": [], "usages": []}
+    symbols = codebase.get_symbols(symbol_name=symbol_name)
+    if len(symbols) == 0:
+        return {"error": f"{symbol_name} not found"}
+    if len(symbols) > 1:
+        return {"error": f"{symbol_name} is ambiguious", "valid_filepaths": [s.file.filepath for s in symbols]}
+    symbol = symbols[0]
+    if filepath:
+        if symbol.file.filepath != filepath:
+            return {"error": f"{symbol_name} not found at {filepath}", "valid_filepaths": [s.file.filepath for s in symbols]}
 
     # Get dependencies and usages up to specified degree
-    dependencies, usages, total_tokens = get_extended_context(symbol, degree, max_tokens, collect_dependencies=collect_dependencies, collect_usages=collect_usages)
+    dependencies, usages, total_tokens = get_extended_context(symbol, max_depth, max_tokens, collect_dependencies=collect_dependencies, collect_usages=collect_usages)
 
     was_truncated = max_tokens is not None and total_tokens >= max_tokens
 

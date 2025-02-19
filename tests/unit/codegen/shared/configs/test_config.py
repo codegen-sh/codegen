@@ -43,22 +43,22 @@ def test_merge_configs_empty_string():
 # Test _load_from_toml
 def test_load_from_toml_existing_file(temp_config_file):
     config = _load_from_toml(temp_config_file)
-    assert isinstance(config, SessionConfig)
-    assert config.secrets.github_token == "gh_token123"
-    assert config.repository.repo_name == "test-repo"
-    assert config.feature_flags.codebase.debug is True
-    assert config.feature_flags.codebase.typescript.ts_dependency_manager is True
-    assert config.feature_flags.codebase.import_resolution_overrides == {"@org/pkg": "./local/path"}
+    assert isinstance(config, dict)
+    assert config["secrets"]["github_token"] == "gh_token123"
+    assert config["repository"]["full_name"] == "test-org/test-repo"
+    assert config["feature_flags"]["codebase"]["debug"] is True
+    assert config["feature_flags"]["codebase"]["typescript"]["ts_dependency_manager"] is True
+    assert config["feature_flags"]["codebase"]["import_resolution_overrides"] == {"@org/pkg": "./local/path"}
 
 
 @patch.dict("os.environ", {})
 @patch("codegen.shared.configs.models.secrets.SecretsConfig.model_config", {"env_file": "nonexistent.env"})
 def test_load_from_toml_nonexistent_file():
     config = _load_from_toml(Path("nonexistent.toml"))
-    assert isinstance(config, SessionConfig)
-    assert config.secrets.github_token is None
-    assert config.repository.full_name is None
-    assert config.feature_flags.codebase.debug is False
+    assert isinstance(config, dict)
+    assert "secrets" not in config
+    assert "repository" not in config
+    assert "feature_flags" not in config
 
 
 # Test _load_from_env
@@ -72,21 +72,20 @@ def test_load_from_env():
 
 # Test load function
 @patch.dict("os.environ", {}, clear=True)  # Clear all env vars for this test
-@patch("codegen.shared.configs.session_configs._load_from_env")
 @patch("codegen.shared.configs.session_configs._load_from_toml")
 @patch("codegen.shared.configs.models.secrets.SecretsConfig.model_config", {"env_file": None, "env_prefix": "CODEGEN_SECRETS__"})
-def test_load_with_both_configs(mock_toml, mock_env):
+def test_load_with_both_configs(mock_toml):
     # Setup mock returns
-    mock_env.return_value = SessionConfig(file_path=str(CONFIG_PATH), secrets=SecretsConfig(github_token="env_token"), feature_flags=FeatureFlagsConfig(codebase=CodebaseFeatureFlags(debug=True)))
-    mock_toml.return_value = SessionConfig(file_path=str(CONFIG_PATH), secrets={"openai_api_key": "openai_key"}, repository={"full_name": "codegen-org/test-repo"})
+    base_config = SessionConfig(file_path=str(CONFIG_PATH), secrets=SecretsConfig(github_token="env_token"), feature_flags=FeatureFlagsConfig(codebase=CodebaseFeatureFlags(debug=True)))
+    mock_toml.return_value = {"secrets": {"openai_api_key": "openai_key"}, "repository": {"full_name": "codegen-org/test-repo"}}
 
-    config = load_session_config(CONFIG_PATH)
+    config = load_session_config(CONFIG_PATH, base_config)
 
     assert isinstance(config, SessionConfig)
     assert config.secrets.github_token == "env_token"
     assert config.secrets.openai_api_key == "openai_key"
     assert config.repository.full_name == "codegen-org/test-repo"
-    assert config.feature_flags.codebase.debug is False
+    assert config.feature_flags.codebase.debug is True
 
 
 # Error cases

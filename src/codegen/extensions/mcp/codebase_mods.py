@@ -21,7 +21,7 @@ def split_files_by_function(
 ):
     if not os.path.exists(codebase_dir):
         return {"error": f"Codebase directory '{codebase_dir}' does not exist. Please provide a valid directory path."}
-    codebase = Codebase(repo_path=codebase_dir, programming_language=codebase_language)
+    codebase = Codebase(repo_path=codebase_dir, language=codebase_language)
     new_files = {}
     file = codebase.get_file(target_file)
     # for each test_function in the file

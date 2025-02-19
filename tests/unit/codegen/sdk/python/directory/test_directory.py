@@ -146,3 +146,15 @@ class B:
         assert directory1.classes == file1.classes
         assert directory1.functions == file1.functions
         assert {d.dirpath for d in codebase.directories} == {"", "dir1", "dir2"}
+
+
+def test_subdirectories_listing_odd_filetypes(tmpdir) -> None:
+    # language=python
+    files = {"docs/sub/test_fil``e1.mdx": "", "docs/sub/file2.txt": "", "docs/test.py": "", "docs/py/test.py": "", "docs/json/test.json": "", "docs/rand/odd/1.py": "", "docs/rand/even/2.txt": ""}
+    expected_tree = {"docs/rand": ["odd", "even"], "docs/rand/odd": ["1.py"], "docs/rand/even": [], "docs/py": ["test.py"], "docs/json": [], "docs/sub": []}
+    with get_codebase_session(tmpdir=tmpdir, files=files) as codebase:
+        docs = codebase.get_directory("docs")
+        subdirectories = docs.subdirectories
+        for subdir in subdirectories:
+            assert subdir.dirpath in expected_tree.keys()
+            assert list(subdir.items.keys()) == expected_tree[subdir.dirpath]

@@ -16,6 +16,7 @@ from codegen.sdk.codebase.config_parser import ConfigParser, get_config_parser_f
 from codegen.sdk.codebase.diff_lite import ChangeType, DiffLite
 from codegen.sdk.codebase.flagging.flags import Flags
 from codegen.sdk.codebase.io.file_io import FileIO
+from codegen.sdk.codebase.progress.stub_progress import StubProgress
 from codegen.sdk.codebase.transaction_manager import TransactionManager
 from codegen.sdk.codebase.validation import get_edges, post_reset_validation
 from codegen.sdk.core.autocommit import AutoCommit, commiter
@@ -39,6 +40,7 @@ if TYPE_CHECKING:
     from codegen.git.repo_operator.repo_operator import RepoOperator
     from codegen.sdk.codebase.io.io import IO
     from codegen.sdk.codebase.node_classes.node_classes import NodeClasses
+    from codegen.sdk.codebase.progress.progress import Progress
     from codegen.sdk.core.dataclasses.usage import Usage
     from codegen.sdk.core.expressions import Expression
     from codegen.sdk.core.external_module import ExternalModule
@@ -111,16 +113,19 @@ class CodebaseContext:
     projects: list[ProjectConfig]
     unapplied_diffs: list[DiffLite]
     io: IO
+    progress: Progress
 
     def __init__(
         self,
         projects: list[ProjectConfig],
         config: CodebaseConfig = DefaultConfig,
         io: IO | None = None,
+        progress: Progress | None = None,
     ) -> None:
         """Initializes codebase graph and TransactionManager"""
         from codegen.sdk.core.parser import Parser
 
+        self.progress = progress or StubProgress()
         self._graph = PyDiGraph()
         self.filepath_idx = {}
         self._ext_module_idx = {}
@@ -319,10 +324,29 @@ class CodebaseContext:
         """Builds the directory tree for the codebase"""
         # Reset and rebuild the directory tree
         self.directories = dict()
+        created_dirs = set()
         for file in files:
             directory = self.get_directory(file.path.parent, create_on_missing=True)
             directory.add_file(file)
             file._set_directory(directory)
+            created_dirs.add(file.path.parent)
+
+        def _dir_has_file(filepath):
+            gen = os.scandir(filepath)
+            while entry := next(gen, None):
+                if entry.is_file():
+                    return True
+            return False
+
+        for ctx in self.projects:
+            for rel_filepath in ctx.repo_operator.get_filepaths_for_repo(GLOBAL_FILE_IGNORE_LIST):
+                abs_filepath = self.to_absolute(rel_filepath)
+                if not abs_filepath.is_dir():
+                    abs_filepath = abs_filepath.parent
+
+                if abs_filepath not in created_dirs and self.is_subdir(abs_filepath) and _dir_has_file(abs_filepath):
+                    directory = self.get_directory(abs_filepath, create_on_missing=True)
+                    created_dirs.add(abs_filepath)
 
     def get_directory(self, directory_path: PathLike, create_on_missing: bool = False, ignore_case: bool = False) -> Directory | None:
         """Returns the directory object for the given path, or None if the directory does not exist.
@@ -371,7 +395,6 @@ class CodebaseContext:
         skip_uncache = incremental and ((len(files_to_sync[SyncType.DELETE]) + len(files_to_sync[SyncType.REPARSE])) == 0)
         if not skip_uncache:
             uncache_all()
-
         # Step 0: Start the dependency manager and language engine if they exist
         # Start the dependency manager. This may or may not run asynchronously, depending on the implementation
         if self.dependency_manager is not None:
@@ -429,17 +452,21 @@ class CodebaseContext:
             file = self.get_file(file_path)
             file.remove_internal_edges()
 
+        task = self.progress.begin("Reparsing updated files", count=len(files_to_sync[SyncType.REPARSE]))
         files_to_resolve = []
         # Step 4: Reparse updated files
-        for file_path in files_to_sync[SyncType.REPARSE]:
+        for idx, file_path in enumerate(files_to_sync[SyncType.REPARSE]):
+            task.update(f"Reparsing {self.to_relative(file_path)}", count=idx)
             file = self.get_file(file_path)
             to_resolve.extend(file.unparse(reparse=True))
             to_resolve = list(filter(lambda node: self.has_node(node.node_id) and node is not None, to_resolve))
             file.sync_with_file_content()
             files_to_resolve.append(file)
-
+        task.end()
         # Step 5: Add new files as nodes to graph (does not yet add edges)
-        for filepath in files_to_sync[SyncType.ADD]:
+        task = self.progress.begin("Adding new files", count=len(files_to_sync[SyncType.ADD]))
+        for idx, filepath in enumerate(files_to_sync[SyncType.ADD]):
+            task.update(f"Adding {self.to_relative(filepath)}", count=idx)
             content = self.io.read_text(filepath)
             # TODO: this is wrong with context changes
             if filepath.suffix in self.extensions:
@@ -447,6 +474,7 @@ class CodebaseContext:
                 new_file = file_cls.from_content(filepath, content, self, sync=False, verify_syntax=False)
                 if new_file is not None:
                     files_to_resolve.append(new_file)
+        task.end()
         for file in files_to_resolve:
             to_resolve.append(file)
             to_resolve.extend(file.get_nodes())
@@ -474,27 +502,35 @@ class CodebaseContext:
             self._computing = True
             try:
                 logger.info(f"> Computing import resolution edges for {counter[NodeType.IMPORT]} imports")
+                task = self.progress.begin("Resolving imports", count=counter[NodeType.IMPORT])
                 for node in to_resolve:
                     if node.node_type == NodeType.IMPORT:
+                        task.update(f"Resolving imports in {node.filepath}", count=idx)
                         node._remove_internal_edges(EdgeType.IMPORT_SYMBOL_RESOLUTION)
                         node.add_symbol_resolution_edge()
                         to_resolve.extend(node.symbol_usages)
+                task.end()
                 if counter[NodeType.EXPORT] > 0:
                     logger.info(f"> Computing export dependencies for {counter[NodeType.EXPORT]} exports")
+                    task = self.progress.begin("Computing export dependencies", count=counter[NodeType.EXPORT])
                     for node in to_resolve:
                         if node.node_type == NodeType.EXPORT:
+                            task.update(f"Computing export dependencies for {node.filepath}", count=idx)
                             node._remove_internal_edges(EdgeType.EXPORT)
                             node.compute_export_dependencies()
                             to_resolve.extend(node.symbol_usages)
+                    task.end()
                 if counter[NodeType.SYMBOL] > 0:
                     from codegen.sdk.core.interfaces.inherits import Inherits
 
                     logger.info("> Computing superclass dependencies")
+                    task = self.progress.begin("Computing superclass dependencies", count=counter[NodeType.SYMBOL])
                     for symbol in to_resolve:
                         if isinstance(symbol, Inherits):
+                            task.update(f"Computing superclass dependencies for {symbol.filepath}", count=idx)
                             symbol._remove_internal_edges(EdgeType.SUBCLASS)
                             symbol.compute_superclass_dependencies()
-
+                    task.end()
                 if not skip_uncache:
                     uncache_all()
                 self._compute_dependencies(to_resolve, incremental)
@@ -504,10 +540,12 @@ class CodebaseContext:
     def _compute_dependencies(self, to_update: list[Importable], incremental: bool):
         seen = set()
         while to_update:
+            task = self.progress.begin("Computing dependencies", count=len(to_update))
             step = to_update.copy()
             to_update.clear()
             logger.info(f"> Incrementally computing dependencies for {len(step)} nodes")
-            for current in step:
+            for idx, current in enumerate(step):
+                task.update(f"Computing dependencies for {current.filepath}", count=idx)
                 if current not in seen:
                     seen.add(current)
                     to_update.extend(current.recompute(incremental))
@@ -515,6 +553,7 @@ class CodebaseContext:
                 for node in self._graph.nodes():
                     if node not in seen:
                         to_update.append(node)
+            task.end()
         seen.clear()
 
     def build_subgraph(self, nodes: list[NodeId]) -> PyDiGraph[Importable, Edge]:

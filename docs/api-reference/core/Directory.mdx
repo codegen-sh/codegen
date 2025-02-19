@@ -11,14 +11,14 @@ import {HorizontalDivider} from '/snippets/HorizontalDivider.mdx';
 import {GithubLinkNote} from '/snippets/GithubLinkNote.mdx';
 import {Attribute} from '/snippets/Attribute.mdx';
 
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L40-L254" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L24-L185" />
 
 
 ## Attributes
 <HorizontalDivider />
 ### <span className="text-primary">classes</span>
 <HorizontalDivider light={true} />
-<Attribute type={ <><span>list[</span> <a href="/api-reference/core/Class" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Class</a> <span>]</span></> } description="Get a recursive list of all classes in the directory and its subdirectories." />
+<Attribute type={ <><span>list[</span> <a href="/api-reference/core/Class" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Class</a> <span>]</span></> } description="Get a recursive list of all classes in files container." />
 
 ### <span className="text-primary">dirpath</span>
 <HorizontalDivider light={true} />
@@ -26,27 +26,27 @@ import {Attribute} from '/snippets/Attribute.mdx';
 
 ### <span className="text-primary">exports</span>
 <HorizontalDivider light={true} />
-<Attribute type={ <><span>list[</span> <a href="/api-reference/typescript/TSExport" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSExport</a> <span>]</span></> } description="Get a recursive list of all exports in the directory and its subdirectories." />
+<Attribute type={ <><span>list[</span> <a href="/api-reference/typescript/TSExport" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSExport</a> <span>]</span></> } description="Get a recursive list of all exports in files container." />
 
 ### <span className="text-primary">files</span>
 <HorizontalDivider light={true} />
-<Attribute type={ <><span>list[</span> <a href="/api-reference/core/File" style={ {fontWeight: "inherit", fontSize: "inherit"} }>File</a> <span>]</span></> } description="Get a recursive list of all files in the directory and its subdirectories." />
+<Attribute type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">list[TFile]</code> } description="Get a recursive list of all files in the directory and its subdirectories." />
 
 ### <span className="text-primary">functions</span>
 <HorizontalDivider light={true} />
-<Attribute type={ <><span>list[</span> <a href="/api-reference/core/Function" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Function</a> <span>]</span></> } description="Get a recursive list of all functions in the directory and its subdirectories." />
+<Attribute type={ <><span>list[</span> <a href="/api-reference/core/Function" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Function</a> <span>]</span></> } description="Get a recursive list of all functions in files container." />
 
 ### <span className="text-primary">global_vars</span>
 <HorizontalDivider light={true} />
-<Attribute type={ <><span>list[</span> <a href="/api-reference/core/Assignment" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Assignment</a> <span>]</span></> } description="Get a recursive list of all global variables in the directory and its subdirectories." />
+<Attribute type={ <><span>list[</span> <a href="/api-reference/core/Assignment" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Assignment</a> <span>]</span></> } description="Get a recursive list of all global variables in files container." />
 
 ### <span className="text-primary">import_statements</span>
 <HorizontalDivider light={true} />
-<Attribute type={ <><span>list[</span> <a href="/api-reference/core/ImportStatement" style={ {fontWeight: "inherit", fontSize: "inherit"} }>ImportStatement</a> <span>]</span></> } description="Get a recursive list of all import statements in the directory and its subdirectories." />
+<Attribute type={ <><span>list[</span> <a href="/api-reference/core/ImportStatement" style={ {fontWeight: "inherit", fontSize: "inherit"} }>ImportStatement</a> <span>]</span></> } description="Get a recursive list of all import statements in files container." />
 
 ### <span className="text-primary">imports</span>
 <HorizontalDivider light={true} />
-<Attribute type={ <><span>list[</span> <a href="/api-reference/core/Import" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Import</a> <span>]</span></> } description="Get a recursive list of all imports in the directory and its subdirectories." />
+<Attribute type={ <><span>list[</span> <a href="/api-reference/core/Import" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Import</a> <span>]</span></> } description="Get a recursive list of all imports in files container." />
 
 ### <span className="text-primary">name</span>
 <HorizontalDivider light={true} />
@@ -66,14 +66,14 @@ import {Attribute} from '/snippets/Attribute.mdx';
 
 ### <span className="text-primary">symbols</span>
 <HorizontalDivider light={true} />
-<Attribute type={ <><span>list[</span> <a href="/api-reference/core/Symbol" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Symbol</a> <span>]</span></> } description="Get a recursive list of all symbols in the directory and its subdirectories." />
+<Attribute type={ <><span>list[</span> <a href="/api-reference/core/Symbol" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Symbol</a> <span>]</span></> } description="Get a recursive list of all symbols in files container." />
 
 
 ## Methods
 <HorizontalDivider />
 ### <span className="text-primary">add_file</span>
 Add a file to the directory.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L185-L188" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L123-L126" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
@@ -81,23 +81,23 @@ Add a file to the directory.
 
 ### <span className="text-primary">add_subdirectory</span>
 Add a subdirectory to the directory.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L217-L220" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L149-L152" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
 
 
 ### <span className="text-primary">get_class</span>
-Get a class by name in the directory and its subdirectories.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L177-L179" />
+Get a class by name in files container.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/has_symbols.py#L99-L101" />
 
 
 <Return return_type={ <><a href="/api-reference/core/Class" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Class</a> <span>| None</span></> } description=""/>
 
 
 ### <span className="text-primary">get_export</span>
-Get an export by name in the directory and its subdirectories (supports only typescript).
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L209-L211" />
+Get an export by name in files container (supports only typescript).
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/has_symbols.py#L108-L113" />
 
 
 <Return return_type={ <><a href="/api-reference/typescript/TSExport" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSExport</a> <span>| None</span></> } description=""/>
@@ -105,63 +105,63 @@ Get an export by name in the directory and its subdirectories (supports only typ
 
 ### <span className="text-primary">get_file</span>
 Get a file by its name relative to the directory.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L200-L206" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L138-L147" />
 
 
-<Return return_type={ <><a href="/api-reference/core/File" style={ {fontWeight: "inherit", fontSize: "inherit"} }>File</a> <span>| None</span></> } description=""/>
+<Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">TFile | None</code> } description=""/>
 
 
 ### <span className="text-primary">get_function</span>
-Get a function by name in the directory and its subdirectories.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L181-L183" />
+Get a function by name in files container.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/has_symbols.py#L103-L105" />
 
 
 <Return return_type={ <><a href="/api-reference/core/Function" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Function</a> <span>| None</span></> } description=""/>
 
 
 ### <span className="text-primary">get_global_var</span>
-Get a global variable by name in the directory and its subdirectories.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L173-L175" />
+Get a global variable by name in files container.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/has_symbols.py#L95-L97" />
 
 
 <Return return_type={ <><a href="/api-reference/core/Assignment" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Assignment</a> <span>| None</span></> } description=""/>
 
 
 ### <span className="text-primary">get_import</span>
-Get an import by name in the directory and its subdirectories.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L213-L215" />
+Get an import by name in files container.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/has_symbols.py#L115-L117" />
 
 
 <Return return_type={ <><a href="/api-reference/core/Import" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Import</a> <span>| None</span></> } description=""/>
 
 
 ### <span className="text-primary">get_import_statement</span>
-Get an import statement by name in the directory and its subdirectories.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L169-L171" />
+Get an import statement by name in files container.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/has_symbols.py#L91-L93" />
 
 
 <Return return_type={ <><a href="/api-reference/core/ImportStatement" style={ {fontWeight: "inherit", fontSize: "inherit"} }>ImportStatement</a> <span>| None</span></> } description=""/>
 
 
 ### <span className="text-primary">get_subdirectory</span>
-Get a subdirectory by its path relative to the directory.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L232-L234" />
+Get a subdirectory by its name (relative to the directory).
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L164-L166" />
 
 
 <Return return_type={ <><a href="/api-reference/core/Directory" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Directory</a> <span>| None</span></> } description=""/>
 
 
 ### <span className="text-primary">get_symbol</span>
-Get a symbol by name in the directory and its subdirectories.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L165-L167" />
+Get a symbol by name in files container.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/has_symbols.py#L87-L89" />
 
 
 <Return return_type={ <><a href="/api-reference/core/Symbol" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Symbol</a> <span>| None</span></> } description=""/>
 
 
 ### <span className="text-primary">remove</span>
-Remove the directory and all its files and subdirectories.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L236-L239" />
+Remove all the files in the files container.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L176-L179" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
@@ -169,7 +169,7 @@ Remove the directory and all its files and subdirectories.
 
 ### <span className="text-primary">remove_file</span>
 Remove a file from the directory.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L190-L193" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L128-L131" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
@@ -177,7 +177,7 @@ Remove a file from the directory.
 
 ### <span className="text-primary">remove_file_by_path</span>
 Remove a file from the directory by its path.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L195-L198" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L133-L136" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
@@ -185,7 +185,7 @@ Remove a file from the directory by its path.
 
 ### <span className="text-primary">remove_subdirectory</span>
 Remove a subdirectory from the directory.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L222-L225" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L154-L157" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
@@ -193,7 +193,7 @@ Remove a subdirectory from the directory.
 
 ### <span className="text-primary">remove_subdirectory_by_path</span>
 Remove a subdirectory from the directory by its path.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L227-L230" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L159-L162" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
@@ -201,15 +201,15 @@ Remove a subdirectory from the directory by its path.
 
 ### <span className="text-primary">rename</span>
 Rename the directory.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L250-L254" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L181-L185" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
 
 
 ### <span className="text-primary">update_filepath</span>
-Update the filepath of the directory.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L241-L248" />
+Update the filepath of the directory and its contained files.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/directory.py#L168-L174" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>

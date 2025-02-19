@@ -1,6 +1,5 @@
 import codegen
 from codegen import Codebase
-from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 @codegen.function("fragment_to_shorthand")
@@ -34,6 +33,6 @@ def run(codebase: Codebase):
 
 if __name__ == "__main__":
     print("🎯 Starting Fragment to shorthand conversion...")
-    codebase = Codebase.from_repo("RocketChat/Rocket.Chat", commit="a4f2102af1c2e875c60cafebd0163105bdaca678", programming_language=ProgrammingLanguage.TYPESCRIPT)
+    codebase = Codebase.from_repo("RocketChat/Rocket.Chat", commit="a4f2102af1c2e875c60cafebd0163105bdaca678", language="typescript")
     run(codebase)
     print("✅ Done! All Fragments converted to shorthand syntax!")
