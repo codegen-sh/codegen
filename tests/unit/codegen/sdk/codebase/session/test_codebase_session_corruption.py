@@ -11,7 +11,7 @@ def test_get_codebase_session(tmpdir) -> None:
     # target_file must be a file that shares the same relative path in the codegen-sdk repo
 
     # Init Test
-    target_file = "tests/unit/codegen/sdk/codebase/test_sanity/target_python_file.py"
+    target_file = "/Users/edwardli/codegen-sdk/tests/unit/codegen/sdk/codebase/session/target_python_file.py"
     assert os.path.exists(target_file), f"Target file {target_file} does not exist! Please change this to a file that exists in codegen-sdk"
     target_orig_content = open(target_file).read()
 
