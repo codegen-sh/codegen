@@ -230,8 +230,8 @@ wheels = [
 
 [[package]]
 name = "codegen"
-version = "0.22.1"
-source = { registry = "https://pypi.org/simple" }
+version = "0.22.2.dev14+g64374f8"
+source = { git = "https://github.com/codegen-sh/codegen-sdk.git?rev=64374f8#64374f832539b137b83859dd88b3f78df3a5c664" }
 dependencies = [
     { name = "anthropic" },
     { name = "astor" },
@@ -299,12 +299,6 @@ dependencies = [
     { name = "watchfiles" },
     { name = "wrapt" },
     { name = "xmltodict" },
-]
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/7b/94/74892b4158f5b3856cea831d6997e237b5a0d3ef27722e5a1042886af7a7/codegen-0.22.1-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:e8c4a8138d238b8a6c85b3a04b7d634e8ee481341e8c8f9e8c5a599af2e16dd0", size = 1073680 },
-    { url = "https://files.pythonhosted.org/packages/53/e8/3c63e9759e108726f3fb370af4104d701ba325f59e8f4119e96f86dfaf51/codegen-0.22.1-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:8254d7d8fee85402f829cac00a795f0429aa93b6dd758493a076463db91aea9b", size = 1065347 },
-    { url = "https://files.pythonhosted.org/packages/e0/84/817281a11c1f0b550a151d25b4df64a44cee30bbda1b9269ad257684cbd9/codegen-0.22.1-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl", hash = "sha256:dbc8da8c0c48c51f573117ad5ee1d9ce0f0e8e9ffa10122f7b641aec4e50ab33", size = 2063925 },
-    { url = "https://files.pythonhosted.org/packages/29/d2/7fe5022cfeed0738fb017f5157f577958a23decca5997f07e1e6eada126f/codegen-0.22.1-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl", hash = "sha256:c9ec00f0cce6fd96d6a2869cec6f04a563928a15ba795614a97e2c635f028784", size = 2110361 },
 ]
 
 [[package]]
@@ -1005,7 +999,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "codegen", specifier = ">=0.22.1" },
+    { name = "codegen", git = "https://github.com/codegen-sh/codegen-sdk.git?rev=64374f8" },
     { name = "modal", specifier = ">=0.73.25" },
 ]
 
