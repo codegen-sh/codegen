@@ -73,7 +73,6 @@ class RepoOperator(ABC):
             self._local_git_repo = LocalGitRepo(repo_path=repo_config.repo_path)
 
             if repo_config.full_name is None:
-                print(self._local_git_repo)
                 repo_config.full_name = self._local_git_repo.full_name
 
     ####################################################################################################################
