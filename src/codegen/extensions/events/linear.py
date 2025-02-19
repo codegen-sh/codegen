@@ -4,7 +4,7 @@ import os
 from typing import Callable
 
 import modal  # deptry: ignore
-from anthropic import BaseModel
+from pydantic import BaseModel
 
 from codegen.extensions.clients.linear import LinearClient
 from codegen.extensions.events.interface import EventHandlerManagerProtocol

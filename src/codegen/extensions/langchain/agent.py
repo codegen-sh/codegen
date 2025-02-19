@@ -2,8 +2,10 @@
 
 from langchain.agents import AgentExecutor
 from langchain.agents.openai_functions_agent.base import OpenAIFunctionsAgent
+from langchain.agents.react.agent import create_react_agent
 from langchain.hub import pull
 from langchain.tools import BaseTool
+from langchain_anthropic import ChatAnthropic
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.messages import BaseMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -46,8 +48,13 @@ def create_codebase_agent(
         Initialized agent with message history
     """
     # Initialize language model
-    llm = ChatOpenAI(
-        model_name=model_name,
+    # llm = ChatOpenAI(
+    #     model_name=model_name,
+    #     temperature=temperature,
+    # )
+
+    llm = ChatAnthropic(
+        model="claude-3-5-sonnet-latest",
         temperature=temperature,
     )
 
@@ -128,7 +135,12 @@ def create_codebase_agent(
     )
 
     # Create the agent
-    agent = OpenAIFunctionsAgent(
+    # agent = OpenAIFunctionsAgent(
+    #     llm=llm,
+    #     tools=tools,
+    #     prompt=prompt,
+    # )
+    agent = create_react_agent(
         llm=llm,
         tools=tools,
         prompt=prompt,

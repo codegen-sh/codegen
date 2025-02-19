@@ -6,7 +6,6 @@ readme = "README.md"
 # renovate: datasource=python-version depName=python
 requires-python = ">=3.12, <3.14"
 dependencies = [
-  "backoff==2.2.1",
   "openai==1.63.2",
   "tiktoken<1.0.0,>=0.5.1",
   "tabulate>=0.9.0,<1.0.0",
@@ -31,14 +30,12 @@ dependencies = [
   "plotly>=5.24.0,<7.0.0",
   "humanize<5.0.0,>=4.10.0",
   "pytest-snapshot>=0.9.0",
-  "anthropic==0.23.1",
   "pyjson5==1.6.8",
   "mini-racer>=0.12.4",
   "rustworkx>=0.15.1",
   "typing-extensions>=4.12.2",
   "termcolor>=2.4.0",
   "sentry-sdk==2.22.0",
-  "tenacity>=9.0.0",
   "click>=8.1.7",
   "requests>=2.32.3",
   "lazy-object-proxy>=0.0.0",
@@ -72,6 +69,7 @@ dependencies = [
   "neo4j",
   "modal>=0.73.45",
   "slack-sdk",
+  "langchain-anthropic>=0.3.7",
 ]
 
 license = { text = "Apache-2.0" }

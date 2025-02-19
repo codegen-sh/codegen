@@ -9,8 +9,8 @@ from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.git.utils.file_utils import split_git_path
 from codegen.git.utils.language import determine_project_language
-from codegen.sdk.secrets import Secrets
 from codegen.shared.configs.models.feature_flags import CodebaseFeatureFlags
+from codegen.shared.configs.models.secrets import SecretsConfig
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 HARD_MAX_AI_LIMIT = 500  # Global limit for AI requests
@@ -76,7 +76,7 @@ class CodebaseConfig(BaseModel):
     """
 
     model_config = ConfigDict(frozen=True)
-    secrets: Secrets = Secrets()
+    secrets: SecretsConfig = SecretsConfig()
     feature_flags: CodebaseFeatureFlags = DefaultFlags
 
 
