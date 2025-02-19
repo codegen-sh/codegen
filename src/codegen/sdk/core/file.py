@@ -404,6 +404,7 @@ class File(Editable[None]):
         """Returns a list of file extensions for the given programming language file."""
         return []  # By default, no extensions are "supported" for generic files
 
+
 TImport = TypeVar("TImport", bound="Import")
 TFunction = TypeVar("TFunction", bound="Function")
 TClass = TypeVar("TClass", bound="Class")

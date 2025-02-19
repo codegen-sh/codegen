@@ -34,6 +34,7 @@ def determine_project_language(folder_path: str, strategy: Literal["most_common"
         msg = f"Invalid strategy: {strategy}"
         raise ValueError(msg)
 
+
 def _determine_language_by_file_count(folder_path: str) -> ProgrammingLanguage:
     """Analyzes a folder to determine the primary programming language based on file extensions.
     Returns the language with the most matching files.
