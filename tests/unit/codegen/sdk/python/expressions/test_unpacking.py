@@ -100,7 +100,7 @@ def test_remove_unpacking_assignment_num(tmpdir) -> None:
     # language=python
     content = """a,b,c,d,e,f = (1, 2, 2, 4, 5, 3)"""
 
-    with get_codebase_session(tmpdir=tmpdir, files={"test1.py": content,"test2.py":content}) as codebase:
+    with get_codebase_session(tmpdir=tmpdir, files={"test1.py": content, "test2.py": content}) as codebase:
         file1 = codebase.get_file("test1.py")
 
         a = file1.get_symbol("a")
@@ -155,6 +155,3 @@ def test_remove_unpacking_assignment_num(tmpdir) -> None:
 
         assert len(file2.symbols) == 0
         assert file2.source == """"""
-
-
-

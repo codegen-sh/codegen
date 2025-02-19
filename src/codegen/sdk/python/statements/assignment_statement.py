@@ -32,7 +32,7 @@ class PyAssignmentStatement(AssignmentStatement["PyCodeBlock", PyAssignment]):
 
     def __init__(self, ts_node, file_node_id, ctx, parent, pos, assignment_node):
         super().__init__(ts_node, file_node_id, ctx, parent, pos, assignment_node)
-        self._values_scheduled_for_removal=[]
+        self._values_scheduled_for_removal = []
 
     @classmethod
     def from_assignment(cls, ts_node: TSNode, file_node_id: NodeId, ctx: CodebaseContext, parent: PyCodeBlock, pos: int, assignment_node: TSNode) -> PyAssignmentStatement:
