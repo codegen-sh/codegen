@@ -50,9 +50,9 @@ class Directory(
     def __iter__(self):
         return iter(self.items.values())
 
-    def _is_a_subdirectory_of(self,target_directory:"Directory"):
+    def _is_a_subdirectory_of(self, target_directory: "Directory"):
         """Checks whether this directory is a subdirectory of another directory"""
-        if self.parent==target_directory:
+        if self.parent == target_directory:
             return True
         if self.parent is None:
             return False
@@ -61,18 +61,17 @@ class Directory(
     def __contains__(self, item: str | TFile | Self) -> bool:
         if isinstance(item, str):
             return item in self.items
-        elif isinstance(item,Directory):
+        elif isinstance(item, Directory):
             return item._is_a_subdirectory_of(self)
         else:
-            #It could only ever be a file here, at least according to item's types...
+            # It could only ever be a file here, at least according to item's types...
             match item.directory:
                 case None:
                     return False
-                case _ if item.directory==self:
+                case _ if item.directory == self:
                     return True
                 case _:
                     return item.directory._is_a_subdirectory_of(self)
-
 
     def __len__(self) -> int:
         return len(self.items)

@@ -238,17 +238,20 @@ def test_unicode_in_filename(tmpdir) -> None:
 
 def test_contains_dirs_and_files(tmpdir) -> None:
     # language=python
-    with get_codebase_session(tmpdir=tmpdir, files={
-        "file0.py":"",
-        "main_dir/file1.py":"",
-        "main_dir/file2.py":"",
-        "main_dir/sub_dir/file3.py":"",
-        "main_dir/sub_dir/sub_sub_dir/file4.py":"",
-        "main_dir/sub_dir/sub_sub_dir/file5.py":"",
-        "main_dir/sub_dir/sub_sub_dir/sub_sub_sub_dir/file6.py":"",
-        "main_dir/sub_dir/sub_sub_dir/sub_sub_sub_dir/sub_sub_sub_sub_dir/sub_sub_sub_sub_sub_dir/file7.py":"",
-        "lonely_dir/file_lonely.py":""
-          }) as codebase:
+    with get_codebase_session(
+        tmpdir=tmpdir,
+        files={
+            "file0.py": "",
+            "main_dir/file1.py": "",
+            "main_dir/file2.py": "",
+            "main_dir/sub_dir/file3.py": "",
+            "main_dir/sub_dir/sub_sub_dir/file4.py": "",
+            "main_dir/sub_dir/sub_sub_dir/file5.py": "",
+            "main_dir/sub_dir/sub_sub_dir/sub_sub_sub_dir/file6.py": "",
+            "main_dir/sub_dir/sub_sub_dir/sub_sub_sub_dir/sub_sub_sub_sub_dir/sub_sub_sub_sub_sub_dir/file7.py": "",
+            "lonely_dir/file_lonely.py": "",
+        },
+    ) as codebase:
         file0 = codebase.get_file("file0.py")
         main_dir = codebase.get_directory("main_dir")
         file1 = codebase.get_file("main_dir/file1.py")
@@ -263,25 +266,24 @@ def test_contains_dirs_and_files(tmpdir) -> None:
         sub_sub_sub_sub_dir = codebase.get_directory("main_dir/sub_dir/sub_sub_dir/sub_sub_sub_dir/sub_sub_sub_sub_dir")
         sub_sub_sub_sub_sub_dir = codebase.get_directory("main_dir/sub_dir/sub_sub_dir/sub_sub_sub_dir/sub_sub_sub_sub_dir/sub_sub_sub_sub_sub_dir")
         file7 = codebase.get_file("main_dir/sub_dir/sub_sub_dir/sub_sub_sub_dir/sub_sub_sub_sub_dir/sub_sub_sub_sub_sub_dir/file7.py")
-        directory_stack=main_dir.subdirectories
+        directory_stack = main_dir.subdirectories
         directory_stack.append(main_dir)
-        main_directory_stack_no_root=directory_stack
-        file_stack=[file7]
+        main_directory_stack_no_root = directory_stack
+        file_stack = [file7]
         for directory in directory_stack:
-            #ignore self
-            if directory!=sub_sub_sub_sub_sub_dir:
+            # ignore self
+            if directory != sub_sub_sub_sub_sub_dir:
                 assert sub_sub_sub_sub_sub_dir in directory
             else:
-                #A dir is not in itself!
+                # A dir is not in itself!
                 assert sub_sub_sub_sub_sub_dir not in directory
             for file in file_stack:
                 assert file in directory
 
         directory_stack.remove(sub_sub_sub_sub_sub_dir)
 
-
         for directory in directory_stack:
-            if directory!=sub_sub_sub_sub_dir:
+            if directory != sub_sub_sub_sub_dir:
                 assert sub_sub_sub_sub_dir in directory
 
             for file in file_stack:
@@ -290,34 +292,29 @@ def test_contains_dirs_and_files(tmpdir) -> None:
         directory_stack.remove(sub_sub_sub_sub_dir)
         file_stack.append(file6)
 
-
         for directory in directory_stack:
-            if directory!=sub_sub_sub_dir:
+            if directory != sub_sub_sub_dir:
                 assert sub_sub_sub_dir in directory
 
             for file in file_stack:
                 assert file in directory
-
 
         directory_stack.remove(sub_sub_sub_dir)
         file_stack.append(file5)
         file_stack.append(file4)
 
         for directory in directory_stack:
-            if directory!=sub_sub_dir:
+            if directory != sub_sub_dir:
                 assert sub_sub_dir in directory
 
             for file in file_stack:
                 assert file in directory
 
-
         directory_stack.remove(sub_sub_dir)
         file_stack.append(file3)
 
-
-
         for directory in directory_stack:
-            if directory!=sub_dir:
+            if directory != sub_dir:
                 assert sub_dir in directory
             for file in file_stack:
                 assert file in directory
@@ -327,13 +324,13 @@ def test_contains_dirs_and_files(tmpdir) -> None:
         file_stack.append(file1)
 
         for directory in directory_stack:
-            if directory!=main_dir:
+            if directory != main_dir:
                 assert main_dir in directory
             for file in file_stack:
                 assert file in directory
 
-        lonely_dir=codebase.get_directory("lonely_dir")
-        lonely_file=codebase.get_file("lonely_dir/file_lonely.py")
+        lonely_dir = codebase.get_directory("lonely_dir")
+        lonely_file = codebase.get_file("lonely_dir/file_lonely.py")
 
         for directory in main_directory_stack_no_root:
             assert file0 not in directory
