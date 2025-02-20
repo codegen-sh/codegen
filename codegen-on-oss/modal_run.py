@@ -37,13 +37,13 @@ except modal.exception.NotFoundError:
 @parse_app.function(
     cpu=4,
     memory=16384,
-    timeout=3600,
+    timeout=3600 * 8,
     secrets=[aws_secrets],
     volumes={
         str(cachedir.absolute()): csv_repo_volume,
         "/app/inputs": csv_input_volume,
     },
-    image=modal.Image.debian_slim(python_version="3.12")
+    image=modal.Image.debian_slim(python_version="3.13")
     .pip_install("uv")
     .apt_install("git")  # required by codegen sdk
     .workdir("/app")
@@ -109,7 +109,7 @@ def main(input_file: str = "input.csv"):
     Main entrypoint for the parse app.
     """
     input_path = Path(input_file).relative_to(".")
-    with csv_input_volume.batch_upload() as b:
+    with csv_input_volume.batch_upload(force=True) as b:
         b.put_file(input_file, input_path)
 
     parse_repo_on_modal.remote(

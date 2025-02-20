@@ -1,4 +1,5 @@
 import gc
+import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 from urllib.parse import urlparse
@@ -27,6 +28,7 @@ class CodegenParser:
         self.repo_dir = repo_dir
         self.repo_dir.mkdir(parents=True, exist_ok=True)
         self.metrics_profiler = metrics_profiler
+        sys.setrecursionlimit(10000000)
 
     def parse(self, url: str, commit_hash: str | None = None):
         """
