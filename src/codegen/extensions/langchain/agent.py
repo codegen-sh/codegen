@@ -24,7 +24,6 @@ from .tools import (
     RevealSymbolTool,
     SearchTool,
     SemanticEditTool,
-    SemanticSearchTool,
     ViewFileTool,
 )
 
@@ -70,8 +69,8 @@ def create_codebase_agent(
         MoveSymbolTool(codebase),
         RevealSymbolTool(codebase),
         SemanticEditTool(codebase),
-        SemanticSearchTool(codebase),
         ReplacementEditTool(codebase),
+        # SemanticSearchTool(codebase),
         # =====[ Github Integration ]=====
         # Enable Github integration
         # GithubCreatePRTool(codebase),

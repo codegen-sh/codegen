@@ -25,6 +25,11 @@ class ViewFileObservation(Observation):
 
     str_template: ClassVar[str] = "File {filepath} ({line_count} lines)"
 
+    def render(self) -> str:
+        return f"""[VIEW FILE]: {self.filepath} ({self.line_count} lines)
+{self.content}
+"""
+
 
 def add_line_numbers(content: str) -> str:
     """Add line numbers to content.
