@@ -55,7 +55,16 @@ logger = logging.getLogger(__name__)
 
 
 # src/vs/platform/contextview/browser/contextMenuService.ts is ignored as there is a parsing error with tree-sitter
-GLOBAL_FILE_IGNORE_LIST = [".git/*", ".yarn/releases/*", ".*/tests/static/chunk-.*.js", ".*/ace/.*.js", "src/vs/platform/contextview/browser/contextMenuService.ts"]
+GLOBAL_FILE_IGNORE_LIST = [
+    ".git/*",
+    "*/.git/*",
+    "node_modules/*",
+    "*/node_modules/*",
+    ".yarn/releases/*",
+    ".*/tests/static/chunk-.*.js",
+    ".*/ace/.*.js",
+    "src/vs/platform/contextview/browser/contextMenuService.ts",
+]
 
 
 @unique
