@@ -1386,25 +1386,22 @@ You can customize the behavior of your Codebase instance by passing a `CodebaseC
 
 ```python
 from codegen import Codebase
-from codegen.sdk.codebase.config import CodebaseConfig, GSFeatureFlags, Secrets
+from codegen.shared.configs.models.codebase import CodebaseConfig
+from codegen.shared.configs.models.secrets import SecretsConfig
 
 codebase = Codebase(
     "path/to/repository",
     config=CodebaseConfig(
-        secrets=Secrets(
-            openai_key="your-openai-key"  # For AI-powered features
-        ),
-        feature_flags=GSFeatureFlags(
-            sync_enabled=True,  # Enable graph synchronization
-            ...  # Add other feature flags as needed
-        )
-    )
+        sync_enabled=True,   # Enable graph synchronization
+        ...  # Add other feature flags as needed
+    ),
+    secrets=SecretsConfig(openai_api_key="your-openai-key")
 )
 ```
 
-The `CodebaseConfig` allows you to configure:
-- `secrets`: API keys and other sensitive information needed by the codebase
-- `feature_flags`: Toggle specific features like language engines, dependency management, and graph synchronization
+- `CodebaseConfig` and `SecretsConfig` allow you to configure
+  - `config`: Toggle specific features like language engines, dependency management, and graph synchronization
+  - `secrets`: API keys and other sensitive information needed by the codebase
 
 For a complete list of available feature flags and configuration options, see the [source code on GitHub](https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/codebase/config.py).
 

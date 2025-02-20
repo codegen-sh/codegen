@@ -8,9 +8,8 @@ from pygls.protocol import LanguageServerProtocol, lsp_method
 from codegen.extensions.lsp.io import LSPIO
 from codegen.extensions.lsp.progress import LSPProgress
 from codegen.extensions.lsp.utils import get_path
-from codegen.sdk.codebase.config import CodebaseConfig
 from codegen.sdk.core.codebase import Codebase
-from codegen.shared.configs.models.feature_flags import CodebaseFeatureFlags
+from codegen.shared.configs.models.codebase import CodebaseConfig
 
 if TYPE_CHECKING:
     from codegen.extensions.lsp.server import CodegenLanguageServer
@@ -27,7 +26,8 @@ class CodegenLanguageServerProtocol(LanguageServerProtocol):
             root = get_path(params.root_uri)
         else:
             root = os.getcwd()
-        config = CodebaseConfig(feature_flags=CodebaseFeatureFlags(full_range_index=True))
+        config = CodebaseConfig()
+        config.full_range_index = True
         io = LSPIO(self.workspace)
         self._server.codebase = Codebase(repo_path=str(root), config=config, io=io, progress=progress)
         self._server.progress_manager = progress

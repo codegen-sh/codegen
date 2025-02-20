@@ -136,7 +136,7 @@ class ChainedAttribute(Expression[Parent], Resolvable, Generic[Object, Attribute
     def _resolved_types(self) -> Generator[ResolutionStack[Self], None, None]:
         from codegen.sdk.typescript.namespace import TSNamespace
 
-        if not self.ctx.config.feature_flags.method_usages:
+        if not self.ctx.config.method_usages:
             return
         if res := self.file.valid_import_names.get(self.full_name, None):
             # Module imports

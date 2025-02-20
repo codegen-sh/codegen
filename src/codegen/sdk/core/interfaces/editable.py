@@ -124,13 +124,13 @@ class Editable(JSONable, Generic[Parent]):
         self.file_node_id = file_node_id
         self.ctx = ctx
         self.parent = parent
-        if ctx.config.feature_flags.debug:
+        if ctx.config.debug:
             seen = set()
             while parent is not None:
                 assert (parent.ts_node, parent.__class__) not in seen
                 seen.add((parent.ts_node, parent.__class__))
                 parent = parent.parent
-        if self.file and self.ctx.config.feature_flags.full_range_index:
+        if self.file and self.ctx.config.full_range_index:
             self._add_to_index
 
     def __hash__(self):
@@ -678,7 +678,7 @@ class Editable(JSONable, Generic[Parent]):
     @remover
     @noapidoc
     def remove_byte_range(self, start_byte: int, end_byte: int) -> None:
-        if self.ctx.config.feature_flags.debug:
+        if self.ctx.config.debug:
             assert start_byte < end_byte
         t = RemoveTransaction(start_byte, end_byte, self.file)
         self.transaction_manager.add_transaction(t)
@@ -1145,7 +1145,7 @@ class Editable(JSONable, Generic[Parent]):
             if isinstance(val, Editable):
                 names[val] = name
         for child in self.file._range_index.get_children(self):
-            if self.ctx.config.feature_flags.debug:
+            if self.ctx.config.debug:
                 assert child != self, child
             elif child == self:
                 continue

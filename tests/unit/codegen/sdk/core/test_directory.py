@@ -6,10 +6,10 @@ from unittest.mock import MagicMock
 import pytest
 
 from codegen.sdk.codebase.codebase_context import CodebaseContext
-from codegen.sdk.codebase.config import CodebaseConfig
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
 from codegen.sdk.core.directory import Directory
 from codegen.sdk.core.file import File
+from codegen.shared.configs.models.codebase import CodebaseConfig
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 

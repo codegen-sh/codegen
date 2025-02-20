@@ -27,6 +27,14 @@ class LocalGitRepo:
         return os.path.basename(self.repo_path)
 
     @cached_property
+    def owner(self) -> str | None:
+        if not self.origin_remote:
+            return None
+
+        parsed = giturlparse.parse(self.origin_remote.url)
+        return parsed.owner
+
+    @cached_property
     def full_name(self) -> str | None:
         if not self.origin_remote:
             return None
