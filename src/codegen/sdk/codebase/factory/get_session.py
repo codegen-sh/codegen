@@ -12,7 +12,7 @@ from codegen.sdk.core.codebase import Codebase, PyCodebaseType, TSCodebaseType
 from codegen.sdk.core.file import SourceFile
 from codegen.sdk.tree_sitter_parser import print_errors
 from codegen.shared.configs.models.codebase import CodebaseConfig
-from codegen.shared.configs.models.secrets import SecretsConfig
+from codegen.shared.configs.models.secrets import DefaultSecrets, SecretsConfig
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
@@ -27,7 +27,7 @@ def get_codebase_session(
     verify_output: bool = True,
     config: CodebaseConfig = TestFlags,
     session_options: SessionOptions = SessionOptions(),
-    secrets: SecretsConfig = SecretsConfig(),
+    secrets: SecretsConfig = DefaultSecrets,
 ) -> AbstractContextManager[PyCodebaseType]: ...
 
 
@@ -42,7 +42,7 @@ def get_codebase_session(
     verify_output: bool = True,
     config: CodebaseConfig = TestFlags,
     session_options: SessionOptions = SessionOptions(),
-    secrets: SecretsConfig = SecretsConfig(),
+    secrets: SecretsConfig = DefaultSecrets,
 ) -> AbstractContextManager[PyCodebaseType]: ...
 
 
@@ -57,7 +57,7 @@ def get_codebase_session(
     verify_output: bool = True,
     config: CodebaseConfig = TestFlags,
     session_options: SessionOptions = SessionOptions(),
-    secrets: SecretsConfig = SecretsConfig(),
+    secrets: SecretsConfig = DefaultSecrets,
 ) -> AbstractContextManager[TSCodebaseType]: ...
 
 
@@ -72,7 +72,7 @@ def get_codebase_session(
     verify_output: bool = True,
     config: CodebaseConfig = TestFlags,
     session_options: SessionOptions = SessionOptions(),
-    secrets: SecretsConfig = SecretsConfig(),
+    secrets: SecretsConfig = DefaultSecrets,
 ) -> Generator[Codebase, None, None]:
     """Gives you a Codebase operating on the files you provided as a dict"""
     codebase = CodebaseFactory.get_codebase_from_files(repo_path=str(tmpdir), files=files, config=config, secrets=secrets, programming_language=programming_language)

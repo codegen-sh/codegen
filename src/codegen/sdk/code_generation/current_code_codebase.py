@@ -8,8 +8,8 @@ from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.sdk.codebase.config import ProjectConfig
 from codegen.sdk.core.codebase import Codebase, CodebaseType
-from codegen.shared.configs.models.codebase import CodebaseConfig
-from codegen.shared.configs.models.secrets import SecretsConfig
+from codegen.shared.configs.models.codebase import CodebaseConfig, DefaultCodebaseConfig
+from codegen.shared.configs.models.secrets import DefaultSecrets, SecretsConfig
 from codegen.shared.decorators.docs import DocumentedObject, apidoc_objects, no_apidoc_objects, py_apidoc_objects, ts_apidoc_objects
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 
@@ -34,7 +34,7 @@ def get_codegen_codebase_base_path() -> str:
     return "src" if "src" in codegen_base_dir else ""
 
 
-def get_current_code_codebase(config: CodebaseConfig = CodebaseConfig(), secrets: SecretsConfig = SecretsConfig(), subdirectories: list[str] | None = None) -> CodebaseType:
+def get_current_code_codebase(config: CodebaseConfig = DefaultCodebaseConfig, secrets: SecretsConfig = DefaultSecrets, subdirectories: list[str] | None = None) -> CodebaseType:
     """Returns a Codebase for the code that is *currently running* (i.e. the Codegen repo)"""
     codegen_repo_path = get_graphsitter_repo_path()
     base_dir = get_codegen_codebase_base_path()

@@ -9,7 +9,7 @@ from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.git.utils.file_utils import split_git_path
 from codegen.git.utils.language import determine_project_language
-from codegen.shared.configs.models.codebase import CodebaseConfig
+from codegen.shared.configs.models.codebase import DefaultCodebaseConfig
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 HARD_MAX_AI_LIMIT = 500  # Global limit for AI requests
@@ -24,9 +24,9 @@ class SessionOptions(BaseModel):
     max_ai_requests: int = Field(default=150, le=HARD_MAX_AI_LIMIT)
 
 
-TestFlags = CodebaseConfig(debug=True, track_graph=True, verify_graph=True, full_range_index=True, sync_enabled=True)
-LintFlags = CodebaseConfig(method_usages=False, sync_enabled=True)
-ParseTestFlags = CodebaseConfig(debug=False, track_graph=False, sync_enabled=True)
+TestFlags = DefaultCodebaseConfig.model_copy(update=dict(debug=True, track_graph=True, verify_graph=True, full_range_index=True, sync_enabled=True))
+LintFlags = DefaultCodebaseConfig.model_copy(update=dict(method_usages=False, sync_enabled=True))
+ParseTestFlags = DefaultCodebaseConfig.model_copy(update=dict(debug=False, track_graph=False, sync_enabled=True))
 
 
 class ProjectConfig(BaseModel):

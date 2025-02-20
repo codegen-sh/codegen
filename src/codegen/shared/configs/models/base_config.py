@@ -7,8 +7,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from codegen.shared.configs.constants import ENV_FILENAME, GLOBAL_ENV_FILE
 from codegen.shared.configs.session_manager import session_codegen_dir
 
-_loaded_env_files = set()
-
 
 class BaseConfig(BaseSettings, ABC):
     """Base class for all config classes.
@@ -30,8 +28,6 @@ class BaseConfig(BaseSettings, ABC):
             env_filepaths.append(GLOBAL_ENV_FILE)
         if env_filepath and env_filepath.exists() and env_filepath != GLOBAL_ENV_FILE:
             env_filepaths.append(env_filepath)
-
-        print(f"Loading environment variables for {self.__class__.__name__} using {env_filepaths}")
 
         self.model_config["env_prefix"] = f"{prefix.upper()}_"
         self.model_config["env_file"] = env_filepaths

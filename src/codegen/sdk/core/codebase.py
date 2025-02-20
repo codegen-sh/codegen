@@ -78,8 +78,8 @@ from codegen.sdk.typescript.interface import TSInterface
 from codegen.sdk.typescript.statements.import_statement import TSImportStatement
 from codegen.sdk.typescript.symbol import TSSymbol
 from codegen.sdk.typescript.type_alias import TSTypeAlias
-from codegen.shared.configs.models.codebase import CodebaseConfig
-from codegen.shared.configs.models.secrets import SecretsConfig
+from codegen.shared.configs.models.codebase import CodebaseConfig, DefaultCodebaseConfig
+from codegen.shared.configs.models.secrets import DefaultSecrets, SecretsConfig
 from codegen.shared.decorators.docs import apidoc, noapidoc, py_noapidoc
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 from codegen.shared.exceptions.control_flow import MaxAIRequestsError
@@ -130,8 +130,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         *,
         language: None = None,
         projects: list[ProjectConfig] | ProjectConfig,
-        config: CodebaseConfig = CodebaseConfig(),
-        secrets: SecretsConfig = SecretsConfig(),
+        config: CodebaseConfig = DefaultCodebaseConfig,
+        secrets: SecretsConfig = DefaultSecrets,
         io: IO | None = None,
         progress: Progress | None = None,
     ) -> None: ...
@@ -143,8 +143,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         *,
         language: Literal["python", "typescript"] | ProgrammingLanguage | None = None,
         projects: None = None,
-        config: CodebaseConfig = CodebaseConfig(),
-        secrets: SecretsConfig = SecretsConfig(),
+        config: CodebaseConfig = DefaultCodebaseConfig,
+        secrets: SecretsConfig = DefaultSecrets,
         io: IO | None = None,
         progress: Progress | None = None,
     ) -> None: ...
@@ -155,8 +155,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         *,
         language: Literal["python", "typescript"] | ProgrammingLanguage | None = None,
         projects: list[ProjectConfig] | ProjectConfig | None = None,
-        config: CodebaseConfig = CodebaseConfig(),
-        secrets: SecretsConfig = SecretsConfig(),
+        config: CodebaseConfig = DefaultCodebaseConfig,
+        secrets: SecretsConfig = DefaultSecrets,
         io: IO | None = None,
         progress: Progress | None = None,
     ) -> None:
@@ -1257,8 +1257,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         tmp_dir: str | None = "/tmp/codegen",
         commit: str | None = None,
         language: Literal["python", "typescript"] | ProgrammingLanguage | None = None,
-        config: CodebaseConfig = CodebaseConfig(),
-        secrets: SecretsConfig = SecretsConfig(),
+        config: CodebaseConfig = DefaultCodebaseConfig,
+        secrets: SecretsConfig = DefaultSecrets,
     ) -> "Codebase":
         """Fetches a codebase from GitHub and returns a Codebase instance.
 

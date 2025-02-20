@@ -9,7 +9,7 @@ from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.sdk.codebase.config import ProjectConfig
 from codegen.sdk.codebase.validation import PostInitValidationStatus, post_init_validation
 from codegen.sdk.core.codebase import Codebase
-from codegen.shared.configs.models.codebase import CodebaseConfig
+from codegen.shared.configs.models.codebase import DefaultCodebaseConfig
 from tests.shared.codemod.models import Repo
 from tests.shared.utils.recursion import set_recursion_limit
 
@@ -26,11 +26,9 @@ def test_codemods_parse(repo: Repo, op: RepoOperator, request) -> None:
     if repo.config is not None:
         codebase_config = repo.config
     else:
-        codebase_config = CodebaseConfig()
+        codebase_config = DefaultCodebaseConfig
 
-    codebase_config.verify_graph = sync  # Override default for sync/verify_graph
-    codebase_config.debug = log_parse  # Override default for debug
-    codebase_config.ignore_process_errors = False  # Force errors to be raised for testing
+    codebase_config = codebase_config.model_copy(update={"verify_graph": sync, "debug": log_parse, "ignore_process_errors": False})
 
     set_recursion_limit()
     # Setup Codebase

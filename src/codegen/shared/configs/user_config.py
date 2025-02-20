@@ -4,7 +4,6 @@ from pathlib import Path
 from dotenv import set_key
 from pydantic import Field
 
-from codegen.shared.configs.constants import GLOBAL_ENV_FILE
 from codegen.shared.configs.models.codebase import CodebaseConfig
 from codegen.shared.configs.models.repository import RepositoryConfig
 from codegen.shared.configs.models.secrets import SecretsConfig
@@ -57,6 +56,3 @@ class UserConfig:
     def __str__(self) -> str:
         """Return a pretty-printed string representation of the config."""
         return json.dumps(self.to_dict(), indent=2)
-
-
-global_config = UserConfig(env_filepath=GLOBAL_ENV_FILE)

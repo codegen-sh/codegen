@@ -27,8 +27,8 @@ from codegen.sdk.enums import Edge, EdgeType, NodeType
 from codegen.sdk.extensions.sort import sort_editables
 from codegen.sdk.extensions.utils import uncache_all
 from codegen.sdk.typescript.external.ts_declassify.ts_declassify import TSDeclassify
-from codegen.shared.configs.models.codebase import CodebaseConfig
-from codegen.shared.configs.models.secrets import SecretsConfig
+from codegen.shared.configs.models.codebase import DefaultCodebaseConfig
+from codegen.shared.configs.models.secrets import DefaultSecrets, SecretsConfig
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 from codegen.shared.exceptions.control_flow import StopCodemodException
 from codegen.shared.performance.stopwatch_utils import stopwatch, stopwatch_with_sentry
@@ -50,6 +50,7 @@ if TYPE_CHECKING:
     from codegen.sdk.core.interfaces.importable import Importable
     from codegen.sdk.core.node_id_factory import NodeId
     from codegen.sdk.core.parser import Parser
+    from codegen.shared.configs.models.codebase import CodebaseConfig
 
 import logging
 
@@ -131,8 +132,8 @@ class CodebaseContext:
     def __init__(
         self,
         projects: list[ProjectConfig],
-        config: CodebaseConfig = CodebaseConfig(),
-        secrets: SecretsConfig = SecretsConfig(),
+        config: CodebaseConfig = DefaultCodebaseConfig,
+        secrets: SecretsConfig = DefaultSecrets,
         io: IO | None = None,
         progress: Progress | None = None,
     ) -> None:

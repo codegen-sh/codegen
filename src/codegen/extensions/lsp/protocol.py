@@ -9,7 +9,7 @@ from codegen.extensions.lsp.io import LSPIO
 from codegen.extensions.lsp.progress import LSPProgress
 from codegen.extensions.lsp.utils import get_path
 from codegen.sdk.core.codebase import Codebase
-from codegen.shared.configs.models.codebase import CodebaseConfig
+from codegen.shared.configs.models.codebase import DefaultCodebaseConfig
 
 if TYPE_CHECKING:
     from codegen.extensions.lsp.server import CodegenLanguageServer
@@ -26,8 +26,7 @@ class CodegenLanguageServerProtocol(LanguageServerProtocol):
             root = get_path(params.root_uri)
         else:
             root = os.getcwd()
-        config = CodebaseConfig()
-        config.full_range_index = True
+        config = DefaultCodebaseConfig.model_copy(update={"full_range_index": True})
         io = LSPIO(self.workspace)
         self._server.codebase = Codebase(repo_path=str(root), config=config, io=io, progress=progress)
         self._server.progress_manager = progress

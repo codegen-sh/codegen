@@ -1,4 +1,5 @@
 import logging
+from itertools import groupby
 
 import rich
 import rich_click as click
@@ -19,9 +20,6 @@ def config_command():
 @click.option("--global", "is_global", is_flag=True, help="Lists the global configuration values")
 def list_command(is_global: bool):
     """List current configuration values."""
-    table = Table(title="Configuration Values", border_style="blue", show_header=True)
-    table.add_column("Key", style="cyan", no_wrap=True)
-    table.add_column("Value", style="magenta")
 
     def flatten_dict(data: dict, prefix: str = "") -> dict:
         items = {}
@@ -40,8 +38,20 @@ def list_command(is_global: bool):
     flat_config = flatten_dict(config.to_dict())
     sorted_items = sorted(flat_config.items(), key=lambda x: x[0])
 
-    for key, value in sorted_items:
-        table.add_row(key, str(value))
+    # Create table
+    table = Table(title="Configuration Values", border_style="blue", show_header=True, title_justify="center")
+    table.add_column("Key", style="cyan", no_wrap=True)
+    table.add_column("Value", style="magenta")
+
+    # Group by prefix (before underscore)
+    def get_prefix(item):
+        return item[0].split("_")[0]
+
+    for prefix, group in groupby(sorted_items, key=get_prefix):
+        table.add_section()
+        table.add_row(f"[bold yellow]{prefix.title()}[/bold yellow]", "")
+        for key, value in group:
+            table.add_row(f"  {key}", str(value))
 
     rich.print(table)
 
@@ -89,6 +99,4 @@ def _get_user_config(is_global: bool) -> UserConfig:
     else:
         env_filepath = active_session_path / CODEGEN_DIR_NAME / ENV_FILENAME
 
-    user_config = UserConfig(env_filepath)
-    print(f"Returning user config from config!!!: {user_config} with env_filepath: {env_filepath}")
-    return user_config
+    return UserConfig(env_filepath)
