@@ -91,7 +91,7 @@ def create_codebase_agent(
 
 if __name__ == "__main__":
     # Initialize codebase
-    print("Initializing codebase...")
+    print("Initializing codebase... 🚀")
     codebase = Codebase.from_repo("fastapi/fastapi", language="python")
 
     # Create agent with history
