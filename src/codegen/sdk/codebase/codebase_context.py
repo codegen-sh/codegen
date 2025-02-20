@@ -474,7 +474,11 @@ class CodebaseContext:
         task = self.progress.begin("Adding new files", count=len(files_to_sync[SyncType.ADD]))
         for idx, filepath in enumerate(files_to_sync[SyncType.ADD]):
             task.update(f"Adding {self.to_relative(filepath)}", count=idx)
-            content = self.io.read_text(filepath)
+            try:
+                content = self.io.read_text(filepath)
+            except UnicodeDecodeError as e:
+                logger.warning(f"Can't read file at:{filepath} since it contains non-unicode characters. File will be ignored!")
+                continue
             # TODO: this is wrong with context changes
             if filepath.suffix in self.extensions:
                 file_cls = self.node_classes.file_cls
