@@ -4,7 +4,7 @@ from typing import ClassVar, Literal
 
 from pydantic import Field
 
-from codegen import Codebase
+from codegen.sdk.core.codebase import Codebase
 
 from .observation import Observation
 from .view_file import ViewFileObservation, view_file

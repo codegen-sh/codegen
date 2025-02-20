@@ -4,8 +4,8 @@ from typing import ClassVar, Optional
 
 from pydantic import Field
 
-from codegen import Codebase
 from codegen.extensions.index.file_index import FileIndex
+from codegen.sdk.core.codebase import Codebase
 
 from .observation import Observation
 

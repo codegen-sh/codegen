@@ -6,7 +6,7 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Any
 
-from codegen import Codebase
+from codegen.sdk.core.codebase import Codebase
 
 
 def run_codemod(codebase: Codebase, codemod_source: str) -> dict[str, Any]:
@@ -32,7 +32,7 @@ def run_codemod(codebase: Codebase, codemod_source: str) -> dict[str, Any]:
     # Create a temporary module to run the codemod
     with NamedTemporaryFile(suffix=".py", mode="w", delete=False) as temp_file:
         # Add imports and write the codemod source
-        temp_file.write("from codegen import Codebase\n\n")
+        temp_file.write("from codegen.sdk.core.codebase import Codebase\n\n")
         temp_file.write(codemod_source)
         temp_file.flush()
 

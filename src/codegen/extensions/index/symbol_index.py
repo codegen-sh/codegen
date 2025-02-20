@@ -8,8 +8,8 @@ import tiktoken
 from openai import OpenAI
 from tqdm import tqdm
 
-from codegen import Codebase
 from codegen.extensions.index.code_index import CodeIndex
+from codegen.sdk.core.codebase import Codebase
 from codegen.sdk.core.symbol import Symbol
 
 logger = logging.getLogger(__name__)

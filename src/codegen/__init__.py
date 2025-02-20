@@ -1,3 +1,4 @@
+from codegen.agents.code_agent import CodeAgent
 from codegen.cli.sdk.decorator import function
 from codegen.cli.sdk.functions import Function
 
@@ -6,4 +7,4 @@ from codegen.cli.sdk.functions import Function
 from codegen.sdk.core.codebase import Codebase
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 
-__all__ = ["Codebase", "Function", "ProgrammingLanguage", "function"]
+__all__ = ["CodeAgent", "Codebase", "Function", "ProgrammingLanguage", "function"]

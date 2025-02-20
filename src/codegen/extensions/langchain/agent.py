@@ -11,7 +11,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_openai import ChatOpenAI
 
-from codegen import Codebase
+from codegen.sdk.core.codebase import Codebase
 
 from .tools import (
     CreateFileTool,

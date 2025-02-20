@@ -4,7 +4,7 @@ from typing import ClassVar, Union
 
 from pydantic import BaseModel, Field
 
-from codegen import Codebase
+from codegen.sdk.core.codebase import Codebase
 from codegen.sdk.core.directory import Directory
 
 from .observation import Observation
