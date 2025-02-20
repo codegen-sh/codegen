@@ -479,7 +479,7 @@ class CodebaseContext:
             except UnicodeDecodeError as e:
                 logger.warning(f"File at:{filepath} contains non-unicode characters. Attempting to decode with replacement characters.")
                 try:
-                    content = self.io.read_text(filepath, errors='replace')
+                    content = self.io.read_text(filepath, errors="replace")
                 except Exception as e:
                     logger.warning(f"Failed to decode file even with replacement: {e}. File will be ignored!")
                     continue
