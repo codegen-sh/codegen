@@ -1,3 +1,4 @@
+# 🚀
 """Demo implementation of an agent with Codegen tools."""
 
 from codegen import Codebase
