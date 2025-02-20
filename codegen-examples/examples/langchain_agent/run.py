@@ -1,23 +1,5 @@
 """Demo implementation of an agent with Codegen tools."""
 
-from codegen import Codebase
-from codegen.extensions.langchain.tools import (
-    CommitTool,
-    CreateFileTool,
-    DeleteFileTool,
-    EditFileTool,
-    ListDirectoryTool,
-    MoveSymbolTool,
-    RenameFileTool,
-    RevealSymbolTool,
-    SearchTool,
-    SemanticEditTool,
-    ViewFileTool,
-)
-from langchain import hub
-from langchain.agents import AgentExecutor
-from langchain.agents.openai_functions_agent.base import OpenAIFunctionsAgent
-from langchain_core.chat_history import ChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_openai import ChatOpenAI
 
