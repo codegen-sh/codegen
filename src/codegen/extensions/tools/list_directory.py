@@ -19,11 +19,17 @@ class DirectoryInfo(Observation):
     path: str = Field(
         description="Full path to the directory",
     )
-    files: list[str] = Field(
-        description="List of files in this directory",
+    files: list[str] | None = Field(
+        default=None,
+        description="List of files in this directory (None if at max depth)",
     )
-    subdirectories: list["DirectoryInfo | str"] = Field(
-        description="List of subdirectories (full info or just names at max depth)",
+    subdirectories: list["DirectoryInfo"] = Field(
+        default_factory=list,
+        description="List of subdirectories",
+    )
+    is_leaf: bool = Field(
+        default=False,
+        description="Whether this is a leaf node (at max depth)",
     )
 
     str_template: ClassVar[str] = "Directory {path} ({file_count} files, {dir_count} subdirs)"
@@ -31,7 +37,7 @@ class DirectoryInfo(Observation):
     def _get_details(self) -> dict[str, int]:
         """Get details for string representation."""
         return {
-            "file_count": len(self.files),
+            "file_count": len(self.files or []),
             "dir_count": len(self.subdirectories),
         }
 
@@ -59,18 +65,16 @@ class DirectoryInfo(Observation):
                 line, new_prefix = add_tree_item(name, prefix, is_last)
                 result.append(line)
 
-                # If this is a directory with full info, recursively add its contents
-                if dir_info and isinstance(dir_info, DirectoryInfo):
+                # If this is a directory and not a leaf node, show its contents
+                if dir_info and not dir_info.is_leaf:
                     subitems = []
                     # Add files first
-                    for f in sorted(dir_info.files):
-                        subitems.append((f, False, None))
+                    if dir_info.files:
+                        for f in sorted(dir_info.files):
+                            subitems.append((f, False, None))
                     # Then add subdirectories
                     for d in dir_info.subdirectories:
-                        if isinstance(d, DirectoryInfo):
-                            subitems.append((d.name + "/", True, d))
-                        else:
-                            subitems.append((d + "/", True, None))
+                        subitems.append((d.name + "/", True, d))
 
                     result.extend(build_tree(subitems, new_prefix))
 
@@ -78,13 +82,11 @@ class DirectoryInfo(Observation):
 
         # Sort files and directories
         items = []
-        for f in sorted(self.files):
-            items.append((f, False, None))  # (name, is_dir, dir_info)
+        if self.files:
+            for f in sorted(self.files):
+                items.append((f, False, None))
         for d in self.subdirectories:
-            if isinstance(d, DirectoryInfo):
-                items.append((d.name + "/", True, d))
-            else:
-                items.append((d + "/", True, None))
+            items.append((d.name + "/", True, d))
 
         if not items:
             lines.append("(empty directory)")
@@ -136,7 +138,7 @@ def list_directory(codebase: Codebase, path: str = "./", depth: int = 2) -> List
 
     def get_directory_info(dir_obj: Directory, current_depth: int) -> DirectoryInfo:
         """Helper function to get directory info recursively."""
-        # Get direct files
+        # Get direct files (always include files unless at max depth)
         all_files = []
         for file in dir_obj.files:
             if file.directory == dir_obj:
@@ -147,12 +149,21 @@ def list_directory(codebase: Codebase, path: str = "./", depth: int = 2) -> List
         for subdir in dir_obj.subdirectories:
             # Only include direct descendants
             if subdir.parent == dir_obj:
-                if current_depth != 1:
+                if current_depth > 1 or current_depth == -1:
+                    # For deeper traversal, get full directory info
                     new_depth = current_depth - 1 if current_depth > 1 else -1
                     subdirs.append(get_directory_info(subdir, new_depth))
                 else:
-                    # At max depth, just include name
-                    subdirs.append(subdir.name)
+                    # At max depth, return a leaf node
+                    subdirs.append(
+                        DirectoryInfo(
+                            status="success",
+                            name=subdir.name,
+                            path=subdir.dirpath,
+                            files=None,  # Don't include files at max depth
+                            is_leaf=True,
+                        )
+                    )
 
         return DirectoryInfo(
             status="success",

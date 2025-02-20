@@ -50,9 +50,36 @@ def test_view_file(codebase):
 
 def test_list_directory(codebase):
     """Test listing directory contents."""
-    result = list_directory(codebase, "./")
+    # Create a nested directory structure for testing
+    create_file(codebase, "src/core/__init__.py", "")
+    create_file(codebase, "src/core/models.py", "")
+    create_file(codebase, "src/utils.py", "")
+
+    result = list_directory(codebase, "./", depth=2)  # Ensure we get nested structure
     assert result.status == "success"
-    assert "src" in result.directory_info.subdirectories
+
+    # Check directory structure
+    dir_info = result.directory_info
+
+    # Check that src exists and has proper structure
+    src_dir = next(d for d in dir_info.subdirectories)
+    assert src_dir.name == "src"
+    assert "main.py" in src_dir.files
+    assert "utils.py" in src_dir.files
+
+    # Check nested core directory exists in subdirectories
+    assert any(d.name == "core" for d in src_dir.subdirectories)
+    core_dir = next(d for d in src_dir.subdirectories if d.name == "core")
+
+    # Verify rendered output has proper tree structure
+    rendered = result.render()
+    print(rendered)
+    expected_tree = """
+└── src/
+    ├── main.py
+    ├── utils.py
+    └── core/"""
+    assert expected_tree in rendered.strip()
 
 
 def test_search(codebase):
@@ -66,7 +93,9 @@ def test_edit_file(codebase):
     """Test editing a file."""
     result = edit_file(codebase, "src/main.py", "print('edited')")
     assert result.status == "success"
-    assert result.file_info.content == "1|print('edited')"
+    assert result.filepath == "src/main.py"
+    assert "+print('edited')" in result.diff
+    assert "-def hello():" in result.diff  # Check that old content is shown in diff
 
 
 def test_create_file(codebase):
