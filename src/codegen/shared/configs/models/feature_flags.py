@@ -28,6 +28,7 @@ class CodebaseFeatureFlags(BaseSettings):
     generics: bool = True
     import_resolution_overrides: dict[str, str] = Field(default_factory=lambda: {})
     typescript: TypescriptConfig = Field(default_factory=TypescriptConfig)
+    unpacking_assignment_partial_removal: bool = True
 
 
 class FeatureFlagsConfig(BaseModel):

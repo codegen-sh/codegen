@@ -634,7 +634,7 @@ class RepoOperator(ABC):
                     content = self.get_file(filepath)
                     yield rel_filepath, content
                 except Exception as e:
-                    print(f"Error reading file {filepath}: {e}")
+                    logger.warning(f"Error reading file {filepath}: {e}")
 
     def list_files(self, subdirs: list[str] | None = None, extensions: list[str] | None = None) -> list[str]:
         """List files matching subdirs + extensions in a repo.

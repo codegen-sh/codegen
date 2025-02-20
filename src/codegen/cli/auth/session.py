@@ -76,17 +76,16 @@ class CodegenSession:
             rich.print(format_command("export CODEGEN_SECRETS__GITHUB_TOKEN=<your-token>"))
             rich.print("Or pass in as a parameter:")
             rich.print(format_command("codegen init --token <your-token>"))
-            raise click.Abort()
 
         if self.local_git.origin_remote is None:
-            rich.print("\n[bold red]Error:[/bold red] No remote found for repository")
-            rich.print("[white]Please add a remote to the repository.[/white]")
+            rich.print("\n[bold yellow]Warning:[/bold yellow] No remote found for repository")
+            rich.print("[white]To enable full functionality, please add a remote to the repository[/white]")
             rich.print("\n[dim]To add a remote to the repository:[/dim]")
             rich.print(format_command("git remote add origin <your-repo-url>"))
-            raise click.Abort()
 
         try:
-            Github(login_or_token=git_token).get_repo(self.local_git.full_name)
+            if git_token is not None:
+                Github(login_or_token=git_token).get_repo(self.local_git.full_name)
         except BadCredentialsException:
             rich.print(format_command(f"\n[bold red]Error:[/bold red] Invalid GitHub token={git_token} for repo={self.local_git.full_name}"))
             rich.print("[white]Please provide a valid GitHub token for this repository.[/white]")
