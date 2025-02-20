@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+from collections.abc import Collection
 from typing import TYPE_CHECKING
 
+from codegen.sdk.codebase.transactions import RemoveTransaction, TransactionPriority
 from codegen.sdk.core.assignment import Assignment
+from codegen.sdk.core.autocommit.decorators import remover
 from codegen.sdk.core.expressions.multi_expression import MultiExpression
+from codegen.sdk.core.statements.assignment_statement import AssignmentStatement
 from codegen.sdk.extensions.autocommit import reader
 from codegen.sdk.python.symbol import PySymbol
 from codegen.sdk.python.symbol_groups.comment_group import PyCommentGroup
@@ -96,3 +100,63 @@ class PyAssignment(Assignment["PyAssignmentStatement"], PySymbol):
         """
         # HACK: This is a temporary solution until comments are fixed
         return PyCommentGroup.from_symbol_inline_comments(self, self.ts_node.parent)
+
+    @noapidoc
+    def _partial_remove_when_tuple(self, name, delete_formatting: bool = True, priority: int = 0, dedupe: bool = True):
+        idx = self.parent.left.index(name)
+        value = self.value[idx]
+        self.parent._values_scheduled_for_removal.append(value)
+        # Special case for removing brackets of value
+        if len(self.value) - len(self.parent._values_scheduled_for_removal) == 1:
+            remainder = str(next(x for x in self.value if x not in self.parent._values_scheduled_for_removal and x != value))
+            r_t = RemoveTransaction(self.value.start_byte, self.value.end_byte, self.file, priority=priority)
+            self.transaction_manager.add_transaction(r_t)
+            self.value.insert_at(self.value.start_byte, remainder, priority=priority)
+        else:
+            # Normal just remove one value
+            value.remove(delete_formatting=delete_formatting, priority=priority, dedupe=dedupe)
+        # Remove assignment name
+        name.remove(delete_formatting=delete_formatting, priority=priority, dedupe=dedupe)
+
+    @noapidoc
+    def _active_transactions_on_assignment_names(self, transaction_order: TransactionPriority) -> int:
+        return [
+            any(self.transaction_manager.get_transactions_at_range(self.file.path, start_byte=asgnmt.get_name().start_byte, end_byte=asgnmt.get_name().end_byte, transaction_order=transaction_order))
+            for asgnmt in self.parent.assignments
+        ].count(True)
+
+    @remover
+    def remove(self, delete_formatting: bool = True, priority: int = 0, dedupe: bool = True) -> None:
+        """Deletes this assignment and its related extended nodes (e.g. decorators, comments).
+
+
+        Removes the current node and its extended nodes (e.g. decorators, comments) from the codebase.
+        After removing the node, it handles cleanup of any surrounding formatting based on the context.
+
+        Args:
+            delete_formatting (bool): Whether to delete surrounding whitespace and formatting. Defaults to True.
+            priority (int): Priority of the removal transaction. Higher priority transactions are executed first. Defaults to 0.
+            dedupe (bool): Whether to deduplicate removal transactions at the same location. Defaults to True.
+
+        Returns:
+            None
+        """
+        if self.ctx.config.feature_flags.unpacking_assignment_partial_removal:
+            if isinstance(self.parent, AssignmentStatement) and len(self.parent.assignments) > 1:
+                # Unpacking assignments
+                name = self.get_name()
+                if isinstance(self.value, Collection):
+                    if len(self.parent._values_scheduled_for_removal) < len(self.parent.assignments) - 1:
+                        self._partial_remove_when_tuple(name, delete_formatting, priority, dedupe)
+                        return
+                    else:
+                        self.parent._values_scheduled_for_removal = []
+                else:
+                    transaction_count = self._active_transactions_on_assignment_names(TransactionPriority.Edit)
+                    throwaway = [asgnmt.name == "_" for asgnmt in self.parent.assignments].count(True)
+                    # Only edit if we didn't already omit all the other assignments, otherwise just remove the whole thing
+                    if transaction_count + throwaway < len(self.parent.assignments) - 1:
+                        name.edit("_", priority=priority, dedupe=dedupe)
+                        return
+
+        super().remove(delete_formatting=delete_formatting, priority=priority, dedupe=dedupe)
