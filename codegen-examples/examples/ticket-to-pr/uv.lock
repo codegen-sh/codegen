@@ -271,7 +271,7 @@ wheels = [
 
 [[package]]
 name = "codegen"
-version = "0.26.2"
+version = "0.26.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "astor" },
@@ -340,14 +340,14 @@ dependencies = [
     { name = "xmltodict" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/27/b4/f7b88f60f45ce59211ce67e51665828c81009f39761a167c04976bcaaefc/codegen-0.26.2-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:89a504f6bda9b2a4febcff0ba8c37418b06b3f12ef112f757b4e7490a1c9f027", size = 1090021 },
-    { url = "https://files.pythonhosted.org/packages/68/e1/d2b32fc11a98b69a0b82190b3056f791d8993971ff65ac655f5e635b9a8d/codegen-0.26.2-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:953f77c497f05833b443411945d73479d5642e251adf05d2d55a4ebcef0a7f92", size = 1081014 },
-    { url = "https://files.pythonhosted.org/packages/65/20/59e1dedc6d58521bfd42e1f5854b72a9eda68815c05f66820976f613ffc4/codegen-0.26.2-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl", hash = "sha256:828cb1eb1d395322ebbd10dc1afe2990d96ebec273c76661498c3f0fe788818f", size = 2083182 },
-    { url = "https://files.pythonhosted.org/packages/77/57/c769e2b1849ff65d11fe224acc1aca319263268f1a8a475920b9b4970ed6/codegen-0.26.2-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl", hash = "sha256:f00273ecee0b0189ddcd9f5227aa8c7a30807eb6c85556dc1b19d36097cbd946", size = 2130724 },
-    { url = "https://files.pythonhosted.org/packages/cf/cd/d810ddd90921a38e3ac4b08fadccccbdf653acbe965cc4792805f77e778f/codegen-0.26.2-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:7033172abba58415555eb5eaf0979d9af660d264e0dd43364598e87da3d82e6a", size = 1085555 },
-    { url = "https://files.pythonhosted.org/packages/66/6e/f8ddb83e496fbaf3dbb770d9e688764f0bc458ed18c37e78c4c154a82a4d/codegen-0.26.2-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:9956e566f8013a8b4eb72883b220c192a8ae38ee4ac17c7166cc253dbce45c59", size = 1077228 },
-    { url = "https://files.pythonhosted.org/packages/6b/d8/55d3f85cc2c87dbb6c84b417e8f2ca9c3d819d60a4a13c40d4be5752e3ce/codegen-0.26.2-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl", hash = "sha256:351df01a47270ff3b8f7dc43300507131e0aa31cbc54097cc21b59b426f17719", size = 2075797 },
-    { url = "https://files.pythonhosted.org/packages/e3/4a/f4de664033175f0f9b7b979968c8c44f1662fc1532c94225b5ecfbabf861/codegen-0.26.2-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl", hash = "sha256:9863486ac6028bc27e310e474c9534a007087e7d280e31ad764316f52864bb86", size = 2122227 },
+    { url = "https://files.pythonhosted.org/packages/6e/e1/8dda6b58d3e280c1750fc86a3515fbe0cf5329fcf207989dbbbbb494b6b6/codegen-0.26.3-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:67ad5869c56df1d423701c9ecbd5f5c610aa06fcc4c89a9587b10e1944c97240", size = 1090124 },
+    { url = "https://files.pythonhosted.org/packages/d8/d9/af5d29686ac0c833152c5e1e11708f52c2f3c09dc78a6b2e29493750a4e0/codegen-0.26.3-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:ec68bed1aa5f6cb6e2e06cbde890f7d2dafe458b2415c56b253deedb93437cf5", size = 1081112 },
+    { url = "https://files.pythonhosted.org/packages/19/7a/6a4017235f750b2d6165b74ed2772100c6bb5fed26294d02aea5eb2bd5b5/codegen-0.26.3-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl", hash = "sha256:d541d96ae7c97e4a6d5c41411376c6e97bee6b5f32118c15ded30c6660707802", size = 2083278 },
+    { url = "https://files.pythonhosted.org/packages/8f/5d/deabc7f91a71b504660d2239f3529a60435b38d38b386113d969700efd1f/codegen-0.26.3-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl", hash = "sha256:86c3672ef99141c78c4e3c034adedcd4d774f8bb7b13c710772732f447d54acc", size = 2130819 },
+    { url = "https://files.pythonhosted.org/packages/24/be/04db68c49927fffc21c92e32ba45c5249b7d10663ecd7801247d9f149dcc/codegen-0.26.3-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:f31439e106e075d6ae6eaf6f96517f2c4289f291d5db914171fbd077b334adb2", size = 1085648 },
+    { url = "https://files.pythonhosted.org/packages/49/a3/c94a52280bd33201fcedb6868307c12662f24e20e40b18f0e4e0963cf299/codegen-0.26.3-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:b49864bd0559f14fb0eb0fe8680598723c12dd6c899e2fc028b802e2c3dee54a", size = 1077334 },
+    { url = "https://files.pythonhosted.org/packages/f8/7a/b8e7dac0446001129d468ffef6bff77297b3d3e00bc9f6b3534979fddbd7/codegen-0.26.3-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.manylinux_2_34_aarch64.whl", hash = "sha256:0cab6e6369ed54aaaa431977e00de92bd1f1383441035e5851c5cb7c0620bcb0", size = 2075892 },
+    { url = "https://files.pythonhosted.org/packages/2c/fe/feebc0ac05c4587c8cdcf69b5675407e0824b8a4c87c559bb1d5e3428b97/codegen-0.26.3-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_34_x86_64.whl", hash = "sha256:938db46434d2ddc48289ebca5a44636ed2b1a5403ba0a0a9b23a1ede290b3df7", size = 2122322 },
 ]
 
 [[package]]
@@ -2270,7 +2270,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "codegen", specifier = "==0.26.2" },
+    { name = "codegen", specifier = "==0.26.3" },
     { name = "fastapi", specifier = ">=0.115.8" },
     { name = "modal", specifier = ">=0.73.51" },
     { name = "pydantic", specifier = ">=2.10.6" },
