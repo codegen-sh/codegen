@@ -208,17 +208,12 @@ def apply_semantic_edit(codebase: Codebase, filepath: str, edited_content: str, 
 
     # Preserve original file's newline if it had one
     new_content = "\n".join(new_lines) + ("\n" if original_content.endswith("\n") else "")
-    print("-----")
-    print("\n".join(original_content.split("\n")[-4:]))
-    print("-------")
-
     # Validate the edit boundaries
     _validate_edit_boundaries(original_lines, new_lines, start_idx, end_idx)
 
     # Apply the edit
     file.edit(new_content)
     codebase.commit()
-    print("Manually editing")
     with open(file.path, "w") as f:
         f.write(new_content)
 
