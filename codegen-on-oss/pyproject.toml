@@ -21,7 +21,6 @@ dependencies = [
   "loguru>=0.7.3",
   "modal>=0.73.51",
   "pydantic-settings>=2.7.1",
-  "pygit2>=1.17.0",
   "pygithub>=2.5.0",
 ]
 

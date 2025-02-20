@@ -8,6 +8,8 @@ from typing import TYPE_CHECKING, Any
 
 import psutil
 
+from codegen_on_oss.errors import ParseRunError
+
 if TYPE_CHECKING:
     # Logger only available in type checking context.
     from loguru import Logger  # type: ignore[attr-defined]
@@ -43,9 +45,12 @@ class MetricsProfiler:
         error_msg: str | None = None
         try:
             yield profile
+        except ParseRunError as e:
+            logger.error(f"Repository: {name} {e.args[0]}")  # noqa: TRY400
+            error_msg = e.args[0]
         except Exception as e:
             logger.exception(f"Repository: {name}")
-            error_msg = e.args[0]
+            error_msg = f"Unhandled Exception {type(e)}"
 
         finally:
             profile.finish(error=error_msg)

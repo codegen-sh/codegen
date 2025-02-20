@@ -11,14 +11,11 @@ from codegen.sdk.codebase.validation import (
 from codegen.sdk.extensions.utils import uncache_all
 from loguru import logger
 
+from codegen_on_oss.errors import PostValidationError
 from codegen_on_oss.metrics import MetricsProfiler
 
 if TYPE_CHECKING:
     from codegen.sdk.codebase.config import ProjectConfig
-
-
-class ParseRunError(Exception):
-    pass
 
 
 class CodegenParser:
@@ -73,7 +70,7 @@ class CodegenParser:
                     if validation_status is PostInitValidationStatus.SUCCESS:
                         return
                     else:
-                        raise ParseRunError(validation_status)
+                        raise PostValidationError(validation_status)
 
             ProfiledCodebase.from_repo(
                 repo_name, tmp_dir=str(self.repo_dir.absolute()), commit=commit_hash

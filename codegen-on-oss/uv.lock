@@ -433,7 +433,6 @@ dependencies = [
     { name = "loguru" },
     { name = "modal" },
     { name = "pydantic-settings" },
-    { name = "pygit2" },
     { name = "pygithub" },
 ]
 
@@ -457,7 +456,6 @@ requires-dist = [
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "modal", specifier = ">=0.73.51" },
     { name = "pydantic-settings", specifier = ">=2.7.1" },
-    { name = "pygit2", specifier = ">=1.17.0" },
     { name = "pygithub", specifier = ">=2.5.0" },
 ]
 
