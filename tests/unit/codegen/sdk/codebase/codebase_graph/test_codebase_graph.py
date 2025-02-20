@@ -84,8 +84,8 @@ class MySubClass(MyClass):
         super().__init__()
         pass
     """
-    content_broken=bytes('你好','big5hkscs')
-    with get_codebase_session(tmpdir=tmpdir, files={"test.py": content,"test2.py": content_broken}) as codebase:
+    content_broken = bytes("你好", "big5hkscs")
+    with get_codebase_session(tmpdir=tmpdir, files={"test.py": content, "test2.py": content_broken}) as codebase:
         assert codebase is not None
         assert isinstance(codebase.ctx, CodebaseContext)
         import_resolution_edges = [edge for edge in codebase.ctx.edges if edge[2].type == EdgeType.IMPORT_SYMBOL_RESOLUTION]
@@ -95,4 +95,3 @@ class MySubClass(MyClass):
         assert len(import_resolution_edges) == 4
         assert len(file_contains_node_edges) == 14
         assert len(symbol_usage_edges) == 6
-
