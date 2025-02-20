@@ -1,6 +1,5 @@
 """Langchain tools for workspace operations."""
 
-import json
 from typing import Callable, ClassVar, Literal, Optional
 
 from langchain_core.tools.base import BaseTool
@@ -462,7 +461,6 @@ class GithubViewPRTool(BaseTool):
     def _run(self, pr_id: int) -> str:
         result = view_pr(self.codebase, pr_id)
         return result.render()
-        return json.dumps(result, indent=2)
 
 
 class GithubCreatePRCommentInput(BaseModel):
@@ -791,4 +789,4 @@ class ReplacementEditTool(BaseTool):
             end=end,
             count=count,
         )
-        return json.dumps(result, indent=2)
+        return result.render()
