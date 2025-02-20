@@ -67,14 +67,17 @@ def _get_codegen_dir() -> Path | None:
     if active_session:
         return active_session / CODEGEN_DIR_NAME
 
-    path = Path.cwd()
+    path = Path.cwd().resolve()
     while True:
-        if (path / CODEGEN_DIR_NAME).exists():
-            return path / CODEGEN_DIR_NAME
-        if (path / ".git").exists():
-            return path / CODEGEN_DIR_NAME
+        codegen_path = path / CODEGEN_DIR_NAME
+        git_path = path / ".git"
 
-        parent = path.parent
+        if codegen_path.exists():
+            return codegen_path
+        if git_path.exists():
+            return codegen_path
+
+        parent = path.parent.resolve()
         if parent == path:  # We've reached the root directory
             break
         path = parent
