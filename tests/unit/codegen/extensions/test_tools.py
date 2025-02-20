@@ -14,6 +14,7 @@ from codegen.extensions.tools import (
     rename_file,
     replacement_edit,
     reveal_symbol,
+    run_codemod,
     search,
     semantic_edit,
     semantic_search,
@@ -239,3 +240,16 @@ def test_replacement_edit(codebase):
     )
     assert result.status == "unchanged"
     assert "No matches found" in str(result)
+
+
+def test_run_codemod(codebase):
+    """Test running custom codemods."""
+    # Test adding type hints
+    codemod_source = """
+def run(codebase: Codebase):
+    for file in codebase.files:
+        file.edit('# hello, world!' + file.content)
+"""
+    result = run_codemod(codebase, codemod_source)
+    assert result["status"] == "success"
+    assert "+# hello, world" in result["diff"]
