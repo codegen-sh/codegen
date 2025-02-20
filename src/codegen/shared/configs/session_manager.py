@@ -67,7 +67,12 @@ def _get_codegen_dir() -> Path | None:
     if active_session:
         return active_session / CODEGEN_DIR_NAME
 
-    path = Path.cwd().resolve()
+    try:
+        path = Path.cwd().resolve()
+    except FileNotFoundError:
+        # Current directory is not accessible
+        return None
+
     while True:
         codegen_path = path / CODEGEN_DIR_NAME
         git_path = path / ".git"
