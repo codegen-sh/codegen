@@ -5,7 +5,7 @@ icon: "robot"
 iconType: "solid"
 ---
 
-This guide demonstrates how to build an intelligent code agent that can analyze and manipulate codebases using Codegen's LangChain integration.
+This guide demonstrates how to build an intelligent code agent that can analyze and manipulate codebases.
 
 ```python
 from codegen import CodeAgent, Codebase
@@ -70,6 +70,63 @@ from codegen.extensions.langchain.tools import (
 <Note>View the full set of [tools on Github](https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/extensions/langchain/tools.py)</Note>
 
 Each tool provides specific capabilities:
+
+# Extensions
+
+## GitHub Integration
+
+The agent includes tools for GitHub operations like PR management. Set up GitHub access with:
+
+```bash
+CODEGEN_SECRETS__GITHUB_TOKEN="..."
+```
+
+Import the GitHub tools:
+
+```python
+from codegen.extensions.langchain.tools import (
+    GithubCreatePRTool,
+    GithubViewPRTool,
+    GithubCreatePRCommentTool,
+    GithubCreatePRReviewCommentTool
+)
+```
+
+These tools enable:
+- Creating pull requests
+- Viewing PR contents and diffs
+- Adding general PR comments
+- Adding inline review comments
+
+
+## Linear Integration
+
+The agent can interact with Linear for issue tracking and project management. To use Linear tools, set the following environment variables:
+
+```bash
+LINEAR_ACCESS_TOKEN="..."
+LINEAR_TEAM_ID="..."
+LINEAR_SIGNING_SECRET="..."
+```
+
+Import and use the Linear tools:
+
+```python
+from codegen.extensions.langchain.tools import (
+    LinearGetIssueTool,
+    LinearGetIssueCommentsTool,
+    LinearCommentOnIssueTool,
+    LinearSearchIssuesTool,
+    LinearCreateIssueTool,
+    LinearGetTeamsTool
+)
+```
+
+These tools allow the agent to:
+- Create and search issues
+- Get issue details and comments
+- Add comments to issues
+- View team information
 
 
 ## Adding Custom Tools
