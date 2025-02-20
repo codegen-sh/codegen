@@ -4,7 +4,7 @@ import re
 from enum import StrEnum
 from typing import Callable
 
-from codegen import Codebase
+from codegen.sdk.core.codebase import Codebase
 
 
 class MessageChannel(StrEnum):

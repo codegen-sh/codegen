@@ -18,16 +18,15 @@ from git import Diff
 from git.remote import PushInfoList
 from github.PullRequest import PullRequest
 from networkx import Graph
+from openai import OpenAI
 from rich.console import Console
 from typing_extensions import TypeVar, deprecated
 
-from codegen.git.repo_operator.local_repo_operator import LocalRepoOperator
-from codegen.git.repo_operator.remote_repo_operator import RemoteRepoOperator
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.enums import CheckoutResult
 from codegen.git.utils.pr_review import CodegenPR
 from codegen.sdk._proxy import proxy_property
-from codegen.sdk.ai.helpers import AbstractAIHelper, MultiProviderAIHelper
+from codegen.sdk.ai.client import get_openai_client
 from codegen.sdk.codebase.codebase_ai import generate_system_prompt, generate_tools
 from codegen.sdk.codebase.codebase_context import GLOBAL_FILE_IGNORE_LIST, CodebaseContext
 from codegen.sdk.codebase.config import CodebaseConfig, DefaultConfig, ProjectConfig, SessionOptions
@@ -117,7 +116,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         console: Manages console output for the codebase.
     """
 
-    _op: RepoOperator | RemoteRepoOperator | LocalRepoOperator
+    _op: RepoOperator
     viz: VisualizationManager
     repo_path: Path
     console: Console
@@ -259,7 +258,11 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         By default, this only returns source files. Setting `extensions='*'` will return all files in the codebase, and
         `extensions=[...]` will return all files with the specified extensions.
 
-        `extensions='*'` is REQUIRED for listing all non source code files. Or else, codebase.files will ONLY return source files (e.g. .py, .ts).
+        For Python and Typescript repos WITH file parsing enabled,
+        `extensions='*'` is REQUIRED for listing all non source code files.
+        Or else, codebase.files will ONLY return source files (e.g. .py, .ts).
+
+        For repos with file parsing disabled or repos with other languages, this will return all files in the codebase.
 
         Returns all Files in the codebase, sorted alphabetically. For Python codebases, returns PyFiles (python files).
         For Typescript codebases, returns TSFiles (typescript files).
@@ -267,7 +270,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         Returns:
             list[TSourceFile]: A sorted list of source files in the codebase.
         """
-        if extensions is None:
+        if extensions is None and len(self.ctx.get_nodes(NodeType.FILE)) > 0:
+            # If extensions is None AND there is at least one file in the codebase (This checks for unsupported languages or parse-off repos),
             # Return all source files
             files = self.ctx.get_nodes(NodeType.FILE)
         elif isinstance(extensions, str) and extensions != "*":
@@ -1099,20 +1103,20 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
     # AI
     ####################################################################################################################
 
-    _ai_helper: AbstractAIHelper = None
+    _ai_helper: OpenAI = None
     _num_ai_requests: int = 0
 
     @property
     @noapidoc
-    def ai_client(self) -> AbstractAIHelper:
+    def ai_client(self) -> OpenAI:
         """Enables calling AI/LLM APIs - re-export of the initialized `openai` module"""
         # Create a singleton AIHelper instance
         if self._ai_helper is None:
-            if self.ctx.config.secrets.openai_key is None:
+            if self.ctx.config.secrets.openai_api_key is None:
                 msg = "OpenAI key is not set"
                 raise ValueError(msg)
 
-            self._ai_helper = MultiProviderAIHelper(openai_key=self.ctx.config.secrets.openai_key, use_openai=True, use_claude=False)
+            self._ai_helper = get_openai_client(key=self.ctx.config.secrets.openai_api_key)
         return self._ai_helper
 
     def ai(self, prompt: str, target: Editable | None = None, context: Editable | list[Editable] | dict[str, Editable | list[Editable]] | None = None, model: str = "gpt-4o") -> str:
@@ -1151,7 +1155,13 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             params["tool_choice"] = "required"
 
         # Make the AI request
-        response = self.ai_client.llm_query_functions(**params)
+        response = self.ai_client.chat.completions.create(
+            model=model,
+            messages=params["messages"],
+            tools=params["functions"],  # type: ignore
+            temperature=params["temperature"],
+            tool_choice=params["tool_choice"],
+        )
 
         # Handle finish reasons
         # First check if there is a response
@@ -1195,7 +1205,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         self._ai_helper = None
 
         # Set the AI key
-        self.ctx.config.secrets.openai_key = key
+        self.ctx.config.secrets.openai_api_key = key
 
     def find_by_span(self, span: Span) -> list[Editable]:
         """Finds editable objects that overlap with the given source code span.
@@ -1275,13 +1285,13 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         logger.info(f"Will clone {repo_url} to {repo_path}")
 
         try:
-            # Use LocalRepoOperator to fetch the repository
+            # Use RepoOperator to fetch the repository
             logger.info("Cloning repository...")
             if commit is None:
-                repo_operator = LocalRepoOperator.create_from_repo(repo_path=repo_path, url=repo_url, access_token=config.secrets.github_api_key if config.secrets else None)
+                repo_operator = RepoOperator.create_from_repo(repo_path=repo_path, url=repo_url, access_token=config.secrets.github_token if config.secrets else None)
             else:
                 # Ensure the operator can handle remote operations
-                repo_operator = LocalRepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url, access_token=config.secrets.github_api_key if config.secrets else None)
+                repo_operator = RepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url, access_token=config.secrets.github_token if config.secrets else None)
             logger.info("Clone completed successfully")
 
             # Initialize and return codebase with proper context

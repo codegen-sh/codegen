@@ -4,9 +4,9 @@ import rich
 from rich.panel import Panel
 from rich.status import Status
 
-from codegen import Codebase
 from codegen.cli.auth.session import CodegenSession
 from codegen.cli.utils.function_finder import DecoratedFunction
+from codegen.sdk.core.codebase import Codebase
 
 
 def parse_codebase(repo_root: Path) -> Codebase:

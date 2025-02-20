@@ -398,6 +398,12 @@ class File(Editable[None]):
         else:
             return super().replace(old, new, count, is_regex, priority)
 
+    @staticmethod
+    @noapidoc
+    def get_extensions() -> list[str]:
+        """Returns a list of file extensions for the given programming language file."""
+        return []  # By default, no extensions are "supported" for generic files
+
 
 TImport = TypeVar("TImport", bound="Import")
 TFunction = TypeVar("TFunction", bound="Function")

@@ -6,7 +6,6 @@ from typing import Callable, ClassVar, Literal, Optional
 from langchain_core.tools.base import BaseTool
 from pydantic import BaseModel, Field
 
-from codegen import Codebase
 from codegen.extensions.linear.linear_client import LinearClient
 from codegen.extensions.tools.bash import run_bash_command
 from codegen.extensions.tools.linear.linear import (
@@ -18,10 +17,12 @@ from codegen.extensions.tools.linear.linear import (
     linear_search_issues_tool,
 )
 from codegen.extensions.tools.link_annotation import add_links_to_message
+from codegen.extensions.tools.replacement_edit import replacement_edit
 from codegen.extensions.tools.reveal_symbol import reveal_symbol
 from codegen.extensions.tools.search import search
 from codegen.extensions.tools.semantic_edit import semantic_edit
 from codegen.extensions.tools.semantic_search import semantic_search
+from codegen.sdk.core.codebase import Codebase
 
 from ..tools import (
     commit,
@@ -37,29 +38,49 @@ from ..tools import (
     view_file,
     view_pr,
 )
-from ..tools.tool_prompts import _FILE_EDIT_DESCRIPTION
+from ..tools.semantic_edit_prompts import FILE_EDIT_PROMPT
 
 
 class ViewFileInput(BaseModel):
     """Input for viewing a file."""
 
     filepath: str = Field(..., description="Path to the file relative to workspace root")
+    start_line: Optional[int] = Field(None, description="Starting line number to view (1-indexed, inclusive)")
+    end_line: Optional[int] = Field(None, description="Ending line number to view (1-indexed, inclusive)")
+    max_lines: Optional[int] = Field(None, description="Maximum number of lines to view at once, defaults to 250")
+    line_numbers: Optional[bool] = Field(True, description="If True, add line numbers to the content (1-indexed)")
 
 
 class ViewFileTool(BaseTool):
     """Tool for viewing file contents and metadata."""
 
     name: ClassVar[str] = "view_file"
-    description: ClassVar[str] = "View the contents and metadata of a file in the codebase"
+    description: ClassVar[str] = """View the contents and metadata of a file in the codebase.
+For large files (>250 lines), content will be paginated. Use start_line and end_line to navigate through the file.
+The response will indicate if there are more lines available to view."""
     args_schema: ClassVar[type[BaseModel]] = ViewFileInput
     codebase: Codebase = Field(exclude=True)
 
     def __init__(self, codebase: Codebase) -> None:
         super().__init__(codebase=codebase)
 
-    def _run(self, filepath: str) -> str:
-        result = view_file(self.codebase, filepath)
-        return json.dumps(result, indent=2)
+    def _run(
+        self,
+        filepath: str,
+        start_line: Optional[int] = None,
+        end_line: Optional[int] = None,
+        max_lines: Optional[int] = None,
+        line_numbers: Optional[bool] = True,
+    ) -> str:
+        result = view_file(
+            self.codebase,
+            filepath,
+            line_numbers=line_numbers if line_numbers is not None else True,
+            start_line=start_line,
+            end_line=end_line,
+            max_lines=max_lines if max_lines is not None else 250,
+        )
+        return result.render()
 
 
 class ListDirectoryInput(BaseModel):
@@ -82,7 +103,7 @@ class ListDirectoryTool(BaseTool):
 
     def _run(self, dirpath: str = "./", depth: int = 1) -> str:
         result = list_directory(self.codebase, dirpath, depth)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class SearchInput(BaseModel):
@@ -105,7 +126,7 @@ class SearchTool(BaseTool):
 
     def _run(self, query: str, target_directories: Optional[list[str]] = None) -> str:
         result = search(self.codebase, query, target_directories)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class EditFileInput(BaseModel):
@@ -128,7 +149,7 @@ class EditFileTool(BaseTool):
 
     def _run(self, filepath: str, content: str) -> str:
         result = edit_file(self.codebase, filepath, content)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class CreateFileInput(BaseModel):
@@ -151,7 +172,7 @@ class CreateFileTool(BaseTool):
 
     def _run(self, filepath: str, content: str = "") -> str:
         result = create_file(self.codebase, filepath, content)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class DeleteFileInput(BaseModel):
@@ -173,7 +194,7 @@ class DeleteFileTool(BaseTool):
 
     def _run(self, filepath: str) -> str:
         result = delete_file(self.codebase, filepath)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class CommitTool(BaseTool):
@@ -188,7 +209,7 @@ class CommitTool(BaseTool):
 
     def _run(self) -> str:
         result = commit(self.codebase)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class RevealSymbolInput(BaseModel):
@@ -231,20 +252,33 @@ class RevealSymbolTool(BaseTool):
             collect_dependencies=collect_dependencies,
             collect_usages=collect_usages,
         )
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
-_SEMANTIC_EDIT_BRIEF = """Tool for semantic editing of files.
-* Allows editing files by providing a draft of the new content
-* For large files, specify line ranges to edit
-* Will intelligently handle unchanged sections of code. Also supports appending to the end of a file."""
+_SEMANTIC_EDIT_BRIEF = """Tool for file editing via an LLM delegate. Describe the changes you want to make and an expert will apply them to the file.
+
+Specify the changes you want to make in the edit_content field, with helpful comments, like so:
+```
+# ... existing code ...
+
+# edit: change function name and body
+def function_redefinition():
+    return 'new_function_body'
+
+# ... existing code ...
+```
+
+Another agent will be responsible for applying your edit and will only see the `edit_content` and the range you specify, so be clear what you are looking to change.
+
+For large files, specify a range slightly larger than the edit you want to make, and be clear in your description what should and shouldn't change.
+"""
 
 
 class SemanticEditInput(BaseModel):
     """Input for semantic editing."""
 
     filepath: str = Field(..., description="Path of the file relative to workspace root")
-    edit_content: str = Field(..., description=_FILE_EDIT_DESCRIPTION)
+    edit_content: str = Field(..., description=FILE_EDIT_PROMPT)
     start: int = Field(default=1, description="Starting line number (1-indexed, inclusive). Default is 1.")
     end: int = Field(default=-1, description="Ending line number (1-indexed, inclusive). Default is -1 (end of file).")
 
@@ -263,7 +297,7 @@ class SemanticEditTool(BaseTool):
     def _run(self, filepath: str, edit_content: str, start: int = 1, end: int = -1) -> str:
         # Create the the draft editor mini llm
         result = semantic_edit(self.codebase, filepath, edit_content, start=start, end=end)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class RenameFileInput(BaseModel):
@@ -286,7 +320,7 @@ class RenameFileTool(BaseTool):
 
     def _run(self, filepath: str, new_filepath: str) -> str:
         result = rename_file(self.codebase, filepath, new_filepath)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class MoveSymbolInput(BaseModel):
@@ -329,7 +363,7 @@ class MoveSymbolTool(BaseTool):
             strategy=strategy,
             include_dependencies=include_dependencies,
         )
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class SemanticSearchInput(BaseModel):
@@ -353,7 +387,7 @@ class SemanticSearchTool(BaseTool):
 
     def _run(self, query: str, k: int = 5, preview_length: int = 200) -> str:
         result = semantic_search(self.codebase, query, k=k, preview_length=preview_length)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 ########################################################################################################################
@@ -377,7 +411,7 @@ class RunBashCommandTool(BaseTool):
 
     def _run(self, command: str, is_background: bool = False) -> str:
         result = run_bash_command(command, is_background)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 ########################################################################################################################
@@ -405,7 +439,7 @@ class GithubCreatePRTool(BaseTool):
 
     def _run(self, title: str, body: str) -> str:
         result = create_pr(self.codebase, title, body)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class GithubViewPRInput(BaseModel):
@@ -427,6 +461,7 @@ class GithubViewPRTool(BaseTool):
 
     def _run(self, pr_id: int) -> str:
         result = view_pr(self.codebase, pr_id)
+        return result.render()
         return json.dumps(result, indent=2)
 
 
@@ -450,7 +485,7 @@ class GithubCreatePRCommentTool(BaseTool):
 
     def _run(self, pr_number: int, body: str) -> str:
         result = create_pr_comment(self.codebase, pr_number, body)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class GithubCreatePRReviewCommentInput(BaseModel):
@@ -496,7 +531,7 @@ class GithubCreatePRReviewCommentTool(BaseTool):
             side=side,
             start_line=start_line,
         )
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 ########################################################################################################################
@@ -523,7 +558,7 @@ class LinearGetIssueTool(BaseTool):
 
     def _run(self, issue_id: str) -> str:
         result = linear_get_issue_tool(self.client, issue_id)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class LinearGetIssueCommentsInput(BaseModel):
@@ -545,7 +580,7 @@ class LinearGetIssueCommentsTool(BaseTool):
 
     def _run(self, issue_id: str) -> str:
         result = linear_get_issue_comments_tool(self.client, issue_id)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class LinearCommentOnIssueInput(BaseModel):
@@ -568,7 +603,7 @@ class LinearCommentOnIssueTool(BaseTool):
 
     def _run(self, issue_id: str, body: str) -> str:
         result = linear_comment_on_issue_tool(self.client, issue_id, body)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class LinearSearchIssuesInput(BaseModel):
@@ -591,7 +626,7 @@ class LinearSearchIssuesTool(BaseTool):
 
     def _run(self, query: str, limit: int = 10) -> str:
         result = linear_search_issues_tool(self.client, query, limit)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class LinearCreateIssueInput(BaseModel):
@@ -615,7 +650,7 @@ class LinearCreateIssueTool(BaseTool):
 
     def _run(self, title: str, description: str | None = None, team_id: str | None = None) -> str:
         result = linear_create_issue_tool(self.client, title, description, team_id)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class LinearGetTeamsTool(BaseTool):
@@ -630,7 +665,7 @@ class LinearGetTeamsTool(BaseTool):
 
     def _run(self) -> str:
         result = linear_get_teams_tool(self.client)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 ########################################################################################################################
@@ -663,6 +698,7 @@ class SlackSendMessageTool(BaseTool):
         self.codebase = codebase
 
     def _run(self, content: str) -> str:
+        # TODO - pull this out into a separate function
         print("> Adding links to message")
         content_formatted = add_links_to_message(content, self.codebase)
         print("> Sending message to Slack")
@@ -693,6 +729,7 @@ def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
         ListDirectoryTool(codebase),
         MoveSymbolTool(codebase),
         RenameFileTool(codebase),
+        ReplacementEditTool(codebase),
         RevealSymbolTool(codebase),
         RunBashCommandTool(),  # Note: This tool doesn't need the codebase
         SearchTool(codebase),
@@ -712,3 +749,46 @@ def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
         LinearCreateIssueTool(codebase),
         LinearGetTeamsTool(codebase),
     ]
+
+
+class ReplacementEditInput(BaseModel):
+    """Input for regex-based replacement editing."""
+
+    filepath: str = Field(..., description="Path to the file to edit")
+    pattern: str = Field(..., description="Regex pattern to match")
+    replacement: str = Field(..., description="Replacement text (can include regex groups)")
+    start: int = Field(default=1, description="Starting line number (1-indexed, inclusive). Default is 1.")
+    end: int = Field(default=-1, description="Ending line number (1-indexed, inclusive). Default is -1 (end of file).")
+    count: Optional[int] = Field(default=None, description="Maximum number of replacements. Default is None (replace all).")
+
+
+class ReplacementEditTool(BaseTool):
+    """Tool for regex-based replacement editing of files."""
+
+    name: ClassVar[str] = "replace"
+    description: ClassVar[str] = "Replace text in a file using regex pattern matching. For files over 300 lines, specify a line range."
+    args_schema: ClassVar[type[BaseModel]] = ReplacementEditInput
+    codebase: Codebase = Field(exclude=True)
+
+    def __init__(self, codebase: Codebase) -> None:
+        super().__init__(codebase=codebase)
+
+    def _run(
+        self,
+        filepath: str,
+        pattern: str,
+        replacement: str,
+        start: int = 1,
+        end: int = -1,
+        count: Optional[int] = None,
+    ) -> str:
+        result = replacement_edit(
+            self.codebase,
+            filepath=filepath,
+            pattern=pattern,
+            replacement=replacement,
+            start=start,
+            end=end,
+            count=count,
+        )
+        return json.dumps(result, indent=2)

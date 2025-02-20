@@ -1,0 +1,6 @@
+[project]
+name = "linear-webhook-example"
+version = "0.1.0"
+description = "Linear webhook example for Codegen"
+requires-python = ">=3.13"
+dependencies = ["codegen>=0.22.2", "modal>=0.73.25"]

@@ -1,40 +1,36 @@
 """Demo implementation of an agent with Codegen tools."""
 
-from langchain.agents import AgentExecutor
+from langchain.agents import AgentExecutor, create_tool_calling_agent
 from langchain.agents.openai_functions_agent.base import OpenAIFunctionsAgent
 from langchain.hub import pull
 from langchain.tools import BaseTool
+from langchain_anthropic import ChatAnthropic
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.messages import BaseMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_openai import ChatOpenAI
 
-from codegen import Codebase
+from codegen.sdk.core.codebase import Codebase
 
 from .tools import (
-    CommitTool,
     CreateFileTool,
     DeleteFileTool,
     EditFileTool,
-    GithubCreatePRCommentTool,
-    GithubCreatePRReviewCommentTool,
-    GithubCreatePRTool,
-    GithubViewPRTool,
     ListDirectoryTool,
     MoveSymbolTool,
     RenameFileTool,
+    ReplacementEditTool,
     RevealSymbolTool,
     SearchTool,
     SemanticEditTool,
-    SemanticSearchTool,
     ViewFileTool,
 )
 
 
 def create_codebase_agent(
     codebase: Codebase,
-    model_name: str = "gpt-4o",
+    model_name: str = "claude-3-5-sonnet-latest",
     temperature: float = 0,
     verbose: bool = True,
     chat_history: list[BaseMessage] = [],
@@ -51,8 +47,13 @@ def create_codebase_agent(
         Initialized agent with message history
     """
     # Initialize language model
-    llm = ChatOpenAI(
-        model_name=model_name,
+    # llm = ChatOpenAI(
+    #     model_name=model_name,
+    #     temperature=temperature,
+    # )
+
+    llm = ChatAnthropic(
+        model="claude-3-5-sonnet-latest",
         temperature=temperature,
     )
 
@@ -68,12 +69,14 @@ def create_codebase_agent(
         MoveSymbolTool(codebase),
         RevealSymbolTool(codebase),
         SemanticEditTool(codebase),
-        SemanticSearchTool(codebase),
-        CommitTool(codebase),
-        GithubCreatePRTool(codebase),
-        GithubViewPRTool(codebase),
-        GithubCreatePRCommentTool(codebase),
-        GithubCreatePRReviewCommentTool(codebase),
+        ReplacementEditTool(codebase),
+        # SemanticSearchTool(codebase),
+        # =====[ Github Integration ]=====
+        # Enable Github integration
+        # GithubCreatePRTool(codebase),
+        # GithubViewPRTool(codebase),
+        # GithubCreatePRCommentTool(codebase),
+        # GithubCreatePRReviewCommentTool(codebase),
     ]
 
     prompt = ChatPromptTemplate.from_messages(
@@ -102,7 +105,6 @@ def create_codebase_agent(
         - Analyze affected code structures
         - Preview changes before applying
         - Ensure code quality with linting
-
 
         4. Code Search:
         - Text-based and semantic search
@@ -134,7 +136,12 @@ def create_codebase_agent(
     )
 
     # Create the agent
-    agent = OpenAIFunctionsAgent(
+    # agent = OpenAIFunctionsAgent(
+    #     llm=llm,
+    #     tools=tools,
+    #     prompt=prompt,
+    # )
+    agent = create_tool_calling_agent(
         llm=llm,
         tools=tools,
         prompt=prompt,

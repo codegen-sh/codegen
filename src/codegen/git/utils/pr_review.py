@@ -6,8 +6,7 @@ from github.PullRequest import PullRequest
 from unidiff import PatchSet
 
 from codegen.git.models.pull_request_context import PullRequestContext
-from codegen.git.repo_operator.local_repo_operator import LocalRepoOperator
-from codegen.git.repo_operator.remote_repo_operator import RemoteRepoOperator
+from codegen.git.repo_operator.repo_operator import RepoOperator
 
 if TYPE_CHECKING:
     from codegen.sdk.core.codebase import Codebase, Editable, File, Symbol
@@ -40,7 +39,7 @@ def get_file_to_changed_ranges(pull_patch_set: PatchSet) -> dict[str, list]:
     return file_to_changed_ranges
 
 
-def get_pull_patch_set(op: LocalRepoOperator | RemoteRepoOperator, pull: PullRequestContext) -> PatchSet:
+def get_pull_patch_set(op: RepoOperator, pull: PullRequestContext) -> PatchSet:
     # Get the diff directly from GitHub's API
     if not op.remote_git_repo:
         msg = "GitHub API client is required to get PR diffs"
@@ -79,12 +78,12 @@ class CodegenPR:
 
     _gh_pr: PullRequest
     _codebase: "Codebase"
-    _op: LocalRepoOperator | RemoteRepoOperator
+    _op: RepoOperator
 
     # =====[ Computed ]=====
     _modified_file_ranges: dict[str, list[tuple[int, int]]] = None
 
-    def __init__(self, op: LocalRepoOperator, codebase: "Codebase", pr: PullRequest):
+    def __init__(self, op: RepoOperator, codebase: "Codebase", pr: PullRequest):
         self._op = op
         self._gh_pr = pr
         self._codebase = codebase
