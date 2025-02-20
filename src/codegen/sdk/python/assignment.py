@@ -159,4 +159,4 @@ class PyAssignment(Assignment["PyAssignmentStatement"], PySymbol):
                         name.edit("_", priority=priority, dedupe=dedupe)
                         return
 
-        super().remove(delete_formatting=delete_formatting,priority=priority,dedupe=dedupe)
+        super().remove(delete_formatting=delete_formatting, priority=priority, dedupe=dedupe)
