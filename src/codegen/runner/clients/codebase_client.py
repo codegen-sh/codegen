@@ -26,10 +26,9 @@ class CodebaseClient(LocalServerClient):
     def _get_envs(self) -> dict:
         envs = super()._get_envs()
         codebase_envs = {
-            "CODEGEN_REPOSITORY__REPO_PATH": str(self.repo_config.repo_path),
-            "CODEGEN_REPOSITORY__REPO_NAME": self.repo_config.name,
-            "CODEGEN_REPOSITORY__FULL_NAME": self.repo_config.full_name,
-            "CODEGEN_REPOSITORY__LANGUAGE": self.repo_config.language.value,
+            "REPOSITORY_LANGUAGE": self.repo_config.language.value,
+            "REPOSITORY_OWNER": self.repo_config.organization_name,
+            "REPOSITORY_PATH": str(self.repo_config.repo_path),
         }
         if self.git_access_token is not None:
             codebase_envs["SECRETS_GITHUB_TOKEN"] = self.git_access_token
