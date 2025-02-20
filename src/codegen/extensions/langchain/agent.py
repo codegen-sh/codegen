@@ -53,7 +53,7 @@ def create_codebase_agent(
     """
     # Initialize language model
     # llm = ChatOpenAI(
-    #     model_name="gpt-4o",
+    #     model_name=model_name,
     #     temperature=temperature,
     # )
 
