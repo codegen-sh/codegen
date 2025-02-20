@@ -59,8 +59,7 @@ class CodegenSession:
     def _validate(self) -> None:
         """Validates that the session configuration is correct, otherwise raises an error"""
         if not self.codegen_dir.exists():
-            rich.print(f"\n[bold red]Error:[/bold red] Codegen folder is missing at {self.codegen_dir}")
-            raise click.Abort()
+            self.codegen_dir.mkdir(parents=True, exist_ok=True)
 
         git_token = self.config.secrets.github_token
         if git_token is None:

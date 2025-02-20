@@ -16,11 +16,8 @@ class SafeBaseModel(BaseModel):
         return self.model_dump_json(indent=4)
 
 
-CODEMOD_CONFIG_PATH = "config.toml"
-
-
 class CodemodConfig(BaseModel):
-    """Configuration for a codemod stored in the codegen-sh/codemods/<name>/config.toml file."""
+    """Configuration for a codemod."""
 
     name: str
     codemod_id: int

@@ -524,7 +524,7 @@ Let's walk through a minimal example of using Codegen in a project:
    ```bash
    .codegen/
    ├── .venv/            # Python virtual environment (gitignored)
-   ├── config.toml       # Project configuration
+   ├── .env              # Project configuration
    ├── codemods/         # Your codemod implementations
    ├── jupyter/          # Jupyter notebooks for exploration
    └── codegen-system-prompt.txt  # AI system prompt
@@ -1583,7 +1583,7 @@ The `.codegen` directory contains your project's Codegen configuration, codemods
 ```bash
 .codegen/
 ├── .venv/            # Python virtual environment (gitignored)
-├── config.toml       # Project configuration
+├── .env              # Project configuration
 ├── codemods/         # Your codemod implementations
 ├── jupyter/          # Jupyter notebooks for exploration
 └── codegen-system-prompt.txt  # AI system prompt
@@ -1617,12 +1617,12 @@ The environment is created during `codegen init` and used by commands like `code
 
 ### Configuration
 
-The `config.toml` file stores your project settings:
+The `.env` file stores your project settings:
 
-```toml
-organization_name = "your-org"
-repo_name = "your-repo"
-programming_language = "python"  # or other supported language
+```env
+REPOSITORY_OWNER = "your-org"
+REPOSITORY_PATH = "/root/git/your-repo"
+REPOSITORY_LANGUAGE = "python"  # or other supported language
 ```
 
 This configuration is used by Codegen to provide language-specific features and proper repository context.
@@ -1640,7 +1640,7 @@ Codegen automatically adds appropriate entries to your `.gitignore`:
 ```
 
 <Info>
-- While most directories are ignored, your codemods in `.codegen/codemods/` and `config.toml` are tracked in Git
+- While most directories are ignored, your codemods in `.codegen/codemods/` are tracked in Git
 - The virtual environment and Jupyter notebooks are gitignored to avoid environment-specific issues
 </Info>
 
