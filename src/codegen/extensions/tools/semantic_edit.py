@@ -218,6 +218,9 @@ def apply_semantic_edit(codebase: Codebase, filepath: str, edited_content: str, 
     # Apply the edit
     file.edit(new_content)
     codebase.commit()
+    print("Manually editing")
+    with open(file.path, "w") as f:
+        f.write(new_content)
 
     # Generate diff from the original section to the edited section
     original_section, _, _ = extract_file_window(original_content, start, end)
