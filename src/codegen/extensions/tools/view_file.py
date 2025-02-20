@@ -42,9 +42,20 @@ class ViewFileObservation(Observation):
     str_template: ClassVar[str] = "File {filepath} (showing lines {start_line}-{end_line} of {line_count})"
 
     def render(self) -> str:
-        return f"""[VIEW FILE]: {self.filepath} ({self.line_count} lines)
-{self.content}
-"""
+        """Render the file view with pagination information if applicable."""
+        header = f"[VIEW FILE]: {self.filepath}"
+        if self.line_count is not None:
+            header += f" ({self.line_count} lines total)"
+        
+        if self.start_line is not None and self.end_line is not None:
+            header += f"\nShowing lines {self.start_line}-{self.end_line}"
+            if self.has_more:
+                header += f" (more lines available, max {self.max_lines_per_page} lines per page)"
+        
+        if not self.content:
+            return f"{header}\n<empty content>"
+        
+        return f"{header}\n\n{self.content}"
 
 
 def add_line_numbers(content: str) -> str:
