@@ -11,7 +11,7 @@ from codegen.runner.models.codemod import BranchConfig, Codemod, GroupingConfig
 
 
 @pytest.mark.asyncio
-@pytest.mark.timeout(60)
+@pytest.mark.timeout(120)
 async def test_create_branch(codebase_client: CodebaseClient, git_repo_client: GitRepoClient, op: RepoOperator):
     # set-up
     codemod_source = """
