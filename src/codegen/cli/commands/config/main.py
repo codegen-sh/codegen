@@ -65,7 +65,7 @@ def get_command(key: str, is_global: bool):
 @click.argument("value")
 @click.option("--global", "is_global", is_flag=True, help="Sets the global configuration value")
 def set_command(key: str, value: str, is_global: bool):
-    """Set a configuration value and write to config.toml."""
+    """Set a configuration value and write to .env"""
     config = _get_user_config(is_global)
     cur_value = config.get(key)
     if cur_value is None:
@@ -80,7 +80,7 @@ def set_command(key: str, value: str, is_global: bool):
             rich.print(f"[red]{e}[/red]")
             return
 
-    rich.print(f"[green]Successfully set {key}=[magenta]{value}[/magenta] and saved to config.toml[/green]")
+    rich.print(f"[green]Successfully set {key}=[magenta]{value}[/magenta] and saved to .env[/green]")
 
 
 def _get_user_config(is_global: bool) -> UserConfig:

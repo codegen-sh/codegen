@@ -1,8 +1,7 @@
 from abc import ABC
 from pathlib import Path
 
-from dotenv import load_dotenv, set_key
-from pydantic import PrivateAttr
+from dotenv import set_key
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from codegen.shared.configs.constants import ENV_FILENAME, GLOBAL_ENV_FILE
@@ -17,13 +16,7 @@ class BaseConfig(BaseSettings, ABC):
     Supports both global and local config files.
     """
 
-    model_config = SettingsConfigDict(
-        extra="ignore",  # Allow extra fields
-        env_prefix="",  # This will be set dynamically in __init__
-        env_file=None,  # This will be set dynamically in __init__
-        case_sensitive=False,
-    )
-    _prefix: str = PrivateAttr()
+    model_config = SettingsConfigDict(extra="ignore", case_sensitive=False)
 
     def __init__(self, prefix: str, env_filepath: Path | None = None, *args, **kwargs) -> None:
         if env_filepath is None:
@@ -40,34 +33,16 @@ class BaseConfig(BaseSettings, ABC):
 
         print(f"Loading environment variables for {self.__class__.__name__} using {env_filepaths}")
 
-        self.model_config["env_prefix"] = f"{prefix}_"
+        self.model_config["env_prefix"] = f"{prefix.upper()}_"
         self.model_config["env_file"] = env_filepaths
 
         super().__init__(*args, **kwargs)
-        self._prefix = prefix
 
-    def load_env(self, env_filepath: Path | None, is_global: bool):
-        """Load environment variables from .env file based on the environment variable"""
-        # if env_filepath in _loaded_env_files:
-        #     return
+    @property
+    def env_prefix(self) -> str:
+        return self.model_config["env_prefix"]
 
-        _loaded_env_files.add(env_filepath)
-        # First load from global env file
-        if GLOBAL_ENV_FILE.exists():
-            print(f"Loading global environment variables from {GLOBAL_ENV_FILE} for {self.__class__.__name__}")
-            load_dotenv(dotenv_path=GLOBAL_ENV_FILE)
-        else:
-            self.write_to_file(GLOBAL_ENV_FILE)
-
-        # Then load from specified codegen dir env file
-        if not is_global and env_filepath and env_filepath != GLOBAL_ENV_FILE:
-            if env_filepath.exists():
-                print(f"Loading local environment variables from {env_filepath} for {self.__class__.__name__}")
-                load_dotenv(dotenv_path=env_filepath)
-            else:
-                self.write_to_file(env_filepath)
-
-    def write_to_file(self, env_filepath: Path):
+    def write_to_file(self, env_filepath: Path) -> None:
         """Dump environment variables to a file"""
         env_filepath.parent.mkdir(parents=True, exist_ok=True)
 
@@ -77,4 +52,6 @@ class BaseConfig(BaseSettings, ABC):
 
         # Update with new values
         for key, value in self.model_dump().items():
-            set_key(env_filepath, key, str(value))
+            if value is None:
+                continue
+            set_key(env_filepath, f"{self.model_config['env_prefix']}{key.upper()}", str(value))
