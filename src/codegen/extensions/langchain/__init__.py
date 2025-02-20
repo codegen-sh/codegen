@@ -2,7 +2,7 @@
 
 from langchain_core.tools.base import BaseTool
 
-from codegen import Codebase
+from codegen.sdk.core.codebase import Codebase
 
 from .tools import (
     CommitTool,

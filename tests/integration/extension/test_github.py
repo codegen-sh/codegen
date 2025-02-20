@@ -4,9 +4,9 @@ import os
 
 import pytest
 
-from codegen import Codebase
 from codegen.extensions.linear.linear_client import LinearClient
 from codegen.extensions.tools.github import view_pr
+from codegen.sdk.core.codebase import Codebase
 
 
 @pytest.fixture

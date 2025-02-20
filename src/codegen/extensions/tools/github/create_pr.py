@@ -6,7 +6,7 @@ from typing import ClassVar
 from github import GithubException
 from pydantic import Field
 
-from codegen import Codebase
+from codegen.sdk.core.codebase import Codebase
 
 from ..observation import Observation
 

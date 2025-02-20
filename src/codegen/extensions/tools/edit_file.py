@@ -4,10 +4,10 @@ from typing import ClassVar
 
 from pydantic import Field
 
-from codegen import Codebase
+from codegen.sdk.core.codebase import Codebase
 
 from .observation import Observation
-from .view_file import ViewFileObservation, view_file
+from .replacement_edit import generate_diff
 
 
 class EditFileObservation(Observation):
@@ -16,23 +16,26 @@ class EditFileObservation(Observation):
     filepath: str = Field(
         description="Path to the edited file",
     )
-    file_info: ViewFileObservation = Field(
-        description="Information about the edited file",
+    diff: str = Field(
+        description="Unified diff showing the changes made",
     )
 
     str_template: ClassVar[str] = "Edited file {filepath}"
 
+    def render(self) -> str:
+        """Render edit results in a clean format."""
+        return f"""[EDIT FILE]: {self.filepath}
 
-def edit_file(codebase: Codebase, filepath: str, content: str) -> EditFileObservation:
-    """Edit a file by replacing its entire content.
+{self.diff}"""
+
+
+def edit_file(codebase: Codebase, filepath: str, new_content: str) -> EditFileObservation:
+    """Edit the contents of a file.
 
     Args:
         codebase: The codebase to operate on
-        filepath: Path to the file to edit
-        content: New content for the file
-
-    Returns:
-        EditFileObservation containing updated file state, or error if file not found
+        filepath: Path to the file relative to workspace root
+        new_content: New content for the file
     """
     try:
         file = codebase.get_file(filepath)
@@ -41,52 +44,18 @@ def edit_file(codebase: Codebase, filepath: str, content: str) -> EditFileObserv
             status="error",
             error=f"File not found: {filepath}",
             filepath=filepath,
-            file_info=ViewFileObservation(
-                status="error",
-                error=f"File not found: {filepath}",
-                filepath=filepath,
-                content="",
-                line_count=0,
-            ),
+            diff="",
         )
 
-    if file is None:
-        return EditFileObservation(
-            status="error",
-            error=f"File not found: {filepath}",
-            filepath=filepath,
-            file_info=ViewFileObservation(
-                status="error",
-                error=f"File not found: {filepath}",
-                filepath=filepath,
-                content="",
-                line_count=0,
-            ),
-        )
+    # Generate diff before making changes
+    diff = generate_diff(file.content, new_content)
 
-    try:
-        file.edit(content)
-        codebase.commit()
+    # Apply the edit
+    file.edit(new_content)
+    codebase.commit()
 
-        # Get updated file info using view_file
-        file_info = view_file(codebase, filepath)
-
-        return EditFileObservation(
-            status="success",
-            filepath=filepath,
-            file_info=file_info,
-        )
-
-    except Exception as e:
-        return EditFileObservation(
-            status="error",
-            error=f"Failed to edit file: {e!s}",
-            filepath=filepath,
-            file_info=ViewFileObservation(
-                status="error",
-                error=f"Failed to edit file: {e!s}",
-                filepath=filepath,
-                content="",
-                line_count=0,
-            ),
-        )
+    return EditFileObservation(
+        status="success",
+        filepath=filepath,
+        diff=diff,
+    )

@@ -6,7 +6,7 @@ from typing import ClassVar, Optional
 
 from pydantic import Field
 
-from codegen import Codebase
+from codegen.sdk.core.codebase import Codebase
 
 from .observation import Observation
 from .view_file import add_line_numbers

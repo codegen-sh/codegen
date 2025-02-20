@@ -1,11 +1,10 @@
+import os
+import shutil
+import subprocess
+
 import codegen
-
-
 from codegen import Codebase
 from codegen.sdk.core.detached_symbols.function_call import FunctionCall
-import subprocess
-import shutil
-import os
 
 
 def init_git_repo(repo_path: str) -> None:

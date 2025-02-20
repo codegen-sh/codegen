@@ -4,7 +4,7 @@ from typing import ClassVar, Optional
 
 from pydantic import Field
 
-from codegen import Codebase
+from codegen.sdk.core.codebase import Codebase
 
 from .observation import Observation
 
@@ -40,6 +40,11 @@ class ViewFileObservation(Observation):
     )
 
     str_template: ClassVar[str] = "File {filepath} (showing lines {start_line}-{end_line} of {line_count})"
+
+    def render(self) -> str:
+        return f"""[VIEW FILE]: {self.filepath} ({self.line_count} lines)
+{self.content}
+"""
 
 
 def add_line_numbers(content: str) -> str:
