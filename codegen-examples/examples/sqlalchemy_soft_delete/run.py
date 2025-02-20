@@ -92,8 +92,8 @@ def process_soft_deletes(codebase):
 
 
 if __name__ == "__main__":
+    from codegen import Codebase
     from codegen.sdk.codebase.config import CodebaseConfig
-    from codegen.sdk.core.codebase import Codebase
 
     repo_path = Path("/tmp/core")
     repo_url = "https://github.com/hasgeek/funnel.git"
