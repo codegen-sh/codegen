@@ -40,12 +40,160 @@ class Greeter:
         yield codebase
 
 
+@pytest.fixture
+def large_codebase(tmpdir):
+    """Create a codebase with a large file for pagination testing."""
+    # Create a large file with predictable content
+    large_file_lines = []
+    # Add imports at the top
+    large_file_lines.extend(
+        [
+            "from __future__ import annotations",
+            "import sys",
+            "import os",
+            "from typing import List, Optional, Dict",
+            "",
+            "# Constants",
+            "MAX_ITEMS = 100",
+            "DEBUG = False",
+            "",
+            "# Main class definition",
+            "class LargeClass:",
+        ]
+    )
+
+    # Add methods with incrementing numbers
+    for i in range(1, 401):  # This will create a 400+ line file
+        if i % 20 == 0:
+            # Add some class methods periodically
+            large_file_lines.extend(["    @classmethod", f"    def class_method_{i}(cls) -> None:", f"        print('Class method {i}')", "        return None", ""])
+        else:
+            # Add regular methods
+            large_file_lines.extend(
+                [
+                    f"    def method_{i}(self, param_{i}: int) -> str:",
+                    f"        # Method {i} does something interesting",
+                    f"        value = param_{i} * {i}",
+                    f"        return f'Method {i} computed: {{value}}'",
+                    "",
+                ]
+            )
+
+    large_file_content = "\n".join(large_file_lines)
+
+    files = {
+        "src/main.py": """
+def hello():
+    print("Hello, world!")
+""",
+        "src/large_file.py": large_file_content,
+    }
+
+    with get_codebase_session(tmpdir=tmpdir, files=files) as codebase:
+        yield codebase
+
+
 def test_view_file(codebase):
     """Test viewing a file."""
+    # Test basic file viewing
     result = view_file(codebase, "src/main.py")
     assert result.status == "success"
     assert result.filepath == "src/main.py"
     assert "hello()" in result.content
+    # For small files, pagination fields should not be present
+    assert result.start_line is None
+    assert result.end_line is None
+    assert result.has_more is None
+    assert result.max_lines_per_page is None
+
+
+def test_view_file_pagination(large_codebase):
+    """Test viewing a file with pagination."""
+    # Test default pagination (should show first max_lines lines)
+    result = view_file(large_codebase, "src/large_file.py")
+    assert result.status == "success"
+    assert result.start_line == 1
+    assert result.end_line == 250  # Default max_lines
+    assert result.has_more is True
+    assert result.max_lines_per_page == 250
+    assert "from __future__ import annotations" in result.content  # First line
+    assert "def method_1" in result.content  # Early method
+    assert "def method_251" not in result.content  # Method after page 1
+
+    # Test custom pagination range
+    result = view_file(large_codebase, "src/large_file.py", start_line=200, end_line=250)
+    assert result.status == "success"
+    assert result.start_line == 200
+    assert result.end_line == 250
+    assert result.has_more is True
+    assert "def method_39" in result.content  # Regular method before class method
+    assert "def class_method_40" in result.content  # Class method at 40
+    assert "def method_41" in result.content  # Regular method after class method
+    assert "from __future__ import annotations" not in result.content  # Before range
+    assert "def method_251" not in result.content  # After range
+
+    # Test viewing end of file
+    result = view_file(large_codebase, "src/large_file.py", start_line=350)
+    assert result.status == "success"
+    assert result.start_line == 350
+    assert result.has_more is True  # File has 2010 lines, so there should be more content
+    assert "def method_69" in result.content  # Regular method
+    assert "def class_method_80" in result.content  # Class method at 80
+    assert result.end_line == 599  # Should show 250 lines from start (350 to 599)
+
+    # Test custom max_lines
+    result = view_file(large_codebase, "src/large_file.py", max_lines=100)
+    assert result.status == "success"
+    assert result.start_line == 1
+    assert result.end_line == 100
+    assert result.has_more is True
+    assert result.max_lines_per_page == 100
+    assert "from __future__ import annotations" in result.content
+    assert len(result.content.splitlines()) <= 100
+
+    # Test line numbers display
+    result = view_file(large_codebase, "src/large_file.py", start_line=198, end_line=202, line_numbers=True)
+    assert result.status == "success"
+    assert "198|" in result.content
+    assert "199|" in result.content
+    assert "200|" in result.content
+    assert "201|" in result.content
+    assert "202|" in result.content
+
+    # Test without line numbers
+    result = view_file(large_codebase, "src/large_file.py", start_line=198, end_line=202, line_numbers=False)
+    assert result.status == "success"
+    assert "198|" not in result.content
+    assert "199|" not in result.content
+
+
+def test_view_file_pagination_edge_cases(large_codebase):
+    """Test edge cases for file pagination."""
+    # Test start_line > end_line (should respect provided end_line)
+    result = view_file(large_codebase, "src/large_file.py", start_line=200, end_line=100)
+    assert result.status == "success"
+    assert result.start_line == 200
+    assert result.end_line == 100  # Should respect provided end_line
+    assert result.content == ""  # No content since end_line < start_line
+
+    # Test start_line > file length (should adjust to valid range)
+    result = view_file(large_codebase, "src/large_file.py", start_line=2000)
+    assert result.status == "success"
+    assert result.start_line == 2000  # Should use provided start_line
+    assert result.end_line == 2010  # Should adjust to total lines
+    assert result.has_more is False
+
+    # Test end_line > file length (should truncate to file length)
+    result = view_file(large_codebase, "src/large_file.py", start_line=200, end_line=2000)
+    assert result.status == "success"
+    assert result.start_line == 200
+    assert result.end_line == min(200 + 250 - 1, 2010)  # Should respect max_lines and file length
+
+    # Test negative start_line (should default to 1)
+    result = view_file(large_codebase, "src/large_file.py", start_line=-10)
+    assert result.status == "success"
+    assert result.start_line == 1
+    assert result.end_line == 250
 
 
 def test_list_directory(codebase):
