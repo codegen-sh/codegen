@@ -55,7 +55,7 @@ class Linear(EventHandlerManagerProtocol):
         for handler in self.registered_handlers:
             self.unsubscribe_handler_to_webhook(self.registered_handlers[handler])
 
-    def event(self, event_name):
+    def event(self, event_name, should_handle: Callable[[dict], bool] | None = None):
         """Decorator for registering an event handler.
 
         :param event_name: The name of the event to handle.
@@ -71,7 +71,12 @@ class Linear(EventHandlerManagerProtocol):
 
             @functools.wraps(func)
             def wrapper(*args, **kwargs):
-                return func(*args, **kwargs)
+                should_handle_result = should_handle(*args, **kwargs) if should_handle else True
+                if should_handle is None or should_handle_result:
+                    return func(*args, **kwargs)
+                else:
+                    logger.info(f"Skipping event {event_name} for {func_name}")
+                    return None
 
             return wrapper
 
