@@ -96,10 +96,10 @@ def view_file(
     # If no start_line specified, start from beginning
     if start_line is None:
         start_line = 1
-    
+
     # Ensure start_line is within bounds
     start_line = max(1, min(start_line, total_lines))
-    
+
     # If no end_line specified, show up to max_lines from start
     if end_line is None:
         end_line = min(start_line + max_lines - 1, total_lines)
@@ -108,7 +108,7 @@ def view_file(
         end_line = min(end_line, total_lines, start_line + max_lines - 1)
 
     # Extract the requested lines (convert to 0-based indexing)
-    content_lines = lines[start_line - 1:end_line]
+    content_lines = lines[start_line - 1 : end_line]
     content = "\n".join(content_lines)
 
     # Add line numbers if requested
