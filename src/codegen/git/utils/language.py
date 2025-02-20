@@ -109,6 +109,7 @@ def _determine_language_by_git_file_count(folder_path: str) -> ProgrammingLangua
     """
     from codegen.git.repo_operator.repo_operator import RepoOperator
     from codegen.git.schemas.repo_config import RepoConfig
+    from codegen.sdk.codebase.codebase_context import GLOBAL_FILE_IGNORE_LIST
     from codegen.sdk.python import PyFile
     from codegen.sdk.typescript.file import TSFile
 
@@ -132,7 +133,7 @@ def _determine_language_by_git_file_count(folder_path: str) -> ProgrammingLangua
     repo_operator = RepoOperator(repo_config=repo_config)
 
     # Walk through the directory
-    for rel_path, _ in repo_operator.iter_files(subdirs=[base_path] if base_path else None):
+    for rel_path, _ in repo_operator.iter_files(subdirs=[base_path] if base_path else None, ignore_list=GLOBAL_FILE_IGNORE_LIST):
         # Convert to Path object
         file_path = Path(git_root) / Path(rel_path)
 
