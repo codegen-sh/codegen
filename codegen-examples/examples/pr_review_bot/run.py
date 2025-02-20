@@ -3,7 +3,6 @@ import json
 import codegen
 from codegen import Codebase
 from codegen.sdk.codebase.config import CodebaseConfig
-from codegen.sdk.secrets import Secrets
 from codegen.shared.configs.models.feature_flags import CodebaseFeatureFlags
 
 github_token = "Your github token"
@@ -16,7 +15,7 @@ codegen.function("pr-review-bot")
 def run(codebase: Codebase):
     context_symbols = set()
 
-    modified_symbols = codebase.get_modified_symbols_in_pr(pr_number)
+    modified_symbols, patch = codebase.get_modified_symbols_in_pr(pr_number)
     for symbol in modified_symbols:
         # Get direct dependencies
         deps = symbol.dependencies(max_depth=2)
@@ -42,6 +41,7 @@ def run(codebase: Codebase):
             }
             for symbol in context_symbols
         ],
+        "pr_patch": patch,
     }
 
     system_prompt = """
