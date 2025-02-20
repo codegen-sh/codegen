@@ -62,12 +62,13 @@ def list_command(is_global: bool):
 def get_command(key: str, is_global: bool):
     """Get a configuration value."""
     config = _get_user_config(is_global)
-    value = config.get(key)
-    if value is None:
+    if not config.has_key(key):
         rich.print(f"[red]Error: Configuration key '{key}' not found[/red]")
         return
 
-    rich.print(f"[cyan]{key}[/cyan] = [magenta]{value}[/magenta]")
+    value = config.get(key)
+
+    rich.print(f"[cyan]{key}[/cyan]=[magenta]{value}[/magenta]")
 
 
 @config_command.command(name="set")
@@ -77,12 +78,12 @@ def get_command(key: str, is_global: bool):
 def set_command(key: str, value: str, is_global: bool):
     """Set a configuration value and write to .env"""
     config = _get_user_config(is_global)
-    cur_value = config.get(key)
-    if cur_value is None:
+    if not config.has_key(key):
         rich.print(f"[red]Error: Configuration key '{key}' not found[/red]")
         return
 
-    if cur_value.lower() != value.lower():
+    cur_value = config.get(key)
+    if cur_value is None or cur_value.lower() != value.lower():
         try:
             config.set(key, value)
         except Exception as e:

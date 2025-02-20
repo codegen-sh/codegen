@@ -38,6 +38,12 @@ class BaseConfig(BaseSettings, ABC):
     def env_prefix(self) -> str:
         return self.model_config["env_prefix"]
 
+    def set(self, env_filepath: Path, key: str, value: str) -> None:
+        """Update configuration values"""
+        if key.lower() in self.model_fields:
+            setattr(self, key.lower(), value)
+            set_key(env_filepath, f"{self.model_config['env_prefix']}{key.upper()}", str(value))
+
     def write_to_file(self, env_filepath: Path) -> None:
         """Dump environment variables to a file"""
         env_filepath.parent.mkdir(parents=True, exist_ok=True)

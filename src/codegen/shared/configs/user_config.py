@@ -1,7 +1,6 @@
 import json
 from pathlib import Path
 
-from dotenv import set_key
 from pydantic import Field
 
 from codegen.shared.configs.models.codebase import CodebaseConfig
@@ -44,14 +43,26 @@ class UserConfig:
             config_dict[f"{self.codebase.env_prefix}{key}".upper()] = value
         return config_dict
 
+    def has_key(self, full_key: str) -> bool:
+        """Check if a configuration key exists"""
+        return full_key.upper() in self.to_dict()
+
     def get(self, full_key: str) -> str | None:
         """Get a configuration value"""
-        return self.to_dict().get(full_key, None)
+        return self.to_dict().get(full_key.upper(), None)
 
     def set(self, full_key: str, value: str) -> None:
         """Update a configuration value and save it to the .env file."""
-        # Update with new values
-        set_key(self.env_filepath, full_key, str(value))
+        key_segments = full_key.split("_")
+        prefix = key_segments[0].upper()
+        key = "_".join(key_segments[1:])
+        match f"{prefix}_":
+            case self.repository.env_prefix:
+                self.repository.set(self.env_filepath, key, value)
+            case self.secrets.env_prefix:
+                self.secrets.set(self.env_filepath, key, value)
+            case self.codebase.env_prefix:
+                self.codebase.set(self.env_filepath, key, value)
 
     def __str__(self) -> str:
         """Return a pretty-printed string representation of the config."""
