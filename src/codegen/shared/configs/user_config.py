@@ -59,10 +59,10 @@ class UserConfig:
         match f"{prefix}_":
             case self.repository.env_prefix:
                 self.repository.set(self.env_filepath, key, value)
-            case self.secrets.env_prefix:
-                self.secrets.set(self.env_filepath, key, value)
             case self.codebase.env_prefix:
                 self.codebase.set(self.env_filepath, key, value)
+            case _:
+                self.secrets.set(self.env_filepath, full_key, value)
 
     def __str__(self) -> str:
         """Return a pretty-printed string representation of the config."""

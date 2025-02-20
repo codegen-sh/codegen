@@ -29,7 +29,7 @@ class BaseConfig(BaseSettings, ABC):
         if env_filepath and env_filepath.exists() and env_filepath != GLOBAL_ENV_FILE:
             env_filepaths.append(env_filepath)
 
-        self.model_config["env_prefix"] = f"{prefix.upper()}_"
+        self.model_config["env_prefix"] = f"{prefix.upper()}_" if len(prefix) > 0 else ""
         self.model_config["env_file"] = env_filepaths
 
         super().__init__(*args, **kwargs)
