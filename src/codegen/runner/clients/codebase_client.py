@@ -32,7 +32,7 @@ class CodebaseClient(LocalServerClient):
             "CODEGEN_REPOSITORY__LANGUAGE": self.repo_config.language.value,
         }
         if self.git_access_token is not None:
-            codebase_envs["CODEGEN_SECRETS__GITHUB_TOKEN"] = self.git_access_token
+            codebase_envs["SECRETS_GITHUB_TOKEN"] = self.git_access_token
 
         envs.update(codebase_envs)
         return envs

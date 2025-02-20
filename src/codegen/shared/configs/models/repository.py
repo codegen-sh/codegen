@@ -37,3 +37,6 @@ class RepositoryConfig(BaseConfig):
         if self.owner is not None:
             return f"{self.owner}/{self.name}"
         return None
+
+
+DefaultRepoConfig = RepositoryConfig()

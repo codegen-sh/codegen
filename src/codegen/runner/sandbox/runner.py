@@ -12,7 +12,6 @@ from codegen.sdk.codebase.config import ProjectConfig, SessionOptions
 from codegen.sdk.codebase.factory.codebase_factory import CodebaseType
 from codegen.sdk.core.codebase import Codebase
 from codegen.shared.compilation.string_to_code import create_execute_function_from_codeblock
-from codegen.shared.configs.models.codebase import DefaultCodebaseConfig
 from codegen.shared.performance.stopwatch_utils import stopwatch
 
 logger = logging.getLogger(__name__)
@@ -46,7 +45,7 @@ class SandboxRunner:
     async def _build_graph(self) -> Codebase:
         logger.info("> Building graph...")
         projects = [ProjectConfig(programming_language=self.repo.language, repo_operator=self.op, base_path=self.repo.base_path, subdirectories=self.repo.subdirectories)]
-        return Codebase(projects=projects, config=DefaultCodebaseConfig)
+        return Codebase(projects=projects)
 
     @stopwatch
     def reset_runner(self) -> None:

@@ -23,8 +23,8 @@ from codegen.runner.models.apis import (
 )
 from codegen.runner.sandbox.middlewares import CodemodRunMiddleware
 from codegen.runner.sandbox.runner import SandboxRunner
-from codegen.shared.configs.models.repository import repository
-from codegen.shared.configs.models.secrets import secrets
+from codegen.shared.configs.models.repository import DefaultRepoConfig
+from codegen.shared.configs.models.secrets import DefaultSecrets
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 from codegen.shared.performance.memory_utils import get_memory_stats
 
@@ -40,15 +40,15 @@ async def lifespan(server: FastAPI):
     global runner
 
     try:
-        server_info = ServerInfo(repo_name=repository.full_name or repository.name)
+        server_info = ServerInfo(repo_name=DefaultRepoConfig.full_name or DefaultRepoConfig.name)
         logger.info(f"Starting up sandbox fastapi server for repo_name={server_info.repo_name}")
         repo_config = RepoConfig(
-            name=repository.name,
-            full_name=repository.full_name,
-            base_dir=os.path.dirname(repository.path),
-            language=ProgrammingLanguage(repository.language.upper()),
+            name=DefaultRepoConfig.name,
+            full_name=DefaultRepoConfig.full_name,
+            base_dir=os.path.dirname(DefaultRepoConfig.path),
+            language=ProgrammingLanguage(DefaultRepoConfig.language.upper()),
         )
-        runner = SandboxRunner(repo_config=repo_config, access_token=secrets.github_token)
+        runner = SandboxRunner(repo_config=repo_config, access_token=DefaultSecrets.github_token)
         server_info.warmup_state = WarmupState.PENDING
         await runner.warmup()
         server_info.warmup_state = WarmupState.COMPLETED
