@@ -524,7 +524,7 @@ Let's walk through a minimal example of using Codegen in a project:
    ```bash
    .codegen/
    ├── .venv/            # Python virtual environment (gitignored)
-   ├── config.toml       # Project configuration
+   ├── .env              # Project configuration
    ├── codemods/         # Your codemod implementations
    ├── jupyter/          # Jupyter notebooks for exploration
    └── codegen-system-prompt.txt  # AI system prompt
@@ -1386,25 +1386,22 @@ You can customize the behavior of your Codebase instance by passing a `CodebaseC
 
 ```python
 from codegen import Codebase
-from codegen.sdk.codebase.config import CodebaseConfig, GSFeatureFlags, Secrets
+from codegen.shared.configs.models.codebase import CodebaseConfig
+from codegen.shared.configs.models.secrets import SecretsConfig
 
 codebase = Codebase(
     "path/to/repository",
     config=CodebaseConfig(
-        secrets=Secrets(
-            openai_key="your-openai-key"  # For AI-powered features
-        ),
-        feature_flags=GSFeatureFlags(
-            sync_enabled=True,  # Enable graph synchronization
-            ...  # Add other feature flags as needed
-        )
-    )
+        sync_enabled=True,   # Enable graph synchronization
+        ...  # Add other feature flags as needed
+    ),
+    secrets=SecretsConfig(openai_api_key="your-openai-key")     # For AI-powered features
 )
 ```
 
-The `CodebaseConfig` allows you to configure:
-- `secrets`: API keys and other sensitive information needed by the codebase
-- `feature_flags`: Toggle specific features like language engines, dependency management, and graph synchronization
+- `CodebaseConfig` and `SecretsConfig` allow you to configure
+  - `config`: Toggle specific features like language engines, dependency management, and graph synchronization
+  - `secrets`: API keys and other sensitive information needed by the codebase
 
 For a complete list of available feature flags and configuration options, see the [source code on GitHub](https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/codebase/config.py).
 
@@ -1586,7 +1583,7 @@ The `.codegen` directory contains your project's Codegen configuration, codemods
 ```bash
 .codegen/
 ├── .venv/            # Python virtual environment (gitignored)
-├── config.toml       # Project configuration
+├── .env              # Project configuration
 ├── codemods/         # Your codemod implementations
 ├── jupyter/          # Jupyter notebooks for exploration
 └── codegen-system-prompt.txt  # AI system prompt
@@ -1620,12 +1617,12 @@ The environment is created during `codegen init` and used by commands like `code
 
 ### Configuration
 
-The `config.toml` file stores your project settings:
+The `.env` file stores your project settings:
 
-```toml
-organization_name = "your-org"
-repo_name = "your-repo"
-programming_language = "python"  # or other supported language
+```env
+REPOSITORY_OWNER = "your-org"
+REPOSITORY_PATH = "/root/git/your-repo"
+REPOSITORY_LANGUAGE = "python"  # or other supported language
 ```
 
 This configuration is used by Codegen to provide language-specific features and proper repository context.
@@ -1643,7 +1640,7 @@ Codegen automatically adds appropriate entries to your `.gitignore`:
 ```
 
 <Info>
-- While most directories are ignored, your codemods in `.codegen/codemods/` and `config.toml` are tracked in Git
+- While most directories are ignored, your codemods in `.codegen/codemods/` are tracked in Git
 - The virtual environment and Jupyter notebooks are gitignored to avoid environment-specific issues
 </Info>
 

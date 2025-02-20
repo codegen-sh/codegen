@@ -29,7 +29,7 @@ from codegen.sdk._proxy import proxy_property
 from codegen.sdk.ai.client import get_openai_client
 from codegen.sdk.codebase.codebase_ai import generate_system_prompt, generate_tools
 from codegen.sdk.codebase.codebase_context import GLOBAL_FILE_IGNORE_LIST, CodebaseContext
-from codegen.sdk.codebase.config import CodebaseConfig, DefaultConfig, ProjectConfig, SessionOptions
+from codegen.sdk.codebase.config import ProjectConfig, SessionOptions
 from codegen.sdk.codebase.diff_lite import DiffLite
 from codegen.sdk.codebase.flagging.code_flag import CodeFlag
 from codegen.sdk.codebase.flagging.enums import FlagKwargs
@@ -78,6 +78,8 @@ from codegen.sdk.typescript.interface import TSInterface
 from codegen.sdk.typescript.statements.import_statement import TSImportStatement
 from codegen.sdk.typescript.symbol import TSSymbol
 from codegen.sdk.typescript.type_alias import TSTypeAlias
+from codegen.shared.configs.models.codebase import CodebaseConfig, DefaultCodebaseConfig
+from codegen.shared.configs.models.secrets import DefaultSecrets, SecretsConfig
 from codegen.shared.decorators.docs import apidoc, noapidoc, py_noapidoc
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 from codegen.shared.exceptions.control_flow import MaxAIRequestsError
@@ -128,7 +130,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         *,
         language: None = None,
         projects: list[ProjectConfig] | ProjectConfig,
-        config: CodebaseConfig = DefaultConfig,
+        config: CodebaseConfig = DefaultCodebaseConfig,
+        secrets: SecretsConfig = DefaultSecrets,
         io: IO | None = None,
         progress: Progress | None = None,
     ) -> None: ...
@@ -140,7 +143,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         *,
         language: Literal["python", "typescript"] | ProgrammingLanguage | None = None,
         projects: None = None,
-        config: CodebaseConfig = DefaultConfig,
+        config: CodebaseConfig = DefaultCodebaseConfig,
+        secrets: SecretsConfig = DefaultSecrets,
         io: IO | None = None,
         progress: Progress | None = None,
     ) -> None: ...
@@ -151,7 +155,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         *,
         language: Literal["python", "typescript"] | ProgrammingLanguage | None = None,
         projects: list[ProjectConfig] | ProjectConfig | None = None,
-        config: CodebaseConfig = DefaultConfig,
+        config: CodebaseConfig = DefaultCodebaseConfig,
+        secrets: SecretsConfig = DefaultSecrets,
         io: IO | None = None,
         progress: Progress | None = None,
     ) -> None:
@@ -183,7 +188,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         self._op = main_project.repo_operator
         self.viz = VisualizationManager(op=self._op)
         self.repo_path = Path(self._op.repo_path)
-        self.ctx = CodebaseContext(projects, config=config, io=io, progress=progress)
+        self.ctx = CodebaseContext(projects, config=config, secrets=secrets, io=io, progress=progress)
         self.console = Console(record=True, soft_wrap=True)
 
     @noapidoc
@@ -771,7 +776,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         Returns:
             None
         """
-        self.ctx.commit_transactions(sync_graph=sync_graph and self.ctx.config.feature_flags.sync_enabled)
+        self.ctx.commit_transactions(sync_graph=sync_graph and self.ctx.config.sync_enabled)
 
     @noapidoc
     def git_push(self, *args, **kwargs) -> PushInfoList:
@@ -863,7 +868,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         if origin_commit.hexsha == target_commit.hexsha:
             logger.info(f"Codebase is already synced to {target_commit.hexsha}. Skipping sync_to_commit.")
             return
-        if not self.ctx.config.feature_flags.sync_enabled:
+        if not self.ctx.config.sync_enabled:
             logger.info(f"Syncing codebase is disabled for repo {self._op.repo_name}. Skipping sync_to_commit.")
             return
 
@@ -1112,11 +1117,11 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         """Enables calling AI/LLM APIs - re-export of the initialized `openai` module"""
         # Create a singleton AIHelper instance
         if self._ai_helper is None:
-            if self.ctx.config.secrets.openai_api_key is None:
+            if self.ctx.secrets.openai_api_key is None:
                 msg = "OpenAI key is not set"
                 raise ValueError(msg)
 
-            self._ai_helper = get_openai_client(key=self.ctx.config.secrets.openai_api_key)
+            self._ai_helper = get_openai_client(key=self.ctx.secrets.openai_api_key)
         return self._ai_helper
 
     def ai(self, prompt: str, target: Editable | None = None, context: Editable | list[Editable] | dict[str, Editable | list[Editable]] | None = None, model: str = "gpt-4o") -> str:
@@ -1205,7 +1210,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         self._ai_helper = None
 
         # Set the AI key
-        self.ctx.config.secrets.openai_api_key = key
+        self.ctx.secrets.openai_api_key = key
 
     def find_by_span(self, span: Span) -> list[Editable]:
         """Finds editable objects that overlap with the given source code span.
@@ -1252,7 +1257,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         tmp_dir: str | None = "/tmp/codegen",
         commit: str | None = None,
         language: Literal["python", "typescript"] | ProgrammingLanguage | None = None,
-        config: CodebaseConfig = DefaultConfig,
+        config: CodebaseConfig = DefaultCodebaseConfig,
+        secrets: SecretsConfig = DefaultSecrets,
     ) -> "Codebase":
         """Fetches a codebase from GitHub and returns a Codebase instance.
 
@@ -1262,7 +1268,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             commit (Optional[str]): The specific commit hash to clone. Defaults to HEAD
             shallow (bool): Whether to do a shallow clone. Defaults to True
             language (Literal["python", "typescript"] | ProgrammingLanguage | None): The programming language of the repo. Defaults to None.
-            config (CodebaseConfig): Configuration for the codebase. Defaults to DefaultConfig.
+            config (CodebaseConfig): Configuration for the codebase. Defaults to pre-defined defaults.
+            secrets (SecretsConfig): Configuration for the secrets. Defaults to empty values.
 
         Returns:
             Codebase: A Codebase instance initialized with the cloned repository
@@ -1288,16 +1295,16 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             # Use RepoOperator to fetch the repository
             logger.info("Cloning repository...")
             if commit is None:
-                repo_operator = RepoOperator.create_from_repo(repo_path=repo_path, url=repo_url, access_token=config.secrets.github_token if config.secrets else None)
+                repo_operator = RepoOperator.create_from_repo(repo_path=repo_path, url=repo_url, access_token=secrets.github_token)
             else:
                 # Ensure the operator can handle remote operations
-                repo_operator = RepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url, access_token=config.secrets.github_token if config.secrets else None)
+                repo_operator = RepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url, access_token=secrets.github_token)
             logger.info("Clone completed successfully")
 
             # Initialize and return codebase with proper context
             logger.info("Initializing Codebase...")
             project = ProjectConfig.from_repo_operator(repo_operator=repo_operator, programming_language=ProgrammingLanguage(language.upper()) if language else None)
-            codebase = Codebase(projects=[project], config=config)
+            codebase = Codebase(projects=[project], config=config, secrets=secrets)
             logger.info("Codebase initialization complete")
             return codebase
         except Exception as e:

@@ -2,9 +2,8 @@ import json
 
 import codegen
 from codegen import Codebase
-from codegen.sdk.codebase.config import CodebaseConfig
-from codegen.sdk.secrets import Secrets
-from codegen.shared.configs.models.feature_flags import CodebaseFeatureFlags
+from codegen.shared.configs.models.codebase import CodebaseConfig
+from codegen.shared.configs.models.secrets import SecretsConfig
 
 github_token = "Your github token"
 open_ai_key = "your open ai key"
@@ -77,12 +76,8 @@ if __name__ == "__main__":
         "getsentry/sentry",
         shallow=False,
         language="python",
-        config=CodebaseConfig(
-            secrets=Secrets(openai_key=open_ai_key, github_api_key=github_token),
-            feature_flags=CodebaseFeatureFlags(
-                sync_enabled=True,
-            ),
-        ),
+        config=CodebaseConfig(sync_enabled=True),
+        secrets=SecretsConfig(openai_api_key=open_ai_key, github_token=github_token),
     )
     review = run(codebase)
     print(review)

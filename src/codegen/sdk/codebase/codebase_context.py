@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 
 from rustworkx import PyDiGraph, WeightedEdgeList
 
-from codegen.sdk.codebase.config import CodebaseConfig, DefaultConfig, ProjectConfig, SessionOptions
+from codegen.sdk.codebase.config import ProjectConfig, SessionOptions
 from codegen.sdk.codebase.config_parser import ConfigParser, get_config_parser_for_language
 from codegen.sdk.codebase.diff_lite import ChangeType, DiffLite
 from codegen.sdk.codebase.flagging.flags import Flags
@@ -27,6 +27,8 @@ from codegen.sdk.enums import Edge, EdgeType, NodeType
 from codegen.sdk.extensions.sort import sort_editables
 from codegen.sdk.extensions.utils import uncache_all
 from codegen.sdk.typescript.external.ts_declassify.ts_declassify import TSDeclassify
+from codegen.shared.configs.models.codebase import DefaultCodebaseConfig
+from codegen.shared.configs.models.secrets import DefaultSecrets, SecretsConfig
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 from codegen.shared.exceptions.control_flow import StopCodemodException
 from codegen.shared.performance.stopwatch_utils import stopwatch, stopwatch_with_sentry
@@ -48,6 +50,7 @@ if TYPE_CHECKING:
     from codegen.sdk.core.interfaces.importable import Importable
     from codegen.sdk.core.node_id_factory import NodeId
     from codegen.sdk.core.parser import Parser
+    from codegen.shared.configs.models.codebase import CodebaseConfig
 
 import logging
 
@@ -99,6 +102,7 @@ class CodebaseContext:
     repo_name: str
     codeowners_parser: CodeOwnersParser | None
     config: CodebaseConfig
+    secrets: SecretsConfig
 
     # =====[ computed attributes ]=====
     transaction_manager: TransactionManager
@@ -128,7 +132,8 @@ class CodebaseContext:
     def __init__(
         self,
         projects: list[ProjectConfig],
-        config: CodebaseConfig = DefaultConfig,
+        config: CodebaseConfig = DefaultCodebaseConfig,
+        secrets: SecretsConfig = DefaultSecrets,
         io: IO | None = None,
         progress: Progress | None = None,
     ) -> None:
@@ -155,6 +160,7 @@ class CodebaseContext:
         context = projects[0]
         self.node_classes = get_node_classes(context.programming_language)
         self.config = config
+        self.secrets = secrets
         self.repo_name = context.repo_operator.repo_name
         self.repo_path = str(Path(context.repo_operator.repo_path).resolve())
         self.full_path = os.path.join(self.repo_path, context.base_path) if context.base_path else self.repo_path
@@ -166,7 +172,7 @@ class CodebaseContext:
         self.init_nodes = None
         self.init_edges = None
         self.directories = dict()
-        self.parser = Parser.from_node_classes(self.node_classes, log_parse_warnings=config.feature_flags.debug)
+        self.parser = Parser.from_node_classes(self.node_classes, log_parse_warnings=config.debug)
         self.extensions = self.node_classes.file_cls.get_extensions()
         # ORDER IS IMPORTANT HERE!
         self.config_parser = get_config_parser_for_language(context.programming_language, self)
@@ -209,7 +215,7 @@ class CodebaseContext:
         files: list[SourceFile] = self.get_nodes(NodeType.FILE)
         logger.info(f"> Found {len(files)} files")
         logger.info(f"> Found {len(self.nodes)} nodes and {len(self.edges)} edges")
-        if self.config.feature_flags.track_graph:
+        if self.config.track_graph:
             self.old_graph = self._graph.copy()
 
     @stopwatch
@@ -315,7 +321,7 @@ class CodebaseContext:
         self.apply_diffs(reversed_diff_list)
         # ====== [ Re-resolve lost edges from previous syncs ] ======
         self.prune_graph()
-        if self.config.feature_flags.verify_graph:
+        if self.config.verify_graph:
             post_reset_validation(self.old_graph.nodes(), self._graph.nodes(), get_edges(self.old_graph), get_edges(self._graph), self.repo_name, self.projects[0].subdirectories)
 
     def save_commit(self, commit: GitCommit) -> None:
@@ -324,7 +330,7 @@ class CodebaseContext:
             self.all_syncs.clear()
             self.unapplied_diffs.clear()
             self.synced_commit = commit
-            if self.config.feature_flags.verify_graph:
+            if self.config.verify_graph:
                 self.old_graph = self._graph.copy()
 
     @stopwatch
@@ -432,9 +438,9 @@ class CodebaseContext:
 
         # Step 1: Wait for dependency manager and language engines to finish before graph construction
         if self.dependency_manager is not None:
-            self.dependency_manager.wait_until_ready(ignore_error=self.config.feature_flags.ignore_process_errors)
+            self.dependency_manager.wait_until_ready(ignore_error=self.config.ignore_process_errors)
         if self.language_engine is not None:
-            self.language_engine.wait_until_ready(ignore_error=self.config.feature_flags.ignore_process_errors)
+            self.language_engine.wait_until_ready(ignore_error=self.config.ignore_process_errors)
 
         # ====== [ Refresh the graph] ========
         # Step 2: For any files that no longer exist, remove them during the sync
@@ -515,7 +521,7 @@ class CodebaseContext:
         if not skip_uncache:
             uncache_all()
 
-        if self.config.feature_flags.disable_graph:
+        if self.config.disable_graph:
             logger.warning("Graph generation is disabled. Skipping import and symbol resolution")
             self._computing = False
         else:
@@ -618,20 +624,20 @@ class CodebaseContext:
             return self.get_node(node_id)
 
     def add_node(self, node: Importable) -> int:
-        if self.config.feature_flags.debug:
+        if self.config.debug:
             if self._graph.find_node_by_weight(node.__eq__):
                 msg = "Node already exists"
                 raise Exception(msg)
-        if self.config.feature_flags.debug and self._computing and node.node_type != NodeType.EXTERNAL:
+        if self.config.debug and self._computing and node.node_type != NodeType.EXTERNAL:
             assert False, f"Adding node during compute dependencies: {node!r}"
         return self._graph.add_node(node)
 
     def add_child(self, parent: NodeId, node: Importable, type: EdgeType, usage: Usage | None = None) -> int:
-        if self.config.feature_flags.debug:
+        if self.config.debug:
             if self._graph.find_node_by_weight(node.__eq__):
                 msg = "Node already exists"
                 raise Exception(msg)
-        if self.config.feature_flags.debug and self._computing and node.node_type != NodeType.EXTERNAL:
+        if self.config.debug and self._computing and node.node_type != NodeType.EXTERNAL:
             assert False, f"Adding node during compute dependencies: {node!r}"
         return self._graph.add_child(parent, node, Edge(type, usage))
 
@@ -643,14 +649,14 @@ class CodebaseContext:
 
     def add_edge(self, u: NodeId, v: NodeId, type: EdgeType, usage: Usage | None = None) -> None:
         edge = Edge(type, usage)
-        if self.config.feature_flags.debug:
+        if self.config.debug:
             assert self._graph.has_node(u)
             assert self._graph.has_node(v), v
             assert not self.has_edge(u, v, edge), (u, v, edge)
         self._graph.add_edge(u, v, edge)
 
     def add_edges(self, edges: list[tuple[NodeId, NodeId, Edge]]) -> None:
-        if self.config.feature_flags.debug:
+        if self.config.debug:
             for u, v, edge in edges:
                 assert self._graph.has_node(u)
                 assert self._graph.has_node(v), v

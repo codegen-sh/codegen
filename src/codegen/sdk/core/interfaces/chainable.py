@@ -45,7 +45,7 @@ class Chainable(Editable[Parent], Generic[Parent]):
         assert resolution is not self
         generics = generics or resolution.generics
         if generic_parameters:
-            if isinstance(resolution.top.node, SupportsGenerics) and self.ctx.config.feature_flags.generics:
+            if isinstance(resolution.top.node, SupportsGenerics) and self.ctx.config.generics:
                 generics = {k: v for v, k in zip(generic_parameters, resolution.top.node.generics)}
             elif not generics:
                 generics = {i: v for i, v in enumerate(generic_parameters)}

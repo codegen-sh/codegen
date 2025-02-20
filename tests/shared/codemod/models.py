@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, NamedTuple
 from pydantic import BaseModel, ConfigDict
 
 from codegen.git.repo_operator.repo_operator import RepoOperator
-from codegen.shared.configs.models.feature_flags import CodebaseFeatureFlags
+from codegen.shared.configs.models.codebase import CodebaseConfig
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 from tests.shared.codemod.constants import DIFF_FILEPATH
 from tests.shared.codemod.verified_codemod_utils import CodemodAPI
@@ -54,7 +54,7 @@ class Repo(BaseModel):
     repo_id: int | None = None
     priority: int = 0
     base_path: str | None = None
-    feature_flags: CodebaseFeatureFlags | None = None
+    config: CodebaseConfig | None = None
 
     @classmethod
     def from_json(cls, json_str: str) -> "Repo":

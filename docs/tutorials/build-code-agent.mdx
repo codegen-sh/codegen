@@ -1,205 +1,146 @@
 ---
-title: "Building a Code Agent with LangChain"
+title: "Building Code Agents"
 sidebarTitle: "Code Agent"
 icon: "robot"
 iconType: "solid"
 ---
 
-This guide demonstrates how to build an intelligent code agent that can analyze and manipulate codebases using Codegen's LangChain integration. 
-
-This agent access to powerful code viewing and manipulation tools powered by Codegen, including:
-- `RevealSymbolTool`: reveal all N-th degree dependencies and usages of a function
-- `MoveSymbolTool`: move a symbol between files, updating all imports etc. (guaranteed correctness)
-- `SemanticEditTool`: implementation of Cursor-style smart file editing
-- `SemanticSearchTool`: search over an index of vector embeddings for files
-
-<Info>View the full code for the default tools and agent implementation in our [examples repository](https://github.com/codegen-sh/codegen-sdk/tree/develop/src/codegen/extensions/langchain)</Info>
-
-# Agent Starter Code
-
-Below is a code snippet you can run as-is to solve SWE bench issues.
+This guide demonstrates how to build an intelligent code agent that can analyze and manipulate codebases.
 
 ```python
-from codegen import Codebase
-from codegen.extensions.langchain.agent import create_agent_with_tools
-from codegen.extensions.langchain.tools import (
-    CreateFileTool,
-    DeleteFileTool,
-    EditFileTool,
-    ListDirectoryTool,
-    MoveSymbolTool,
-    RenameFileTool,
-    RevealSymbolTool,
-    SearchTool,
-    SemanticEditTool,
-    ViewFileTool,
-)
+from codegen import CodeAgent, Codebase
 
-# Parse Codebase
-# Using a repo + commit from SWE-Bench
-codebase = Codebase.from_repo('sqlfluff/sqlfluff', commit='a820c139ccbe6d1865d73c4a459945cd69899f8f', language='python')
+# Grab a repo from Github
+codebase = Codebase.from_repo('fastapi/fastapi')
 
-# Define tools
-tools = [
-    ViewFileTool(codebase),      # View file contents
-    ListDirectoryTool(codebase),  # List directory contents
-    SearchTool(codebase),        # Search code
-    EditFileTool(codebase),      # Edit files
-    CreateFileTool(codebase),    # Create new files
-    DeleteFileTool(codebase),    # Delete files
-    RenameFileTool(codebase),    # Rename files
-    MoveSymbolTool(codebase),    # Move functions/classes
-    RevealSymbolTool(codebase),  # Analyze symbol relationships
-    SemanticEditTool(codebase),  # Make semantic edits
-]
+# Create a code agent with read/write codebase access
+agent = CodeAgent(codebase)
 
-
-agent = create_agent_with_tools(codebase, tools)
-
-# Using a prompt from SWE Bench
-issue = """Enable quiet mode/no-verbose in CLI for use in pre-commit hook There seems to be only an option to increase the level of verbosity when using SQLFluff [CLI](https://docs.sqlfluff.com/en/stable/cli.html), not to limit it further. It would be great to have an option to further limit the amount of prints when running `sqlfluff fix`, especially in combination with deployment using a pre-commit hook. For example, only print the return status and the number of fixes applied, similar to how it is when using `black` in a pre-commit hook: ![image](https://user-images.githubusercontent.com/10177212/140480676-dc98d00b-4383-44f2-bb90-3301a6eedec2.png) This hides the potentially long list of fixes that are being applied to the SQL files, which can get quite verbose."""
-prompt = f"""
-Hey CodegenBot!
-
-Here's a SWE task for you. Please solve this task diligently.
-
->>>>> ISSUE TEXT <<<<<
-{issue}
->>>>> ISSUE TEXT <<<<<
-
-Godspeed, CodegenBot! 🚀
-"""
-
-# Run the agent
-result = agent.invoke(
-    {'input': prompt},
-    config={"configurable": {"session_id": "demo"}}
-)
+# Run the agent with a prompt
+agent.run("Tell me about this repo")
 ```
 
-## Step 1: Tool Configuration
+The agent has access to powerful code viewing and manipulation tools powered by Codegen, including:
+- `ViewFileTool`: View contents and metadata of files
+- `SemanticSearchTool`: Search over code using natural language queries
+- `SemanticEditTool`: Make intelligent edits to files
+- `RevealSymbolTool`: Analyze symbol dependencies and usages
+- `MoveSymbolTool`: Move symbols between files with import handling
+- And many more...
 
-The agent comes with several built-in tools for code operations:
+<Info>View the full code for the default tools and agent implementation in our [examples repository](https://github.com/codegen-sh/codegen-sdk/tree/develop/src/codegen/extensions/langchain/tools)</Info>
+
+# Basic Usage
+
+The following example shows how to create and run a `CodeAgent`:
+
+```python
+from codegen import CodeAgent, Codebase
+
+# Grab a repo from Github
+codebase = Codebase.from_repo('fastapi/fastapi')
+
+# Create a code agent with read/write codebase access
+agent = CodeAgent(codebase)
+
+# Run the agent with a prompt
+agent.run("Tell me about this repo")
+```
+<Note>Your `ANTHROPIC_API_KEY` must be set in your env.</Note>
+
+# Available Tools
+
+The agent comes with a comprehensive set of tools for code analysis and manipulation. Here are some key tools:
 
 ```python
 from codegen.extensions.langchain.tools import (
+    ViewFileTool,
+    SemanticSearchTool, 
+    SemanticEditTool,
+    RevealSymbolTool,
+    MoveSymbolTool,
+    EditFileTool,
     CreateFileTool,
     DeleteFileTool,
-    EditFileTool,
     ListDirectoryTool,
-    MoveSymbolTool,
-    RenameFileTool,
-    RevealSymbolTool,
     SearchTool,
-    SemanticEditTool,
-    ViewFileTool,
 )
-
-tools = [
-    ViewFileTool(codebase),      # View file contents
-    ListDirectoryTool(codebase),  # List directory contents
-    SearchTool(codebase),        # Search code
-    EditFileTool(codebase),      # Edit files
-    CreateFileTool(codebase),    # Create new files
-    DeleteFileTool(codebase),    # Delete files
-    RenameFileTool(codebase),    # Rename files
-    MoveSymbolTool(codebase),    # Move functions/classes
-    RevealSymbolTool(codebase),  # Analyze symbol relationships
-    SemanticEditTool(codebase),  # Make semantic edits
-]
 ```
 
-## Step 2: Setting Up the Agent
+<Note>View the full set of [tools on Github](https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/extensions/langchain/tools.py)</Note>
 
-You can create an agent using `create_agent_with_tools`:
+Each tool provides specific capabilities:
+
+# Extensions
+
+## GitHub Integration
+
+The agent includes tools for GitHub operations like PR management. Set up GitHub access with:
+
+```bash
+CODEGEN_SECRETS__GITHUB_TOKEN="..."
+```
+
+Import the GitHub tools:
 
 ```python
-from langchain_openai import ChatOpenAI
-from codegen import Codebase
-from codegen.extensions.langchain.agent import create_agent_with_tools
-
-# Create the agent with GPT-4
-agent = create_agent_with_tools(codebase=codebase, tools=tools)
+from codegen.extensions.langchain.tools import (
+    GithubCreatePRTool,
+    GithubViewPRTool,
+    GithubCreatePRCommentTool,
+    GithubCreatePRReviewCommentTool
+)
 ```
 
-The agent is initialized with:
-- A Codebase instance to operate on
-- An LLM (GPT-4o in this case)
-- Tools for code manipulation
-- A conversation memory to maintain context
+These tools enable:
+- Creating pull requests
+- Viewing PR contents and diffs
+- Adding general PR comments
+- Adding inline review comments
+
+<Note>View all Github tools on [Github](https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/extensions/langchain/tools.py)</Note>
 
 
+## Linear Integration
 
-Each tool provides specific capabilities to the agent, allowing it to perform complex code operations.
+The agent can interact with Linear for issue tracking and project management. To use Linear tools, set the following environment variables:
 
-## Step 3: Interacting with the Agent
+```bash
+LINEAR_ACCESS_TOKEN="..."
+LINEAR_TEAM_ID="..."
+LINEAR_SIGNING_SECRET="..."
+```
 
-Let's see some examples of how to interact with the agent:
+Import and use the Linear tools:
 
 ```python
-# Analyze dependencies
-result = agent.invoke(
-    {"input": "What are the dependencies of the FastAPI class?"},
-    config={"configurable": {"session_id": "demo"}}
-)
-print(result["output"])
-
-# Find usage patterns
-result = agent.invoke(
-    {"input": "Show me examples of dependency injection in the codebase"},
-    config={"configurable": {"session_id": "demo"}}
-)
-print(result["output"])
-
-# Perform code analysis
-result = agent.invoke(
-    {"input": "What's the most complex function in terms of dependencies?"},
-    config={"configurable": {"session_id": "demo"}}
-)
-print(result["output"])
-```
-
-The agent maintains conversation history, so it can reference previous queries and build context over time.
-
-## Step 4: Code Manipulation
-
-The agent can also perform code changes:
-
-```python
-# Move a function to a new file
-result = agent.invoke(
-    {"input": "Move the validate_email function to validation_utils.py"},
-    config={"configurable": {"session_id": "demo"}}
-)
-
-# Rename a class and update all references
-result = agent.invoke(
-    {"input": "Rename the UserModel class to User and update all imports"},
-    config={"configurable": {"session_id": "demo"}}
-)
-
-# Add error handling
-result = agent.invoke(
-    {"input": "Add proper error handling to the process_data function"},
-    config={"configurable": {"session_id": "demo"}}
+from codegen.extensions.langchain.tools import (
+    LinearGetIssueTool,
+    LinearGetIssueCommentsTool,
+    LinearCommentOnIssueTool,
+    LinearSearchIssuesTool,
+    LinearCreateIssueTool,
+    LinearGetTeamsTool
 )
 ```
 
-The agent will:
-1. Analyze the current code state
-2. Plan the necessary changes
-3. Execute the changes while maintaining code correctness
-4. Update all related imports and references
+These tools allow the agent to:
+- Create and search issues
+- Get issue details and comments
+- Add comments to issues
+- View team information
 
-## Advanced Usage
+<Note>View all Linear tools on [Github](https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/extensions/langchain/tools.py)</Note>
 
-### Adding Custom Tools
+
+## Adding Custom Tools
 
 You can extend the agent with custom tools:
 
 ```python
 from langchain.tools import BaseTool
 from pydantic import BaseModel, Field
+from codegen import CodeAgent
 
 class CustomToolInput(BaseModel):
     """Input schema for custom tool."""
@@ -217,9 +158,5 @@ class CustomCodeTool(BaseTool):
 
 # Add custom tool to agent
 tools.append(CustomCodeTool())
-agent = create_codebase_agent(
-    codebase=codebase,
-    tools=tools,
-    model_name="gpt-4o"
-)
+agent = CodebaseAgent(codebase, tools=tools, model_name="gpt-4o")
 ```

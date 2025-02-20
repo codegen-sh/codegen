@@ -3,7 +3,6 @@ import fnmatch
 import glob
 import logging
 import os
-from abc import ABC
 from collections.abc import Generator
 from datetime import UTC, datetime
 from functools import cached_property
@@ -27,14 +26,14 @@ from codegen.git.utils.clone_url import add_access_token_to_url, get_authenticat
 from codegen.git.utils.codeowner_utils import create_codeowners_parser_for_repo
 from codegen.git.utils.file_utils import create_files
 from codegen.git.utils.remote_progress import CustomRemoteProgress
-from codegen.shared.configs.session_configs import config
+from codegen.shared.configs.models.secrets import DefaultSecrets
 from codegen.shared.performance.stopwatch_utils import stopwatch
 from codegen.shared.performance.time_utils import humanize_duration
 
 logger = logging.getLogger(__name__)
 
 
-class RepoOperator(ABC):
+class RepoOperator:
     """A wrapper around GitPython to make it easier to interact with a repo."""
 
     repo_config: RepoConfig
@@ -58,7 +57,7 @@ class RepoOperator(ABC):
     ) -> None:
         assert repo_config is not None
         self.repo_config = repo_config
-        self.access_token = access_token or config.secrets.github_token
+        self.access_token = access_token or DefaultSecrets.github_token
         self.base_dir = repo_config.base_dir
         self.bot_commit = bot_commit
 
@@ -839,7 +838,7 @@ class RepoOperator(ABC):
             url (str): Git URL of the repository
             access_token (str | None): Optional GitHub API key for operations that need GitHub access
         """
-        access_token = access_token or config.secrets.github_token
+        access_token = access_token or DefaultSecrets.github_token
         if access_token:
             url = add_access_token_to_url(url=url, token=access_token)
 

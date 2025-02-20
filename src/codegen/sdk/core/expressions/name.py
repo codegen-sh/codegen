@@ -39,7 +39,7 @@ class Name(Expression[Parent], Resolvable, Generic[Parent]):
         edges = []
         for used_frame in self.resolved_type_frames:
             edges.extend(used_frame.get_edges(self, usage_type, dest, self.ctx))
-        if self.ctx.config.feature_flags.debug:
+        if self.ctx.config.debug:
             edges = list(dict.fromkeys(edges))
         self.ctx.add_edges(edges)
 

@@ -97,7 +97,7 @@ def modify_gitignore(codegen_folder: Path):
     """Update .gitignore to track only specific Codegen files."""
     gitignore_path = codegen_folder / ".gitignore"
 
-    # Define what should be ignored (everything except config.toml and codemods)
+    # Define what should be ignored (everything except codemods)
     ignore_patterns = [
         "# Codegen",
         "docs/",
@@ -105,6 +105,7 @@ def modify_gitignore(codegen_folder: Path):
         "prompts/",
         "jupyter/",
         ".venv/",  # Add venv to gitignore
+        ".env",
         "codegen-system-prompt.txt",
         "",
         "# Python cache files",
@@ -114,15 +115,14 @@ def modify_gitignore(codegen_folder: Path):
         "*.txt",
         "*.pyc",
         "",
-        "# Keep config.toml and codemods",
-        "!config.toml",
+        "# Keep codemods",
         "!codemods/",
         "!codemods/**",
     ]
 
     # Write or update .gitignore
     if not gitignore_path.exists():
-        gitignore_path.write_text("\n".join(ignore_patterns))
+        gitignore_path.write_text("\n".join(ignore_patterns) + "\n")
     else:
         # Read existing content
         content = gitignore_path.read_text()

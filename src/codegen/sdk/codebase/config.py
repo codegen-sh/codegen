@@ -9,8 +9,7 @@ from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.git.utils.file_utils import split_git_path
 from codegen.git.utils.language import determine_project_language
-from codegen.shared.configs.models.feature_flags import CodebaseFeatureFlags
-from codegen.shared.configs.models.secrets import SecretsConfig
+from codegen.shared.configs.models.codebase import DefaultCodebaseConfig
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 HARD_MAX_AI_LIMIT = 500  # Global limit for AI requests
@@ -25,10 +24,9 @@ class SessionOptions(BaseModel):
     max_ai_requests: int = Field(default=150, le=HARD_MAX_AI_LIMIT)
 
 
-DefaultFlags = CodebaseFeatureFlags(sync_enabled=False)
-TestFlags = CodebaseFeatureFlags(debug=True, track_graph=True, verify_graph=True, full_range_index=True)
-LintFlags = CodebaseFeatureFlags(method_usages=False)
-ParseTestFlags = CodebaseFeatureFlags(debug=False, track_graph=False)
+TestFlags = DefaultCodebaseConfig.model_copy(update=dict(debug=True, track_graph=True, verify_graph=True, full_range_index=True, sync_enabled=True))
+LintFlags = DefaultCodebaseConfig.model_copy(update=dict(method_usages=False, sync_enabled=True))
+ParseTestFlags = DefaultCodebaseConfig.model_copy(update=dict(debug=False, track_graph=False, sync_enabled=True))
 
 
 class ProjectConfig(BaseModel):
@@ -68,16 +66,3 @@ class ProjectConfig(BaseModel):
             base_path=base_path,
             subdirectories=[base_path] if base_path else None,
         )
-
-
-class CodebaseConfig(BaseModel):
-    """Configuration for a Codebase. There can be 1 -> many codebases in a single repo
-    TODO: replace with a DB model (move codebase columns off of RepoModel)
-    """
-
-    model_config = ConfigDict(frozen=True)
-    secrets: SecretsConfig = SecretsConfig()
-    feature_flags: CodebaseFeatureFlags = DefaultFlags
-
-
-DefaultConfig = CodebaseConfig()

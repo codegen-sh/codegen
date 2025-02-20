@@ -8,12 +8,10 @@ from codegen.git.schemas.enums import SetupOption
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.runner.models.apis import CreateBranchRequest, CreateBranchResponse, GetDiffRequest, GetDiffResponse
 from codegen.runner.sandbox.executor import SandboxExecutor
-from codegen.sdk.codebase.config import CodebaseConfig, ProjectConfig, SessionOptions
+from codegen.sdk.codebase.config import ProjectConfig, SessionOptions
 from codegen.sdk.codebase.factory.codebase_factory import CodebaseType
 from codegen.sdk.core.codebase import Codebase
 from codegen.shared.compilation.string_to_code import create_execute_function_from_codeblock
-from codegen.shared.configs.models.secrets import SecretsConfig
-from codegen.shared.configs.session_configs import config
 from codegen.shared.performance.stopwatch_utils import stopwatch
 
 logger = logging.getLogger(__name__)
@@ -47,9 +45,7 @@ class SandboxRunner:
     async def _build_graph(self) -> Codebase:
         logger.info("> Building graph...")
         projects = [ProjectConfig(programming_language=self.repo.language, repo_operator=self.op, base_path=self.repo.base_path, subdirectories=self.repo.subdirectories)]
-        secrets = SecretsConfig(openai_api_key=config.secrets.openai_api_key)
-        codebase_config = CodebaseConfig(secrets=secrets, feature_flags=config.feature_flags.codebase)
-        return Codebase(projects=projects, config=codebase_config)
+        return Codebase(projects=projects)
 
     @stopwatch
     def reset_runner(self) -> None:

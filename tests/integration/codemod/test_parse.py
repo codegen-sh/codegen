@@ -6,9 +6,10 @@ import psutil
 import pytest
 
 from codegen.git.repo_operator.repo_operator import RepoOperator
-from codegen.sdk.codebase.config import CodebaseConfig, DefaultFlags, ProjectConfig
+from codegen.sdk.codebase.config import ProjectConfig
 from codegen.sdk.codebase.validation import PostInitValidationStatus, post_init_validation
 from codegen.sdk.core.codebase import Codebase
+from codegen.shared.configs.models.codebase import DefaultCodebaseConfig
 from tests.shared.codemod.models import Repo
 from tests.shared.utils.recursion import set_recursion_limit
 
@@ -20,26 +21,19 @@ logger = logging.getLogger(__name__)
 @pytest.mark.timeout(60 * 12, func_only=True)
 def test_codemods_parse(repo: Repo, op: RepoOperator, request) -> None:
     # Setup Feature Flags
-    if repo.feature_flags is not None:
-        feature_flags = repo.feature_flags
-    else:
-        feature_flags = DefaultFlags
-
     sync = request.config.getoption("sync-graph").lower() == "true"
     log_parse = request.config.getoption("log-parse").lower() == "true"
-    # Update feature flags using model_copy(), since the original are frozen
-    feature_flags = feature_flags.model_copy(
-        update={
-            "verify_graph": sync,  # Override default for sync/verify_graph
-            "debug": log_parse,  # Override default for debug
-            "ignore_process_errors": False,  # Force errors to be raised for testing
-        }
-    )
+    if repo.config is not None:
+        codebase_config = repo.config
+    else:
+        codebase_config = DefaultCodebaseConfig
+
+    codebase_config = codebase_config.model_copy(update={"verify_graph": sync, "debug": log_parse, "ignore_process_errors": False})
+
     set_recursion_limit()
     # Setup Codebase
-    config = CodebaseConfig(feature_flags=feature_flags)
     projects = [ProjectConfig(repo_operator=op, programming_language=repo.language, subdirectories=repo.subdirectories)]
-    codebase = Codebase(projects=projects, config=config)
+    codebase = Codebase(projects=projects, config=codebase_config)
     process = psutil.Process(os.getpid())
     memory_used = process.memory_info().rss
     logger.info(f"Using {memory_used / BYTES_IN_GIGABYTE} GB of memory.")

@@ -3,9 +3,7 @@ import subprocess
 from pathlib import Path
 
 import codegen
-from codegen import Codebase
 from codegen.sdk.core.detached_symbols.function_call import FunctionCall
-from codegen.shared.configs.models.feature_flags import CodebaseFeatureFlags
 
 
 def should_process_join_call(call, soft_delete_models, join_methods):
@@ -93,7 +91,7 @@ def process_soft_deletes(codebase):
 
 if __name__ == "__main__":
     from codegen import Codebase
-    from codegen.sdk.codebase.config import CodebaseConfig
+    from codegen.shared.configs.models.codebase import CodebaseConfig
 
     repo_path = Path("/tmp/core")
     repo_url = "https://github.com/hasgeek/funnel.git"
@@ -101,7 +99,7 @@ if __name__ == "__main__":
     try:
         clone_repo(repo_url, repo_path)
         subprocess.run(["git", "-C", str(repo_path), "checkout", "8454e15"], check=True)
-        codebase = Codebase(str(repo_path), language="python", config=CodebaseConfig(feature_flags=CodebaseFeatureFlags(disable_graph=True)))
+        codebase = Codebase(str(repo_path), language="python", config=CodebaseConfig(disable_graph=True))
         process_soft_deletes(codebase)
     finally:
         shutil.rmtree(repo_path)

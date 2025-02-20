@@ -50,7 +50,6 @@ dependencies = [
   "pygit2>=1.16.0",
   "unidiff>=0.7.5",
   "datamodel-code-generator>=0.26.5",
-  "toml>=0.10.2",
   "PyGithub==2.6.0",
   "GitPython==3.1.44",
   "psutil>=5.8.0",
@@ -141,7 +140,6 @@ dev-dependencies = [
   "pre-commit-uv>=4.1.4",
   "austin-dist>=3.7.0",
   "uv>=0.4.25",
-  "cython>=3.0.11",
   "deptry>=0.22.0",
   "cibuildwheel[uv]>=2.22.0",
   "sybil[pytest]>=9.0.0",
@@ -158,6 +156,7 @@ dev-dependencies = [
   "jupyterlab>=4.3.5",
   "modal>=0.73.25",
   "pytest-lsp>=1.0.0b1",
+  "cython>=3.0.11",
 ]
 
 [tool.uv.workspace]

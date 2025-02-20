@@ -6,10 +6,10 @@ from unittest.mock import MagicMock
 import pytest
 
 from codegen.sdk.codebase.codebase_context import CodebaseContext
-from codegen.sdk.codebase.config import CodebaseConfig
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
 from codegen.sdk.core.directory import Directory
 from codegen.sdk.core.file import File
+from codegen.shared.configs.models.codebase import DefaultCodebaseConfig
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
@@ -17,7 +17,7 @@ from codegen.shared.enums.programming_language import ProgrammingLanguage
 def mock_codebase_context(tmp_path):
     mock = MagicMock(spec=CodebaseContext)
     mock.transaction_manager = MagicMock()
-    mock.config = CodebaseConfig()
+    mock.config = DefaultCodebaseConfig
     mock.repo_path = tmp_path
     mock.to_absolute = types.MethodType(CodebaseContext.to_absolute, mock)
     mock.to_relative = types.MethodType(CodebaseContext.to_relative, mock)

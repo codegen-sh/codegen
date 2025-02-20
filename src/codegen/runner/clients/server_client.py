@@ -57,7 +57,7 @@ class LocalServerClient:
         )
         self._wait_for_server()
 
-    def _wait_for_server(self, timeout: int = 10, interval: float = 0.1) -> None:
+    def _wait_for_server(self, timeout: int = 30, interval: float = 0.3) -> None:
         """Wait for the server to start by polling the health endpoint"""
         start_time = time.time()
         while (time.time() - start_time) < timeout:

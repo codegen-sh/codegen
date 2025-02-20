@@ -12,9 +12,9 @@ from codegen.sdk.core.codebase import Codebase
 @pytest.fixture
 def client() -> LinearClient:
     """Create a Linear client for testing."""
-    token = os.getenv("CODEGEN_SECRETS__GITHUB_TOKEN")
+    token = os.getenv("SECRETS_GITHUB_TOKEN")
     if not token:
-        pytest.skip("CODEGEN_SECRETS__GITHUB_TOKEN environment variable not set")
+        pytest.skip("SECRETS_GITHUB_TOKEN environment variable not set")
     codebase = Codebase.from_repo("codegen-sh/Kevin-s-Adventure-Game")
     return codebase
 

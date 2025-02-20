@@ -4,16 +4,16 @@ examples/
 prompts/
 jupyter/
 .venv/
+.env
 codegen-system-prompt.txt
-*.txt
-*.pyc
 
 # Python cache files
 __pycache__/
 *.py[cod]
 *$py.class
+*.txt
+*.pyc
 
-# Keep config.toml and codemods
-!config.toml
+# Keep codemods
 !codemods/
 !codemods/**

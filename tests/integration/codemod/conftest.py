@@ -11,9 +11,9 @@ from _pytest.python import Metafunc
 from pyinstrument import Profiler
 
 from codegen.git.repo_operator.repo_operator import RepoOperator
-from codegen.sdk.codebase.config import CodebaseConfig, ProjectConfig
+from codegen.sdk.codebase.config import ProjectConfig
 from codegen.sdk.core.codebase import Codebase
-from codegen.shared.configs.models.feature_flags import CodebaseFeatureFlags
+from codegen.shared.configs.models.codebase import CodebaseConfig
 from tests.shared.codemod.constants import DIFF_FILEPATH
 from tests.shared.codemod.models import BASE_PATH, BASE_TMP_DIR, VERIFIED_CODEMOD_DIFFS, CodemodMetadata, Repo, Size
 from tests.shared.codemod.test_discovery import find_codemod_test_cases, find_repos, find_verified_codemod_cases
@@ -142,10 +142,10 @@ Codebases: dict[str, Codebase] = {}
 def _codebase(repo: Repo, op: RepoOperator, request) -> YieldFixture[Codebase]:
     sync = request.config.getoption("sync-graph").lower() == "true"
     log_parse = request.config.getoption("log-parse").lower() == "true"
-    feature_flags = CodebaseFeatureFlags(verify_graph=sync, debug=log_parse)
+    configs = CodebaseConfig(verify_graph=sync, debug=log_parse)
     if repo.name not in Codebases:
         projects = [ProjectConfig(repo_operator=op, programming_language=repo.language, subdirectories=repo.subdirectories, base_path=repo.base_path)]
-        Codebases[repo.name] = Codebase(projects=projects, config=CodebaseConfig(feature_flags=feature_flags))
+        Codebases[repo.name] = Codebase(projects=projects, config=configs)
     codebase = Codebases[repo.name]
     codebase.reset(git_reset=True)
     yield codebase
