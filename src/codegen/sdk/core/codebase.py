@@ -1311,6 +1311,9 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         patch = cg_pr.get_pr_diff()
         return cg_pr.modified_symbols, patch
 
+    def create_pr_comment(self, pr_number: int, body: str) -> None:
+        """Create a comment on a pull request"""
+        return self._op.create_pr_comment(pr_number, body)
 
 # The last 2 lines of code are added to the runner. See codegen-backend/cli/generate/utils.py
 # Type Aliases

@@ -1,4 +1,5 @@
 """Demo implementation of an agent with Codegen tools."""
+from typing import Optional
 
 from langchain.agents import AgentExecutor, create_tool_calling_agent
 from langchain.agents.openai_functions_agent.base import OpenAIFunctionsAgent
@@ -34,6 +35,8 @@ def create_codebase_agent(
     temperature: float = 0,
     verbose: bool = True,
     chat_history: list[BaseMessage] = [],
+    additional_tools: Optional[list[BaseTool]] = None,
+
 ) -> RunnableWithMessageHistory:
     """Create an agent with all codebase tools.
 
@@ -42,13 +45,15 @@ def create_codebase_agent(
         model_name: Name of the model to use (default: gpt-4)
         temperature: Model temperature (default: 0)
         verbose: Whether to print agent's thought process (default: True)
+        chat_history: Optional list of messages to initialize chat history with
+        additional_tools: Optional list of additional tools to provide to the agent
 
     Returns:
         Initialized agent with message history
     """
     # Initialize language model
     # llm = ChatOpenAI(
-    #     model_name=model_name,
+    #     model_name="gpt-4o",
     #     temperature=temperature,
     # )
 
@@ -78,6 +83,10 @@ def create_codebase_agent(
         # GithubCreatePRCommentTool(codebase),
         # GithubCreatePRReviewCommentTool(codebase),
     ]
+        # Add additional tools if provided
+    if additional_tools:
+        tools.extend(additional_tools)
+
 
     prompt = ChatPromptTemplate.from_messages(
         [
