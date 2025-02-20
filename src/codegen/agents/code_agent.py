@@ -1,15 +1,16 @@
-from typing import Optional, List
+from typing import Optional
 from uuid import uuid4
+
+from langchain.tools import BaseTool
 
 from codegen.extensions.langchain.agent import create_codebase_agent
 from codegen.sdk.core.codebase import Codebase
 
-from langchain.tools import BaseTool
 
 class CodeAgent:
     """Agent for interacting with a codebase."""
 
-    def __init__(self, codebase: Codebase, tools: Optional[List[BaseTool]] = None):
+    def __init__(self, codebase: Codebase, tools: Optional[list[BaseTool]] = None):
         self.codebase = codebase
         self.agent = create_codebase_agent(self.codebase, additional_tools=tools)
 

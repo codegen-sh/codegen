@@ -1,4 +1,5 @@
 """Demo implementation of an agent with Codegen tools."""
+
 from typing import Optional
 
 from langchain.agents import AgentExecutor, create_tool_calling_agent
@@ -36,7 +37,6 @@ def create_codebase_agent(
     verbose: bool = True,
     chat_history: list[BaseMessage] = [],
     additional_tools: Optional[list[BaseTool]] = None,
-
 ) -> RunnableWithMessageHistory:
     """Create an agent with all codebase tools.
 
@@ -83,10 +83,9 @@ def create_codebase_agent(
         # GithubCreatePRCommentTool(codebase),
         # GithubCreatePRReviewCommentTool(codebase),
     ]
-        # Add additional tools if provided
+    # Add additional tools if provided
     if additional_tools:
         tools.extend(additional_tools)
-
 
     prompt = ChatPromptTemplate.from_messages(
         [
