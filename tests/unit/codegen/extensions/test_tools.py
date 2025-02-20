@@ -46,40 +46,38 @@ def large_codebase(tmpdir):
     # Create a large file with predictable content
     large_file_lines = []
     # Add imports at the top
-    large_file_lines.extend([
-        "from __future__ import annotations",
-        "import sys",
-        "import os",
-        "from typing import List, Optional, Dict",
-        "",
-        "# Constants",
-        "MAX_ITEMS = 100",
-        "DEBUG = False",
-        "",
-        "# Main class definition",
-        "class LargeClass:",
-    ])
-    
+    large_file_lines.extend(
+        [
+            "from __future__ import annotations",
+            "import sys",
+            "import os",
+            "from typing import List, Optional, Dict",
+            "",
+            "# Constants",
+            "MAX_ITEMS = 100",
+            "DEBUG = False",
+            "",
+            "# Main class definition",
+            "class LargeClass:",
+        ]
+    )
+
     # Add methods with incrementing numbers
     for i in range(1, 401):  # This will create a 400+ line file
         if i % 20 == 0:
             # Add some class methods periodically
-            large_file_lines.extend([
-                f"    @classmethod",
-                f"    def class_method_{i}(cls) -> None:",
-                f"        print('Class method {i}')",
-                f"        return None",
-                ""
-            ])
+            large_file_lines.extend(["    @classmethod", f"    def class_method_{i}(cls) -> None:", f"        print('Class method {i}')", "        return None", ""])
         else:
             # Add regular methods
-            large_file_lines.extend([
-                f"    def method_{i}(self, param_{i}: int) -> str:",
-                f"        # Method {i} does something interesting",
-                f"        value = param_{i} * {i}",
-                f"        return f'Method {i} computed: {{value}}'",
-                ""
-            ])
+            large_file_lines.extend(
+                [
+                    f"    def method_{i}(self, param_{i}: int) -> str:",
+                    f"        # Method {i} does something interesting",
+                    f"        value = param_{i} * {i}",
+                    f"        return f'Method {i} computed: {{value}}'",
+                    "",
+                ]
+            )
 
     large_file_content = "\n".join(large_file_lines)
 
@@ -88,9 +86,9 @@ def large_codebase(tmpdir):
 def hello():
     print("Hello, world!")
 """,
-        "src/large_file.py": large_file_content
+        "src/large_file.py": large_file_content,
     }
-    
+
     with get_codebase_session(tmpdir=tmpdir, files=files) as codebase:
         yield codebase
 
@@ -190,7 +188,7 @@ def test_view_file_pagination_edge_cases(large_codebase):
     assert result.status == "success"
     assert result.start_line == 200
     assert result.end_line == min(200 + 250 - 1, 2010)  # Should respect max_lines and file length
-    
+
     # Test negative start_line (should default to 1)
     result = view_file(large_codebase, "src/large_file.py", start_line=-10)
     assert result.status == "success"
