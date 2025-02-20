@@ -6,7 +6,6 @@ from typing import Callable, ClassVar, Literal, Optional
 from langchain_core.tools.base import BaseTool
 from pydantic import BaseModel, Field
 
-from codegen import Codebase
 from codegen.extensions.linear.linear_client import LinearClient
 from codegen.extensions.tools.bash import run_bash_command
 from codegen.extensions.tools.linear.linear import (
@@ -20,10 +19,10 @@ from codegen.extensions.tools.linear.linear import (
 from codegen.extensions.tools.link_annotation import add_links_to_message
 from codegen.extensions.tools.replacement_edit import replacement_edit
 from codegen.extensions.tools.reveal_symbol import reveal_symbol
-from codegen.extensions.tools.run_codemod import run_codemod
 from codegen.extensions.tools.search import search
 from codegen.extensions.tools.semantic_edit import semantic_edit
 from codegen.extensions.tools.semantic_search import semantic_search
+from codegen.sdk.core.codebase import Codebase
 
 from ..tools import (
     commit,
@@ -61,7 +60,7 @@ class ViewFileTool(BaseTool):
 
     def _run(self, filepath: str) -> str:
         result = view_file(self.codebase, filepath)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class ListDirectoryInput(BaseModel):
@@ -84,7 +83,7 @@ class ListDirectoryTool(BaseTool):
 
     def _run(self, dirpath: str = "./", depth: int = 1) -> str:
         result = list_directory(self.codebase, dirpath, depth)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class SearchInput(BaseModel):
@@ -107,7 +106,7 @@ class SearchTool(BaseTool):
 
     def _run(self, query: str, target_directories: Optional[list[str]] = None) -> str:
         result = search(self.codebase, query, target_directories)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class EditFileInput(BaseModel):
@@ -130,7 +129,7 @@ class EditFileTool(BaseTool):
 
     def _run(self, filepath: str, content: str) -> str:
         result = edit_file(self.codebase, filepath, content)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class CreateFileInput(BaseModel):
@@ -153,7 +152,7 @@ class CreateFileTool(BaseTool):
 
     def _run(self, filepath: str, content: str = "") -> str:
         result = create_file(self.codebase, filepath, content)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class DeleteFileInput(BaseModel):
@@ -175,7 +174,7 @@ class DeleteFileTool(BaseTool):
 
     def _run(self, filepath: str) -> str:
         result = delete_file(self.codebase, filepath)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class CommitTool(BaseTool):
@@ -190,7 +189,7 @@ class CommitTool(BaseTool):
 
     def _run(self) -> str:
         result = commit(self.codebase)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class RevealSymbolInput(BaseModel):
@@ -233,7 +232,7 @@ class RevealSymbolTool(BaseTool):
             collect_dependencies=collect_dependencies,
             collect_usages=collect_usages,
         )
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 _SEMANTIC_EDIT_BRIEF = """Tool for file editing via an LLM delegate. Describe the changes you want to make and an expert will apply them to the file.
@@ -278,7 +277,7 @@ class SemanticEditTool(BaseTool):
     def _run(self, filepath: str, edit_content: str, start: int = 1, end: int = -1) -> str:
         # Create the the draft editor mini llm
         result = semantic_edit(self.codebase, filepath, edit_content, start=start, end=end)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class RenameFileInput(BaseModel):
@@ -301,7 +300,7 @@ class RenameFileTool(BaseTool):
 
     def _run(self, filepath: str, new_filepath: str) -> str:
         result = rename_file(self.codebase, filepath, new_filepath)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class MoveSymbolInput(BaseModel):
@@ -344,7 +343,7 @@ class MoveSymbolTool(BaseTool):
             strategy=strategy,
             include_dependencies=include_dependencies,
         )
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class SemanticSearchInput(BaseModel):
@@ -368,7 +367,7 @@ class SemanticSearchTool(BaseTool):
 
     def _run(self, query: str, k: int = 5, preview_length: int = 200) -> str:
         result = semantic_search(self.codebase, query, k=k, preview_length=preview_length)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 ########################################################################################################################
@@ -392,7 +391,7 @@ class RunBashCommandTool(BaseTool):
 
     def _run(self, command: str, is_background: bool = False) -> str:
         result = run_bash_command(command, is_background)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 ########################################################################################################################
@@ -420,7 +419,7 @@ class GithubCreatePRTool(BaseTool):
 
     def _run(self, title: str, body: str) -> str:
         result = create_pr(self.codebase, title, body)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class GithubViewPRInput(BaseModel):
@@ -442,6 +441,7 @@ class GithubViewPRTool(BaseTool):
 
     def _run(self, pr_id: int) -> str:
         result = view_pr(self.codebase, pr_id)
+        return result.render()
         return json.dumps(result, indent=2)
 
 
@@ -465,7 +465,7 @@ class GithubCreatePRCommentTool(BaseTool):
 
     def _run(self, pr_number: int, body: str) -> str:
         result = create_pr_comment(self.codebase, pr_number, body)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class GithubCreatePRReviewCommentInput(BaseModel):
@@ -511,7 +511,7 @@ class GithubCreatePRReviewCommentTool(BaseTool):
             side=side,
             start_line=start_line,
         )
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 ########################################################################################################################
@@ -538,7 +538,7 @@ class LinearGetIssueTool(BaseTool):
 
     def _run(self, issue_id: str) -> str:
         result = linear_get_issue_tool(self.client, issue_id)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class LinearGetIssueCommentsInput(BaseModel):
@@ -560,7 +560,7 @@ class LinearGetIssueCommentsTool(BaseTool):
 
     def _run(self, issue_id: str) -> str:
         result = linear_get_issue_comments_tool(self.client, issue_id)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class LinearCommentOnIssueInput(BaseModel):
@@ -583,7 +583,7 @@ class LinearCommentOnIssueTool(BaseTool):
 
     def _run(self, issue_id: str, body: str) -> str:
         result = linear_comment_on_issue_tool(self.client, issue_id, body)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class LinearSearchIssuesInput(BaseModel):
@@ -606,7 +606,7 @@ class LinearSearchIssuesTool(BaseTool):
 
     def _run(self, query: str, limit: int = 10) -> str:
         result = linear_search_issues_tool(self.client, query, limit)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class LinearCreateIssueInput(BaseModel):
@@ -630,7 +630,7 @@ class LinearCreateIssueTool(BaseTool):
 
     def _run(self, title: str, description: str | None = None, team_id: str | None = None) -> str:
         result = linear_create_issue_tool(self.client, title, description, team_id)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 class LinearGetTeamsTool(BaseTool):
@@ -645,7 +645,7 @@ class LinearGetTeamsTool(BaseTool):
 
     def _run(self) -> str:
         result = linear_get_teams_tool(self.client)
-        return json.dumps(result, indent=2)
+        return result.render()
 
 
 ########################################################################################################################
@@ -678,6 +678,7 @@ class SlackSendMessageTool(BaseTool):
         self.codebase = codebase
 
     def _run(self, content: str) -> str:
+        # TODO - pull this out into a separate function
         print("> Adding links to message")
         content_formatted = add_links_to_message(content, self.codebase)
         print("> Sending message to Slack")
@@ -710,8 +711,7 @@ def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
         RenameFileTool(codebase),
         ReplacementEditTool(codebase),
         RevealSymbolTool(codebase),
-        RunBashCommandTool(),
-        RunCodemodTool(codebase),
+        RunBashCommandTool(),  # Note: This tool doesn't need the codebase
         SearchTool(codebase),
         SemanticEditTool(codebase),
         SemanticSearchTool(codebase),
@@ -771,39 +771,4 @@ class ReplacementEditTool(BaseTool):
             end=end,
             count=count,
         )
-        return json.dumps(result, indent=2)
-
-
-class RunCodemodInput(BaseModel):
-    """Input for running a codemod."""
-
-    codemod_source: str = Field(
-        ...,
-        description="""Source code of the codemod function. Must define a 'run(codebase: Codebase)' function that makes the desired changes.
-Example:
-```python
-def run(codebase: Codebase):
-    for file in codebase.files:
-        if file.filepath.endswith('.py'):
-            content = file.content
-            # Make changes to content
-            file.edit(new_content)
-```
-""",
-    )
-
-
-class RunCodemodTool(BaseTool):
-    """Tool for running custom codemod functions."""
-
-    name: ClassVar[str] = "run_codemod"
-    description: ClassVar[str] = "Run a custom codemod function to make systematic changes across the codebase"
-    args_schema: ClassVar[type[BaseModel]] = RunCodemodInput
-    codebase: Codebase = Field(exclude=True)
-
-    def __init__(self, codebase: Codebase) -> None:
-        super().__init__(codebase=codebase)
-
-    def _run(self, codemod_source: str) -> str:
-        result = run_codemod(self.codebase, codemod_source)
         return json.dumps(result, indent=2)

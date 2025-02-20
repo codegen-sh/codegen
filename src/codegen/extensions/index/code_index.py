@@ -6,7 +6,7 @@ from typing import Optional, TypeVar
 
 import numpy as np
 
-from codegen import Codebase
+from codegen.sdk.core.codebase import Codebase
 
 T = TypeVar("T")  # Type of the items being indexed (e.g., File, Symbol)
 

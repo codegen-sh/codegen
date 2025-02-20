@@ -11,7 +11,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_openai import ChatOpenAI
 
-from codegen import Codebase
+from codegen.sdk.core.codebase import Codebase
 
 from .tools import (
     CreateFileTool,
@@ -24,7 +24,6 @@ from .tools import (
     RevealSymbolTool,
     SearchTool,
     SemanticEditTool,
-    SemanticSearchTool,
     ViewFileTool,
 )
 
@@ -70,8 +69,8 @@ def create_codebase_agent(
         MoveSymbolTool(codebase),
         RevealSymbolTool(codebase),
         SemanticEditTool(codebase),
-        SemanticSearchTool(codebase),
         ReplacementEditTool(codebase),
+        # SemanticSearchTool(codebase),
         # =====[ Github Integration ]=====
         # Enable Github integration
         # GithubCreatePRTool(codebase),

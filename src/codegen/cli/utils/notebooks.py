@@ -5,7 +5,7 @@ from typing import Any
 DEFAULT_CELLS = [
     {
         "cell_type": "code",
-        "source": """from codegen import Codebase
+        "source": """from codegen.sdk.core.codebase import Codebase
 
 # Initialize codebase
 codebase = Codebase('../../')
@@ -33,7 +33,7 @@ See the [getting started](https://docs.codegen.com/introduction/getting-started)
     },
     {
         "cell_type": "code",
-        "source": """from codegen import Codebase
+        "source": """from codegen.sdk.core.codebase import Codebase
 
 # Initialize FastAPI codebase
 print('Cloning and parsing FastAPI to /tmp/codegen/fastapi...')

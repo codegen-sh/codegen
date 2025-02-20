@@ -30,30 +30,35 @@ def client() -> LinearClient:
 def test_linear_get_issue(client: LinearClient) -> None:
     """Test getting an issue from Linear."""
     # Link to issue: https://linear.app/codegen-sh/issue/CG-10775/read-file-and-reveal-symbol-tool-size-limits
-    issue = linear_get_issue_tool(client, "CG-10775")
-    assert issue["status"] == "success"
-    assert issue["issue"]["id"] == "d5a7d6db-e20d-4d67-98f8-acedef6d3536"
+    result = linear_get_issue_tool(client, "CG-10775")
+    assert result.status == "success"
+    assert result.issue_id == "CG-10775"
+    assert result.issue_data["id"] == "d5a7d6db-e20d-4d67-98f8-acedef6d3536"
 
 
 def test_linear_get_issue_comments(client: LinearClient) -> None:
     """Test getting comments for an issue from Linear."""
-    comments = linear_get_issue_comments_tool(client, "CG-10775")
-    assert comments["status"] == "success"
-    assert len(comments["comments"]) > 1
+    result = linear_get_issue_comments_tool(client, "CG-10775")
+    assert result.status == "success"
+    assert result.issue_id == "CG-10775"
+    assert len(result.comments) > 1
 
 
 def test_linear_comment_on_issue(client: LinearClient) -> None:
     """Test commenting on a Linear issue."""
     test_comment = "Test comment from automated testing"
     result = linear_comment_on_issue_tool(client, "CG-10775", test_comment)
-    assert result["status"] == "success"
+    assert result.status == "success"
+    assert result.issue_id == "CG-10775"
+    assert result.comment["body"] == test_comment
 
 
 def test_search_issues(client: LinearClient) -> None:
     """Test searching for issues in Linear."""
-    issues = linear_search_issues_tool(client, "REVEAL_SYMBOL")
-    assert issues["status"] == "success"
-    assert len(issues["issues"]) > 0
+    result = linear_search_issues_tool(client, "REVEAL_SYMBOL")
+    assert result.status == "success"
+    assert result.query == "REVEAL_SYMBOL"
+    assert len(result.issues) > 0
 
 
 def test_create_issue(client: LinearClient) -> None:
@@ -76,20 +81,20 @@ def test_create_issue(client: LinearClient) -> None:
 
     # Test the tool wrapper with default team_id
     result = linear_create_issue_tool(client, "Test Tool Issue", "Test description from tool")
-    assert result["status"] == "success"
-    assert result["issue"]["title"] == "Test Tool Issue"
-    assert result["issue"]["description"] == "Test description from tool"
+    assert result.status == "success"
+    assert result.title == "Test Tool Issue"
+    assert result.issue_data["title"] == "Test Tool Issue"
+    assert result.issue_data["description"] == "Test description from tool"
 
 
 def test_get_teams(client: LinearClient) -> None:
     """Test getting teams from Linear."""
     result = linear_get_teams_tool(client)
-    assert result["status"] == "success"
-    assert len(result["teams"]) > 0
+    assert result.status == "success"
+    assert len(result.teams) > 0
 
     # Verify team structure
-    team = result["teams"][0]
-    print(result)
+    team = result.teams[0]
     assert "id" in team
     assert "name" in team
     assert "key" in team

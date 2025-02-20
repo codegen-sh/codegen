@@ -1,3 +1,4 @@
+import codecs
 import fnmatch
 import glob
 import logging
@@ -576,6 +577,25 @@ class RepoOperator(ABC):
             # Filter filepaths by ignore list.
         if ignore_list:
             filepaths = [f for f in filepaths if not any(fnmatch.fnmatch(f, pattern) or f.startswith(pattern) for pattern in ignore_list)]
+
+        # Fix bug where unicode characters are not handled correctly
+        for i, filepath in enumerate(filepaths):
+            # Check if it is one of the broken cases
+            if filepath.startswith('"'):
+                # Step 1: Strip the quotes
+                filepath = filepath.strip('"').strip("'")
+
+                # Step 2: Convert the Python string to raw ASCII bytes (so \\ stays as two 0x5C).
+                raw_filepath = filepath.encode("ascii")
+
+                # Step 3: Use escape_decode to process backslash escapes like \346 -> 0xE6
+                decoded_filepath, _ = codecs.escape_decode(raw_filepath)
+
+                # Step 4: Decode those bytes as UTF-8 to get the actual Unicode text
+                filepath = decoded_filepath.decode("utf-8")
+
+                # Step 5: Replace the original filepath with the decoded filepath
+                filepaths[i] = filepath
 
         return filepaths
 

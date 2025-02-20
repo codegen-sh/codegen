@@ -2,11 +2,36 @@
 
 import difflib
 import re
-from typing import Optional
+from typing import ClassVar, Optional
 
-from codegen import Codebase
+from pydantic import Field
 
+from codegen.sdk.core.codebase import Codebase
+
+from .observation import Observation
 from .view_file import add_line_numbers
+
+
+class ReplacementEditObservation(Observation):
+    """Response from making regex-based replacements in a file."""
+
+    filepath: str = Field(
+        description="Path to the edited file",
+    )
+    diff: Optional[str] = Field(
+        default=None,
+        description="Unified diff showing the changes made",
+    )
+    new_content: Optional[str] = Field(
+        default=None,
+        description="New content with line numbers",
+    )
+    message: Optional[str] = Field(
+        default=None,
+        description="Message describing the result",
+    )
+
+    str_template: ClassVar[str] = "{message}" if "{message}" else "Edited file {filepath}"
 
 
 def generate_diff(original: str, modified: str) -> str:
@@ -70,7 +95,7 @@ def replacement_edit(
     end: int = -1,
     count: Optional[int] = None,
     flags: re.RegexFlag = re.MULTILINE,
-) -> dict[str, str]:
+) -> ReplacementEditObservation:
     """Replace text in a file using regex pattern matching.
 
     Args:
@@ -84,7 +109,7 @@ def replacement_edit(
         flags: Regex flags (default: re.MULTILINE)
 
     Returns:
-        Dict containing edit results and status
+        ReplacementEditObservation containing edit results and status
 
     Raises:
         FileNotFoundError: If file not found
@@ -124,11 +149,11 @@ def replacement_edit(
 
     # If no changes were made, return early
     if new_section == section_content:
-        return {
-            "filepath": filepath,
-            "status": "unchanged",
-            "message": "No matches found for the given pattern",
-        }
+        return ReplacementEditObservation(
+            status="unchanged",
+            message="No matches found for the given pattern",
+            filepath=filepath,
+        )
 
     # Merge the edited content with the original
     new_content = _merge_content(original_content, new_section, start, end)
@@ -140,9 +165,9 @@ def replacement_edit(
     file.edit(new_content)
     codebase.commit()
 
-    return {
-        "filepath": filepath,
-        "diff": diff,
-        "status": "success",
-        "new_content": add_line_numbers(new_content),
-    }
+    return ReplacementEditObservation(
+        status="success",
+        filepath=filepath,
+        diff=diff,
+        new_content=add_line_numbers(new_content),
+    )
