@@ -1,12 +1,12 @@
-
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel
 
 
 class LinearLabels(BaseModel):
     id: str
-    color: str # hex color
+    color: str  # hex color
     name: str
+
 
 class LinearIssueUpdateEvent(BaseModel):
     action: str

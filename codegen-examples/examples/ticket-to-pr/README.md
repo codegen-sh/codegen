@@ -15,7 +15,8 @@ Before running this application, you'll need the following API tokens and creden
 ## Setup
 
 1. Clone the repository
-2. Set up your environment variables in a `.env` file:
+1. Set up your environment variables in a `.env` file:
+
 ```env
 GITHUB_TOKEN=your_github_token
 LINEAR_API_TOKEN=your_linear_token
@@ -33,10 +34,9 @@ LINEAR_TEAM_ID=your_team_id
 ## Usage
 
 1. uv sync
-2. uv run modal deploy app.py
-    - At this point you should have a modal app with an endpoint that is auto registered to linear as a webhook callback url.
-3. Try making a ticket and adding the `Codegen` label to trigger the agent
-
+1. uv run modal deploy app.py
+   - At this point you should have a modal app with an endpoint that is auto registered to linear as a webhook callback url.
+1. Try making a ticket and adding the `Codegen` label to trigger the agent
 
 ## Contributing
 

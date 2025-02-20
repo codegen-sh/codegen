@@ -26,7 +26,7 @@ class LinearApp:
 
     @modal.enter()
     def run_this_on_container_startup(self):
-        self.codebase = create_codebase('codegen-sh/codegen-sdk', ProgrammingLanguage.PYTHON)
+        self.codebase = create_codebase("codegen-sh/codegen-sdk", ProgrammingLanguage.PYTHON)
 
         # Subscribe web endpoints as linear webhook callbacks
         app.linear.subscribe_all_handlers()
@@ -35,27 +35,26 @@ class LinearApp:
     def run_this_on_container_exit(self):
         app.linear.unsubscribe_all_handlers()
 
-
     @modal.web_endpoint(method="POST")
     @app.linear.event("Issue", should_handle=has_codegen_label)
     def handle_webhook(self, data: dict, request: Request):
-        """"Handle incoming webhook events from Linear"""""
+        """"Handle incoming webhook events from Linear""" ""
         linear_client = LinearClient(access_token=os.environ["LINEAR_ACCESS_TOKEN"])
-        
+
         event = process_update_event(data)
-        linear_client.comment_on_issue(event.issue_id, f"I'm on it 👍")
+        linear_client.comment_on_issue(event.issue_id, "I'm on it 👍")
 
         query = format_linear_message(event.title, event.description)
         agent = CodeAgent(self.codebase)
 
         agent.run(query)
-        
+
         pr_title = f"[{event.identifier}] " + event.title
         pr_body = "Codegen generated PR for issue: " + event.issue_url
         create_pr_result = create_pr(self.codebase, pr_title, pr_body)
 
         logger.info(f"PR created: {create_pr_result.model_dump_json()}")
-    
+
         linear_client.comment_on_issue(event.issue_id, f"I've finished running, please review the PR: {create_pr_result.url}")
         self.codebase.reset()
 
