@@ -35,9 +35,9 @@ def get_swe_bench_examples() -> list[SweBenchExample]:
     """
     url = "https://datasets-server.huggingface.co/rows"
     params = {
-        "dataset": "princeton-nlp/SWE-bench",
+        "dataset": "princeton-nlp/SWE-bench_Lite",
         "config": "default",
-        "split": "dev",
+        "split": "test",
         "offset": 0,
         "length": 100,
     }

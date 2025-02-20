@@ -1,9 +1,14 @@
 version = 1
-revision = 1
 requires-python = ">=3.12, <3.14"
 resolution-markers = [
     "python_full_version >= '3.12.4'",
     "python_full_version < '3.12.4'",
+]
+
+[manifest]
+members = [
+    "codegen-examples",
+    "swebench-agent-run",
 ]
 
 [[package]]
@@ -3196,6 +3201,11 @@ sdist = { url = "https://files.pythonhosted.org/packages/ff/fb/2984a686808b89a67
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d9/61/f2b52e107b1fc8944b33ef56bf6ac4ebbe16d91b94d2b87ce013bf63fb84/starlette-0.45.3-py3-none-any.whl", hash = "sha256:dfb6d332576f136ec740296c7e8bb8c8a7125044e7c6da30744718880cdd059d", size = 71507 },
 ]
+
+[[package]]
+name = "swebench-agent-run"
+version = "0.1.0"
+source = { virtual = "examples/swebench_agent_run" }
 
 [[package]]
 name = "synchronicity"

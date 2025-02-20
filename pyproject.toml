@@ -70,6 +70,8 @@ dependencies = [
   "modal>=0.73.45",
   "slack-sdk",
   "langchain-anthropic>=0.3.7",
+  "lox>=0.12.0",
+  "datasets",
 ]
 
 license = { text = "Apache-2.0" }
