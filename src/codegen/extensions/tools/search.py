@@ -27,8 +27,11 @@ class SearchMatch(Observation):
     match: str = Field(
         description="The specific text that matched",
     )
-
     str_template: ClassVar[str] = "Line {line_number}: {match}"
+
+    def render(self) -> str:
+        """Render match in a VSCode-like format."""
+        return f"{self.line_number:>4}:  {self.line}"
 
 
 class SearchFileResult(Observation):
@@ -42,6 +45,15 @@ class SearchFileResult(Observation):
     )
 
     str_template: ClassVar[str] = "{filepath}: {match_count} matches"
+
+    def render(self) -> str:
+        """Render file results in a VSCode-like format."""
+        lines = [
+            f"📄 {self.filepath}",
+        ]
+        for match in self.matches:
+            lines.append(match.render())
+        return "\n".join(lines)
 
     def _get_details(self) -> dict[str, str | int]:
         """Get details for string representation."""
@@ -71,6 +83,30 @@ class SearchObservation(Observation):
     )
 
     str_template: ClassVar[str] = "Found {total_files} files with matches for '{query}' (page {page}/{total_pages})"
+
+    def render(self) -> str:
+        """Render search results in a VSCode-like format."""
+        if self.status == "error":
+            return f"[SEARCH ERROR]: {self.error}"
+
+        lines = [
+            f"[SEARCH RESULTS]: {self.query}",
+            f"Found {self.total_files} files with matches (showing page {self.page} of {self.total_pages})",
+            "",
+        ]
+
+        if not self.results:
+            lines.append("No matches found")
+            return "\n".join(lines)
+
+        for result in self.results:
+            lines.append(result.render())
+            lines.append("")  # Add blank line between files
+
+        if self.total_pages > 1:
+            lines.append(f"Page {self.page}/{self.total_pages} (use page parameter to see more results)")
+
+        return "\n".join(lines)
 
 
 def search(

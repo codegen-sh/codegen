@@ -5,6 +5,7 @@ from typing import ClassVar
 from pydantic import Field
 
 from codegen import Codebase
+from codegen.sdk.core.directory import Directory
 
 from .observation import Observation
 
@@ -12,14 +13,17 @@ from .observation import Observation
 class DirectoryInfo(Observation):
     """Information about a directory."""
 
+    name: str = Field(
+        description="Name of the directory",
+    )
     path: str = Field(
-        description="Path to the directory",
+        description="Full path to the directory",
     )
     files: list[str] = Field(
-        description="List of files in the directory",
+        description="List of files in this directory",
     )
-    subdirectories: list[str] = Field(
-        description="List of subdirectories",
+    subdirectories: list["DirectoryInfo | str"] = Field(
+        description="List of subdirectories (full info or just names at max depth)",
     )
 
     str_template: ClassVar[str] = "Directory {path} ({file_count} files, {dir_count} subdirs)"
@@ -38,26 +42,56 @@ class DirectoryInfo(Observation):
             "",
         ]
 
-        def add_tree_item(name: str, prefix: str = "", is_last: bool = False) -> str:
+        def add_tree_item(name: str, prefix: str = "", is_last: bool = False) -> tuple[str, str]:
             """Helper to format a tree item with proper prefix."""
             marker = "└── " if is_last else "├── "
-            return prefix + marker + name
+            indent = "    " if is_last else "│   "
+            return prefix + marker + name, prefix + indent
+
+        def build_tree(items: list[tuple[str, bool, "DirectoryInfo | None"]], prefix: str = "") -> list[str]:
+            """Recursively build tree with proper indentation."""
+            if not items:
+                return []
+
+            result = []
+            for i, (name, is_dir, dir_info) in enumerate(items):
+                is_last = i == len(items) - 1
+                line, new_prefix = add_tree_item(name, prefix, is_last)
+                result.append(line)
+
+                # If this is a directory with full info, recursively add its contents
+                if dir_info and isinstance(dir_info, DirectoryInfo):
+                    subitems = []
+                    # Add files first
+                    for f in sorted(dir_info.files):
+                        subitems.append((f, False, None))
+                    # Then add subdirectories
+                    for d in dir_info.subdirectories:
+                        if isinstance(d, DirectoryInfo):
+                            subitems.append((d.name + "/", True, d))
+                        else:
+                            subitems.append((d + "/", True, None))
+
+                    result.extend(build_tree(subitems, new_prefix))
+
+            return result
 
         # Sort files and directories
         items = []
         for f in sorted(self.files):
-            items.append((f, False))  # False = not a directory
-        for d in sorted(self.subdirectories):
-            items.append((d + "/", True))  # True = is a directory
+            items.append((f, False, None))  # (name, is_dir, dir_info)
+        for d in self.subdirectories:
+            if isinstance(d, DirectoryInfo):
+                items.append((d.name + "/", True, d))
+            else:
+                items.append((d + "/", True, None))
 
         if not items:
             lines.append("(empty directory)")
             return "\n".join(lines)
 
         # Generate tree
-        for i, (name, is_dir) in enumerate(items):
-            is_last = i == len(items) - 1
-            lines.append(add_tree_item(name, is_last=is_last))
+        lines.extend(build_tree(items))
 
         return "\n".join(lines)
 
@@ -76,35 +110,60 @@ class ListDirectoryObservation(Observation):
         return self.directory_info.render()
 
 
-def list_directory(codebase: Codebase, path: str) -> ListDirectoryObservation:
-    """List the contents of a directory.
+def list_directory(codebase: Codebase, path: str = "./", depth: int = 2) -> ListDirectoryObservation:
+    """List contents of a directory.
 
     Args:
         codebase: The codebase to operate on
-        path: Path to the directory relative to workspace root
+        path: Path to directory relative to workspace root
+        depth: How deep to traverse the directory tree. Default is 1 (immediate children only).
+               Use -1 for unlimited depth.
     """
     try:
-        files, subdirs = codebase.list_directory(path)
-        dir_info = DirectoryInfo(
+        directory = codebase.get_directory(path)
+    except ValueError:
+        return ListDirectoryObservation(
+            status="error",
+            error=f"Directory not found: {path}",
+            directory_info=DirectoryInfo(
+                status="error",
+                name=path.split("/")[-1],
+                path=path,
+                files=[],
+                subdirectories=[],
+            ),
+        )
+
+    def get_directory_info(dir_obj: Directory, current_depth: int) -> DirectoryInfo:
+        """Helper function to get directory info recursively."""
+        # Get direct files
+        all_files = []
+        for file in dir_obj.files:
+            if file.directory == dir_obj:
+                all_files.append(file.filepath.split("/")[-1])
+
+        # Get direct subdirectories
+        subdirs = []
+        for subdir in dir_obj.subdirectories:
+            # Only include direct descendants
+            if subdir.parent == dir_obj:
+                if current_depth != 1:
+                    new_depth = current_depth - 1 if current_depth > 1 else -1
+                    subdirs.append(get_directory_info(subdir, new_depth))
+                else:
+                    # At max depth, just include name
+                    subdirs.append(subdir.name)
+
+        return DirectoryInfo(
             status="success",
-            path=path,
-            files=files,
+            name=dir_obj.name,
+            path=dir_obj.dirpath,
+            files=sorted(all_files),
             subdirectories=subdirs,
         )
-        return ListDirectoryObservation(
-            status="success",
-            directory_info=dir_info,
-        )
-    except Exception as e:
-        dir_info = DirectoryInfo(
-            status="error",
-            error=str(e),
-            path=path,
-            files=[],
-            subdirectories=[],
-        )
-        return ListDirectoryObservation(
-            status="error",
-            error=str(e),
-            directory_info=dir_info,
-        )
+
+    dir_info = get_directory_info(directory, depth)
+    return ListDirectoryObservation(
+        status="success",
+        directory_info=dir_info,
+    )
