@@ -9,7 +9,7 @@ from codegen.git.models.pull_request_context import PullRequestContext
 from codegen.git.repo_operator.repo_operator import RepoOperator
 
 if TYPE_CHECKING:
-    from codegen.sdk.core.codebase import Codebase, Editable, File, Symbol
+    from codegen.sdk.core.codebase import Codebase, Editable, File
 
 
 def get_merge_base(git_repo_client: Repository, pull: PullRequest | PullRequestContext) -> str:
@@ -164,7 +164,7 @@ class CodegenPR:
             for symbol in file.symbols:
                 if self.is_modified(symbol):
                     all_modified.append(symbol.name)
-        
+
         return all_modified
 
     def get_pr_diff(self) -> str:

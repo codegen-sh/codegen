@@ -5,7 +5,7 @@ from typing import ClassVar
 from pydantic import Field
 
 from codegen.sdk.core.codebase import Codebase
-from codegen.sdk.core.symbol import Symbol
+
 from ..observation import Observation
 
 
