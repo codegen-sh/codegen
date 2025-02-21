@@ -5,7 +5,7 @@ from dotenv import set_key
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from codegen.configs.constants import ENV_FILENAME, GLOBAL_ENV_FILE
-from codegen.configs.session_manager import session_root
+from codegen.shared.path import get_git_root_path
 
 
 class BaseConfig(BaseSettings, ABC):
@@ -18,7 +18,7 @@ class BaseConfig(BaseSettings, ABC):
 
     def __init__(self, prefix: str, env_filepath: Path | None = None, *args, **kwargs) -> None:
         if env_filepath is None:
-            root_path = session_root
+            root_path = get_git_root_path(Path.cwd())
             if root_path is not None:
                 env_filepath = root_path / ENV_FILENAME
 
@@ -31,7 +31,6 @@ class BaseConfig(BaseSettings, ABC):
 
         self.model_config["env_prefix"] = f"{prefix.upper()}_" if len(prefix) > 0 else ""
         self.model_config["env_file"] = env_filepaths
-
         super().__init__(*args, **kwargs)
 
     @property

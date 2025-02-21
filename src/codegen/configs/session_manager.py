@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 
-from codegen.configs.constants import CODEGEN_DIR_NAME, SESSION_FILE
+from codegen.configs.constants import SESSION_FILE
 
 
 class SessionManager:
@@ -61,34 +61,4 @@ class SessionManager:
         return f"GlobalConfig:\n  Active Session: {active}\n  Sessions:\n    {sessions_str}\n  Global Session:\n    {self.session_config}"
 
 
-def _get_project_root() -> Path | None:
-    """Get the active codegen directory."""
-    active_session = session_manager.get_active_session()
-    if active_session:
-        return active_session
-
-    try:
-        path = Path.cwd().resolve()
-    except FileNotFoundError:
-        # Current directory is not accessible
-        return None
-
-    while True:
-        codegen_path = path / CODEGEN_DIR_NAME
-        git_path = path / ".git"
-
-        if codegen_path.exists():
-            return path
-        if git_path.exists():
-            return path
-
-        parent = path.parent.resolve()
-        if parent == path:  # We've reached the root directory
-            break
-        path = parent
-
-    return None
-
-
 session_manager = SessionManager()
-session_root = _get_project_root()
