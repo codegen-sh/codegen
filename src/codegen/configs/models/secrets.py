@@ -14,6 +14,3 @@ class SecretsConfig(BaseConfig):
     github_token: str | None = None
     openai_api_key: str | None = None
     linear_api_key: str | None = None
-
-
-DefaultSecrets = SecretsConfig()

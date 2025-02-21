@@ -29,9 +29,9 @@ class SandboxRunner:
     codebase: CodebaseType
     executor: SandboxExecutor
 
-    def __init__(self, repo_config: RepoConfig, access_token: str) -> None:
+    def __init__(self, repo_config: RepoConfig) -> None:
         self.repo = repo_config
-        self.op = RepoOperator(repo_config=self.repo, access_token=access_token, setup_option=SetupOption.PULL_OR_CLONE)
+        self.op = RepoOperator(repo_config=self.repo, setup_option=SetupOption.PULL_OR_CLONE)
         self.commit = self.op.git_cli.head.commit
 
     async def warmup(self) -> None:

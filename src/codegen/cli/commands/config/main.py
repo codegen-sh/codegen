@@ -1,12 +1,13 @@
 import logging
+from pathlib import Path
 
 import rich
 import rich_click as click
 from rich.table import Table
 
 from codegen.configs.constants import ENV_FILENAME, GLOBAL_ENV_FILE
-from codegen.configs.session_manager import session_manager
 from codegen.configs.user_config import UserConfig
+from codegen.shared.path import get_git_root_path
 
 
 @click.group(name="config")
@@ -119,9 +120,9 @@ def set_command(key: str, value: str, is_global: bool):
 
 
 def _get_user_config(is_global: bool) -> UserConfig:
-    if is_global or (active_session_path := session_manager.get_active_session()) is None:
+    if is_global or (project_root := get_git_root_path(Path.cwd())) is None:
         env_filepath = GLOBAL_ENV_FILE
     else:
-        env_filepath = active_session_path / ENV_FILENAME
+        env_filepath = project_root / ENV_FILENAME
 
     return UserConfig(env_filepath)
