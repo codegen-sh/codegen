@@ -369,6 +369,7 @@ def test_import_wildcard_preserves_import_resolution(tmpdir: str) -> None:
 
         assert len(mainfile.ctx.edges) == 5
 
+
 def test_import_nested_installable_resolution(tmpdir: str) -> None:
     """Tests that a nested installable resolves internally instead of as external"""
     # language=python
