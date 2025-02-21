@@ -695,7 +695,7 @@ requires-dist = [
     { name = "pydantic-core", specifier = ">=2.23.4" },
     { name = "pydantic-settings", specifier = ">=2.0.0" },
     { name = "pygit2", specifier = ">=1.16.0" },
-    { name = "pygithub", specifier = "==2.6.0" },
+    { name = "pygithub", specifier = "==2.6.1" },
     { name = "pygls", marker = "extra == 'lsp'", specifier = ">=2.0.0a2" },
     { name = "pyinstrument", specifier = ">=5.0.0" },
     { name = "pyjson5", specifier = "==1.6.8" },
@@ -2974,7 +2974,7 @@ wheels = [
 
 [[package]]
 name = "pygithub"
-version = "2.6.0"
+version = "2.6.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "deprecated" },
@@ -2984,9 +2984,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/60/7a/78a40edc07426052eb909f556deb8ae3158c234df49553bd4690bc6c4ba7/pygithub-2.6.0.tar.gz", hash = "sha256:04784fd6f4acfcaf91df5d3f08ef14153709395a34e706850f92337d9914548f", size = 3658095 }
+sdist = { url = "https://files.pythonhosted.org/packages/c0/88/e08ab18dc74b2916f48703ed1a797d57cb64eca0e23b0a9254e13cfe3911/pygithub-2.6.1.tar.gz", hash = "sha256:b5c035392991cca63959e9453286b41b54d83bf2de2daa7d7ff7e4312cebf3bf", size = 3659473 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f3/9e/ba08aa9e1632f8752648126505598b95429fcb7bb884c1eb9de5b2370d8f/PyGithub-2.6.0-py3-none-any.whl", hash = "sha256:22635b245b885413c607bb86393603cadcfdcb67a9b81ce9a64634e64f308084", size = 409218 },
+    { url = "https://files.pythonhosted.org/packages/ac/fc/a444cd19ccc8c4946a512f3827ed0b3565c88488719d800d54a75d541c0b/PyGithub-2.6.1-py3-none-any.whl", hash = "sha256:6f2fa6d076ccae475f9fc392cc6cdbd54db985d4f69b8833a28397de75ed6ca3", size = 410451 },
 ]
 
 [[package]]
