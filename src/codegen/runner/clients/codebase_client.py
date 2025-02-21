@@ -31,7 +31,7 @@ class CodebaseClient(LocalServerClient):
             "REPOSITORY_PATH": str(self.repo_config.repo_path),
         }
         if self.git_access_token is not None:
-            codebase_envs["SECRETS_GITHUB_TOKEN"] = self.git_access_token
+            codebase_envs["GITHUB_TOKEN"] = self.git_access_token
 
         envs.update(codebase_envs)
         return envs
