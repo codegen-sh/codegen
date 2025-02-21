@@ -1324,8 +1324,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         return self._op.create_pr_comment(pr_number, body)
 
     def create_pr_review_comment(self, pr_number: int, body: str, commit_sha: str, path: str, line: int | None = None, side: str = "RIGHT", start_line: int | None = None) -> None:
-        """
-        Create a review comment on a pull request.
+        """Create a review comment on a pull request.
 
         Args:
             pr_number: The number of the pull request
