@@ -6,7 +6,6 @@ from langchain.agents import AgentExecutor, create_tool_calling_agent
 from langchain.agents.openai_functions_agent.base import OpenAIFunctionsAgent
 from langchain.hub import pull
 from langchain.tools import BaseTool
-from langchain_anthropic import ChatAnthropic
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.messages import BaseMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -15,6 +14,7 @@ from langchain_openai import ChatOpenAI
 
 from codegen.sdk.core.codebase import Codebase
 
+from .llm import LLM
 from .tools import (
     CreateFileTool,
     DeleteFileTool,
@@ -32,6 +32,7 @@ from .tools import (
 
 def create_codebase_agent(
     codebase: Codebase,
+    model_provider: str = "anthropic",
     model_name: str = "claude-3-5-sonnet-latest",
     temperature: float = 0,
     verbose: bool = True,
@@ -51,16 +52,9 @@ def create_codebase_agent(
     Returns:
         Initialized agent with message history
     """
-    # Initialize language model
-    # llm = ChatOpenAI(
-    #     model_name=model_name,
-    #     temperature=temperature,
-    # )
+    llm = LLM(model_provider=model_provider, model_name=model_name, temperature=temperature)
 
-    llm = ChatAnthropic(
-        model="claude-3-5-sonnet-latest",
-        temperature=temperature,
-    )
+    # Create a tool calling agent
 
     # Get all codebase tools
     tools = [
@@ -143,12 +137,6 @@ def create_codebase_agent(
         ]
     )
 
-    # Create the agent
-    # agent = OpenAIFunctionsAgent(
-    #     llm=llm,
-    #     tools=tools,
-    #     prompt=prompt,
-    # )
     agent = create_tool_calling_agent(
         llm=llm,
         tools=tools,
