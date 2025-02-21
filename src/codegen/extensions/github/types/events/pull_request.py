@@ -29,3 +29,15 @@ class PullRequestOpenedEvent(BaseModel):
     enterprise: GitHubEnterprise
     sender: GitHubUser
     installation: GitHubInstallation
+
+
+class PullRequestUnlabeledEvent(BaseModel):
+    action: str
+    number: int
+    pull_request: PullRequest
+    label: GitHubLabel
+    repository: GitHubRepository
+    organization: GitHubOrganization
+    enterprise: GitHubEnterprise
+    sender: GitHubUser
+    installation: GitHubInstallation
