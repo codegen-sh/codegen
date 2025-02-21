@@ -1,6 +1,6 @@
 import os
 
-from dotenv import dotenv_values, find_dotenv
+from dotenv import find_dotenv, load_dotenv
 
 from codegen.cli.env.constants import DEFAULT_ENV
 from codegen.cli.env.enums import Environment
@@ -9,7 +9,7 @@ from codegen.cli.env.enums import Environment
 class GlobalEnv:
     def __init__(self) -> None:
         self.ENV = self._parse_env()
-        self.env_vars = self._load_dotenv()
+        self._load_dotenv()
 
         # =====[ DEV ]=====
         self.DEBUG = self._get_env_var("DEBUG")
@@ -38,14 +38,11 @@ class GlobalEnv:
     def _load_dotenv(self) -> dict[str, str]:
         env_file = find_dotenv(filename=f".env.{self.ENV}")
         # if env specific .env file does not exist, try to load .env
-        return dotenv_values(env_file or None)
+        load_dotenv(env_file or None, override=True)
 
     def _get_env_var(self, var_name, required: bool = False) -> str:
         if self.ENV == "local":
             return ""
-
-        if value := self.env_vars.get(var_name, None):
-            return value
 
         if value := os.environ.get(var_name):
             return value
@@ -54,6 +51,10 @@ class GlobalEnv:
             msg = f"Environment variable {var_name} is not set with ENV={self.ENV}!"
             raise ValueError(msg)
         return ""
+
+    def __repr__(self) -> str:
+        # Returns all env vars in a readable format
+        return "\n".join([f"{k}={v}" for k, v in self.__dict__.items()])
 
 
 # NOTE: load and store envvars once
