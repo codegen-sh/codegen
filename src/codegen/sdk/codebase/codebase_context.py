@@ -11,8 +11,7 @@ from typing import TYPE_CHECKING, Any
 
 from rustworkx import PyDiGraph, WeightedEdgeList
 
-from codegen.configs.models.codebase import DefaultCodebaseConfig
-from codegen.configs.models.secrets import DefaultSecrets, SecretsConfig
+from codegen.configs.models.secrets import SecretsConfig
 from codegen.sdk.codebase.config import ProjectConfig, SessionOptions
 from codegen.sdk.codebase.config_parser import ConfigParser, get_config_parser_for_language
 from codegen.sdk.codebase.diff_lite import ChangeType, DiffLite
@@ -39,7 +38,6 @@ if TYPE_CHECKING:
     from codeowners import CodeOwners as CodeOwnersParser
     from git import Commit as GitCommit
 
-    from codegen.configs.models.codebase import CodebaseConfig
     from codegen.git.repo_operator.repo_operator import RepoOperator
     from codegen.sdk.codebase.io.io import IO
     from codegen.sdk.codebase.node_classes.node_classes import NodeClasses
@@ -53,6 +51,8 @@ if TYPE_CHECKING:
     from codegen.sdk.core.parser import Parser
 
 import logging
+
+from codegen.configs.models.codebase import CodebaseConfig
 
 logger = logging.getLogger(__name__)
 
@@ -132,8 +132,8 @@ class CodebaseContext:
     def __init__(
         self,
         projects: list[ProjectConfig],
-        config: CodebaseConfig = DefaultCodebaseConfig,
-        secrets: SecretsConfig = DefaultSecrets,
+        config: CodebaseConfig | None = None,
+        secrets: SecretsConfig | None = None,
         io: IO | None = None,
         progress: Progress | None = None,
     ) -> None:
@@ -159,8 +159,8 @@ class CodebaseContext:
         self.io = io or FileIO()
         context = projects[0]
         self.node_classes = get_node_classes(context.programming_language)
-        self.config = config
-        self.secrets = secrets
+        self.config = config or CodebaseConfig()
+        self.secrets = secrets or SecretsConfig()
         self.repo_name = context.repo_operator.repo_name
         self.repo_path = str(Path(context.repo_operator.repo_path).resolve())
         self.full_path = os.path.join(self.repo_path, context.base_path) if context.base_path else self.repo_path
@@ -172,7 +172,7 @@ class CodebaseContext:
         self.init_nodes = None
         self.init_edges = None
         self.directories = dict()
-        self.parser = Parser.from_node_classes(self.node_classes, log_parse_warnings=config.debug)
+        self.parser = Parser.from_node_classes(self.node_classes, log_parse_warnings=self.config.debug)
         self.extensions = self.node_classes.file_cls.get_extensions()
         # ORDER IS IMPORTANT HERE!
         self.config_parser = get_config_parser_for_language(context.programming_language, self)
