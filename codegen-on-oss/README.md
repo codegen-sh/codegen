@@ -100,13 +100,13 @@ ______________________________________________________________________
 
 ______________________________________________________________________
 
-## Modal Integration for Cloud Parsing
+## Running on Modal
 
 ```shell
 $ uv run modal run modal_run.py
 ```
 
-By default, the parser is run for `input.csv` tracked in this repository.
+Codegen runs this parser on modal using the CSV source file `input.csv` tracked in this repository.
 
 ### Modal Configuration
 
@@ -136,6 +136,36 @@ The results of each run are saved under the version of `codegen` lib that the ru
   - `https://s3.amazonaws.com/codegen-oss-parse/{version}/{source}/metrics.csv`
 - Logs
   - `https://s3.amazonaws.com/codegen-oss-parse/{version}/{source}/output.logs`
+
+______________________________________________________________________
+
+### Running it yourself
+
+You can also run `modal_run.py` yourself. It is designed to be run via Modal for cloud-based parsing. It offers additional configuration methods:
+
+```shell
+$ uv run modal run modal_run.py
+```
+
+- **CSV and Repository Volumes:**
+  The script defines two Modal volumes:
+
+  - `codegen-oss-input-volume`: For uploading and reloading CSV inputs.
+  - `codegen-oss-repo-volume`: For caching repository data during parsing.
+    The repository and input volume names are configurable via environment variables (`CODEGEN_MODAL_REPO_VOLUME` and `CODEGEN_MODAL_INPUT_VOLUME`).
+
+- **Secrets Handling:**
+  The script loads various credentials via Modal secrets. It first checks for a pre-configured Modal secret (`codegen-oss-bucket-credentials` configurable via environment variable `CODEGEN_MODAL_SECRET_NAME`) and falls back to dynamically created Modal secret from local `.env` or environment variables if not found.
+
+- **Entrypoint Parameters:**
+  The main function supports multiple source types:
+
+  - **csv:** Uploads a CSV file (`--csv-file input.csv`) for batch processing.
+  - **single:** Parses a single repository specified by its URL (`--single-url "https://github.com/codegen-sh/codegen-sdk.git"`) and an optional commit hash (`--single-commit ...`)
+  - **github:** Uses GitHub settings, language (`--github-language python`) and heuristic (`--github-heuristic stars`) to query for top repositories.
+
+- **Result Storage:**
+  Upon completion, logs and metrics are automatically uploaded to the S3 bucket specified by the environment variable `BUCKET_NAME` (default: `codegen-oss-parse`). This allows for centralized storage and easy retrieval of run outputs. The AWS Credentials provided in the secret are used for this operation.
 
 ______________________________________________________________________
 

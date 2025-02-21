@@ -1,6 +1,7 @@
 import os
 import sys
 from pathlib import Path
+from typing import Literal
 
 import modal
 from loguru import logger
@@ -14,15 +15,21 @@ from codegen_on_oss.sources import RepoSource
 parse_app = modal.App("codegen-oss-parse")
 
 
-csv_input_volume = modal.Volume.from_name(
-    "codegen-oss-input-volume", create_if_missing=True
+codegen_repo_volume = modal.Volume.from_name(
+    os.getenv("CODEGEN_MODAL_REPO_VOLUME", "codegen-oss-repo-volume"),
+    create_if_missing=True,
 )
-csv_repo_volume = modal.Volume.from_name(
-    "codegen-oss-repo-volume", create_if_missing=True
+
+
+codegen_input_volume = modal.Volume.from_name(
+    os.getenv("CODEGEN_MODAL_INPUT_VOLUME", "codegen-oss-input-volume"),
+    create_if_missing=True,
 )
 
 try:
-    aws_secrets = modal.Secret.from_name("codegen-oss-bucket-credentials")
+    aws_secrets = modal.Secret.from_name(
+        os.getenv("CODEGEN_MODAL_SECRET_NAME", "codegen-oss-bucket-credentials")
+    )
 except modal.exception.NotFoundError:
     if Path(".env").exists():
         aws_secrets = modal.Secret.from_dotenv()
@@ -31,6 +38,7 @@ except modal.exception.NotFoundError:
             "AWS_ACCESS_KEY_ID": os.getenv("AWS_ACCESS_KEY_ID"),
             "AWS_SECRET_ACCESS_KEY": os.getenv("AWS_SECRET_ACCESS_KEY"),
             "BUCKET_NAME": os.getenv("BUCKET_NAME"),
+            "GITHUB_TOKEN": os.getenv("GITHUB_TOKEN"),
         })
 
 
@@ -40,8 +48,8 @@ except modal.exception.NotFoundError:
     timeout=3600 * 8,
     secrets=[aws_secrets],
     volumes={
-        str(cachedir.absolute()): csv_repo_volume,
-        "/app/inputs": csv_input_volume,
+        str(cachedir.absolute()): codegen_repo_volume,
+        "/app/inputs": codegen_input_volume,
     },
     image=modal.Image.debian_slim(python_version="3.13")
     .pip_install("uv")
@@ -59,6 +67,8 @@ def parse_repo_on_modal(
     env: dict[str, str],
     log_output_path: str = "output.logs",
     metrics_output_path: str = "metrics.csv",
+    repo_cache_volume: str = "codegen-oss-repo-volume",
+    input_volume: str = "codegen-oss-input-volume",
 ):
     """
     Parse repositories on Modal.
@@ -70,6 +80,9 @@ def parse_repo_on_modal(
         metrics_output_path: The path to the metrics file.
     """
     os.environ.update(env)
+    repo_cache_volume = modal.Volume.from_name(
+        repo_cache_volume, create_if_missing=True
+    )
 
     logger.add(
         log_output_path,
@@ -78,23 +91,20 @@ def parse_repo_on_modal(
     )
     logger.add(sys.stdout, format="{time: HH:mm:ss} {level} {message}", level="DEBUG")
 
-    # Refresh any updating input CSV data for warm instances
-    csv_input_volume.reload()
-
     repo_source = RepoSource.from_source_type(source)
     metrics_profiler = MetricsProfiler(metrics_output_path)
 
     parser = CodegenParser(Path(cachedir) / "repositories", metrics_profiler)
     for repo_url, commit_hash in repo_source:
         # Refresh any updating repo data from other instances
-        csv_repo_volume.reload()
+        codegen_repo_volume.reload()
         try:
             parser.parse(repo_url, commit_hash)
         except Exception as e:
             logger.exception(f"Error parsing repository {repo_url}: {e}")
         finally:
             # Commit any cache changes to the repo volume
-            csv_repo_volume.commit()
+            codegen_repo_volume.commit()
 
     BucketStore(bucket_name=os.getenv("BUCKET_NAME", "codegen-oss-parse")).upload_run(
         repo_source,
@@ -104,17 +114,43 @@ def parse_repo_on_modal(
 
 
 @parse_app.local_entrypoint()
-def main(input_file: str = "input.csv"):
+def main(
+    source: Literal["csv", "single", "github"] = "csv",
+    csv_file: str = "input.csv",
+    single_url: str = "https://github.com/codegen-sh/codegen-sdk.git",
+    single_commit: str | None = None,
+    github_language: Literal["python", "typescript"] = "python",
+    github_heuristic: Literal[
+        "stars",
+        "forks",
+        "updated",
+    ] = "stars",
+):
     """
     Main entrypoint for the parse app.
     """
-    input_path = Path(input_file).relative_to(".")
-    with csv_input_volume.batch_upload(force=True) as b:
-        b.put_file(input_file, input_path)
 
-    parse_repo_on_modal.remote(
-        source="csv",
-        env={
-            "CSV_FILE_PATH": f"/app/inputs/{input_path}",
-        },
+    match source:
+        case "csv":
+            input_path = Path(csv_file).relative_to(".")
+            with codegen_input_volume.batch_upload(force=True) as b:
+                b.put_file(csv_file, input_path)
+
+            env = {
+                "CSV_FILE_PATH": f"/app/inputs/{input_path}",
+            }
+        case "single":
+            env = {
+                "SINGLE_URL": single_url,
+                "SINGLE_COMMIT": single_commit,
+            }
+        case "github":
+            env = {
+                "GITHUB_LANGUAGE": github_language,
+                "GITHUB_HEURISTIC": github_heuristic,
+            }
+
+    return parse_repo_on_modal.remote(
+        source=source,
+        env=env,
     )

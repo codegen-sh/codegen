@@ -49,12 +49,14 @@ class RepoSource(Generic[SettingsType]):
             raise DuplicateSource(cls.source_type)
         all_sources[cls.source_type] = cls
 
-    def __init__(self) -> None:
-        self.settings = self.settings_cls()
+    def __init__(self, settings: SourceSettings | None = None) -> None:
+        self.settings = settings or self.settings_cls()
 
     @classmethod
-    def from_source_type(cls, source_type: str) -> "RepoSource":
-        return all_sources[source_type]()
+    def from_source_type(
+        cls, source_type: str, settings: SourceSettings | None = None
+    ) -> "RepoSource":
+        return all_sources[source_type](settings)
 
     def __iter__(self) -> Iterator[tuple[str, str | None]]:
         """
