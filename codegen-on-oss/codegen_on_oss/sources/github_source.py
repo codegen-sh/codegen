@@ -23,6 +23,7 @@ class GithubSettings(SourceSettings, env_prefix="GITHUB_"):
         # "dependency",
     ] = "stars"
     token: str | None = None
+    num_repos: int = 50
 
 
 class GithubSource(RepoSource[GithubSettings]):
@@ -37,8 +38,8 @@ class GithubSource(RepoSource[GithubSettings]):
     source_type: ClassVar[str] = "github"
     settings_cls: ClassVar[type[GithubSettings]] = GithubSettings
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
         if self.settings.token is None:
             self.github_client = Github()
         else:

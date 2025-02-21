@@ -1,7 +1,6 @@
 import os
 import sys
 from pathlib import Path
-from typing import Literal
 
 import modal
 from loguru import logger
@@ -115,16 +114,13 @@ def parse_repo_on_modal(
 
 @parse_app.local_entrypoint()
 def main(
-    source: Literal["csv", "single", "github"] = "csv",
+    source: str = "csv",
     csv_file: str = "input.csv",
     single_url: str = "https://github.com/codegen-sh/codegen-sdk.git",
     single_commit: str | None = None,
-    github_language: Literal["python", "typescript"] = "python",
-    github_heuristic: Literal[
-        "stars",
-        "forks",
-        "updated",
-    ] = "stars",
+    github_language: str = "python",
+    github_heuristic: str = "stars",
+    github_num_repos: int = 50,
 ):
     """
     Main entrypoint for the parse app.
@@ -140,15 +136,18 @@ def main(
                 "CSV_FILE_PATH": f"/app/inputs/{input_path}",
             }
         case "single":
-            env = {
-                "SINGLE_URL": single_url,
-                "SINGLE_COMMIT": single_commit,
-            }
+            env = {"SINGLE_URL": single_url}
+            if single_commit:
+                env["SINGLE_COMMIT"] = single_commit
         case "github":
             env = {
                 "GITHUB_LANGUAGE": github_language,
                 "GITHUB_HEURISTIC": github_heuristic,
+                "GITHUB_NUM_REPOS": str(github_num_repos),
             }
+        case _:
+            msg = f"Invalid source: {source}"
+            raise ValueError(msg)
 
     return parse_repo_on_modal.remote(
         source=source,
