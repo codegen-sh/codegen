@@ -197,3 +197,29 @@ class PyFile(SourceFile[PyImport, PyFunction, PyClass, PyAssignment, Interface[P
                         ret[file.name] = file
             return ret
         return super().valid_import_names
+
+
+    def get_node_from_wildcard_chain(self, symbol_name: str):
+        node = None
+        if node := self.get_node_by_name(symbol_name):
+            return node
+
+        if wildcard_imports := {imp for imp in self.imports if imp.is_wildcard_import()}:
+            for wildcard_import in wildcard_imports:
+                if imp_resolution := wildcard_import.resolve_import():
+                    node = imp_resolution.from_file.get_node_from_wildcard_chain(symbol_name=symbol_name)
+
+        return node
+
+    def get_node_wildcard_resolves_for(self, symbol_name: str):
+        node = None
+        if node := self.get_node_by_name(symbol_name):
+            return node
+
+        if wildcard_imports := {imp for imp in self.imports if imp.is_wildcard_import()}:
+            for wildcard_import in wildcard_imports:
+                if imp_resolution := wildcard_import.resolve_import():
+                    if imp_resolution.from_file.get_node_from_wildcard_chain(symbol_name=symbol_name):
+                        node = wildcard_import
+
+        return node
