@@ -150,7 +150,7 @@ class CodegenPR:
         return False
 
     @property
-    def modified_symbols(self) -> list["Symbol"]:
+    def modified_symbols(self) -> list[str]:
         # Import SourceFile locally to avoid circular dependencies
         from codegen.sdk.core.file import SourceFile
 
@@ -163,7 +163,8 @@ class CodegenPR:
                 continue
             for symbol in file.symbols:
                 if self.is_modified(symbol):
-                    all_modified.append(symbol)
+                    all_modified.append(symbol.name)
+        
         return all_modified
 
     def get_pr_diff(self) -> str:
