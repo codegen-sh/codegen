@@ -6,7 +6,7 @@
 
 1. Create a `.venv` with `uv venv` and activate it with `source .venv/bin/activate`
 
-1. Install the codegen dependencies with `uv pip install codegen`
+1. Install the codegen dependencies with `uv add codegen`
 
 - Note: If you'd like to install the dependencies in the global environment, you can use `uv pip install -e ../../../`. This will allow you to test modifications to the codegen codebase. You will need to run `uv pip install -e ../../../` each time you make changes to the codebase.
 
