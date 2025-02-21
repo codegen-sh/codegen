@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Any
 
 from rustworkx import PyDiGraph, WeightedEdgeList
 
+from codegen.configs.models.codebase import CodebaseConfig
 from codegen.configs.models.secrets import SecretsConfig
 from codegen.sdk.codebase.config import ProjectConfig, SessionOptions
 from codegen.sdk.codebase.config_parser import ConfigParser, get_config_parser_for_language
@@ -51,8 +52,6 @@ if TYPE_CHECKING:
     from codegen.sdk.core.parser import Parser
 
 import logging
-
-from codegen.configs.models.codebase import CodebaseConfig
 
 logger = logging.getLogger(__name__)
 

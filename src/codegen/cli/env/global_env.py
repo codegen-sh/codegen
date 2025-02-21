@@ -35,7 +35,7 @@ class GlobalEnv:
             raise ValueError(msg)
         return Environment(env_envvar)
 
-    def _load_dotenv(self) -> dict[str, str]:
+    def _load_dotenv(self) -> None:
         env_file = find_dotenv(filename=f".env.{self.ENV}")
         # if env specific .env file does not exist, try to load .env
         load_dotenv(env_file or None, override=True)
