@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-
-from codegen.extensions.swebench.utils import get_dataset, load_predictions  # noqa: F401
-
 # A no-op patch which creates an empty file is used to stand in for
 # the `model_patch` and/or `test_patch` when running SWE Bench tests
 # without one or both of those patches.

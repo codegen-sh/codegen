@@ -1,29 +1,26 @@
 #!/usr/bin/env python
 
 import json
-import shutil
 import subprocess
 import uuid
 from collections import defaultdict
 from pathlib import Path
-from pprint import pprint
 
 from codegen.extensions.swebench.tests import remove_patches_to_tests
-from codegen.extensions.swebench.utils import (
-    load_predictions,
-)
+from codegen.extensions.swebench.utils import SWEBenchDataset
 
 using_dataset = "lite"
 LOG_DIR = Path(__file__).parent / "logs"
 NUM_EVAL_PROCS = 5
 
 
-def run_evals(predictions_jsonl, logs_dir: Path):
+def run_evals(predictions_jsonl, logs_dir: Path, dataset: SWEBenchDataset):
+    """Run the evaluations on the predictions on modal."""
     run_evals_cmd = f"""
 python -m swebench.harness.run_evaluation
     --predictions_path {predictions_jsonl}
     --run_id {uuid.uuid4()!s}
-    --dataset_name princeton-nlp/SWE-bench_Lite
+    --dataset_name {dataset.value}
     --cache_level instance
     --report_dir {logs_dir}
     --modal true
@@ -113,55 +110,7 @@ def preds_to_jsonl(predictions, predictions_dir: Path):
     return predictions_jsonl
 
 
-def run_evals_on_dname(dname, predictions_dir: Path):
-    dname = Path(dname)
-
-    predictions = load_predictions([dname], devin_only=(using_dataset == "devin"))
-
-    predictions_jsonl = preds_to_jsonl(predictions)
-    pprint(predictions_jsonl)
-
-    LOG_DIR.mkdir(exist_ok=True, parents=True)
-
-    any_need_evals = any("resolved" not in pred for pred in predictions.values())
-    any_need_evals = True
-    if any_need_evals:
-        run_evals(predictions_jsonl)
-
-        model_name_or_path = next(iter(predictions.values()))["model_name_or_path"]
-        report = get_report(predictions_jsonl)
-        predictions = update_pred_json(predictions, report, predictions_dir)
-
-    return predictions_jsonl, LOG_DIR
-
-
-def combine_jsonl_logs(predictions, model_name_or_path):
-    logs = Path("logs")
-    log_dir = logs / model_name_or_path
-
-    log_dir.mkdir(exist_ok=True)
-    pprint(log_dir)
-
-    predictions_jsonl = preds_to_jsonl(predictions)
-    for inst, pred in predictions.items():
-        from_fname = logs / pred["dname"]
-        # dump(from_fname, inst)
-        from_fname = list(from_fname.glob(f"{inst}.*.log"))
-        assert len(from_fname) <= 1, from_fname
-        if not len(from_fname):
-            print("Missing", pred["dname"], inst)
-            continue
-        from_fname = from_fname[0]
-        # dump(from_fname)
-
-        to_fname = log_dir / f"{inst}.{model_name_or_path}.eval.log"
-        # dump(from_fname, to_fname)
-        shutil.copyfile(from_fname, to_fname)
-
-    return predictions_jsonl, log_dir
-
-
-def generate_report(predictions_dir: Path, logs_dir: Path):
+def generate_report(predictions_dir: Path, logs_dir: Path, dataset: SWEBenchDataset):
     # Automatically find all JSON files in predictions/results
     results_dir = predictions_dir / "results"
     if not results_dir.exists():
@@ -195,7 +144,7 @@ def generate_report(predictions_dir: Path, logs_dir: Path):
         print(f"Using log directory: {log_dir}")
 
         # Run evaluations
-        run_evals(predictions_jsonl, logs_dir)
+        run_evals(predictions_jsonl, logs_dir, dataset)
 
         # Get and display report
         model_name = "results"  # or whatever model name you want to use

@@ -6,23 +6,21 @@ import pprint
 import random
 import subprocess
 import sys
+from pathlib import Path
 
 import lox
 
 from codegen import Codebase
-
-# coding agent
 from codegen.agents.code_agent import CodeAgent
-from codegen.extensions.langchain.utils import SweBenchExample, get_swe_bench_examples
-from codegen.extensions.swebench.constants import PREDS_DNAME
-
-# Replace the dump import with pprint
-# from dump import dump
-# from tests import run_tests
 from codegen.extensions.swebench.utils import (
-    get_full_dataset,  # noqa: F401
+    SweBenchExample,
+    get_swe_bench_examples,
     load_predictions,
 )
+
+PARENT_DIR = Path(__file__).parent
+
+PREDS_DNAME = PARENT_DIR / "predictions"
 
 
 def diff_versus_commit(git_dname, commit):
@@ -50,7 +48,7 @@ def show_problems(dataset):
         print(f"{inst}: {problem}")
 
 
-def process_one_instance(entry: SweBenchExample):
+def run_agent_on_entry(entry: SweBenchExample):
     """Process one `entry` from SWE Bench using the LLM `models` at the
     given `temperature`.  Set `model_name_or_path` in the result json.
     """
@@ -64,10 +62,6 @@ def process_one_instance(entry: SweBenchExample):
     print(problem_statement)
 
     gold_files = files_in_patch(entry.patch)
-
-    results = []
-    cost = 0
-    winner = None
 
     codebase = Codebase.from_repo(repo_full_name=entry.repo, commit=base_commit, language="python")  # check out the repo
 
@@ -107,30 +101,13 @@ Propose changes to update the repo to fix the problem below.
         gold_files=gold_files,
         edited_files=files_in_patch(model_patch),
     )
-    results.append(result)
-
-    pprint.pprint(result)
 
     # Did we get a successful patch?
-    if model_patch:
-        winner = result
-
-    # If there's no clear winner, look for the most viable result we got...
-    if not winner:
-        msg = "No winner found"
+    if not model_patch:
+        msg = "Failed to generate a patch"
         raise ValueError(msg)
 
-    # Avoid circular reference when we save to json
-    winner = dict(winner)
-
-    winner.update(
-        dict(
-            all_results=results,  # Record all the results for later analysis
-            cost=cost,  # total cost across all results
-        )
-    )
-
-    return winner
+    return result
 
 
 def process_instances(dataset: dict[str, SweBenchExample], threads: int):
@@ -168,11 +145,11 @@ def process_instances(dataset: dict[str, SweBenchExample], threads: int):
     input()
 
     if threads > 1:
-        process_one_instance_lox = lox.process(threads)(process_one_instance)
+        process_one_instance_lox = lox.process(threads)(run_agent_on_entry)
         process_one_instance_func = process_one_instance_lox.scatter
         gather = process_one_instance_lox.gather
     else:
-        process_one_instance_func = process_one_instance
+        process_one_instance_func = run_agent_on_entry
 
     for instance_id in remaining_instances:
         if instance_id in done_instances:
@@ -194,16 +171,8 @@ def process_instances(dataset: dict[str, SweBenchExample], threads: int):
 
 def main():
     # Load the SWE Bench dataset
-    dataset = {}
-    for example in get_swe_bench_examples():
-        # codegen-sdk currently fails on this repo
-        if example.repo == "django/django":
-            continue
-        dataset[example.instance_id] = example
-
-    threads = 1
-
-    process_instances(dataset, threads)
+    dataset = {example.instance_id: example for example in get_swe_bench_examples()}
+    process_instances(dataset, threads=10)
 
 
 if __name__ == "__main__":

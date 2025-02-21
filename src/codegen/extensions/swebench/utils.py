@@ -1,64 +1,35 @@
 import json
-import shutil
+from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
 from pprint import pprint
+from typing import Literal, Optional
 
-from datasets import load_dataset
-
-FULL_DATASET = "princeton-nlp/SWE-bench"
-FULL_DATASET_FNAME = FULL_DATASET.replace("/", "--") + ".json"
+import requests
 
 
-VERIFIED_DATASET = "princeton-nlp/SWE-bench-verified"
-VERIFIED_DATASET_FNAME = VERIFIED_DATASET.replace("/", "--") + ".json"
-
-LITE_DATASET = "princeton-nlp/SWE-bench_Lite"
-LITE_DATASET_FNAME = LITE_DATASET.replace("/", "--") + ".json"
-
-
-def dump_dataset(dataset, fname):
-    """Save the dataset to json."""
-    entries = list(dataset)
-    for entry in entries:
-        entry["FAIL_TO_PASS"] = json.loads(entry["FAIL_TO_PASS"])
-        entry["PASS_TO_PASS"] = json.loads(entry["PASS_TO_PASS"])
-
-    with open(fname, "w") as f:
-        json.dump(entries, f, indent=4)
+class SWEBenchDataset(Enum):
+    LITE = "princeton-nlp/SWE-bench_Lite"
+    FULL = "princeton-nlp/SWE-bench"
+    VERIFIED = "princeton-nlp/SWE-bench-verified"
 
 
-def get_full_dataset():
-    return get_dataset(FULL_DATASET, FULL_DATASET_FNAME)
+@dataclass
+class SweBenchExample:
+    """A single example from the SWE-bench dataset."""
 
-
-def get_lite_dataset():
-    return get_dataset(LITE_DATASET, LITE_DATASET_FNAME)
-
-
-def get_verified_dataset():
-    return get_dataset(VERIFIED_DATASET, VERIFIED_DATASET_FNAME)
-
-
-def get_dataset(dataset, fname):
-    """Load the `DATASET` from hugging face, and turn it into a dict
-    keyed on `instance_id`.
-    Cache the dict locally in a json file.
-    """
-    fname = Path(fname)
-    if fname.exists():
-        dataset = json.loads(fname.read_text())
-    else:
-        pprint(dataset)
-        dataset = load_dataset(dataset)
-        dataset = dataset["test"]
-        dump_dataset(dataset, fname)
-        pprint(dataset)
-
-    res = dict()
-    for entry in dataset:
-        res[entry["instance_id"]] = entry
-
-    return res
+    repo: str
+    instance_id: str
+    base_commit: str
+    patch: str
+    test_patch: str
+    problem_statement: str
+    hints_text: Optional[str]
+    created_at: str
+    version: str
+    fail_to_pass: str
+    pass_to_pass: Optional[str]
+    environment_setup_commit: Optional[str]
 
 
 def load_predictions(paths):
@@ -93,87 +64,93 @@ def load_predictions(paths):
     return predictions
 
 
-def is_plausible(pred):
-    attrs = "model_patch edit_outcome lint_outcome test_outcome".split()
-    for attr in attrs:
-        if not pred.get(attr):
-            return
-    return True
+def get_swe_bench_examples(dataset: SWEBenchDataset = SWEBenchDataset.LITE, split: Literal["train", "dev", "test"] = "test", offset: int = 0, length: int = 100) -> list[SweBenchExample]:
+    """Fetch examples from the SWE-bench dataset.
 
+    Returns:
+        List of SweBenchExample objects
 
-def get_plausible(preds):
-    return set(inst for inst, pred in preds.items() if is_plausible(pred))
-
-
-def check_criteria(pred, criteria):
-    attrs = criteria.split()
-    for attr in attrs:
-        if not pred[attr]:
-            return False
-    return True
-
-
-def pick_winner(results):
-    """Given that we didn't obtain a result with all good outcomes,
-    try a series of weaker outcome sets to find the strongest result.
+    Raises:
+        requests.RequestException: If the API request fails
     """
-    priority = (
-        "model_patch edit_outcome lint_outcome test_outcome",  # all good!
-        "model_patch edit_outcome lint_outcome",  # all good but test_outcome
-        "model_patch lint_outcome",  # a patch that lints?
-        "model_patch edit_outcome",  # a patch that had no edit errors?
-        "model_patch",  # anything with an actual patch!
+    url = "https://datasets-server.huggingface.co/rows"
+    params = {
+        "dataset": dataset.value,
+        "config": "default",
+        "split": split,
+        "offset": offset,
+        "length": length,
+    }
+
+    response = requests.get(url, params=params)
+    response.raise_for_status()
+    data = response.json()
+
+    examples = []
+    for row in data["rows"]:
+        example = SweBenchExample(
+            repo=row["row"]["repo"],
+            instance_id=row["row"]["instance_id"],
+            base_commit=row["row"]["base_commit"],
+            patch=row["row"]["patch"],
+            test_patch=row["row"]["test_patch"],
+            problem_statement=row["row"]["problem_statement"],
+            hints_text=row["row"].get("hints_text"),
+            created_at=row["row"]["created_at"],
+            version=row["row"]["version"],
+            fail_to_pass=row["row"]["FAIL_TO_PASS"],
+            pass_to_pass=row["row"].get("PASS_TO_PASS"),
+            environment_setup_commit=row["row"].get("environment_setup_commit"),
+        )
+        examples.append(example)
+
+    return examples
+
+
+def get_swe_bench_example(
+    instance_id: str,
+    dataset: SWEBenchDataset = SWEBenchDataset.LITE,
+) -> SweBenchExample:
+    """Fetch a single example from the SWE-bench dataset by its instance ID.
+
+    Args:
+        instance_id: The unique identifier of the example to fetch
+
+    Returns:
+        SweBenchExample object
+
+    Raises:
+        ValueError: If no example found with the given ID
+        requests.RequestException: If the API request fails
+    """
+    url = "https://datasets-server.huggingface.co/filter"
+    params = {
+        "dataset": dataset.value,
+        "config": "default",
+        "split": "dev",
+        "where": f"instance_id='{instance_id}'",
+    }
+
+    response = requests.get(url, params=params)
+    response.raise_for_status()
+    data = response.json()
+
+    if not data["rows"]:
+        msg = f"No example found with instance_id: {instance_id}"
+        raise ValueError(msg)
+
+    row = data["rows"][0]["row"]
+    return SweBenchExample(
+        repo=row["repo"],
+        instance_id=row["instance_id"],
+        base_commit=row["base_commit"],
+        patch=row["patch"],
+        test_patch=row["test_patch"],
+        problem_statement=row["problem_statement"],
+        hints_text=row.get("hints_text"),
+        created_at=row["created_at"],
+        version=row["version"],
+        fail_to_pass=row["FAIL_TO_PASS"],
+        pass_to_pass=row.get("PASS_TO_PASS"),
+        environment_setup_commit=row.get("environment_setup_commit"),
     )
-
-    # choose the best result available
-    for criteria in priority:
-        for res in results:
-            if check_criteria(res, criteria):
-                return res
-
-    # choose the first result as a last resort
-    if results:
-        return results[0]
-
-
-def choose_pred(inst, all_preds, dnames):
-    results = []
-    for i in range(len(all_preds)):
-        preds = all_preds[i]
-        dname = dnames[i]
-
-        if inst not in preds:
-            continue
-        pred = dict(preds[inst])
-        pred["dname"] = Path(dname).name
-        results.append(pred)
-
-    return pick_winner(results)
-
-
-def choose_predictions(dnames, model_name_or_path=None, copy_md=False, devin_only=False):
-    all_preds = [load_predictions([dname], devin_only=devin_only) for dname in dnames]
-    all_instances = set()
-    for preds in all_preds:
-        all_instances.update(preds.keys())
-
-    chosen = dict()
-    for inst in all_instances:
-        res = choose_pred(inst, all_preds, dnames)
-        chosen[inst] = res
-
-        if copy_md:
-            pred_dname = Path("predictions")
-            md_fname = pred_dname / res["dname"] / (inst + ".md")
-            assert md_fname.exists(), md_fname
-            new_md_fname = pred_dname / model_name_or_path / (inst + ".md")
-            shutil.copyfile(md_fname, new_md_fname)
-
-    for inst in chosen:
-        pred = dict(chosen[inst])
-        pred["model_name_or_path"] = model_name_or_path
-        chosen[inst] = pred
-
-    pprint(len(chosen))
-    pprint(chosen)
-    return chosen

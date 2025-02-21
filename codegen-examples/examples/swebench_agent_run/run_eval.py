@@ -3,17 +3,18 @@ import json
 import traceback
 from pathlib import Path
 import modal
+import click
 from datetime import datetime
-from codegen.extensions.langchain.utils import get_swe_bench_examples
+from codegen.extensions.swebench.utils import SWEBenchDataset, get_swe_bench_example, get_swe_bench_examples
 from codegen.extensions.swebench.report import generate_report
 
 PREDS_DNAME = Path(__file__).parent / "predictions"
 LOG_DIR = Path(__file__).parent / "logs"
 
-process_entry = modal.Function.lookup("swebench-agent-run", "process_entry")
+run_agent_modal = modal.Function.lookup("swebench-agent-run", "run_agent_modal")
 
 
-async def process_batch(examples, batch_size=50):
+async def process_batch(examples, batch_size=10):
     """Process a batch of examples concurrently.
 
     Args:
@@ -29,7 +30,7 @@ async def process_batch(examples, batch_size=50):
         batch = examples[i : i + batch_size]
 
         # Create tasks for this batch
-        batch_tasks = [process_entry.remote.aio(example) for example in batch]
+        batch_tasks = [run_agent_modal.remote.aio(example) for example in batch]
 
         # Wait for all tasks in this batch to complete
         print(f"Processing batch {i // batch_size + 1}/{len(examples) // batch_size + 1} (examples {i + 1}-{min(i + batch_size, len(examples))})")
@@ -49,7 +50,7 @@ async def process_batch(examples, batch_size=50):
                         "traceback": traceback.format_exception(type(result), result, result.__traceback__),
                     }
 
-                    if isinstance(result, modal.exception.ModalClientError):
+                    if isinstance(result, modal.exception.Error):
                         error_info["modal_error_code"] = getattr(result, "code", None)
                         error_info["modal_error_details"] = getattr(result, "details", None)
 
@@ -86,11 +87,15 @@ async def process_batch(examples, batch_size=50):
     return results
 
 
-async def run_eval(use_existing_preds=False):
+async def run_eval(use_existing_preds, dataset, length, instance_id=None):
+    dataset = SWEBenchDataset(dataset)
+    if instance_id:
+        examples = [get_swe_bench_example(instance_id, dataset=dataset)]
+    else:
+        examples = get_swe_bench_examples(dataset=dataset, length=length)
+
     try:
         if not use_existing_preds:
-            # Get all examples
-            examples = get_swe_bench_examples()[:1]
             print(f"Processing {len(examples)} examples...")
 
             # Create output directory if it doesn't exist
@@ -143,12 +148,21 @@ async def run_eval(use_existing_preds=False):
                     print(f"  {error_type}: {count}")
 
         # Generate Report on Modal
-        generate_report(PREDS_DNAME, LOG_DIR)
+        generate_report(PREDS_DNAME, LOG_DIR, dataset)
     except Exception:
         print("Fatal error in run_eval:")
         traceback.print_exc()
         raise
 
 
+@click.command()
+@click.option("--use-existing-preds", is_flag=True, help="Use existing predictions instead of generating new ones.")
+@click.option("--dataset", help="The dataset to use.", type=click.Choice([dataset.value for dataset in SWEBenchDataset]), default=SWEBenchDataset.LITE.value)
+@click.option("--length", help="The number of examples to process.", type=int, default=10)
+@click.option("--instance-id", help="The instance ID of the example to process.")
+def run_eval_command(use_existing_preds, dataset, length, instance_id):
+    asyncio.run(run_eval(use_existing_preds, dataset, length, instance_id))
+
+
 if __name__ == "__main__":
-    asyncio.run(run_eval())
+    run_eval_command()
