@@ -14,8 +14,9 @@ from git import Commit as GitCommit
 from git import Diff, GitCommandError, InvalidGitRepositoryError, Remote
 from git import Repo as GitCLI
 from git.remote import PushInfoList
-from github.PullRequest import PullRequest
 from github.IssueComment import IssueComment
+from github.PullRequest import PullRequest
+
 from codegen.configs.models.secrets import DefaultSecrets
 from codegen.git.clients.git_repo_client import GitRepoClient
 from codegen.git.configs.constants import CODEGEN_BOT_EMAIL, CODEGEN_BOT_NAME

@@ -8,9 +8,9 @@ from github.CheckSuite import CheckSuite
 from github.Commit import Commit
 from github.GithubException import GithubException, UnknownObjectException
 from github.GithubObject import NotSet, Opt
+from github.IssueComment import IssueComment
 from github.Label import Label
 from github.PullRequest import PullRequest
-from github.IssueComment import IssueComment
 from github.Repository import Repository
 from github.Tag import Tag
 from github.Workflow import Workflow
