@@ -61,11 +61,11 @@ class SessionManager:
         return f"GlobalConfig:\n  Active Session: {active}\n  Sessions:\n    {sessions_str}\n  Global Session:\n    {self.session_config}"
 
 
-def _get_codegen_dir() -> Path | None:
+def _get_project_root() -> Path | None:
     """Get the active codegen directory."""
     active_session = session_manager.get_active_session()
     if active_session:
-        return active_session / CODEGEN_DIR_NAME
+        return active_session
 
     try:
         path = Path.cwd().resolve()
@@ -78,9 +78,9 @@ def _get_codegen_dir() -> Path | None:
         git_path = path / ".git"
 
         if codegen_path.exists():
-            return codegen_path
+            return path
         if git_path.exists():
-            return codegen_path
+            return path
 
         parent = path.parent.resolve()
         if parent == path:  # We've reached the root directory
@@ -91,4 +91,4 @@ def _get_codegen_dir() -> Path | None:
 
 
 session_manager = SessionManager()
-session_codegen_dir = _get_codegen_dir()
+session_root = _get_project_root()

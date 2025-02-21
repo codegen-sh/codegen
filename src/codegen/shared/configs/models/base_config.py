@@ -5,7 +5,7 @@ from dotenv import set_key
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from codegen.shared.configs.constants import ENV_FILENAME, GLOBAL_ENV_FILE
-from codegen.shared.configs.session_manager import session_codegen_dir
+from codegen.shared.configs.session_manager import session_root
 
 
 class BaseConfig(BaseSettings, ABC):
@@ -18,9 +18,9 @@ class BaseConfig(BaseSettings, ABC):
 
     def __init__(self, prefix: str, env_filepath: Path | None = None, *args, **kwargs) -> None:
         if env_filepath is None:
-            codegen_dir = session_codegen_dir
-            if codegen_dir is not None:
-                env_filepath = codegen_dir / ENV_FILENAME
+            root_path = session_root
+            if root_path is not None:
+                env_filepath = root_path / ENV_FILENAME
 
         # Only include env files that exist
         env_filepaths = []

@@ -524,7 +524,6 @@ Let's walk through a minimal example of using Codegen in a project:
    ```bash
    .codegen/
    ├── .venv/            # Python virtual environment (gitignored)
-   ├── .env              # Project configuration
    ├── codemods/         # Your codemod implementations
    ├── jupyter/          # Jupyter notebooks for exploration
    └── codegen-system-prompt.txt  # AI system prompt

@@ -4,7 +4,7 @@ import rich
 import rich_click as click
 from rich.table import Table
 
-from codegen.shared.configs.constants import CODEGEN_DIR_NAME, ENV_FILENAME, GLOBAL_ENV_FILE
+from codegen.shared.configs.constants import ENV_FILENAME, GLOBAL_ENV_FILE
 from codegen.shared.configs.session_manager import session_manager
 from codegen.shared.configs.user_config import UserConfig
 
@@ -115,13 +115,13 @@ def set_command(key: str, value: str, is_global: bool):
             rich.print(f"[red]{e}[/red]")
             return
 
-    rich.print(f"[green]Successfully set {key}=[magenta]{value}[/magenta] and saved to {CODEGEN_DIR_NAME}/{ENV_FILENAME}[/green]")
+    rich.print(f"[green]Successfully set {key}=[magenta]{value}[/magenta] and saved to {ENV_FILENAME}[/green]")
 
 
 def _get_user_config(is_global: bool) -> UserConfig:
     if is_global or (active_session_path := session_manager.get_active_session()) is None:
         env_filepath = GLOBAL_ENV_FILE
     else:
-        env_filepath = active_session_path / CODEGEN_DIR_NAME / ENV_FILENAME
+        env_filepath = active_session_path / ENV_FILENAME
 
     return UserConfig(env_filepath)

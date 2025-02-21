@@ -30,7 +30,7 @@ class CodegenSession:
         self.repo_path = repo_path
         self.local_git = LocalGitRepo(repo_path=repo_path)
         self.codegen_dir = repo_path / CODEGEN_DIR_NAME
-        self.config = UserConfig(env_filepath=self.codegen_dir / ENV_FILENAME)
+        self.config = UserConfig(env_filepath=repo_path / ENV_FILENAME)
         self.config.secrets.github_token = git_token or self.config.secrets.github_token
         self.existing = session_manager.get_session(repo_path) is not None
 

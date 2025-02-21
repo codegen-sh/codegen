@@ -105,7 +105,6 @@ def modify_gitignore(codegen_folder: Path):
         "prompts/",
         "jupyter/",
         ".venv/",  # Add venv to gitignore
-        ".env",
         "codegen-system-prompt.txt",
         "",
         "# Python cache files",
