@@ -107,6 +107,10 @@ class PyImport(Import["PyFile"]):
         if file := self.ctx.get_file(filepath):
             return ImportResolution(from_file=file, symbol=None, imports_file=True)
 
+        # =====[ Check if we are importing an entire file with PYTHONPATH set ]=====
+        if file := self._file_by_pythonpath(filepath):
+            return ImportResolution(from_file=file, symbol=None, imports_file=True)
+
         filepath = filepath.replace(".py", "/__init__.py")
         if file := self.ctx.get_file(filepath):
             # TODO - I think this is another edge case, due to `dao/__init__.py` etc.
@@ -117,6 +121,11 @@ class PyImport(Import["PyFile"]):
         filepath = module_source.replace(".", "/") + ".py"
         filepath = os.path.join(base_path, filepath)
         if file := self.ctx.get_file(filepath):
+            symbol = file.get_node_by_name(symbol_name)
+            return ImportResolution(from_file=file, symbol=symbol)
+
+        # =====[ Check if `module.py` file exists in the graph with PYTHONPATH set ]=====
+        if file := self._file_by_pythonpath(filepath):
             symbol = file.get_node_by_name(symbol_name)
             return ImportResolution(from_file=file, symbol=symbol)
 
@@ -147,6 +156,26 @@ class PyImport(Import["PyFile"]):
         # # In these cases, consider the import as an ExternalModule and add to graph
         # ext = ExternalModule.from_import(self)
         # return ImportResolution(symbol=ext)
+
+    @noapidoc
+    @reader
+    def _file_by_pythonpath(self, filepath: str) -> SourceFile | None:
+        """Helper to check if a certain import is in the list of files when a PYTHONPATH
+        is set. Returns either None or the SourceFile.
+        """
+        python_paths: str | None = os.environ.get("PYTHONPATH", None)
+        if python_paths is None:
+            return None
+
+        python_path_tokens: list[str] = python_paths.split(":")
+        for python_path in python_path_tokens:
+            if len(python_path) == 0:
+                continue
+            filepath_new: str = os.path.join(python_path, filepath)
+            if file := self.ctx.get_file(filepath_new):
+                return file
+
+        return None
 
     @noapidoc
     @reader

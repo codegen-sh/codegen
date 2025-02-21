@@ -178,7 +178,7 @@ import a as A
         assert z[7].alias.source == "A"
 
 
-def test_import_resolution_file_import(tmpdir: str) -> None:
+def test_import_resolution_file_import(tmpdir: str, monkeypatch) -> None:
     """Tests function.usages returns usages from file imports"""
     # language=python
     with get_codebase_session(
@@ -190,9 +190,14 @@ def update():
 """,
             "consumer.py": """
 from a.b.c import src as operations
+from b.c import src as operations_pythonpath
+from b.c.src import funct_1
 
 def func_1():
     operations.update()
+
+def func_2():
+    operations_pythonpath.update()
 """,
         },
     ) as codebase:
@@ -200,12 +205,25 @@ def func_1():
         consumer_file: SourceFile = codebase.get_file("consumer.py")
 
         # =====[ Imports & Resolution ]=====
-        assert len(consumer_file.imports) == 1
+        assert len(consumer_file.imports) == 3
         src_import: Import = consumer_file.imports[0]
         src_import_resolution: ImportResolution = src_import.resolve_import()
         assert src_import_resolution
         assert src_import_resolution.from_file is src_file
         assert src_import_resolution.imports_file is True
+
+        # =====[ Consider PYTHONPATH env variable ]=====
+        monkeypatch.setenv("PYTHONPATH", "a")
+        src_import = consumer_file.imports[1]
+        src_import_resolution = src_import.resolve_import()
+        assert src_import_resolution
+        assert src_import_resolution.from_file is src_file
+        assert src_import_resolution.imports_file is True
+        src_import = consumer_file.imports[2]
+        src_import_resolution = src_import.resolve_import()
+        assert src_import_resolution
+        assert src_import_resolution.from_file is src_file
+        assert src_import_resolution.imports_file is False
 
         # =====[ Look at call-sites ]=====
         update = src_file.get_function("update")
