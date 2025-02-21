@@ -734,7 +734,7 @@ class RepoOperator:
         body: str,
         commit_sha: str,
         path: str,
-        line: int| None = None,
+        line: int | None = None,
         side: str = "RIGHT",
         start_line: int | None = None,
     ) -> None:
