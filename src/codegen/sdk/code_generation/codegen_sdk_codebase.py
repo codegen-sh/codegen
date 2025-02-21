@@ -1,8 +1,8 @@
 import os.path
 
+from codegen.configs.models.codebase import DefaultCodebaseConfig
 from codegen.sdk.code_generation.current_code_codebase import get_codegen_codebase_base_path, get_current_code_codebase
 from codegen.sdk.core.codebase import Codebase
-from codegen.shared.configs.models.codebase import DefaultCodebaseConfig
 
 
 def get_codegen_sdk_subdirectories() -> list[str]:

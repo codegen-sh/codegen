@@ -2,10 +2,10 @@
 
 import logging
 
+from codegen.configs.models import secrets
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.runner.clients.server_client import LocalServerClient
 from codegen.runner.models.apis import SANDBOX_SERVER_PORT
-from codegen.shared.configs.models import secrets
 
 logger = logging.getLogger(__name__)
 

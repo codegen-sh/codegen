@@ -4,8 +4,8 @@ from pathlib import Path
 from dotenv import set_key
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from codegen.shared.configs.constants import ENV_FILENAME, GLOBAL_ENV_FILE
-from codegen.shared.configs.session_manager import session_root
+from codegen.configs.constants import ENV_FILENAME, GLOBAL_ENV_FILE
+from codegen.configs.session_manager import session_root
 
 
 class BaseConfig(BaseSettings, ABC):

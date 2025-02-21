@@ -3,9 +3,9 @@ from pathlib import Path
 
 from pydantic import Field
 
-from codegen.shared.configs.models.codebase import CodebaseConfig
-from codegen.shared.configs.models.repository import RepositoryConfig
-from codegen.shared.configs.models.secrets import SecretsConfig
+from codegen.configs.models.codebase import CodebaseConfig
+from codegen.configs.models.repository import RepositoryConfig
+from codegen.configs.models.secrets import SecretsConfig
 
 
 class UserConfig:

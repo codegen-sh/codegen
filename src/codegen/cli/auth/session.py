@@ -7,10 +7,10 @@ from github.MainClass import Github
 
 from codegen.cli.git.repo import get_git_repo
 from codegen.cli.rich.codeblocks import format_command
+from codegen.configs.constants import CODEGEN_DIR_NAME, ENV_FILENAME
+from codegen.configs.session_manager import session_manager
+from codegen.configs.user_config import UserConfig
 from codegen.git.repo_operator.local_git_repo import LocalGitRepo
-from codegen.shared.configs.constants import CODEGEN_DIR_NAME, ENV_FILENAME
-from codegen.shared.configs.session_manager import session_manager
-from codegen.shared.configs.user_config import UserConfig
 
 
 class CodegenSession:

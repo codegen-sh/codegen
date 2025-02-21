@@ -4,6 +4,8 @@ from collections.abc import Generator
 from contextlib import AbstractContextManager, contextmanager
 from typing import Literal, overload
 
+from codegen.configs.models.codebase import CodebaseConfig
+from codegen.configs.models.secrets import DefaultSecrets, SecretsConfig
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.sdk.codebase.codebase_context import CodebaseContext
 from codegen.sdk.codebase.config import ProjectConfig, SessionOptions, TestFlags
@@ -11,8 +13,6 @@ from codegen.sdk.codebase.factory.codebase_factory import CodebaseFactory
 from codegen.sdk.core.codebase import Codebase, PyCodebaseType, TSCodebaseType
 from codegen.sdk.core.file import SourceFile
 from codegen.sdk.tree_sitter_parser import print_errors
-from codegen.shared.configs.models.codebase import CodebaseConfig
-from codegen.shared.configs.models.secrets import DefaultSecrets, SecretsConfig
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 

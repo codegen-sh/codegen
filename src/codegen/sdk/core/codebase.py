@@ -22,6 +22,8 @@ from openai import OpenAI
 from rich.console import Console
 from typing_extensions import TypeVar, deprecated
 
+from codegen.configs.models.codebase import CodebaseConfig, DefaultCodebaseConfig
+from codegen.configs.models.secrets import DefaultSecrets, SecretsConfig
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.enums import CheckoutResult
 from codegen.git.utils.pr_review import CodegenPR
@@ -78,8 +80,6 @@ from codegen.sdk.typescript.interface import TSInterface
 from codegen.sdk.typescript.statements.import_statement import TSImportStatement
 from codegen.sdk.typescript.symbol import TSSymbol
 from codegen.sdk.typescript.type_alias import TSTypeAlias
-from codegen.shared.configs.models.codebase import CodebaseConfig, DefaultCodebaseConfig
-from codegen.shared.configs.models.secrets import DefaultSecrets, SecretsConfig
 from codegen.shared.decorators.docs import apidoc, noapidoc, py_noapidoc
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 from codegen.shared.exceptions.control_flow import MaxAIRequestsError

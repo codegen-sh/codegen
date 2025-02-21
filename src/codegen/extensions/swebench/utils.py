@@ -1,9 +1,17 @@
-"""Utilities for working with language models and datasets."""
-
+import json
 from dataclasses import dataclass
-from typing import Optional
+from enum import Enum
+from pathlib import Path
+from pprint import pprint
+from typing import Literal, Optional
 
 import requests
+
+
+class SWEBenchDataset(Enum):
+    LITE = "princeton-nlp/SWE-bench_Lite"
+    FULL = "princeton-nlp/SWE-bench"
+    VERIFIED = "princeton-nlp/SWE-bench-verified"
 
 
 @dataclass
@@ -24,7 +32,39 @@ class SweBenchExample:
     environment_setup_commit: Optional[str]
 
 
-def get_swe_bench_examples() -> list[SweBenchExample]:
+def load_predictions(paths):
+    prediction_paths = []
+    for path in paths:
+        path = Path(path)
+        if path.is_file():
+            prediction_paths.append(path)
+        elif path.is_dir():
+            prediction_paths += list(path.glob("*.json"))
+        else:
+            assert False, path
+
+    # prediction_paths.sort(key=lambda p: p.stat().st_mtime)
+
+    predictions = dict()
+    for fname in prediction_paths:
+        try:
+            pred = json.loads(fname.read_text())
+        except json.decoder.JSONDecodeError as err:
+            pprint(fname)
+            raise err
+
+        if "instance_id" not in pred:
+            print("Skipping json without instance_id", fname)
+            continue
+
+        inst = pred["instance_id"]
+        pred["json_fname"] = str(fname)
+        predictions[inst] = pred
+
+    return predictions
+
+
+def get_swe_bench_examples(dataset: SWEBenchDataset = SWEBenchDataset.LITE, split: Literal["train", "dev", "test"] = "test", offset: int = 0, length: int = 100) -> list[SweBenchExample]:
     """Fetch examples from the SWE-bench dataset.
 
     Returns:
@@ -35,11 +75,11 @@ def get_swe_bench_examples() -> list[SweBenchExample]:
     """
     url = "https://datasets-server.huggingface.co/rows"
     params = {
-        "dataset": "princeton-nlp/SWE-bench",
+        "dataset": dataset.value,
         "config": "default",
-        "split": "dev",
-        "offset": 0,
-        "length": 100,
+        "split": split,
+        "offset": offset,
+        "length": length,
     }
 
     response = requests.get(url, params=params)
@@ -67,7 +107,10 @@ def get_swe_bench_examples() -> list[SweBenchExample]:
     return examples
 
 
-def get_swe_bench_example(instance_id: str) -> SweBenchExample:
+def get_swe_bench_example(
+    instance_id: str,
+    dataset: SWEBenchDataset = SWEBenchDataset.LITE,
+) -> SweBenchExample:
     """Fetch a single example from the SWE-bench dataset by its instance ID.
 
     Args:
@@ -82,12 +125,10 @@ def get_swe_bench_example(instance_id: str) -> SweBenchExample:
     """
     url = "https://datasets-server.huggingface.co/filter"
     params = {
-        "dataset": "princeton-nlp/SWE-bench",
+        "dataset": dataset.value,
         "config": "default",
         "split": "dev",
         "where": f"instance_id='{instance_id}'",
-        "offset": 0,
-        "length": 1,
     }
 
     response = requests.get(url, params=params)

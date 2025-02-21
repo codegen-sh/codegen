@@ -5,12 +5,12 @@ from unittest.mock import Mock
 
 import pytest
 
+from codegen.configs.models.secrets import DefaultSecrets
 from codegen.git.clients.git_repo_client import GitRepoClient
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.enums import SetupOption
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.runner.clients.codebase_client import CodebaseClient
-from codegen.shared.configs.models.secrets import DefaultSecrets
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 

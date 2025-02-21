@@ -5,11 +5,11 @@ import os
 import psutil
 import pytest
 
+from codegen.configs.models.codebase import DefaultCodebaseConfig
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.sdk.codebase.config import ProjectConfig
 from codegen.sdk.codebase.validation import PostInitValidationStatus, post_init_validation
 from codegen.sdk.core.codebase import Codebase
-from codegen.shared.configs.models.codebase import DefaultCodebaseConfig
 from tests.shared.codemod.models import Repo
 from tests.shared.utils.recursion import set_recursion_limit
 
