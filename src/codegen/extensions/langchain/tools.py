@@ -493,8 +493,7 @@ class GithubCreatePRReviewCommentInput(BaseModel):
     body: str = Field(..., description="The comment text")
     commit_sha: str = Field(..., description="The commit SHA to attach the comment to")
     path: str = Field(..., description="The file path to comment on")
-    line: int | None = Field(None, description="The line number to comment on")
-    side: str | None = Field(None, description="Which version of the file to comment on ('LEFT' or 'RIGHT')")
+    line: int = Field(..., description="The line number to comment on use the indices from the diff")
     start_line: int | None = Field(None, description="For multi-line comments, the starting line")
 
 
@@ -515,8 +514,7 @@ class GithubCreatePRReviewCommentTool(BaseTool):
         body: str,
         commit_sha: str,
         path: str,
-        line: int | None = None,
-        side: str | None = None,
+        line: int,
         start_line: int | None = None,
     ) -> str:
         result = create_pr_review_comment(
@@ -526,8 +524,6 @@ class GithubCreatePRReviewCommentTool(BaseTool):
             commit_sha=commit_sha,
             path=path,
             line=line,
-            side=side,
-            start_line=start_line,
         )
         return result.render()
 

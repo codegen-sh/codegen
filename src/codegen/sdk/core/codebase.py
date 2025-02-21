@@ -1311,16 +1311,20 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             logger.exception(f"Failed to initialize codebase: {e}")
             raise
 
-    def get_modified_symbols_in_pr(self, pr_id: int) -> tuple[list[Symbol], str]:
+    def get_modified_symbols_in_pr(self, pr_id: int) -> tuple[str, dict[str, str]]:
         """Get all modified symbols in a pull request"""
         pr = self._op.get_pull_request(pr_id)
         cg_pr = CodegenPR(self._op, self, pr)
         patch = cg_pr.get_pr_diff()
-        return cg_pr.modified_symbols, patch
+        commit_sha = cg_pr.get_file_commit_shas()
+        return patch, commit_sha
 
     def create_pr_comment(self, pr_number: int, body: str) -> None:
         """Create a comment on a pull request"""
         return self._op.create_pr_comment(pr_number, body)
+
+    def create_pr_review_comment(self, pr_number: int, body: str, commit_sha: str, path: str, line: int | None = None, side: str = "RIGHT", start_line: int | None = None) -> None:
+        return self._op.create_pr_review_comment(pr_number, body, commit_sha, path, line, side, start_line)
 
 
 # The last 2 lines of code are added to the runner. See codegen-backend/cli/generate/utils.py
