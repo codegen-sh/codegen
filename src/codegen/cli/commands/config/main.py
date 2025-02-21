@@ -1,13 +1,12 @@
 import logging
-from itertools import groupby
 
 import rich
 import rich_click as click
 from rich.table import Table
 
-from codegen.cli.auth.session import CodegenSession
-from codegen.cli.workspace.decorators import requires_init
-from codegen.shared.configs.session_configs import global_config
+from codegen.configs.constants import ENV_FILENAME, GLOBAL_ENV_FILE
+from codegen.configs.session_manager import session_manager
+from codegen.configs.user_config import UserConfig
 
 
 @click.group(name="config")
@@ -17,13 +16,9 @@ def config_command():
 
 
 @config_command.command(name="list")
-@requires_init
 @click.option("--global", "is_global", is_flag=True, help="Lists the global configuration values")
-def list_command(session: CodegenSession, is_global: bool):
+def list_command(is_global: bool):
     """List current configuration values."""
-    table = Table(title="Configuration Values", border_style="blue", show_header=True)
-    table.add_column("Key", style="cyan", no_wrap=True)
-    table.add_column("Value", style="magenta")
 
     def flatten_dict(data: dict, prefix: str = "") -> dict:
         items = {}
@@ -38,55 +33,81 @@ def list_command(session: CodegenSession, is_global: bool):
                 items[full_key] = value
         return items
 
-    # Get flattened config and sort by keys
-    config = global_config.global_session if is_global else session.config
-    flat_config = flatten_dict(config.model_dump())
+    config = _get_user_config(is_global)
+    flat_config = flatten_dict(config.to_dict())
     sorted_items = sorted(flat_config.items(), key=lambda x: x[0])
 
-    # Group by top-level prefix
-    def get_prefix(item):
-        return item[0].split(".")[0]
+    # Create table
+    table = Table(title="Configuration Values", border_style="blue", show_header=True, title_justify="center")
+    table.add_column("Key", style="cyan", no_wrap=True)
+    table.add_column("Value", style="magenta")
 
-    for prefix, group in groupby(sorted_items, key=get_prefix):
+    # Group items by prefix
+    codebase_items = []
+    repository_items = []
+    other_items = []
+
+    for key, value in sorted_items:
+        prefix = key.split("_")[0].lower()
+        if prefix == "codebase":
+            codebase_items.append((key, value))
+        elif prefix == "repository":
+            repository_items.append((key, value))
+        else:
+            other_items.append((key, value))
+
+    # Add codebase section
+    if codebase_items:
         table.add_section()
-        table.add_row(f"[bold yellow]{prefix}[/bold yellow]", "")
-        for key, value in group:
-            # Remove the prefix from the displayed key
-            display_key = key[len(prefix) + 1 :] if "." in key else key
-            table.add_row(f"  {display_key}", str(value))
+        table.add_row("[bold yellow]Codebase[/bold yellow]", "")
+        for key, value in codebase_items:
+            table.add_row(f"  {key}", str(value))
+
+    # Add repository section
+    if repository_items:
+        table.add_section()
+        table.add_row("[bold yellow]Repository[/bold yellow]", "")
+        for key, value in repository_items:
+            table.add_row(f"  {key}", str(value))
+
+    # Add other section
+    if other_items:
+        table.add_section()
+        table.add_row("[bold yellow]Other[/bold yellow]", "")
+        for key, value in other_items:
+            table.add_row(f"  {key}", str(value))
 
     rich.print(table)
 
 
 @config_command.command(name="get")
-@requires_init
 @click.argument("key")
 @click.option("--global", "is_global", is_flag=True, help="Get the global configuration value")
-def get_command(session: CodegenSession, key: str, is_global: bool):
+def get_command(key: str, is_global: bool):
     """Get a configuration value."""
-    config = global_config.global_session if is_global else session.config
-    value = config.get(key)
-    if value is None:
+    config = _get_user_config(is_global)
+    if not config.has_key(key):
         rich.print(f"[red]Error: Configuration key '{key}' not found[/red]")
         return
 
-    rich.print(f"[cyan]{key}[/cyan] = [magenta]{value}[/magenta]")
+    value = config.get(key)
+
+    rich.print(f"[cyan]{key}[/cyan]=[magenta]{value}[/magenta]")
 
 
 @config_command.command(name="set")
-@requires_init
 @click.argument("key")
 @click.argument("value")
 @click.option("--global", "is_global", is_flag=True, help="Sets the global configuration value")
-def set_command(session: CodegenSession, key: str, value: str, is_global: bool):
-    """Set a configuration value and write to config.toml."""
-    config = global_config.global_session if is_global else session.config
-    cur_value = config.get(key)
-    if cur_value is None:
+def set_command(key: str, value: str, is_global: bool):
+    """Set a configuration value and write to .env"""
+    config = _get_user_config(is_global)
+    if not config.has_key(key):
         rich.print(f"[red]Error: Configuration key '{key}' not found[/red]")
         return
 
-    if cur_value.lower() != value.lower():
+    cur_value = config.get(key)
+    if cur_value is None or cur_value.lower() != value.lower():
         try:
             config.set(key, value)
         except Exception as e:
@@ -94,4 +115,13 @@ def set_command(session: CodegenSession, key: str, value: str, is_global: bool):
             rich.print(f"[red]{e}[/red]")
             return
 
-    rich.print(f"[green]Successfully set {key}=[magenta]{value}[/magenta] and saved to config.toml[/green]")
+    rich.print(f"[green]Successfully set {key}=[magenta]{value}[/magenta] and saved to {ENV_FILENAME}[/green]")
+
+
+def _get_user_config(is_global: bool) -> UserConfig:
+    if is_global or (active_session_path := session_manager.get_active_session()) is None:
+        env_filepath = GLOBAL_ENV_FILE
+    else:
+        env_filepath = active_session_path / ENV_FILENAME
+
+    return UserConfig(env_filepath)

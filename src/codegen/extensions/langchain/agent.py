@@ -1,6 +1,6 @@
 """Demo implementation of an agent with Codegen tools."""
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from langchain.tools import BaseTool
 from langchain_core.messages import SystemMessage
@@ -35,6 +35,7 @@ def create_codebase_agent(
     system_message: SystemMessage = SystemMessage(REASONER_SYSTEM_MESSAGE),
     memory: bool = True,
     debug: bool = False,
+    additional_tools: Optional[list[BaseTool]] = None,
     **kwargs,
 ) -> CompiledGraph:
     """Create an agent with all codebase tools.
@@ -77,6 +78,10 @@ def create_codebase_agent(
         # GithubCreatePRCommentTool(codebase),
         # GithubCreatePRReviewCommentTool(codebase),
     ]
+
+    # Add additional tools if provided
+    if additional_tools:
+        tools.extend(additional_tools)
 
     memory = MemorySaver() if memory else None
 

@@ -43,7 +43,7 @@ class RangeIndex:
     def children(self) -> dict[Editable, list[Editable]]:
         ret = defaultdict(list)
         for node in self.nodes:
-            # if node.ctx.config.feature_flags.debug:
+            # if node.ctx.config.debug:
             #     assert node.parent != node, node.__class__
             if node.parent != node:
                 ret[node.parent].append(node)

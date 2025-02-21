@@ -567,7 +567,7 @@ class FunctionCall(Expression[Parent], HasName, Resolvable, Generic[Parent]):
                         if generic := function_def_frame.generics.get(return_type.source, None):
                             yield from self.with_resolution_frame(generic, direct=function_def_frame.direct)
                             return
-                    if self.ctx.config.feature_flags.generics:
+                    if self.ctx.config.generics:
                         for arg in self.args:
                             if arg.parameter and (type := arg.parameter.type):
                                 if type.source == return_type.source:

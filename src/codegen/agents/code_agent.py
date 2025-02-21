@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Optional
 from uuid import uuid4
 
+from langchain.tools import BaseTool
 from langchain_core.messages import AIMessage
 
 from codegen.extensions.langchain.agent import create_codebase_agent
@@ -12,7 +13,7 @@ if TYPE_CHECKING:
 class CodeAgent:
     """Agent for interacting with a codebase."""
 
-    def __init__(self, codebase: "Codebase", model_provider: str = "anthropic", model_name: str = "claude-3-5-sonnet-latest", memory: bool = True, **kwargs):
+    def __init__(self, codebase: "Codebase", model_provider: str = "anthropic", model_name: str = "claude-3-5-sonnet-latest", memory: bool = True, tools: Optional[list[BaseTool]] = None, **kwargs):
         """Initialize a CodeAgent.
 
         Args:
@@ -20,6 +21,7 @@ class CodeAgent:
             model_provider: The model provider to use ("anthropic" or "openai")
             model_name: Name of the model to use
             memory: Whether to let LLM keep track of the conversation history
+            tools: Additional tools to use
             **kwargs: Additional LLM configuration options. Supported options:
                 - temperature: Temperature parameter (0-1)
                 - top_p: Top-p sampling parameter (0-1)
@@ -27,7 +29,7 @@ class CodeAgent:
                 - max_tokens: Maximum number of tokens to generate
         """
         self.codebase = codebase
-        self.agent = create_codebase_agent(self.codebase, model_provider=model_provider, model_name=model_name, memory=memory, **kwargs)
+        self.agent = create_codebase_agent(self.codebase, model_provider=model_provider, model_name=model_name, memory=memory, additional_tools=tools, **kwargs)
 
     def run(self, prompt: str, thread_id: Optional[str] = None) -> str:
         """Run the agent with a prompt.

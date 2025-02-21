@@ -73,6 +73,45 @@ def overlaps(range1: range, range2: range) -> bool:
     return max(range1.start, range2.start) < min(range1.stop, range2.stop)
 
 
+def get_file_to_commit_sha(op: RepoOperator, pull: PullRequest) -> dict[str, str]:
+    """Gets a mapping of file paths to their latest commit SHA in the PR.
+
+    Args:
+        op (RepoOperator): The repository operator
+        pull (PullRequest): The pull request object
+
+    Returns:
+        dict[str, str]: A dictionary mapping file paths to their latest commit SHA
+    """
+    if not op.remote_git_repo:
+        msg = "GitHub API client is required to get PR commit information"
+        raise ValueError(msg)
+
+    file_to_commit = {}
+
+    # Get all commits in the PR
+    commits = list(pull.get_commits())
+
+    # Get all modified files
+    files = pull.get_files()
+
+    # For each file, find its latest commit
+    for file in files:
+        # Look through commits in reverse order to find the latest one that modified this file
+        for commit in reversed(commits):
+            # Get the files modified in this commit
+            files_in_commit = commit.files
+            if any(f.filename == file.filename for f in files_in_commit):
+                file_to_commit[file.filename] = commit.sha
+                break
+
+        # If we didn't find a commit (shouldn't happen), use the head SHA
+        if file.filename not in file_to_commit:
+            file_to_commit[file.filename] = pull.head.sha
+
+    return file_to_commit
+
+
 class CodegenPR:
     """Wrapper around PRs - enables codemods to interact with them"""
 
@@ -143,3 +182,11 @@ class CodegenPR:
         else:
             # If diff_url not available, get the patch directly
             return self._gh_pr.get_patch()
+
+    def get_commit_sha(self) -> str:
+        """Get the commit SHA of the PR"""
+        return self._gh_pr.head.sha
+
+    def get_file_commit_shas(self) -> dict[str, str]:
+        """Get a mapping of file paths to their latest commit SHA in the PR"""
+        return get_file_to_commit_sha(op=self._op, pull=self._gh_pr)

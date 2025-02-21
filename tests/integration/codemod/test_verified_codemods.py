@@ -33,7 +33,7 @@ def test_verified_codemods(
     # Codebase logging not functioning, creating an empty file to avoid error
     codebase.create_file(".codemod_logs.txt")
     # Commit changes
-    codebase.commit(codebase.ctx.config.feature_flags.verify_graph)
+    codebase.commit(codebase.ctx.config.codebase.verify_graph)
     compare_codebase_diff(
         codebase=codebase,
         expected_dir=tmp_path,

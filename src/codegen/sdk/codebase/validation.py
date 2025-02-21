@@ -67,7 +67,7 @@ def post_sync_validation(codebase: CodebaseType) -> bool:
     if len(codebase.ctx.all_syncs) > 0 or len(codebase.ctx.pending_syncs) > 0 or len(codebase.ctx.transaction_manager.to_commit()) > 0:
         msg = "Can only be called on a reset codebase"
         raise NotImplementedError(msg)
-    if not codebase.ctx.config.feature_flags.track_graph:
+    if not codebase.ctx.config.codebase.track_graph:
         msg = "Can only be called with track_graph=true"
         raise NotImplementedError(msg)
     return len(dict.fromkeys(codebase.ctx.old_graph.nodes())) == len(dict.fromkeys(codebase.ctx.nodes)) and len(dict.fromkeys(codebase.ctx.old_graph.weighted_edge_list())) == len(
