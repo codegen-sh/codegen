@@ -35,7 +35,6 @@ class PyImport(Import["PyFile"]):
         super().__init__(ts_node, file_node_id, G, parent, module_node, name_node, alias_node, import_type)
         self._requesting_names = set()
 
-
     @reader
     def is_module_import(self) -> bool:
         """Determines if the import is a module-level or wildcard import.
@@ -249,7 +248,7 @@ class PyImport(Import["PyFile"]):
 
         aliased = self.is_aliased_import()
         if imported := self._imported_symbol(resolve_exports=True):
-            if isinstance(imported,PyImport) and imported.is_wildcard_import:
+            if isinstance(imported, PyImport) and imported.is_wildcard_import:
                 imported.set_requesting_names(self)
             yield from self.with_resolution_frame(imported, direct=False, aliased=aliased)
         else:
@@ -260,14 +259,12 @@ class PyImport(Import["PyFile"]):
                 if name in self._requesting_names:
                     yield from [frame.parent_frame for frame in wildcard_import.resolved_type_frames]
 
-
     @noapidoc
     def set_requesting_names(self, requester: PyImport):
         if requester.is_wildcard_import():
             self._requesting_names.update(requester._requesting_names)
         else:
             self._requesting_names.add(requester.name)
-
 
     @property
     @reader

@@ -198,7 +198,6 @@ class PyFile(SourceFile[PyImport, PyFunction, PyClass, PyAssignment, Interface[P
             return ret
         return super().valid_import_names
 
-
     def get_node_from_wildcard_chain(self, symbol_name: str):
         node = None
         if node := self.get_node_by_name(symbol_name):
