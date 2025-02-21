@@ -368,3 +368,22 @@ def test_import_wildcard_preserves_import_resolution(tmpdir: str) -> None:
         mainfile: SourceFile = codebase.get_file("file.py")
 
         assert len(mainfile.ctx.edges) == 5
+
+def test_import_nested_installable_resolution(tmpdir: str) -> None:
+    """Tests that a nested installable resolves internally instead of as external"""
+    # language=python
+    content1 = """
+        TEST_CONST=5
+    """
+    content2 = """from test_pack.test import TEST_CONST
+    test=TEST_CONST"""
+    with get_codebase_session(tmpdir=tmpdir, files={"test_pack/test_pack/test.py": content1, "test1.py": content2}) as codebase:
+        file1: SourceFile = codebase.get_file("test_pack/test_pack/test.py")
+        file2: SourceFile = codebase.get_file("test1.py")
+
+        symb = file1.get_symbol("TEST_CONST")
+        test = file2.get_symbol("test")
+        test_import = file2.get_import("TEST_CONST")
+
+        assert len(symb.usages) == 2
+        assert symb.symbol_usages == [test, test_import]
