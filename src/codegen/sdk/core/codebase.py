@@ -1295,10 +1295,10 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             # Use RepoOperator to fetch the repository
             logger.info("Cloning repository...")
             if commit is None:
-                repo_operator = RepoOperator.create_from_repo(repo_path=repo_path, url=repo_url, access_token=secrets.github_token)
+                repo_operator = RepoOperator.create_from_repo(repo_path=repo_path, url=repo_url)
             else:
                 # Ensure the operator can handle remote operations
-                repo_operator = RepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url, access_token=secrets.github_token)
+                repo_operator = RepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url)
             logger.info("Clone completed successfully")
 
             # Initialize and return codebase with proper context
