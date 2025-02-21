@@ -7,6 +7,8 @@ from datetime import datetime
 import psutil
 from fastapi import FastAPI
 
+from codegen.configs.models.repository import DefaultRepoConfig
+from codegen.configs.models.secrets import DefaultSecrets
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.runner.enums.warmup_state import WarmupState
 from codegen.runner.models.apis import (
@@ -23,8 +25,6 @@ from codegen.runner.models.apis import (
 )
 from codegen.runner.sandbox.middlewares import CodemodRunMiddleware
 from codegen.runner.sandbox.runner import SandboxRunner
-from codegen.shared.configs.models.repository import DefaultRepoConfig
-from codegen.shared.configs.models.secrets import DefaultSecrets
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 from codegen.shared.performance.memory_utils import get_memory_stats
 

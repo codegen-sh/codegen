@@ -2,8 +2,8 @@ import json
 
 import codegen
 from codegen import Codebase
-from codegen.shared.configs.models.codebase import CodebaseConfig
-from codegen.shared.configs.models.secrets import SecretsConfig
+from codegen.configs.models.codebase import CodebaseConfig
+from codegen.configs.models.secrets import SecretsConfig
 
 github_token = "Your github token"
 open_ai_key = "your open ai key"

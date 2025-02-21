@@ -5,11 +5,11 @@ from pydantic import BaseModel
 from pydantic.config import ConfigDict
 from pydantic.fields import Field
 
+from codegen.configs.models.codebase import DefaultCodebaseConfig
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.git.utils.file_utils import split_git_path
 from codegen.git.utils.language import determine_project_language
-from codegen.shared.configs.models.codebase import DefaultCodebaseConfig
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 HARD_MAX_AI_LIMIT = 500  # Global limit for AI requests

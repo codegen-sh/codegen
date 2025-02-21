@@ -10,10 +10,10 @@ import pytest
 from _pytest.python import Metafunc
 from pyinstrument import Profiler
 
+from codegen.configs.models.codebase import CodebaseConfig
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.sdk.codebase.config import ProjectConfig
 from codegen.sdk.core.codebase import Codebase
-from codegen.shared.configs.models.codebase import CodebaseConfig
 from tests.shared.codemod.constants import DIFF_FILEPATH
 from tests.shared.codemod.models import BASE_PATH, BASE_TMP_DIR, VERIFIED_CODEMOD_DIFFS, CodemodMetadata, Repo, Size
 from tests.shared.codemod.test_discovery import find_codemod_test_cases, find_repos, find_verified_codemod_cases

@@ -4,12 +4,12 @@ import logging
 from pathlib import Path
 from typing import TypedDict
 
+from codegen.configs.models.codebase import CodebaseConfig, DefaultCodebaseConfig
+from codegen.configs.models.secrets import DefaultSecrets, SecretsConfig
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.sdk.codebase.config import ProjectConfig
 from codegen.sdk.core.codebase import Codebase, CodebaseType
-from codegen.shared.configs.models.codebase import CodebaseConfig, DefaultCodebaseConfig
-from codegen.shared.configs.models.secrets import DefaultSecrets, SecretsConfig
 from codegen.shared.decorators.docs import DocumentedObject, apidoc_objects, no_apidoc_objects, py_apidoc_objects, ts_apidoc_objects
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 

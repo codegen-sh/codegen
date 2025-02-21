@@ -1,4 +1,4 @@
-from codegen.shared.configs.models.base_config import BaseConfig
+from codegen.configs.models.base_config import BaseConfig
 
 
 class SecretsConfig(BaseConfig):

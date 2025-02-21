@@ -4,9 +4,9 @@ import rich
 import rich_click as click
 from rich.table import Table
 
-from codegen.shared.configs.constants import ENV_FILENAME, GLOBAL_ENV_FILE
-from codegen.shared.configs.session_manager import session_manager
-from codegen.shared.configs.user_config import UserConfig
+from codegen.configs.constants import ENV_FILENAME, GLOBAL_ENV_FILE
+from codegen.configs.session_manager import session_manager
+from codegen.configs.user_config import UserConfig
 
 
 @click.group(name="config")
