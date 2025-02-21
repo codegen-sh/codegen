@@ -15,7 +15,7 @@ from git import Diff, GitCommandError, InvalidGitRepositoryError, Remote
 from git import Repo as GitCLI
 from git.remote import PushInfoList
 from github.PullRequest import PullRequest
-
+from github.IssueComment import IssueComment
 from codegen.configs.models.secrets import DefaultSecrets
 from codegen.git.clients.git_repo_client import GitRepoClient
 from codegen.git.configs.constants import CODEGEN_BOT_EMAIL, CODEGEN_BOT_NAME
@@ -717,7 +717,7 @@ class RepoOperator:
         """Returns the data associated with a PR"""
         return self.remote_git_repo.get_pr_data(pr_number)
 
-    def create_pr_comment(self, pr_number: int, body: str) -> None:
+    def create_pr_comment(self, pr_number: int, body: str) -> IssueComment:
         """Create a general comment on a pull request.
 
         Args:
@@ -726,7 +726,8 @@ class RepoOperator:
         """
         pr = self.remote_git_repo.get_pull_safe(pr_number)
         if pr:
-            self.remote_git_repo.create_issue_comment(pr, body)
+            comment = self.remote_git_repo.create_issue_comment(pr, body)
+            return comment
 
     def create_pr_review_comment(
         self,
