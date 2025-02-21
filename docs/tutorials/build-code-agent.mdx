@@ -46,7 +46,19 @@ agent = CodeAgent(codebase)
 # Run the agent with a prompt
 agent.run("Tell me about this repo")
 ```
-<Note>Your `ANTHROPIC_API_KEY` must be set in your env.</Note>
+
+
+<Note>Your `ANTHROPIC_API_KEY` and/or `OPENAI_API_KEY` must be set in your env.</Note>
+
+The default implementation uses `anthropic/claude-3-5-sonnet-latest` for the model but this can be changed through the `model_provider` and `model_name` arguments.
+
+```python
+agent = CodeAgent(
+    codebase=codebase,
+    model_provider="openai",
+    model_name="gpt-4o",
+)
+```
 
 # Available Tools
 

@@ -29,11 +29,16 @@ from codegen.extensions.langchain import create_codebase_agent
 codebase = Codebase.from_repo("fastapi/fastapi")
 
 # Create the agent
-agent = create_codebase_agent(codebase=codebase, model_name="gpt-4", verbose=True)
+agent = create_codebase_agent(
+    codebase=codebase,
+    model_provider="anthropic",  # or "openai"
+    model_name="claude-3-5-sonnet-latest",  # or "gpt-4" for OpenAI
+    debug=True,
+)
 
 # Ask the agent to analyze code
-result = agent.invoke({"input": "What are the dependencies of the FastAPI class?", "config": {"configurable": {"session_id": "demo"}}})
-print(result["output"])
+result = agent.invoke({"input": "What are the dependencies of the FastAPI class?", "config": {"configurable": {"thread_id": "1"}}})
+print(result["messages"][-1].content)
 ```
 
 ## Installation
@@ -68,13 +73,13 @@ The agent can perform various code analysis and manipulation tasks:
 
 ```python
 # Analyze dependencies
-agent.invoke({"input": "What are the dependencies of the reveal_symbol function?", "config": {"configurable": {"session_id": "demo"}}})
+agent.invoke({"input": "What are the dependencies of the reveal_symbol function?", "config": {"configurable": {"thread_id": "1"}}})
 
 # Find usage patterns
-agent.invoke({"input": "Show me examples of dependency injection in the codebase", "config": {"configurable": {"session_id": "demo"}}})
+agent.invoke({"input": "Show me examples of dependency injection in the codebase", "config": {"configurable": {"thread_id": "1"}}})
 
 # Move code
-agent.invoke({"input": "Move the validate_email function to validation_utils.py", "config": {"configurable": {"session_id": "demo"}}})
+agent.invoke({"input": "Move the validate_email function to validation_utils.py", "config": {"configurable": {"thread_id": "1"}}})
 ```
 
 ## Learn More

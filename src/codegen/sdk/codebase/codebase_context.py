@@ -66,6 +66,8 @@ GLOBAL_FILE_IGNORE_LIST = [
     ".*/tests/static/chunk-.*.js",
     ".*/ace/.*.js",
     "src/vs/platform/contextview/browser/contextMenuService.ts",
+    "*/compiled/*",
+    "*/*.min.js",
 ]
 
 

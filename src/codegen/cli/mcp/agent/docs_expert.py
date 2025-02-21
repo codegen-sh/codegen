@@ -1,7 +1,8 @@
 """Demo implementation of an agent with Codegen tools."""
 
-from langchain_core.messages import BaseMessage
+from langchain_core.messages import SystemMessage
 from langchain_core.runnables.history import RunnableWithMessageHistory
+from langgraph.checkpoint.memory import MemorySaver
 
 from codegen.extensions.langchain.agent import create_codebase_agent
 from codegen.sdk.core.codebase import Codebase
@@ -10,7 +11,8 @@ AGENT_INSTRUCTIONS = """
 Instruction Set for Codegen SDK Expert Agent
 
 Overview:
-This instruction set is designed for an agent that is an expert on the Codegen SDK, specifically the Python library. The agent will be asked questions about the SDK, including classes, utilities, properties, and how to accomplish tasks using the SDK. The goal is to provide helpful responses that assist users in achieving their tasks with the SDK.
+This instruction set is designed for an agent that is an expert on the Codegen SDK, specifically the Python library. The agent will be asked questions about the SDK, including classes, utilities,
+properties, and how to accomplish tasks using the SDK. The goal is to provide helpful responses that assist users in achieving their tasks with the SDK.
 
 Key Responsibilities:
 1. Expertise in Codegen SDK:
@@ -38,26 +40,26 @@ By following this instruction set, the agent will be well-equipped to assist use
 
 
 def create_sdk_expert_agent(
-    codebase: Codebase,
-    model_name: str = "gpt-4o",
-    temperature: float = 0,
-    verbose: bool = True,
+    codebase: Codebase, model_name: str = "claude-3-5-sonnet-latest", model_provider: str = "anthropic", memory: bool = True, debug: bool = True, **kwargs
 ) -> RunnableWithMessageHistory:
     """Create an agent with all codebase tools.
 
     Args:
-        codebase: The codebase to operate on
-        model_name: Name of the model to use (default: gpt-4)
-        temperature: Model temperature (default: 0)
-        verbose: Whether to print agent's thought process (default: True)
+       codebase: The codebase to operate on
+       model_name: Name of the model to use (default: gpt-4)
+       temperature: Model temperature (default: 0)
+       verbose: Whether to print agent's thought process (default: True)
 
     Returns:
-        Initialized agent with message history
+       Initialized agent with message history
     """
     # Initialize language model
 
-    system_message: BaseMessage = BaseMessage(content=AGENT_INSTRUCTIONS, type="SYSTEM")
+    system_message = SystemMessage(content=AGENT_INSTRUCTIONS, type="SYSTEM")
 
-    agent = create_codebase_agent(chat_history=[system_message], codebase=codebase, model_name=model_name, temperature=temperature, verbose=verbose)
+    if memory:
+        memory = MemorySaver()
+
+    agent = create_codebase_agent(codebase=codebase, model_provider=model_provider, model_name=model_name, memory=memory, system_message=system_message, debug=debug)
 
     return agent

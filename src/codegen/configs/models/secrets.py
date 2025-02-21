@@ -4,7 +4,7 @@ from codegen.configs.models.base_config import BaseConfig
 class SecretsConfig(BaseConfig):
     """Configuration for various API secrets and tokens.
 
-    Loads from environment variables with the SECRETS_ prefix.
+    Loads from environment variables.
     Falls back to .env file for missing values.
     """
 

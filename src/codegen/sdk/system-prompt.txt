@@ -6475,28 +6475,28 @@ Let's see some examples of how to interact with the agent:
 result = agent.invoke(
     {
         "input": "What are the dependencies of the FastAPI class?",
-        "config": {"configurable": {"session_id": "demo"}}
+        "config": {"configurable": {"thread_id": 1}}
     }
 )
-print(result["output"])
+print(result["messages"][-1].content)
 
 # Find usage patterns
 result = agent.invoke(
     {
         "input": "Show me examples of dependency injection in the codebase",
-        "config": {"configurable": {"session_id": "demo"}}
+        "config": {"configurable": {"thread_id": 1}}
     }
 )
-print(result["output"])
+print(result["messages"][-1].content)
 
 # Perform code analysis
 result = agent.invoke(
     {
         "input": "What's the most complex function in terms of dependencies?",
-        "config": {"configurable": {"session_id": "demo"}}
+        "config": {"configurable": {"thread_id": 1}}
     }
 )
-print(result["output"])
+print(result["messages"][-1].content)
 ```
 
 The agent maintains conversation history, so it can reference previous queries and build context over time.
@@ -6510,7 +6510,7 @@ The agent can also perform code changes:
 result = agent.invoke(
     {
         "input": "Move the validate_email function to validation_utils.py",
-        "config": {"configurable": {"session_id": "demo"}}
+        "config": {"configurable": {"thread_id": 1}}
     }
 )
 
@@ -6518,7 +6518,7 @@ result = agent.invoke(
 result = agent.invoke(
     {
         "input": "Rename the UserModel class to User and update all imports",
-        "config": {"configurable": {"session_id": "demo"}}
+        "config": {"configurable": {"thread_id": 1}}
     }
 )
 
@@ -6526,7 +6526,7 @@ result = agent.invoke(
 result = agent.invoke(
     {
         "input": "Add proper error handling to the process_data function",
-        "config": {"configurable": {"session_id": "demo"}}
+        "config": {"configurable": {"thread_id": 1}}
     }
 )
 ```

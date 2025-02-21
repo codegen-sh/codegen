@@ -48,10 +48,10 @@ def ask_codegen_sdk(query: Annotated[str, "Ask a question to an exper agent for 
 
     result = agent.invoke(
         {"input": query},
-        config={"configurable": {"session_id": "demo"}},
+        config={"configurable": {"thread_id": 1}},
     )
 
-    return result["output"]
+    return result["messages"][-1].content
 
 
 @mcp.tool()

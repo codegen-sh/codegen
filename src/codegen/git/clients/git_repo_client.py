@@ -8,6 +8,7 @@ from github.CheckSuite import CheckSuite
 from github.Commit import Commit
 from github.GithubException import GithubException, UnknownObjectException
 from github.GithubObject import NotSet, Opt
+from github.IssueComment import IssueComment
 from github.Label import Label
 from github.PullRequest import PullRequest
 from github.Repository import Repository
@@ -126,10 +127,10 @@ class GitRepoClient:
         self,
         pull: PullRequest,
         body: str,
-    ) -> None:
+    ) -> IssueComment:
         # TODO: add protections (ex: can write to PR)
         writeable_pr = self.repo.get_pull(pull.number)
-        writeable_pr.create_issue_comment(body=body)
+        return writeable_pr.create_issue_comment(body=body)
 
     ####################################################################################################################
     # PULL REQUESTS

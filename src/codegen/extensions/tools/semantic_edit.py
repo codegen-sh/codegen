@@ -4,10 +4,11 @@ import difflib
 import re
 from typing import ClassVar, Optional
 
-from langchain_anthropic import ChatAnthropic
+from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import Field
 
+from codegen.extensions.langchain.llm import LLM
 from codegen.sdk.core.codebase import Codebase
 
 from .observation import Observation
@@ -99,16 +100,12 @@ def get_llm_edit(original_file_section: str, edit_content: str) -> str:
     human_message = _HUMAN_PROMPT_DRAFT_EDITOR
     prompt = ChatPromptTemplate.from_messages([system_message, human_message])
 
-    llm = ChatAnthropic(
-        model="claude-3-5-sonnet-latest",
-        temperature=0,
-        max_tokens=5000,
-    )
+    llm = LLM(model_provider="anthropic", model_name="claude-3-5-sonnet-latest", temperature=0, max_tokens=5000)
 
-    chain = prompt | llm
+    chain = prompt | llm | StrOutputParser()
     response = chain.invoke({"original_file_section": original_file_section, "edit_content": edit_content})
 
-    return response.content
+    return response
 
 
 def _validate_edit_boundaries(original_lines: list[str], modified_lines: list[str], start_idx: int, end_idx: int) -> None:

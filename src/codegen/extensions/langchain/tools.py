@@ -79,6 +79,7 @@ The response will indicate if there are more lines available to view."""
             end_line=end_line,
             max_lines=max_lines if max_lines is not None else 250,
         )
+
         return result.render()
 
 
@@ -246,7 +247,7 @@ class RevealSymbolTool(BaseTool):
         result = reveal_symbol(
             codebase=self.codebase,
             symbol_name=symbol_name,
-            degree=degree,
+            max_depth=degree,
             max_tokens=max_tokens,
             collect_dependencies=collect_dependencies,
             collect_usages=collect_usages,
