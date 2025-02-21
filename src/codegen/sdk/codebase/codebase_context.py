@@ -336,33 +336,15 @@ class CodebaseContext:
                 self.remove_node(module.node_id)
                 self._ext_module_idx.pop(module._idx_key, None)
 
-    def build_directory_tree(self, files: list[SourceFile]) -> None:
+    def build_directory_tree(self) -> None:
         """Builds the directory tree for the codebase"""
         # Reset and rebuild the directory tree
         self.directories = dict()
-        created_dirs = set()
-        for file in files:
-            directory = self.get_directory(file.path.parent, create_on_missing=True)
-            directory.add_file(file)
-            file._set_directory(directory)
-            created_dirs.add(file.path.parent)
 
-        def _dir_has_file(filepath):
-            gen = os.scandir(filepath)
-            while entry := next(gen, None):
-                if entry.is_file():
-                    return True
-            return False
-
-        for ctx in self.projects:
-            for rel_filepath in ctx.repo_operator.get_filepaths_for_repo(GLOBAL_FILE_IGNORE_LIST):
-                abs_filepath = self.to_absolute(rel_filepath)
-                if not abs_filepath.is_dir():
-                    abs_filepath = abs_filepath.parent
-
-                if abs_filepath not in created_dirs and self.is_subdir(abs_filepath) and _dir_has_file(abs_filepath):
-                    directory = self.get_directory(abs_filepath, create_on_missing=True)
-                    created_dirs.add(abs_filepath)
+        for file_path, _ in self.projects[0].repo_operator.iter_files(subdirs=self.projects[0].subdirectories, ignore_list=GLOBAL_FILE_IGNORE_LIST):
+            file_path = Path(file_path)
+            directory = self.get_directory(file_path.parent, create_on_missing=True)
+            directory._add_file(file_path.name)
 
     def get_directory(self, directory_path: PathLike, create_on_missing: bool = False, ignore_case: bool = False) -> Directory | None:
         """Returns the directory object for the given path, or None if the directory does not exist.
@@ -390,16 +372,16 @@ class CodebaseContext:
 
             # Base Case
             if str(absolute_path) == str(self.repo_path) or str(absolute_path) == str(parent_path):
-                root_directory = Directory(path=absolute_path, dirpath="", parent=None)
+                root_directory = Directory(ctx=self, path=absolute_path, dirpath="")
                 self.directories[absolute_path] = root_directory
                 return root_directory
 
             # Recursively create the parent directory
             parent = self.get_directory(parent_path, create_on_missing=True)
             # Create the directory
-            directory = Directory(path=absolute_path, dirpath=str(self.to_relative(absolute_path)), parent=parent)
+            directory = Directory(ctx=self, path=absolute_path, dirpath=str(self.to_relative(absolute_path)))
             # Add the directory to the parent
-            parent.add_subdirectory(directory)
+            parent._add_subdirectory(directory.name)
             # Add the directory to the tree
             self.directories[absolute_path] = directory
             return directory
@@ -505,7 +487,7 @@ class CodebaseContext:
         # Step 6: Build directory tree
         logger.info("> Building directory tree")
         files = [f for f in sort_editables(self.get_nodes(NodeType.FILE), alphabetical=True, dedupe=False)]
-        self.build_directory_tree(files)
+        self.build_directory_tree()
 
         # Step 7: Build configs
         if self.config_parser is not None:
@@ -609,8 +591,6 @@ class CodebaseContext:
                 for file in self.to_absolute(self.repo_path).iterdir():
                     if str(file_path).lower() == str(self.to_absolute(file)).lower():
                         return self.get_file(file, ignore_case=False)
-            if directory := self.get_directory(parent, ignore_case=ignore_case):
-                return directory.get_file(os.path.basename(file_path), ignore_case=ignore_case)
 
     def get_external_module(self, module: str, import_name: str) -> ExternalModule | None:
         node_id = self._ext_module_idx.get(module + "::" + import_name, None)

@@ -529,27 +529,16 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         file = self.ctx.get_file(filepath, ignore_case=ignore_case)
         if file is not None:
             return file
+        # If the file is not in the graph, check the filesystem
         absolute_path = self.ctx.to_absolute(filepath)
-        if absolute_path.suffix in self.ctx.extensions and not self.ctx.io.file_exists(absolute_path):
-            return None
         if self.ctx.io.file_exists(absolute_path):
             return get_file_from_path(absolute_path)
-        elif ignore_case:
-            parent = absolute_path.parent
-            if parent == Path(self.ctx.repo_path):
-                for file in self.ctx.to_absolute(self.ctx.repo_path).iterdir():
-                    if str(absolute_path).lower() == str(file).lower():
-                        return get_file_from_path(file)
-            else:
-                dir = self.ctx.get_directory(parent, ignore_case=ignore_case)
-                if dir is None:
-                    return None
-                for file in dir.path.iterdir():
-                    if str(absolute_path).lower() == str(file).lower():
-                        return get_file_from_path(file)
-        elif not optional:
-            msg = f"File {filepath} not found in codebase. Use optional=True to return None instead."
-            raise ValueError(msg)
+        # If the file is not in the graph, check the filesystem
+        for file in absolute_path.parent.iterdir():
+            if ignore_case and str(absolute_path).lower() == str(file).lower():
+                return get_file_from_path(file)
+            elif not ignore_case and str(absolute_path) == str(file):
+                return get_file_from_path(file)
         return None
 
     def has_directory(self, dir_path: str, ignore_case: bool = False) -> bool:

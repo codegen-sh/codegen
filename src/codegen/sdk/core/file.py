@@ -63,7 +63,6 @@ class File(Editable[None]):
     file_path: str
     path: Path
     node_type: Literal[NodeType.FILE] = NodeType.FILE
-    _directory: Directory | None
     _pending_imports: set[str]
     _binary: bool = False
     _range_index: RangeIndex
@@ -78,7 +77,6 @@ class File(Editable[None]):
         self.path = self.ctx.to_absolute(filepath)
         self.file_path = str(self.ctx.to_relative(self.path))
         self.name = self.path.stem
-        self._directory = None
         self._binary = binary
 
     @property
@@ -176,11 +174,7 @@ class File(Editable[None]):
         Returns:
             Directory | None: The directory containing this file, or None if the file is not in any directory.
         """
-        return self._directory
-
-    @noapidoc
-    def _set_directory(self, directory: Directory | None) -> None:
-        self._directory = directory
+        return self.ctx.get_directory(self.path.parent)
 
     @property
     def is_binary(self) -> bool:
@@ -439,7 +433,6 @@ class SourceFile(
         super().__init__(filepath, ctx, ts_node=ts_node)
         self._nodes.clear()
         self.ctx.filepath_idx[self.file_path] = self.node_id
-        self._directory = None
         self._pending_imports = set()
         try:
             self.parse(ctx)
