@@ -1,19 +1,12 @@
-
 import logging
 from logging import getLogger
-import os
 import modal
 from codegen.extensions.events.app import CodegenApp
 from fastapi import Request
-from codegen.extensions.github.types.events.pull_request import (
-    PullRequestLabeledEvent,
-    PullRequestUnlabeledEvent
-)
+from codegen.extensions.github.types.events.pull_request import PullRequestLabeledEvent, PullRequestUnlabeledEvent
 from helpers import remove_bot_comments, pr_review_agent
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = getLogger(__name__)
 
 REPO_URL = "https://github.com/codegen-sh/codegen-sdk.git"
@@ -47,9 +40,9 @@ def handle_labeled(event: PullRequestLabeledEvent):
     # )
     if event.label.name == "Codegen":
         app.slack.client.chat_postMessage(
-        channel="C08DPPSL1CG",
-        text=f"PR #{event.number} labeled with: {event.label.name}, waking up CodegenBot and starting review",
-    )
+            channel="C08DPPSL1CG",
+            text=f"PR #{event.number} labeled with: {event.label.name}, waking up CodegenBot and starting review",
+        )
 
         logger.info(f"PR ID: {event.pull_request.id}")
         logger.info(f"PR title: {event.pull_request.title}")
@@ -64,6 +57,7 @@ def handle_unlabeled(event: PullRequestUnlabeledEvent):
     logger.info(event.label.name)
     if event.label.name == "Codegen":
         remove_bot_comments(event)
+
 
 @app.function(secrets=[modal.Secret.from_dotenv()])
 @modal.web_endpoint(method="POST")

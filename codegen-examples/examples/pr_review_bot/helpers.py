@@ -11,7 +11,6 @@ from codegen.configs.models.secrets import SecretsConfig
 from codegen import CodeAgent
 
 from codegen.extensions.langchain.tools import (
-
     # Github
     GithubViewPRTool,
     GithubCreatePRCommentTool,
@@ -23,9 +22,7 @@ import logging
 
 load_dotenv()
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = getLogger(__name__)
 
 
@@ -59,12 +56,13 @@ def remove_bot_comments(event: PullRequestUnlabeledEvent):
             if comment.user.login == "codegen-team":
                 comment.delete()
 
+
 def pr_review_agent(event: PullRequestLabeledEvent) -> None:
     # Pull a subset of SWE bench
     repo_str = f"{event.organization.login}/{event.repository.name}"
-    codebase = Codebase.from_repo(repo_str, language='python', secrets=SecretsConfig(github_token=os.environ["GITHUB_TOKEN"]))
-    review_atention_message = f"CodegenBot is starting to review the PR please wait..."
-    comment =codebase._op.create_pr_comment(event.number, review_atention_message)
+    codebase = Codebase.from_repo(repo_str, language="python", secrets=SecretsConfig(github_token=os.environ["GITHUB_TOKEN"]))
+    review_atention_message = "CodegenBot is starting to review the PR please wait..."
+    comment = codebase._op.create_pr_comment(event.number, review_atention_message)
     # Define tools first
     pr_tools = [
         GithubViewPRTool(codebase),
@@ -88,5 +86,5 @@ be explicit about the changes, produce a short summary, and point out possible i
 use the tools at your disposal to create propper pr reviews include code snippets if needed, and suggest improvements if feel its necesary
 """
     # Run the agent
-    result = agent.run(prompt)
+    agent.run(prompt)
     comment.delete()
