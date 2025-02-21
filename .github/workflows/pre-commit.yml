@@ -25,9 +25,6 @@ jobs:
       - name: Setup environment
         uses: ./.github/actions/setup-environment
 
-      - name: Install project dependencies
-        run: uv sync --frozen --all-extras
-
       - name: Setup-pre-commit
         run: uv tool install pre-commit --with pre-commit-uv --force-reinstall
 
@@ -37,7 +34,7 @@ jobs:
           key: pre-commit|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
           restore-keys: pre-commit
 
-      - run: uv run --frozen --all-extras pre-commit run --show-diff-on-failure --color=always --all-files --source ${{ github.event.pull_request.base.sha || github.event.before }} --origin ${{ github.event.pull_request.head.sha || github.event.after }}
+      - run: uv run --frozen pre-commit run --show-diff-on-failure --color=always --all-files --source ${{ github.event.pull_request.base.sha || github.event.before }} --origin ${{ github.event.pull_request.head.sha || github.event.after }}
         shell: bash
         env:
           SKIP: circleci_validate
