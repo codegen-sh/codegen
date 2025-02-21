@@ -7,16 +7,12 @@ import rich
 from rich.box import ROUNDED
 from rich.panel import Panel
 
-from codegen.cli.auth.session import CodegenSession
-from codegen.cli.workspace.decorators import requires_init
-
 
 @click.command(name="start")
-@requires_init
 @click.option("--platform", "-t", type=click.Choice(["linux/amd64", "linux/arm64", "linux/amd64,linux/arm64"]), default="linux/amd64,linux/arm64", help="Target platform(s) for the Docker image")
 @click.option("--port", "-p", type=int, default=8000)
 @click.option("--detached", "-d", is_flag=True, default=False, help="Starts up the server as detached background process")
-def start_command(session: CodegenSession, port: int, platform: str, detached: bool):
+def start_command(port: int, platform: str, detached: bool):
     """Starts a local codegen server"""
     codegen_version = version("codegen")
     rich.print(codegen_version)

@@ -37,8 +37,11 @@ ENV PATH=$NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
 
 # Install codegen from source instead of PyPI
 WORKDIR /codegen-sdk
-# TODO: pare down to only the files needed
-COPY . .
+
+# Add build argument for repo path
+ARG REPO_PATH=.
+# Copy from specified repo path instead of current directory
+COPY ${REPO_PATH} .
 
 # Install dependencies and build codegen with entry points
 RUN --mount=type=cache,target=/root/.cache/uv \
