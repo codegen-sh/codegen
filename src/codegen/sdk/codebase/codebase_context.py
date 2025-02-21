@@ -68,7 +68,7 @@ GLOBAL_FILE_IGNORE_LIST = [
     ".*/ace/.*.js",
     "src/vs/platform/contextview/browser/contextMenuService.ts",
     "*/compiled/*",
-    "*/*.min.js"
+    "*/*.min.js",
 ]
 
 
