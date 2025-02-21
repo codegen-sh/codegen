@@ -1,5 +1,4 @@
 import logging
-from pathlib import Path
 
 import rich
 import rich_click as click
@@ -117,7 +116,7 @@ def set_command(key: str, value: str):
 
 
 def _get_user_config() -> UserConfig:
-    if (project_root := get_git_root_path(Path.cwd())) is None:
+    if (project_root := get_git_root_path()) is None:
         env_filepath = GLOBAL_ENV_FILE
     else:
         env_filepath = project_root / ENV_FILENAME

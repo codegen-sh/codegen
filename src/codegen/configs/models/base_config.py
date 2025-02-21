@@ -18,7 +18,7 @@ class BaseConfig(BaseSettings, ABC):
 
     def __init__(self, prefix: str, env_filepath: Path | None = None, *args, **kwargs) -> None:
         if env_filepath is None:
-            root_path = get_git_root_path(Path.cwd())
+            root_path = get_git_root_path()
             if root_path is not None:
                 env_filepath = root_path / ENV_FILENAME
 
