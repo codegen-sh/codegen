@@ -539,6 +539,11 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
                 return get_file_from_path(file)
             elif not ignore_case and str(absolute_path) == str(file):
                 return get_file_from_path(file)
+
+        # If we get here, the file is not found
+        if not optional:
+            msg = f"File {filepath} not found in codebase. Use optional=True to return None instead."
+            raise ValueError(msg)
         return None
 
     def has_directory(self, dir_path: str, ignore_case: bool = False) -> bool:
