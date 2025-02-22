@@ -543,7 +543,7 @@ module.some_func()
         assert len(some_func.symbol_usages) > 0
 
 
-def test_import_wildcard_preserves_import_resultion(tmpdir: str) -> None:
+def test_import_wildcard_preserves_import_resolution(tmpdir: str) -> None:
     """Tests importing from a file that contains a wildcard import doesn't break further resolution.
     This could occur depending on to_resolve ordering, if the outer file is processed first _wildcards will not be filled in time.
     """
