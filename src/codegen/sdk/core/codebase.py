@@ -534,11 +534,12 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         if self.ctx.io.file_exists(absolute_path):
             return get_file_from_path(absolute_path)
         # If the file is not in the graph, check the filesystem
-        for file in absolute_path.parent.iterdir():
-            if ignore_case and str(absolute_path).lower() == str(file).lower():
-                return get_file_from_path(file)
-            elif not ignore_case and str(absolute_path) == str(file):
-                return get_file_from_path(file)
+        if absolute_path.parent.exists():
+            for file in absolute_path.parent.iterdir():
+                if ignore_case and str(absolute_path).lower() == str(file).lower():
+                    return get_file_from_path(file)
+                elif not ignore_case and str(absolute_path) == str(file):
+                    return get_file_from_path(file)
 
         # If we get here, the file is not found
         if not optional:
