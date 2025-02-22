@@ -52,7 +52,7 @@ class RepoOperator:
         self,
         repo_config: RepoConfig,
         access_token: str | None = None,
-        bot_commit: bool = True,
+        bot_commit: bool = False,
         setup_option: SetupOption | None = None,
         shallow: bool | None = None,
     ) -> None:
