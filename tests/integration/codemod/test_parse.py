@@ -5,7 +5,7 @@ import os
 import psutil
 import pytest
 
-from codegen.configs.models.codebase import DefaultCodebaseConfig
+from codegen.configs.models.codebase import CodebaseConfig
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.sdk.codebase.config import ProjectConfig
 from codegen.sdk.codebase.validation import PostInitValidationStatus, post_init_validation
@@ -26,7 +26,7 @@ def test_codemods_parse(repo: Repo, op: RepoOperator, request) -> None:
     if repo.config is not None:
         codebase_config = repo.config
     else:
-        codebase_config = DefaultCodebaseConfig
+        codebase_config = CodebaseConfig()
 
     codebase_config = codebase_config.model_copy(update={"verify_graph": sync, "debug": log_parse, "ignore_process_errors": False})
 

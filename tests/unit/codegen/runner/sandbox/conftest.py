@@ -31,4 +31,4 @@ def runner(codebase: Codebase, tmpdir):
             mock_init_codebase.return_value = codebase
             mock_op.return_value = codebase.op
 
-            yield SandboxRunner(repo_config=codebase.op.repo_config, access_token="test-token")
+            yield SandboxRunner(repo_config=codebase.op.repo_config)

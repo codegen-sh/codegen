@@ -17,7 +17,7 @@ from git.remote import PushInfoList
 from github.IssueComment import IssueComment
 from github.PullRequest import PullRequest
 
-from codegen.configs.models.secrets import DefaultSecrets
+from codegen.configs.models.secrets import SecretsConfig
 from codegen.git.clients.git_repo_client import GitRepoClient
 from codegen.git.configs.constants import CODEGEN_BOT_EMAIL, CODEGEN_BOT_NAME
 from codegen.git.repo_operator.local_git_repo import LocalGitRepo
@@ -58,7 +58,7 @@ class RepoOperator:
     ) -> None:
         assert repo_config is not None
         self.repo_config = repo_config
-        self.access_token = access_token or DefaultSecrets.github_token
+        self.access_token = access_token or SecretsConfig().github_token
         self.base_dir = repo_config.base_dir
         self.bot_commit = bot_commit
 
@@ -839,7 +839,7 @@ class RepoOperator:
             url (str): Git URL of the repository
             access_token (str | None): Optional GitHub API key for operations that need GitHub access
         """
-        access_token = access_token or DefaultSecrets.github_token
+        access_token = access_token or SecretsConfig().github_token
         if access_token:
             url = add_access_token_to_url(url=url, token=access_token)
 

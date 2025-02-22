@@ -34,13 +34,13 @@ class UserConfig:
         for key, value in self.repository.model_dump().items():
             config_dict[f"{self.repository.env_prefix}{key}".upper()] = value
 
-        # Add secrets configs with 'secrets_' prefix
-        for key, value in self.secrets.model_dump().items():
-            config_dict[f"{self.secrets.env_prefix}{key}".upper()] = value
-
         # Add feature flags configs with 'feature_flags_' prefix
         for key, value in self.codebase.model_dump().items():
             config_dict[f"{self.codebase.env_prefix}{key}".upper()] = value
+
+        # Add secrets configs
+        for key, value in self.secrets.model_dump().items():
+            config_dict[f"{self.secrets.env_prefix}{key}".upper()] = value
         return config_dict
 
     def has_key(self, full_key: str) -> bool:

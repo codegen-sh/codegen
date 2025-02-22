@@ -1,11 +1,11 @@
 from abc import ABC
 from pathlib import Path
 
-from dotenv import set_key
+from dotenv import load_dotenv, set_key
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from codegen.configs.constants import ENV_FILENAME, GLOBAL_ENV_FILE
-from codegen.configs.session_manager import session_root
+from codegen.shared.path import get_git_root_path
 
 
 class BaseConfig(BaseSettings, ABC):
@@ -18,20 +18,18 @@ class BaseConfig(BaseSettings, ABC):
 
     def __init__(self, prefix: str, env_filepath: Path | None = None, *args, **kwargs) -> None:
         if env_filepath is None:
-            root_path = session_root
+            root_path = get_git_root_path()
             if root_path is not None:
                 env_filepath = root_path / ENV_FILENAME
 
         # Only include env files that exist
-        env_filepaths = []
         if GLOBAL_ENV_FILE.exists():
-            env_filepaths.append(GLOBAL_ENV_FILE)
+            load_dotenv(GLOBAL_ENV_FILE, override=True)
+
         if env_filepath and env_filepath.exists() and env_filepath != GLOBAL_ENV_FILE:
-            env_filepaths.append(env_filepath)
+            load_dotenv(env_filepath, override=True)
 
         self.model_config["env_prefix"] = f"{prefix.upper()}_" if len(prefix) > 0 else ""
-        self.model_config["env_file"] = env_filepaths
-
         super().__init__(*args, **kwargs)
 
     @property

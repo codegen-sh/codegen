@@ -15,6 +15,7 @@ from github.Repository import Repository
 from github.Tag import Tag
 from github.Workflow import Workflow
 
+from codegen.configs.models.secrets import SecretsConfig
 from codegen.git.clients.github_client import GithubClient
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.git.utils.format import format_comparison
@@ -29,9 +30,9 @@ class GitRepoClient:
     gh_client: GithubClient
     _repo: Repository
 
-    def __init__(self, repo_config: RepoConfig, access_token: str) -> None:
+    def __init__(self, repo_config: RepoConfig, access_token: str | None = None) -> None:
         self.repo_config = repo_config
-        self.gh_client = self._create_github_client(token=access_token)
+        self.gh_client = self._create_github_client(token=access_token or SecretsConfig().github_token)
         self._repo = self._create_client()
 
     def _create_github_client(self, token: str) -> GithubClient:
