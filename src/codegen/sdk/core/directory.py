@@ -247,13 +247,13 @@ class Directory(
         """Update the filepath of the directory and its contained files."""
         old_path = self.dirpath
         new_path = new_filepath
-        for file in self.files:
+        for file in self.files(recursive=True):
             new_file_path = os.path.join(new_path, os.path.relpath(file.file_path, old_path))
             file.update_filepath(new_file_path)
 
     def remove(self) -> None:
         """Remove all the files in the files container."""
-        for f in self.files:
+        for f in self.files(recursive=True):
             f.remove()
 
     def rename(self, new_name: str) -> None:
