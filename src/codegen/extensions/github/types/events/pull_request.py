@@ -43,7 +43,7 @@ class PullRequestLabeledEvent(BaseModel):
 
     action: Literal["labeled"]
     number: int
-    pull_request: SimplePullRequest
+    pull_request: PullRequest
     label: Label
     repository: dict  # Simplified for now
     sender: User
