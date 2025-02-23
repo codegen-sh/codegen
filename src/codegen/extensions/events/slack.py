@@ -32,10 +32,10 @@ class SlackEvent(BaseModel):
     user: str
     type: str
     ts: str
-    client_msg_id: str
+    client_msg_id: str | None = None
     text: str
-    team: str
-    blocks: list[Block]
+    team: str | None = None
+    blocks: list[Block] | None = None
     channel: str
     event_ts: str
 
@@ -68,21 +68,42 @@ class Slack(EventHandlerManagerProtocol):
         logger.info("[HANDLERS] Clearing all handlers")
         self.registered_handlers.clear()
 
-    def handle(self, event: SlackWebhookPayload):
+    async def handle(self, event_data: dict) -> dict:
+        """Handle incoming Slack events.
+
+        Args:
+            event_data: Raw event data dictionary from Slack
+
+        Returns:
+            Response dictionary
+        """
+        print(event_data)
         logger.info("[HANDLER] Handling Slack event")
-        if event.type == "url_verification":
-            return {"challenge": event.challenge}
-        elif event.type == "event_callback":
-            event = event.event
-            if event.type not in self.registered_handlers:
+
+        try:
+            # Validate and convert to SlackWebhookPayload
+            event = SlackWebhookPayload.model_validate(event_data)
+
+            if event.type == "url_verification":
+                return {"challenge": event.challenge}
+            elif event.type == "event_callback" and event.event:
+                if event.event.type not in self.registered_handlers:
+                    logger.info(f"[HANDLER] No handler found for event type: {event.event.type}")
+                    return {"message": "Event handled successfully"}
+                else:
+                    handler = self.registered_handlers[event.event.type]
+                    # Since the handler might be async, await it
+                    result = handler(event.event)
+                    if hasattr(result, "__await__"):
+                        result = await result
+                    return result
+            else:
                 logger.info(f"[HANDLER] No handler found for event type: {event.type}")
                 return {"message": "Event handled successfully"}
-            else:
-                handler = self.registered_handlers[event.type]
-                return handler(event)
-        else:
-            logger.info(f"[HANDLER] No handler found for event type: {event.type}")
-            return {"message": "Event handled successfully"}
+
+        except Exception as e:
+            logger.exception(f"Error handling Slack event: {e}")
+            return {"error": f"Failed to handle event: {e!s}"}
 
     def event(self, event_name: str):
         """Decorator for registering a Slack event handler."""
@@ -93,10 +114,10 @@ class Slack(EventHandlerManagerProtocol):
             func_name = func.__qualname__
             logger.info(f"[EVENT] Registering function {func_name} for {event_name}")
 
-            def new_func(event):
-                return func(self.client, event)
+            async def new_func(event):
+                return await func(self.client, event)
 
             self.registered_handlers[event_name] = new_func
-            return new_func
+            return func  # Return original function to maintain sync/async compatibility
 
         return register_handler

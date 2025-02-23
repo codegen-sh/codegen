@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+from typing import Any, Optional
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
@@ -28,6 +28,26 @@ class CodegenApp:
 
         # Register routes
         self._setup_routes()
+
+    async def simulate_event(self, provider: str, event_type: str, payload: dict) -> Any:
+        """Simulate an event without running the server.
+
+        Args:
+            provider: The event provider ('slack', 'github', or 'linear')
+            event_type: The type of event to simulate
+            payload: The event payload
+
+        Returns:
+            The handler's response
+        """
+        provider_map = {"slack": self.slack, "github": self.github, "linear": self.linear}
+
+        if provider not in provider_map:
+            msg = f"Unknown provider: {provider}. Must be one of {list(provider_map.keys())}"
+            raise ValueError(msg)
+
+        handler = provider_map[provider]
+        return await handler.handle(payload)
 
     def _setup_routes(self):
         """Set up the FastAPI routes for different event types."""
@@ -68,13 +88,13 @@ class CodegenApp:
         async def handle_slack_event(request: Request):
             """Handle incoming Slack events."""
             payload = await request.json()
-            return self.slack.handle(payload)
+            return await self.slack.handle(payload)
 
         @self.app.post("/github/events")
         async def handle_github_event(request: Request):
             """Handle incoming GitHub events."""
             payload = await request.json()
-            return self.github.handle(payload, request)
+            return await self.github.handle(payload, request)
 
         @self.app.post("/linear/events")
         async def handle_linear_event(request: Request):
