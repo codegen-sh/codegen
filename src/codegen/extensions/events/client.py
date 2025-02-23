@@ -49,6 +49,30 @@ class CodegenClient:
         response = await self.client.post(f"{self.base_url}/slack/events", json=payload)
         return response.json()
 
+    async def send_github_event(self, event_type: str, action: str | None = None, payload: dict | None = None) -> dict[str, Any]:
+        """Send a test GitHub webhook event
+
+        Args:
+            event_type: The type of event (e.g. 'pull_request', 'push')
+            action: The action for the event (e.g. 'labeled', 'opened')
+            payload: The event payload
+        """
+        # Construct headers that GitHub would send
+        headers = {
+            "x-github-event": event_type,
+            "x-github-delivery": "test-delivery-id",
+            "x-github-hook-id": "test-hook-id",
+            "x-github-hook-installation-target-id": "test-target-id",
+            "x-github-hook-installation-target-type": "repository",
+        }
+
+        response = await self.client.post(
+            f"{self.base_url}/github/events",
+            json=payload,
+            headers=headers,
+        )
+        return response.json()
+
     async def close(self):
         """Close the HTTP client"""
         await self.client.aclose()

@@ -2,13 +2,13 @@ import asyncio
 from contextlib import asynccontextmanager
 
 import pytest
-from slack_sdk import WebClient
 from uvicorn.config import Config
 from uvicorn.server import Server
 
 from codegen.extensions.events.client import CodegenClient
 from codegen.extensions.events.codegen_app import CodegenApp
-from codegen.extensions.events.slack import SlackEvent
+from codegen.extensions.github.types.events.pull_request import PullRequestLabeledEvent
+from codegen.extensions.slack.types import SlackEvent
 
 
 @pytest.fixture
@@ -21,10 +21,20 @@ def app():
 def app_with_handlers(app):
     """Create a CodegenApp instance with pre-registered handlers"""
 
-    # Register an app mention handler
+    # Register Slack handler
     @app.slack.event("app_mention")
-    async def handle_mention(client: WebClient, event: SlackEvent):
+    async def handle_mention(event: SlackEvent):
         return {"message": "Mentioned", "received_text": event.text}
+
+    # Register GitHub handler
+    @app.github.event("pull_request:labeled")
+    def handle_labeled(event: PullRequestLabeledEvent):
+        return {
+            "message": "PR labeled",
+            "pr_number": event.number,
+            "label": event.label.name,
+            "title": event.pull_request.title,
+        }
 
     return app
 
@@ -116,3 +126,102 @@ async def test_simulate_unregistered_event(app_with_handlers):
 
     # Should return a default response for unhandled events
     assert response["message"] == "Event handled successfully"
+
+
+@pytest.mark.asyncio
+async def test_simulate_github_pr_labeled(app_with_handlers):
+    """Test simulating a GitHub PR labeled event"""
+    # Create a test PR labeled payload
+    payload = {
+        "action": "labeled",
+        "number": 123,
+        "pull_request": {
+            "id": 12345,
+            "number": 123,
+            "state": "open",
+            "locked": False,
+            "title": "Test PR",
+            "user": {"id": 1, "login": "test-user"},
+            "body": "Test PR body",
+            "labels": [],
+            "created_at": "2024-01-01T00:00:00Z",
+            "updated_at": "2024-01-01T00:00:00Z",
+            "draft": False,
+        },
+        "label": {"id": 1, "node_id": "123", "url": "https://api.github.com/repos/test/test/labels/bug", "name": "bug", "description": "Bug report", "color": "red", "default": False},
+        "repository": {"id": 1, "name": "test"},
+        "sender": {"id": 1, "login": "test-user"},
+    }
+
+    # Simulate the event
+    response = await app_with_handlers.simulate_event(provider="github", event_type="pull_request:labeled", payload=payload)
+
+    # Verify the response
+    assert response is not None
+    assert response["message"] == "PR labeled"
+    assert response["pr_number"] == 123
+    assert response["label"] == "bug"
+    assert response["title"] == "Test PR"
+
+
+@pytest.mark.asyncio
+async def test_server_github_pr_labeled(app_with_handlers):
+    """Test sending a GitHub PR labeled event through the actual server"""
+    async with run_codegen_app(app_with_handlers):
+        # Create a test client
+        client = CodegenClient()
+
+        try:
+            # Create test PR labeled payload
+            payload = {
+                "action": "labeled",
+                "number": 123,
+                "pull_request": {
+                    "id": 12345,
+                    "number": 123,
+                    "node_id": "PR_123",
+                    "state": "open",
+                    "locked": False,
+                    "title": "Test PR",
+                    "user": {"id": 1, "login": "test-user", "node_id": "U_123", "type": "User"},
+                    "body": "Test PR body",
+                    "labels": [],
+                    "created_at": "2024-01-01T00:00:00Z",
+                    "updated_at": "2024-01-01T00:00:00Z",
+                    "draft": False,
+                    "head": {
+                        "label": "user:feature",
+                        "ref": "feature",
+                        "sha": "abc123",
+                        "user": {"id": 1, "login": "test-user", "node_id": "U_123", "type": "User"},
+                        "repo": {"id": 1, "name": "test", "node_id": "R_123", "full_name": "test/test", "private": False, "owner": {"id": 1, "login": "test-user", "node_id": "U_123", "type": "User"}},
+                    },
+                    "base": {
+                        "label": "main",
+                        "ref": "main",
+                        "sha": "def456",
+                        "user": {"id": 1, "login": "test-user", "node_id": "U_123", "type": "User"},
+                        "repo": {"id": 1, "name": "test", "node_id": "R_123", "full_name": "test/test", "private": False, "owner": {"id": 1, "login": "test-user", "node_id": "U_123", "type": "User"}},
+                    },
+                },
+                "label": {"id": 1, "node_id": "L_123", "url": "https://api.github.com/repos/test/test/labels/bug", "name": "bug", "description": "Bug report", "color": "red", "default": False},
+                "repository": {"id": 1, "name": "test", "node_id": "R_123", "full_name": "test/test", "private": False, "owner": {"id": 1, "login": "test-user", "node_id": "U_123", "type": "User"}},
+                "sender": {"id": 1, "login": "test-user", "node_id": "U_123", "type": "User"},
+            }
+
+            # Send test event
+            response = await client.send_github_event(
+                event_type="pull_request",
+                action="labeled",
+                payload=payload,
+            )
+
+            # Verify the response
+            assert response is not None
+            assert response["message"] == "PR labeled"
+            assert response["pr_number"] == 123
+            assert response["label"] == "bug"
+            assert response["title"] == "Test PR"
+
+        finally:
+            await client.close()

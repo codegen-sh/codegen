@@ -69,7 +69,7 @@ class GitHub(EventHandlerManagerProtocol):
 
         return register_handler
 
-    def handle(self, event: dict, request: Request):
+    async def handle(self, event: dict, request: Request | None = None) -> dict:
         """Handle both webhook events and installation callbacks."""
         logger.info("[HANDLER] Handling GitHub event")
 
@@ -89,35 +89,44 @@ class GitHub(EventHandlerManagerProtocol):
                 },
             }
 
-        # Extract headers for webhook events
-        headers = {
-            "x-github-event": request.headers.get("x-github-event"),
-            "x-github-delivery": request.headers.get("x-github-delivery"),
-            "x-github-hook-id": request.headers.get("x-github-hook-id"),
-            "x-github-hook-installation-target-id": request.headers.get("x-github-hook-installation-target-id"),
-            "x-github-hook-installation-target-type": request.headers.get("x-github-hook-installation-target-type"),
-        }
-        print(headers)
+        # Extract headers for webhook events if request is provided
+        headers = {}
+        if request:
+            headers = {
+                "x-github-event": request.headers.get("x-github-event"),
+                "x-github-delivery": request.headers.get("x-github-delivery"),
+                "x-github-hook-id": request.headers.get("x-github-hook-id"),
+                "x-github-hook-installation-target-id": request.headers.get("x-github-hook-installation-target-id"),
+                "x-github-hook-installation-target-type": request.headers.get("x-github-hook-installation-target-type"),
+            }
 
         # Handle webhook events
         try:
-            webhook = GitHubWebhookPayload.model_validate({"headers": headers, "event": event})
+            # For simulation, use event data directly
+            if not request:
+                event_type = f"pull_request:{event['action']}" if "action" in event else event.get("type", "unknown")
+                if event_type not in self.registered_handlers:
+                    logger.info(f"[HANDLER] No handler found for event type: {event_type}")
+                    return {"message": "Event type not handled"}
+                else:
+                    logger.info(f"[HANDLER] Handling event: {event_type}")
+                    handler = self.registered_handlers[event_type]
+                    return handler(event)
 
-            # Get base event type and action
+            # For actual webhooks, use the full payload
+            webhook = GitHubWebhookPayload.model_validate({"headers": headers, "event": event})
             event_type = webhook.headers.event_type
             action = webhook.event.action
-
-            # Combine event type and action if both exist
             full_event_type = f"{event_type}:{action}" if action else event_type
 
             if full_event_type not in self.registered_handlers:
                 logger.info(f"[HANDLER] No handler found for event type: {full_event_type}")
                 return {"message": "Event type not handled"}
-
             else:
                 logger.info(f"[HANDLER] Handling event: {full_event_type}")
                 handler = self.registered_handlers[full_event_type]
-                return handler(event)  # TODO - pass through typed values
+                return handler(event)
+
         except Exception as e:
             logger.exception(f"Error handling webhook: {e}")
             raise

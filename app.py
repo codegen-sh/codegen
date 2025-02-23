@@ -1,6 +1,7 @@
 import logging
 
 from codegen.extensions.events.codegen_app import CodegenApp
+from codegen.extensions.github.types.events.pull_request import PullRequestLabeledEvent
 from codegen.extensions.slack.types import SlackEvent
 
 # Set up logging
@@ -20,10 +21,11 @@ async def handle_mention(event: SlackEvent):
     return {"num_files": len(codebase.files), "num_functions": len(codebase.functions)}
 
 
-@app.github.event("pull_request:opened")
-def handle_pr(event):
-    logger.info(f"New PR opened: {event}")
-    return {"message": "PR event handled"}
+@app.github.event("pull_request:labeled")
+def handle_pr(event: PullRequestLabeledEvent):
+    logger.info(f"PR labeled: {event}")
+    codebase = app.get_codebase("fastapi/fastapi")
+    return {"message": "PR event handled", "num_files": len(codebase.files), "num_functions": len(codebase.functions)}
 
 
 if __name__ == "__main__":
