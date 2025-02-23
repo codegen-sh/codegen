@@ -1,8 +1,7 @@
 import logging
 
-from slack_sdk import WebClient
-
 from codegen.extensions.events.codegen_app import CodegenApp
+from codegen.extensions.slack.types import SlackEvent
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -13,10 +12,12 @@ app = CodegenApp(name="codegen-test", repos=["fastapi/fastapi"])
 
 
 @app.slack.event("app_mention")
-async def handle_mention(client: WebClient, event):
+async def handle_mention(event: SlackEvent):
     logger.info("[APP_MENTION] Received app_mention event")
+    logger.info(event)
     codebase = app.get_codebase("fastapi/fastapi")
-    return {"num_files": len(codebase.files)}
+    # Can access Slack client via app.slack.client if needed
+    return {"num_files": len(codebase.files), "num_functions": len(codebase.functions)}
 
 
 @app.github.event("pull_request:opened")

@@ -1,55 +1,13 @@
 import logging
 import os
-from typing import Literal
 
-from pydantic import BaseModel, Field
 from slack_sdk import WebClient
 
 from codegen.extensions.events.interface import EventHandlerManagerProtocol
+from codegen.extensions.slack.types import SlackWebhookPayload
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-
-
-class RichTextElement(BaseModel):
-    type: str
-    user_id: str | None = None
-    text: str | None = None
-
-
-class RichTextSection(BaseModel):
-    type: Literal["rich_text_section"]
-    elements: list[RichTextElement]
-
-
-class Block(BaseModel):
-    type: Literal["rich_text"]
-    block_id: str
-    elements: list[RichTextSection]
-
-
-class SlackEvent(BaseModel):
-    user: str
-    type: str
-    ts: str
-    client_msg_id: str | None = None
-    text: str
-    team: str | None = None
-    blocks: list[Block] | None = None
-    channel: str
-    event_ts: str
-
-
-class SlackWebhookPayload(BaseModel):
-    token: str | None = Field(None)
-    team_id: str | None = Field(None)
-    api_app_id: str | None = Field(None)
-    event: SlackEvent | None = Field(None)
-    type: str | None = Field(None)
-    event_id: str | None = Field(None)
-    event_time: int | None = Field(None)
-    challenge: str | None = Field(None)
-    subtype: str | None = Field(None)
 
 
 class Slack(EventHandlerManagerProtocol):
@@ -69,15 +27,7 @@ class Slack(EventHandlerManagerProtocol):
         self.registered_handlers.clear()
 
     async def handle(self, event_data: dict) -> dict:
-        """Handle incoming Slack events.
-
-        Args:
-            event_data: Raw event data dictionary from Slack
-
-        Returns:
-            Response dictionary
-        """
-        print(event_data)
+        """Handle incoming Slack events."""
         logger.info("[HANDLER] Handling Slack event")
 
         try:
@@ -115,9 +65,10 @@ class Slack(EventHandlerManagerProtocol):
             logger.info(f"[EVENT] Registering function {func_name} for {event_name}")
 
             async def new_func(event):
-                return await func(self.client, event)
+                # Just pass the event, handler can access client via app.slack.client
+                return await func(event)
 
             self.registered_handlers[event_name] = new_func
-            return func  # Return original function to maintain sync/async compatibility
+            return func
 
         return register_handler
