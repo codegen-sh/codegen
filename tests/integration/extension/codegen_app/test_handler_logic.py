@@ -36,6 +36,15 @@ def app_with_handlers(app):
             "title": event.pull_request.title,
         }
 
+    # Register Linear handler
+    @app.linear.event("Issue")
+    def handle_issue_created(event: dict):
+        return {
+            "message": "Issue created",
+            "issue_id": event["data"]["id"],
+            "title": event["data"]["title"],
+        }
+
     return app
 
 
@@ -222,6 +231,68 @@ async def test_server_github_pr_labeled(app_with_handlers):
             assert response["pr_number"] == 123
             assert response["label"] == "bug"
             assert response["title"] == "Test PR"
+
+        finally:
+            await client.close()
+
+
+@pytest.mark.asyncio
+async def test_simulate_linear_issue_created(app_with_handlers):
+    """Test simulating a Linear issue created event"""
+    # Create a test issue created payload
+    payload = {
+        "action": "create",
+        "type": "Issue",
+        "data": {
+            "id": "abc-123",
+            "title": "Test Issue",
+            "description": "This is a test issue",
+            "priority": 1,
+            "teamId": "team-123",
+        },
+        "url": "https://linear.app/company/issue/ABC-123",
+    }
+
+    # Simulate the event
+    response = await app_with_handlers.simulate_event(provider="linear", event_type="Issue", payload=payload)
+
+    # Verify the response
+    assert response is not None
+    assert response["message"] == "Issue created"
+    assert response["issue_id"] == "abc-123"
+    assert response["title"] == "Test Issue"
+
+
+@pytest.mark.asyncio
+async def test_server_linear_issue_created(app_with_handlers):
+    """Test sending a Linear issue created event through the actual server"""
+    async with run_codegen_app(app_with_handlers):
+        # Create a test client
+        client = CodegenClient()
+
+        try:
+            # Create test issue created payload
+            payload = {
+                "action": "create",
+                "type": "Issue",
+                "data": {
+                    "id": "abc-123",
+                    "title": "Test Issue",
+                    "description": "This is a test issue",
+                    "priority": 1,
+                    "teamId": "team-123",
+                },
+                "url": "https://linear.app/company/issue/ABC-123",
+            }
+
+            # Send test event
+            response = await client.send_linear_event(payload=payload)
+
+            # Verify the response
+            assert response is not None
+            assert response["message"] == "Issue created"
+            assert response["issue_id"] == "abc-123"
+            assert response["title"] == "Test Issue"
 
         finally:
             await client.close()

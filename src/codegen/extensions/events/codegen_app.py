@@ -138,7 +138,6 @@ class CodegenApp:
         async def handle_slack_event(request: Request):
             """Handle incoming Slack events."""
             payload = await request.json()
-            print(payload)
             return await self.slack.handle(payload)
 
         @self.app.post("/github/events")
@@ -151,8 +150,7 @@ class CodegenApp:
         async def handle_linear_event(request: Request):
             """Handle incoming Linear events."""
             payload = await request.json()
-            # Note: Linear handler needs to be implemented similar to others
-            return {"message": "Linear event received"}
+            return await self.linear.handle(payload)
 
     def run(self, host: str = "0.0.0.0", port: int = 8000, **kwargs):
         """Run the FastAPI application."""
