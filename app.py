@@ -28,6 +28,8 @@ async def handle_mention(event: SlackEvent):
 
     logger.info("[CODE_AGENT] Running code agent")
     response = agent.run(event.text)
+
+    app.slack.client.chat_postMessage(channel=event.channel, text=response, thread_ts=event.ts)
     return {"message": "Mentioned", "received_text": event.text, "response": response}
 
 
