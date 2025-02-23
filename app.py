@@ -2,6 +2,7 @@ import logging
 
 from codegen.extensions.events.codegen_app import CodegenApp
 from codegen.extensions.github.types.events.pull_request import PullRequestLabeledEvent
+from codegen.extensions.linear.types import LinearEvent
 from codegen.extensions.slack.types import SlackEvent
 
 # Set up logging
@@ -17,7 +18,6 @@ async def handle_mention(event: SlackEvent):
     logger.info("[APP_MENTION] Received app_mention event")
     logger.info(event)
     codebase = app.get_codebase("fastapi/fastapi")
-    # Can access Slack client via app.slack.client if needed
     return {"num_files": len(codebase.files), "num_functions": len(codebase.functions)}
 
 
@@ -26,6 +26,13 @@ def handle_pr(event: PullRequestLabeledEvent):
     logger.info(f"PR labeled: {event}")
     codebase = app.get_codebase("fastapi/fastapi")
     return {"message": "PR event handled", "num_files": len(codebase.files), "num_functions": len(codebase.functions)}
+
+
+@app.linear.event("Issue")
+def handle_issue(event: LinearEvent):
+    logger.info(f"Issue created: {event}")
+    codebase = app.get_codebase("fastapi/fastapi")
+    return {"message": "Linear Issue event", "num_files": len(codebase.files), "num_functions": len(codebase.functions)}
 
 
 if __name__ == "__main__":

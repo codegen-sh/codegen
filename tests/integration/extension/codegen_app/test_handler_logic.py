@@ -8,6 +8,7 @@ from uvicorn.server import Server
 from codegen.extensions.events.client import CodegenClient
 from codegen.extensions.events.codegen_app import CodegenApp
 from codegen.extensions.github.types.events.pull_request import PullRequestLabeledEvent
+from codegen.extensions.linear.types import LinearEvent
 from codegen.extensions.slack.types import SlackEvent
 
 
@@ -38,11 +39,11 @@ def app_with_handlers(app):
 
     # Register Linear handler
     @app.linear.event("Issue")
-    def handle_issue_created(event: dict):
+    def handle_issue_created(event: LinearEvent):
         return {
             "message": "Issue created",
-            "issue_id": event["data"]["id"],
-            "title": event["data"]["title"],
+            "issue_id": event.data.id,
+            "title": event.data.title,
         }
 
     return app

@@ -4,6 +4,7 @@ from typing import Any, Callable, TypeVar
 from pydantic import BaseModel
 
 from codegen.extensions.events.interface import EventHandlerManagerProtocol
+from codegen.extensions.linear.types import LinearEvent
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -29,7 +30,7 @@ class Linear(EventHandlerManagerProtocol):
         """
         logger.info(f"[EVENT] Registering handler for {event_name}")
 
-        def register_handler(func: Callable[[T], Any]):
+        def register_handler(func: Callable[[LinearEvent], Any]):
             func_name = func.__qualname__
             logger.info(f"[EVENT] Registering function {func_name} for {event_name}")
 
@@ -40,7 +41,9 @@ class Linear(EventHandlerManagerProtocol):
                     logger.info(f"[HANDLER] Event type mismatch: expected {event_name}, got {event_type}")
                     return None
 
-                return func(raw_event)
+                # Parse event into LinearEvent type
+                event = LinearEvent.model_validate(raw_event)
+                return func(event)
 
             self.registered_handlers[event_name] = new_func
             return func
