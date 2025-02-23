@@ -1,6 +1,6 @@
 import logging
 
-from codegen.extensions.events.codegen_app import CodegenApp
+from codegen import CodeAgent, CodegenApp
 from codegen.extensions.github.types.events.pull_request import PullRequestLabeledEvent
 from codegen.extensions.linear.types import LinearEvent
 from codegen.extensions.slack.types import SlackEvent
@@ -17,8 +17,18 @@ app = CodegenApp(name="codegen-test", repos=["fastapi/fastapi"])
 async def handle_mention(event: SlackEvent):
     logger.info("[APP_MENTION] Received app_mention event")
     logger.info(event)
+
+    # Codebase
+    logger.info("[CODEBASE] Initializing codebase")
     codebase = app.get_codebase("fastapi/fastapi")
-    return {"num_files": len(codebase.files), "num_functions": len(codebase.functions)}
+
+    # Code Agent
+    logger.info("[CODE_AGENT] Initializing code agent")
+    agent = CodeAgent(codebase=codebase)
+
+    logger.info("[CODE_AGENT] Running code agent")
+    response = agent.run(event.text)
+    return {"message": "Mentioned", "received_text": event.text, "response": response}
 
 
 @app.github.event("pull_request:labeled")
