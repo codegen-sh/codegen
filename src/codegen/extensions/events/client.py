@@ -21,9 +21,9 @@ class SlackTestEvent(BaseModel):
 class CodegenClient:
     """Client for testing CodegenApp endpoints"""
 
-    def __init__(self, base_url: str = "http://localhost:8000"):
+    def __init__(self, base_url: str = "http://localhost:8000", timeout: float = 30.0):
         self.base_url = base_url.rstrip("/")
-        self.client = httpx.Client()
+        self.client = httpx.AsyncClient(timeout=timeout)
 
     async def send_slack_message(self, text: str, channel: str = "C123456", event_type: str = "message", **kwargs) -> dict[str, Any]:
         """Send a test Slack message event
@@ -49,6 +49,6 @@ class CodegenClient:
         response = await self.client.post(f"{self.base_url}/slack/events", json=payload)
         return response.json()
 
-    def close(self):
+    async def close(self):
         """Close the HTTP client"""
-        self.client.close()
+        await self.client.aclose()

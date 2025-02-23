@@ -1,6 +1,12 @@
+import asyncio
+from contextlib import asynccontextmanager
+
 import pytest
 from slack_sdk import WebClient
+from uvicorn.config import Config
+from uvicorn.server import Server
 
+from codegen.extensions.events.client import CodegenClient
 from codegen.extensions.events.codegen_app import CodegenApp
 from codegen.extensions.events.slack import SlackEvent
 
@@ -21,6 +27,45 @@ def app_with_handlers(app):
         return {"message": "Mentioned", "received_text": event.text}
 
     return app
+
+
+@asynccontextmanager
+async def run_codegen_app(app: CodegenApp):
+    """Run the CodegenApp server as a context manager"""
+    # Configure uvicorn
+    config = Config(app=app.app, host="127.0.0.1", port=8000, log_level="info")
+    server = Server(config=config)
+
+    # Start the server
+    server_task = asyncio.create_task(server.serve())
+    await asyncio.sleep(1)  # Give the server a moment to start
+
+    try:
+        yield server
+    finally:
+        # Shutdown the server
+        server.should_exit = True
+        await server_task
+
+
+@pytest.mark.asyncio
+async def test_server_slack_mention(app_with_handlers):
+    """Test sending a Slack mention through the actual server"""
+    async with run_codegen_app(app_with_handlers):
+        # Create a test client
+        client = CodegenClient()
+
+        try:
+            # Send test mention
+            response = await client.send_slack_message(text="<@U123BOT> help me with this code", channel="C123TEST", event_type="app_mention")
+
+            # Verify the response
+            assert response is not None
+            assert response["message"] == "Mentioned"
+            assert response["received_text"] == "<@U123BOT> help me with this code"
+
+        finally:
+            await client.close()
 
 
 @pytest.mark.asyncio
