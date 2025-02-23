@@ -3,16 +3,15 @@ import sys
 
 from git import Commit as GitCommit
 
-from codegen.git.repo_operator.remote_repo_operator import RemoteRepoOperator
+from codegen.git.repo_operator.repo_operator import RepoOperator
+from codegen.git.schemas.enums import SetupOption
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.runner.models.apis import CreateBranchRequest, CreateBranchResponse, GetDiffRequest, GetDiffResponse
 from codegen.runner.sandbox.executor import SandboxExecutor
-from codegen.sdk.codebase.config import CodebaseConfig, ProjectConfig, SessionOptions
+from codegen.sdk.codebase.config import ProjectConfig, SessionOptions
 from codegen.sdk.codebase.factory.codebase_factory import CodebaseType
 from codegen.sdk.core.codebase import Codebase
-from codegen.sdk.secrets import Secrets
 from codegen.shared.compilation.string_to_code import create_execute_function_from_codeblock
-from codegen.shared.configs.session_configs import config
 from codegen.shared.performance.stopwatch_utils import stopwatch
 
 logger = logging.getLogger(__name__)
@@ -24,15 +23,15 @@ class SandboxRunner:
     # =====[ __init__ instance attributes ]=====
     repo: RepoConfig
     commit: GitCommit
-    op: RemoteRepoOperator | None
+    op: RepoOperator | None
 
     # =====[ computed instance attributes ]=====
     codebase: CodebaseType
     executor: SandboxExecutor
 
-    def __init__(self, repo_config: RepoConfig, access_token: str) -> None:
+    def __init__(self, repo_config: RepoConfig) -> None:
         self.repo = repo_config
-        self.op = RemoteRepoOperator(repo_config=self.repo, access_token=access_token)
+        self.op = RepoOperator(repo_config=self.repo, setup_option=SetupOption.PULL_OR_CLONE)
         self.commit = self.op.git_cli.head.commit
 
     async def warmup(self) -> None:
@@ -46,9 +45,7 @@ class SandboxRunner:
     async def _build_graph(self) -> Codebase:
         logger.info("> Building graph...")
         projects = [ProjectConfig(programming_language=self.repo.language, repo_operator=self.op, base_path=self.repo.base_path, subdirectories=self.repo.subdirectories)]
-        secrets = Secrets(openai_key=config.secrets.openai_api_key)
-        codebase_config = CodebaseConfig(secrets=secrets, feature_flags=config.feature_flags.codebase)
-        return Codebase(projects=projects, config=codebase_config)
+        return Codebase(projects=projects)
 
     @stopwatch
     def reset_runner(self) -> None:
@@ -56,7 +53,7 @@ class SandboxRunner:
 
         At the start of every job the runner should be in the following state:
         - Codebase is checked out to the pinned commit (i.e. self.commit)
-        - Codebase LRP (LocalRepoOperator) has only the origin remote and no branches
+        - Codebase RP (RepoOperator) has only the origin remote and no branches
 
         This method puts the runner in the above state and should be called at the end of every job.
         """

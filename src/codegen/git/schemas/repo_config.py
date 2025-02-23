@@ -1,5 +1,6 @@
 import logging
 import os.path
+from pathlib import Path
 
 from pydantic import BaseModel
 
@@ -30,8 +31,8 @@ class RepoConfig(BaseModel):
         return cls(name=name, base_dir=base_dir)
 
     @property
-    def repo_path(self) -> str:
-        return f"{self.base_dir}/{self.name}"
+    def repo_path(self) -> Path:
+        return Path(f"{self.base_dir}/{self.name}")
 
     @property
     def organization_name(self) -> str | None:

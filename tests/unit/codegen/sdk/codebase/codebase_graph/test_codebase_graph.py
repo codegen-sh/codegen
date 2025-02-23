@@ -58,3 +58,40 @@ class MySubClass(MyClass):
         assert len(import_resolution_edges) == 4
         assert len(file_contains_node_edges) == 14
         assert len(symbol_usage_edges) == 6
+
+
+def test_codebase_broken_file(tmpdir) -> None:
+    # language=python
+    content = """
+from some_file import x, y, z
+import numpy as np
+
+global_var_1 = 1
+global_var_2 = 2
+
+def foo():
+    return bar()
+
+def bar():
+    return 42
+
+class MyClass:
+    def __init__(self):
+        pass
+
+class MySubClass(MyClass):
+    def __init__(self):
+        super().__init__()
+        pass
+    """
+    content_broken = bytes("你好", "big5hkscs")
+    with get_codebase_session(tmpdir=tmpdir, files={"test.py": content, "test2.py": content_broken}) as codebase:
+        assert codebase is not None
+        assert isinstance(codebase.ctx, CodebaseContext)
+        import_resolution_edges = [edge for edge in codebase.ctx.edges if edge[2].type == EdgeType.IMPORT_SYMBOL_RESOLUTION]
+        file_contains_node_edges = list(itertools.chain.from_iterable(file.get_nodes() for file in codebase.files))
+        symbol_usage_edges = [edge for edge in codebase.ctx.edges if edge[2].type == EdgeType.SYMBOL_USAGE]
+
+        assert len(import_resolution_edges) == 4
+        assert len(file_contains_node_edges) == 14
+        assert len(symbol_usage_edges) == 6

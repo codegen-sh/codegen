@@ -6,8 +6,7 @@ readme = "README.md"
 # renovate: datasource=python-version depName=python
 requires-python = ">=3.12, <3.14"
 dependencies = [
-  "backoff==2.2.1",
-  "openai==1.63.2",
+  "openai==1.64.0",
   "tiktoken<1.0.0,>=0.5.1",
   "tabulate>=0.9.0,<1.0.0",
   "codeowners<1.0.0,>=0.6.0",
@@ -31,14 +30,12 @@ dependencies = [
   "plotly>=5.24.0,<7.0.0",
   "humanize<5.0.0,>=4.10.0",
   "pytest-snapshot>=0.9.0",
-  "anthropic==0.23.1",
   "pyjson5==1.6.8",
   "mini-racer>=0.12.4",
   "rustworkx>=0.15.1",
   "typing-extensions>=4.12.2",
   "termcolor>=2.4.0",
   "sentry-sdk==2.22.0",
-  "tenacity>=9.0.0",
   "click>=8.1.7",
   "requests>=2.32.3",
   "lazy-object-proxy>=0.0.0",
@@ -53,8 +50,7 @@ dependencies = [
   "pygit2>=1.16.0",
   "unidiff>=0.7.5",
   "datamodel-code-generator>=0.26.5",
-  "toml>=0.10.2",
-  "PyGithub==2.6.0",
+  "PyGithub==2.6.1",
   "GitPython==3.1.44",
   "psutil>=5.8.0",
   "fastapi[standard]<1.0.0,>=0.115.2",
@@ -67,11 +63,14 @@ dependencies = [
   "langchain[openai]",
   "langchain_core",
   "langchain_openai",
+  "langgraph",
   "numpy>=2.2.2",
   "mcp[cli]",
   "neo4j",
   "modal>=0.73.45",
   "slack-sdk",
+  "langchain-anthropic>=0.3.7",
+  "lox>=0.12.0",
 ]
 
 license = { text = "Apache-2.0" }
@@ -143,7 +142,6 @@ dev-dependencies = [
   "pre-commit-uv>=4.1.4",
   "austin-dist>=3.7.0",
   "uv>=0.4.25",
-  "cython>=3.0.11",
   "deptry>=0.22.0",
   "cibuildwheel[uv]>=2.22.0",
   "sybil[pytest]>=9.0.0",
@@ -160,6 +158,7 @@ dev-dependencies = [
   "jupyterlab>=4.3.5",
   "modal>=0.73.25",
   "pytest-lsp>=1.0.0b1",
+  "cython>=3.0.11",
 ]
 
 [tool.uv.workspace]

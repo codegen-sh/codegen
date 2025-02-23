@@ -6,10 +6,10 @@ from unittest.mock import Mock
 import pytest
 
 from codegen.git.clients.git_repo_client import GitRepoClient
-from codegen.git.repo_operator.remote_repo_operator import RemoteRepoOperator
+from codegen.git.repo_operator.repo_operator import RepoOperator
+from codegen.git.schemas.enums import SetupOption
 from codegen.git.schemas.repo_config import RepoConfig
-from codegen.runner.clients.sandbox_client import SandboxClient
-from codegen.shared.configs.session_configs import config
+from codegen.runner.clients.codebase_client import CodebaseClient
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
@@ -28,24 +28,23 @@ def repo_config(tmpdir) -> Generator[RepoConfig, None, None]:
     yield RepoConfig(
         name="Kevin-s-Adventure-Game",
         full_name="codegen-sh/Kevin-s-Adventure-Game",
-        organization_name="codegen-sh",
         language=ProgrammingLanguage.PYTHON,
         base_dir=str(tmpdir),
     )
 
 
 @pytest.fixture
-def op(repo_config: RepoConfig) -> Generator[RemoteRepoOperator, None, None]:
-    yield RemoteRepoOperator(repo_config=repo_config, access_token=config.secrets.github_token)
+def op(repo_config: RepoConfig) -> Generator[RepoOperator, None, None]:
+    yield RepoOperator(repo_config=repo_config, setup_option=SetupOption.PULL_OR_CLONE)
 
 
 @pytest.fixture
-def git_repo_client(repo_config: RepoConfig) -> Generator[GitRepoClient, None, None]:
-    yield GitRepoClient(repo_config=repo_config, access_token=config.secrets.github_token)
+def git_repo_client(op: RepoOperator, repo_config: RepoConfig) -> Generator[GitRepoClient, None, None]:
+    yield GitRepoClient(repo_config=repo_config, access_token=op.access_token)
 
 
 @pytest.fixture
-def sandbox_client(repo_config: RepoConfig, get_free_port) -> Generator[SandboxClient, None, None]:
-    sb_client = SandboxClient(repo_config=repo_config, port=get_free_port, git_access_token=config.secrets.github_token)
+def codebase_client(repo_config: RepoConfig, get_free_port) -> Generator[CodebaseClient, None, None]:
+    sb_client = CodebaseClient(repo_config=repo_config, port=get_free_port)
     sb_client.runner = Mock()
     yield sb_client

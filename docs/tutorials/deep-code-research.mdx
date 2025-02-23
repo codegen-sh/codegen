@@ -135,9 +135,9 @@ def research(repo_name: Optional[str] = None, query: Optional[str] = None):
             
         result = agent.invoke(
             {"input": query},
-            config={"configurable": {"session_id": "research"}}
+            config={"configurable": {"thread_id": 1}}
         )
-        console.print(Markdown(result["output"]))
+        console.print(Markdown(result["messages"][-1].content))
         
         query = None  # Clear for next iteration
 ```

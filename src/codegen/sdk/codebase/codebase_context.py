@@ -11,7 +11,9 @@ from typing import TYPE_CHECKING, Any
 
 from rustworkx import PyDiGraph, WeightedEdgeList
 
-from codegen.sdk.codebase.config import CodebaseConfig, DefaultConfig, ProjectConfig, SessionOptions
+from codegen.configs.models.codebase import CodebaseConfig
+from codegen.configs.models.secrets import SecretsConfig
+from codegen.sdk.codebase.config import ProjectConfig, SessionOptions
 from codegen.sdk.codebase.config_parser import ConfigParser, get_config_parser_for_language
 from codegen.sdk.codebase.diff_lite import ChangeType, DiffLite
 from codegen.sdk.codebase.flagging.flags import Flags
@@ -55,7 +57,18 @@ logger = logging.getLogger(__name__)
 
 
 # src/vs/platform/contextview/browser/contextMenuService.ts is ignored as there is a parsing error with tree-sitter
-GLOBAL_FILE_IGNORE_LIST = [".git/*", ".yarn/releases/*", ".*/tests/static/chunk-.*.js", ".*/ace/.*.js", "src/vs/platform/contextview/browser/contextMenuService.ts"]
+GLOBAL_FILE_IGNORE_LIST = [
+    ".git/*",
+    "*/.git/*",
+    "node_modules/*",
+    "*/node_modules/*",
+    ".yarn/releases/*",
+    ".*/tests/static/chunk-.*.js",
+    ".*/ace/.*.js",
+    "src/vs/platform/contextview/browser/contextMenuService.ts",
+    "*/compiled/*",
+    "*/*.min.js",
+]
 
 
 @unique
@@ -75,8 +88,9 @@ def get_node_classes(programming_language: ProgrammingLanguage) -> NodeClasses:
 
         return TSNodeClasses
     else:
-        msg = f"Unsupported programming language: {programming_language}!"
-        raise ValueError(msg)
+        from codegen.sdk.codebase.node_classes.generic_node_classes import GenericNodeClasses
+
+        return GenericNodeClasses
 
 
 class CodebaseContext:
@@ -89,6 +103,7 @@ class CodebaseContext:
     repo_name: str
     codeowners_parser: CodeOwnersParser | None
     config: CodebaseConfig
+    secrets: SecretsConfig
 
     # =====[ computed attributes ]=====
     transaction_manager: TransactionManager
@@ -118,7 +133,8 @@ class CodebaseContext:
     def __init__(
         self,
         projects: list[ProjectConfig],
-        config: CodebaseConfig = DefaultConfig,
+        config: CodebaseConfig | None = None,
+        secrets: SecretsConfig | None = None,
         io: IO | None = None,
         progress: Progress | None = None,
     ) -> None:
@@ -144,9 +160,11 @@ class CodebaseContext:
         self.io = io or FileIO()
         context = projects[0]
         self.node_classes = get_node_classes(context.programming_language)
-        self.config = config
+        self.config = config or CodebaseConfig()
+        self.secrets = secrets or SecretsConfig()
         self.repo_name = context.repo_operator.repo_name
         self.repo_path = str(Path(context.repo_operator.repo_path).resolve())
+        self.full_path = os.path.join(self.repo_path, context.base_path) if context.base_path else self.repo_path
         self.codeowners_parser = context.repo_operator.codeowners_parser
         self.base_url = context.repo_operator.base_url
         # =====[ computed attributes ]=====
@@ -155,13 +173,18 @@ class CodebaseContext:
         self.init_nodes = None
         self.init_edges = None
         self.directories = dict()
-        self.parser = Parser.from_node_classes(self.node_classes, log_parse_warnings=config.feature_flags.debug)
+        self.parser = Parser.from_node_classes(self.node_classes, log_parse_warnings=self.config.debug)
         self.extensions = self.node_classes.file_cls.get_extensions()
         # ORDER IS IMPORTANT HERE!
         self.config_parser = get_config_parser_for_language(context.programming_language, self)
         self.dependency_manager = get_dependency_manager(context.programming_language, self)
         self.language_engine = get_language_engine(context.programming_language, self)
         self.programming_language = context.programming_language
+
+        # Raise warning if language is not supported
+        if self.programming_language is ProgrammingLanguage.UNSUPPORTED or self.programming_language is ProgrammingLanguage.OTHER:
+            logger.warning("WARNING: The codebase is using an unsupported language!")
+            logger.warning("Some features may not work as expected. Advanced static analysis will be disabled but simple file IO will still work.")
 
         # Build the graph
         self.build_graph(context.repo_operator)
@@ -193,7 +216,7 @@ class CodebaseContext:
         files: list[SourceFile] = self.get_nodes(NodeType.FILE)
         logger.info(f"> Found {len(files)} files")
         logger.info(f"> Found {len(self.nodes)} nodes and {len(self.edges)} edges")
-        if self.config.feature_flags.track_graph:
+        if self.config.track_graph:
             self.old_graph = self._graph.copy()
 
     @stopwatch
@@ -299,7 +322,7 @@ class CodebaseContext:
         self.apply_diffs(reversed_diff_list)
         # ====== [ Re-resolve lost edges from previous syncs ] ======
         self.prune_graph()
-        if self.config.feature_flags.verify_graph:
+        if self.config.verify_graph:
             post_reset_validation(self.old_graph.nodes(), self._graph.nodes(), get_edges(self.old_graph), get_edges(self._graph), self.repo_name, self.projects[0].subdirectories)
 
     def save_commit(self, commit: GitCommit) -> None:
@@ -308,7 +331,7 @@ class CodebaseContext:
             self.all_syncs.clear()
             self.unapplied_diffs.clear()
             self.synced_commit = commit
-            if self.config.feature_flags.verify_graph:
+            if self.config.verify_graph:
                 self.old_graph = self._graph.copy()
 
     @stopwatch
@@ -416,9 +439,9 @@ class CodebaseContext:
 
         # Step 1: Wait for dependency manager and language engines to finish before graph construction
         if self.dependency_manager is not None:
-            self.dependency_manager.wait_until_ready(ignore_error=self.config.feature_flags.ignore_process_errors)
+            self.dependency_manager.wait_until_ready(ignore_error=self.config.ignore_process_errors)
         if self.language_engine is not None:
-            self.language_engine.wait_until_ready(ignore_error=self.config.feature_flags.ignore_process_errors)
+            self.language_engine.wait_until_ready(ignore_error=self.config.ignore_process_errors)
 
         # ====== [ Refresh the graph] ========
         # Step 2: For any files that no longer exist, remove them during the sync
@@ -467,7 +490,11 @@ class CodebaseContext:
         task = self.progress.begin("Adding new files", count=len(files_to_sync[SyncType.ADD]))
         for idx, filepath in enumerate(files_to_sync[SyncType.ADD]):
             task.update(f"Adding {self.to_relative(filepath)}", count=idx)
-            content = self.io.read_text(filepath)
+            try:
+                content = self.io.read_text(filepath)
+            except UnicodeDecodeError as e:
+                logger.warning(f"Can't read file at:{filepath} since it contains non-unicode characters. File will be ignored!")
+                continue
             # TODO: this is wrong with context changes
             if filepath.suffix in self.extensions:
                 file_cls = self.node_classes.file_cls
@@ -495,7 +522,7 @@ class CodebaseContext:
         if not skip_uncache:
             uncache_all()
 
-        if self.config.feature_flags.disable_graph:
+        if self.config.disable_graph:
             logger.warning("Graph generation is disabled. Skipping import and symbol resolution")
             self._computing = False
         else:
@@ -598,20 +625,20 @@ class CodebaseContext:
             return self.get_node(node_id)
 
     def add_node(self, node: Importable) -> int:
-        if self.config.feature_flags.debug:
+        if self.config.debug:
             if self._graph.find_node_by_weight(node.__eq__):
                 msg = "Node already exists"
                 raise Exception(msg)
-        if self.config.feature_flags.debug and self._computing and node.node_type != NodeType.EXTERNAL:
+        if self.config.debug and self._computing and node.node_type != NodeType.EXTERNAL:
             assert False, f"Adding node during compute dependencies: {node!r}"
         return self._graph.add_node(node)
 
     def add_child(self, parent: NodeId, node: Importable, type: EdgeType, usage: Usage | None = None) -> int:
-        if self.config.feature_flags.debug:
+        if self.config.debug:
             if self._graph.find_node_by_weight(node.__eq__):
                 msg = "Node already exists"
                 raise Exception(msg)
-        if self.config.feature_flags.debug and self._computing and node.node_type != NodeType.EXTERNAL:
+        if self.config.debug and self._computing and node.node_type != NodeType.EXTERNAL:
             assert False, f"Adding node during compute dependencies: {node!r}"
         return self._graph.add_child(parent, node, Edge(type, usage))
 
@@ -623,14 +650,14 @@ class CodebaseContext:
 
     def add_edge(self, u: NodeId, v: NodeId, type: EdgeType, usage: Usage | None = None) -> None:
         edge = Edge(type, usage)
-        if self.config.feature_flags.debug:
+        if self.config.debug:
             assert self._graph.has_node(u)
             assert self._graph.has_node(v), v
             assert not self.has_edge(u, v, edge), (u, v, edge)
         self._graph.add_edge(u, v, edge)
 
     def add_edges(self, edges: list[tuple[NodeId, NodeId, Edge]]) -> None:
-        if self.config.feature_flags.debug:
+        if self.config.debug:
             for u, v, edge in edges:
                 assert self._graph.has_node(u)
                 assert self._graph.has_node(v), v

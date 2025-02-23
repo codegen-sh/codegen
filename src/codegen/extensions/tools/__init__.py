@@ -17,7 +17,9 @@ from .linear import (
 from .list_directory import list_directory
 from .move_symbol import move_symbol
 from .rename_file import rename_file
+from .replacement_edit import replacement_edit
 from .reveal_symbol import reveal_symbol
+from .run_codemod import run_codemod
 from .search import search
 from .semantic_edit import semantic_edit
 from .semantic_search import semantic_search
@@ -42,7 +44,9 @@ __all__ = [
     # Symbol operations
     "move_symbol",
     "rename_file",
+    "replacement_edit",
     "reveal_symbol",
+    "run_codemod",
     # Search operations
     "search",
     # Edit operations

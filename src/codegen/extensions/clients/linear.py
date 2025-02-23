@@ -130,7 +130,7 @@ class LinearClient:
         response = requests.post(self.api_endpoint, headers=self.api_headers, json={"query": mutation, "variables": variables})
         return response.json()
 
-    def register_webhook(self, webhook_url: str, team_id: str, secret: str, enabled: bool, resource_types: list[str]):
+    def register_webhook(self, webhook_url: str, team_id: str, secret: str, enabled: bool, resource_types: list[str]) -> str | None:
         mutation = """
             mutation createWebhook($input: WebhookCreateInput!) {
                 webhookCreate(input: $input) {

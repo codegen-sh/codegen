@@ -24,8 +24,8 @@ class LanguageEngine(ExternalProcess):
 def get_language_engine(language: ProgrammingLanguage, codebase_context: "CodebaseContext", use_ts: bool = False, use_v8: bool = False) -> LanguageEngine | None:
     from codegen.sdk.typescript.external.ts_analyzer_engine import NodeTypescriptEngine, V8TypescriptEngine
 
-    use_ts = use_ts or codebase_context.config.feature_flags.typescript.ts_language_engine
-    use_v8 = use_v8 or codebase_context.config.feature_flags.typescript.v8_ts_engine
+    use_ts = use_ts or codebase_context.config.ts_language_engine
+    use_v8 = use_v8 or codebase_context.config.v8_ts_engine
     if language == ProgrammingLanguage.TYPESCRIPT:
         if use_ts and use_v8:
             # Enables with both ts_language_engine and v8_ts_engine feature flags are on

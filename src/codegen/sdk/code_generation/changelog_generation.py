@@ -2,19 +2,15 @@ import json
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from git import Repo
+from openai import OpenAI
 from semantic_release import ParsedCommit, ParseError
 from semantic_release.changelog.release_history import Release, ReleaseHistory
 from semantic_release.cli.cli_context import CliContextObj
 from semantic_release.cli.config import GlobalCommandLineOptions
 
 import codegen
-from codegen.sdk.ai.helpers import AnthropicHelper
-
-if TYPE_CHECKING:
-    import anthropic
 
 logger = logging.getLogger(__name__)
 
@@ -88,11 +84,10 @@ def generate_release_summary_context(release: Release):
     return release_summary_context
 
 
-def generate_release_summary(client: AnthropicHelper, release: Release):
+def generate_release_summary(client: OpenAI, release: Release) -> str:
     release_summary_context = generate_release_summary_context(release)
-    response: anthropic.types.message.Message = client.llm_query_no_retry(
-        system_prompt=SYSTEM_PROMPT,
-        model="claude-3-5-sonnet-20241022",
+    response = client.chat.completions.create(
+        model="gpt-4o",
         max_tokens=1000,
         messages=[
             {
@@ -107,14 +102,10 @@ Please write a high level summary of the changes in 1 to 5 bullet points.
             }
         ],
     )
-    if not response.content:
-        msg = "No response from Anthropic"
-        raise Exception(msg)
-
-    return json.loads(response.content[0].text)
+    return response.choices[0].message.content
 
 
-def generate_changelog(client: AnthropicHelper, latest_existing_version: str | None = None):
+def generate_changelog(client: OpenAI, latest_existing_version: str | None = None):
     ctx = CliContextObj(ContextMock(), logger=logger, global_opts=GlobalCommandLineOptions())
     runtime = ctx.runtime_ctx
     translator = runtime.version_translator

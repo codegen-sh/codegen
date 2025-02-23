@@ -4,14 +4,15 @@ from collections.abc import Generator
 from contextlib import AbstractContextManager, contextmanager
 from typing import Literal, overload
 
-from codegen.git.repo_operator.local_repo_operator import LocalRepoOperator
+from codegen.configs.models.codebase import CodebaseConfig
+from codegen.configs.models.secrets import SecretsConfig
+from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.sdk.codebase.codebase_context import CodebaseContext
-from codegen.sdk.codebase.config import CodebaseConfig, ProjectConfig, SessionOptions, TestFlags
+from codegen.sdk.codebase.config import ProjectConfig, SessionOptions, TestFlags
 from codegen.sdk.codebase.factory.codebase_factory import CodebaseFactory
 from codegen.sdk.core.codebase import Codebase, PyCodebaseType, TSCodebaseType
-from codegen.sdk.secrets import Secrets
+from codegen.sdk.core.file import SourceFile
 from codegen.sdk.tree_sitter_parser import print_errors
-from codegen.shared.configs.models.feature_flags import CodebaseFeatureFlags
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
@@ -24,9 +25,9 @@ def get_codebase_session(
     sync_graph: bool = True,
     verify_input: bool = True,
     verify_output: bool = True,
-    feature_flags: CodebaseFeatureFlags = TestFlags,
+    config: CodebaseConfig = TestFlags,
     session_options: SessionOptions = SessionOptions(),
-    secrets: Secrets = Secrets(),
+    secrets: SecretsConfig | None = None,
 ) -> AbstractContextManager[PyCodebaseType]: ...
 
 
@@ -39,9 +40,9 @@ def get_codebase_session(
     sync_graph: bool = True,
     verify_input: bool = True,
     verify_output: bool = True,
-    feature_flags: CodebaseFeatureFlags = TestFlags,
+    config: CodebaseConfig = TestFlags,
     session_options: SessionOptions = SessionOptions(),
-    secrets: Secrets = Secrets(),
+    secrets: SecretsConfig | None = None,
 ) -> AbstractContextManager[PyCodebaseType]: ...
 
 
@@ -54,9 +55,9 @@ def get_codebase_session(
     sync_graph: bool = True,
     verify_input: bool = True,
     verify_output: bool = True,
-    feature_flags: CodebaseFeatureFlags = TestFlags,
+    config: CodebaseConfig = TestFlags,
     session_options: SessionOptions = SessionOptions(),
-    secrets: Secrets = Secrets(),
+    secrets: SecretsConfig | None = None,
 ) -> AbstractContextManager[TSCodebaseType]: ...
 
 
@@ -69,13 +70,12 @@ def get_codebase_session(
     sync_graph: bool = True,
     verify_input: bool = True,
     verify_output: bool = True,
-    feature_flags: CodebaseFeatureFlags = TestFlags,
+    config: CodebaseConfig = TestFlags,
     session_options: SessionOptions = SessionOptions(),
-    secrets: Secrets = Secrets(),
+    secrets: SecretsConfig | None = None,
 ) -> Generator[Codebase, None, None]:
     """Gives you a Codebase operating on the files you provided as a dict"""
-    config = CodebaseConfig(feature_flags=feature_flags, secrets=secrets)
-    codebase = CodebaseFactory.get_codebase_from_files(repo_path=str(tmpdir), files=files, config=config, programming_language=programming_language)
+    codebase = CodebaseFactory.get_codebase_from_files(repo_path=str(tmpdir), files=files, config=config, secrets=secrets, programming_language=programming_language)
     with codebase.session(
         commit=commit,
         sync_graph=sync_graph,
@@ -83,9 +83,15 @@ def get_codebase_session(
     ):
         if verify_input:
             for file in codebase.files:
-                if os.path.exists(file.filepath):
-                    print_errors(file.filepath, file.content)
-                    assert not file.ts_node.has_error, "Invalid syntax in test case"
+                # NOTE: We only check SourceFiles for syntax errors
+                abs_filepath = os.path.join(tmpdir, file.filepath)
+                if os.path.exists(abs_filepath):
+                    if isinstance(file, SourceFile):
+                        # Check for syntax errors
+                        print_errors(abs_filepath, file.content)
+                        if file.ts_node.has_error:
+                            msg = "Invalid syntax in test case"
+                            raise SyntaxError(msg)
         yield codebase
 
     if verify_output:
@@ -106,10 +112,9 @@ def get_codebase_graph_session(
     session_options: SessionOptions = SessionOptions(),
 ) -> Generator[CodebaseContext, None, None]:
     """Gives you a Codebase2 operating on the files you provided as a dict"""
-    op = LocalRepoOperator.create_from_files(repo_path=tmpdir, files=files)
-    config = CodebaseConfig(feature_flags=TestFlags)
+    op = RepoOperator.create_from_files(repo_path=tmpdir, files=files)
     projects = [ProjectConfig(repo_operator=op, programming_language=programming_language)]
-    graph = CodebaseContext(projects=projects, config=config)
+    graph = CodebaseContext(projects=projects, config=TestFlags)
     with graph.session(sync_graph=sync_graph, session_options=session_options):
         try:
             yield graph
