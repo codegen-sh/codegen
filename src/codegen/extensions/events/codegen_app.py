@@ -16,6 +16,10 @@ logger = logging.getLogger(__name__)
 class CodegenApp:
     """A FastAPI-based application for handling various code-related events."""
 
+    github: GitHub
+    linear: Linear
+    slack: Slack
+
     def __init__(self, name: str, repos: Optional[list[str]] = None, modal_api_key: Optional[str] = None, tmp_dir: str = "/tmp/codegen"):
         self.name = name
         self._modal_api_key = modal_api_key

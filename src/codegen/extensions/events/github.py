@@ -1,7 +1,9 @@
 import logging
+import os
 from typing import Any, Callable, TypeVar
 
 from fastapi import Request
+from github import Github
 from pydantic import BaseModel
 
 from codegen.extensions.events.interface import EventHandlerManagerProtocol
@@ -20,12 +22,15 @@ class GitHub(EventHandlerManagerProtocol):
         self.app = app
         self.registered_handlers = {}
 
-    # TODO - add in client info
-    # @property
-    # def client(self) -> Github:
-    #     if not self._client:
-    #         self._client = Github(os.environ["GITHUB_TOKEN"])
-    #     return self._client
+    @property
+    def client(self) -> Github:
+        if not os.getenv("GITHUB_TOKEN"):
+            msg = "GITHUB_TOKEN is not set"
+            logger.exception(msg)
+            raise ValueError(msg)
+        if not self._client:
+            self._client = Github(os.getenv("GITHUB_TOKEN"))
+        return self._client
 
     def unsubscribe_all_handlers(self):
         logger.info("[HANDLERS] Clearing all handlers")
