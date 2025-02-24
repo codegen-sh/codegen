@@ -67,7 +67,7 @@ class Directory(
             return False
         return self.parent._is_a_subdirectory_of(target_directory=target_directory)
 
-    def __contains__(self, item: str | TFile | Self, recursive: bool = True) -> bool:
+    def __contains__(self, item: str | TFile | Self) -> bool:
         from codegen.sdk.core.file import File
 
         # Try to match all file and subdirectory names
@@ -84,10 +84,9 @@ class Directory(
                 return True
 
         # Attempt to match recursively
-        if recursive:
-            for directory in self.subdirectories(recursive=False):
-                if item in directory:
-                    return True
+        for directory in self.subdirectories(recursive=False):
+            if item in directory:
+                return True
 
         # If no match, return False
         return False
