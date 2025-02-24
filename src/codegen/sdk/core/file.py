@@ -34,6 +34,7 @@ from codegen.sdk.extensions.sort import sort_editables
 from codegen.sdk.topological_sort import pseudo_topological_sort
 from codegen.sdk.tree_sitter_parser import get_parser_by_filepath_or_extension, parse_file
 from codegen.sdk.typescript.function import TSFunction
+from codegen.sdk.utils import is_minified_js
 from codegen.shared.decorators.docs import apidoc, noapidoc
 from codegen.visualizations.enums import VizNode
 
@@ -44,8 +45,6 @@ if TYPE_CHECKING:
     from codegen.sdk.core.interface import Interface
 
 logger = logging.getLogger(__name__)
-
-MINIFIED_FILE_THRESHOLD = 5000
 
 
 @apidoc
@@ -581,8 +580,8 @@ class SourceFile(
         path = ctx.to_absolute(filepath)
 
         # Sanity check to ensure file is not a minified file
-        if any(len(line) >= MINIFIED_FILE_THRESHOLD for line in content.split("\n")):
-            logger.info(f"File {filepath} is a minified file (Line length < {MINIFIED_FILE_THRESHOLD}). Skipping...", extra={"filepath": filepath})
+        if is_minified_js(content):
+            logger.info(f"File {filepath} is a minified file. Skipping...", extra={"filepath": filepath})
             return None
 
         ts_node = parse_file(path, content)
