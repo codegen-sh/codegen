@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{  env.REPO_SCOPED_TOKEN || github.token }}
+          token: ${{ env.REPO_SCOPED_TOKEN || github.token }}
 
       - name: Setup environment
         uses: ./.github/actions/setup-environment
@@ -38,7 +38,7 @@ jobs:
         shell: bash
 
       - uses: stefanzweifel/git-auto-commit-action@v5
-        if: always() && ${{ env.REPO_SCOPED_TOKEN }} && github.event_name == 'pull_request'
+        if: ${{ always() && env.REPO_SCOPED_TOKEN && github.event_name == 'pull_request' }}
         with:
           commit_message: "Automated pre-commit update"
           push_options: "--no-verify"
