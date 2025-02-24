@@ -35,8 +35,9 @@ async def handle_mention(event: SlackEvent):
     logger.info("[CODE_AGENT] Running code agent")
     response = agent.run(event.text)
 
-    cg.slack.client.chat_postMessage(channel=event.channel, text=response, thread_ts=event.ts)
-    return {"message": "Mentioned", "received_text": event.text, "response": response}
+    slack_response = cg.slack.client.chat_postMessage(channel=event.channel, text=response, thread_ts=event.ts)
+
+    return {"message": "Mentioned", "received_text": event.text, "response": response, "slack_response": slack_response}
 
 
 @cg.github.event("pull_request:labeled")
@@ -97,4 +98,5 @@ app = modal.App("codegen-test")
 @app.function(image=base_image, secrets=[modal.Secret.from_dotenv()])
 @modal.asgi_app()
 def fastapi_app():
+    print("Starting codegen fastapi app")
     return cg.app
