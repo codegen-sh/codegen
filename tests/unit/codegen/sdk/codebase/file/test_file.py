@@ -215,7 +215,14 @@ def test_files_in_subdirectories_case_sensitivity(tmpdir) -> None:
 
 
 def test_minified_file(tmpdir) -> None:
-    with get_codebase_session(tmpdir=tmpdir, files={"file1.min.js": "console.log(123)", "file2.js": open(f"{os.path.dirname(__file__)}/example.min.js").read()}) as codebase:
+    with get_codebase_session(
+        tmpdir=tmpdir,
+        files={
+            "file1.min.js": "console.log(123)",
+            "file2.js": open(f"{os.path.dirname(__file__)}/example.min.js").read(),
+        },
+        programming_language=ProgrammingLanguage.TYPESCRIPT,
+    ) as codebase:
         # This should match the `*.min.js` pattern
         file1 = codebase.ctx.get_file("file1.min.js")
         assert file1 is None
