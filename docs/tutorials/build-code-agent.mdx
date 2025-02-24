@@ -22,11 +22,19 @@ agent.run("Tell me about this repo")
 
 The agent has access to powerful code viewing and manipulation tools powered by Codegen, including:
 - `ViewFileTool`: View contents and metadata of files
-- `SemanticSearchTool`: Search over code using natural language queries
 - `SemanticEditTool`: Make intelligent edits to files
 - `RevealSymbolTool`: Analyze symbol dependencies and usages
 - `MoveSymbolTool`: Move symbols between files with import handling
-- And many more...
+- `ReplacementEditTool`: Make regex-based replacement editing on files
+- `ListDirectoryTool`: List directory contents
+- `SearchTool`: Search for files and symbols
+- `CreateFileTool`: Create new files
+- `DeleteFileTool`: Delete files
+- `RenameFileTool`: Rename files
+- `EditFileTool`: Edit files 
+- `MoveSymbolTool`: Move symbols between files with import handling
+
+
 
 <Info>View the full code for the default tools and agent implementation in our [examples repository](https://github.com/codegen-sh/codegen-sdk/tree/develop/src/codegen/extensions/langchain/tools)</Info>
 
@@ -48,7 +56,7 @@ agent.run("Tell me about this repo")
 ```
 
 
-<Note>Your `ANTHROPIC_API_KEY` and/or `OPENAI_API_KEY` must be set in your env.</Note>
+<Note>Your `ANTHROPIC_API_KEY` must be set in your env.</Note>
 
 The default implementation uses `anthropic/claude-3-5-sonnet-latest` for the model but this can be changed through the `model_provider` and `model_name` arguments.
 
@@ -66,16 +74,17 @@ The agent comes with a comprehensive set of tools for code analysis and manipula
 
 ```python
 from codegen.extensions.langchain.tools import (
-    ViewFileTool,
-    SemanticSearchTool, 
-    SemanticEditTool,
-    RevealSymbolTool,
-    MoveSymbolTool,
-    EditFileTool,
     CreateFileTool,
     DeleteFileTool,
+    EditFileTool,
     ListDirectoryTool,
+    MoveSymbolTool,
+    RenameFileTool,
+    ReplacementEditTool,
+    RevealSymbolTool,
     SearchTool,
+    SemanticEditTool,
+    ViewFileTool,
 )
 ```
 
