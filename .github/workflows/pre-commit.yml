@@ -36,8 +36,6 @@ jobs:
 
       - run: uv run --frozen pre-commit run --show-diff-on-failure --color=always --all-files --source ${{ github.event.pull_request.base.sha || github.event.before }} --origin ${{ github.event.pull_request.head.sha || github.event.after }}
         shell: bash
-        env:
-          SKIP: circleci_validate
 
       - uses: stefanzweifel/git-auto-commit-action@v5
         # Always commit changes even if pre-commit failed
