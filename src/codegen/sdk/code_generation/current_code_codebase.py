@@ -4,8 +4,8 @@ import logging
 from pathlib import Path
 from typing import TypedDict
 
-from codegen.configs.models.codebase import CodebaseConfig, DefaultCodebaseConfig
-from codegen.configs.models.secrets import DefaultSecrets, SecretsConfig
+from codegen.configs.models.codebase import CodebaseConfig
+from codegen.configs.models.secrets import SecretsConfig
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.sdk.codebase.config import ProjectConfig
@@ -34,7 +34,7 @@ def get_codegen_codebase_base_path() -> str:
     return "src" if "src" in codegen_base_dir else ""
 
 
-def get_current_code_codebase(config: CodebaseConfig = DefaultCodebaseConfig, secrets: SecretsConfig = DefaultSecrets, subdirectories: list[str] | None = None) -> CodebaseType:
+def get_current_code_codebase(config: CodebaseConfig | None = None, secrets: SecretsConfig | None = None, subdirectories: list[str] | None = None) -> CodebaseType:
     """Returns a Codebase for the code that is *currently running* (i.e. the Codegen repo)"""
     codegen_repo_path = get_graphsitter_repo_path()
     base_dir = get_codegen_codebase_base_path()
@@ -44,7 +44,7 @@ def get_current_code_codebase(config: CodebaseConfig = DefaultCodebaseConfig, se
     repo_config.respect_gitignore = False
     op = RepoOperator(repo_config=repo_config, bot_commit=False)
 
-    config = config.model_copy(update={"base_path": base_dir})
+    config = (config or CodebaseConfig()).model_copy(update={"base_path": base_dir})
     projects = [ProjectConfig(repo_operator=op, programming_language=ProgrammingLanguage.PYTHON, subdirectories=subdirectories, base_path=base_dir)]
     codebase = Codebase(projects=projects, config=config, secrets=secrets)
     return codebase

@@ -8,7 +8,7 @@ from codegen.cli.auth.session import CodegenSession
 from codegen.cli.commands.init.render import get_success_message
 from codegen.cli.rich.codeblocks import format_command
 from codegen.cli.workspace.initialize_workspace import initialize_codegen
-from codegen.git.utils.path import get_git_root_path
+from codegen.shared.path import get_git_root_path
 
 
 @click.command(name="init")

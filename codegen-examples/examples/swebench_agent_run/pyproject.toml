@@ -4,4 +4,7 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12, <3.14"
-dependencies = []
+dependencies = ["swebench>=3.0.0", "modal>=0.73.25"]
+
+[tool.setuptools]
+py-modules = ["entry_point", "run_eval"]

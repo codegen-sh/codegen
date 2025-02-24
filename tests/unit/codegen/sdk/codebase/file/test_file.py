@@ -211,3 +211,14 @@ def test_files_in_subdirectories_case_sensitivity(tmpdir) -> None:
         assert codebase.has_file("SubDir3/File3.py", ignore_case=False)
         assert not codebase.has_file("SUBDIR3/FILE3.py", ignore_case=False)
         assert not codebase.has_file("subdir3/file3.py", ignore_case=False)
+
+
+def test_minified_file(tmpdir) -> None:
+    with get_codebase_session(tmpdir=tmpdir, files={"file1.min.js": "console.log(123)", "file2.js": f"console.log(1{'0' * 1000})"}) as codebase:
+        # This should match the `*.min.js` pattern
+        file1 = codebase.ctx.get_file("file1.min.js")
+        assert file1 is None
+
+        # This should match the maximum line length threshold
+        file2 = codebase.ctx.get_file("file2.js")
+        assert file2 is None

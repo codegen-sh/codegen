@@ -38,19 +38,23 @@ class GlobalEnv:
     def _load_dotenv(self) -> None:
         env_file = find_dotenv(filename=f".env.{self.ENV}")
         # if env specific .env file does not exist, try to load .env
-        load_dotenv(env_file or None)
+        load_dotenv(env_file or None, override=True)
 
     def _get_env_var(self, var_name, required: bool = False) -> str:
         if self.ENV == "local":
             return ""
 
-        value = os.environ.get(var_name)
-        if value:
+        if value := os.environ.get(var_name):
             return value
+
         if required:
             msg = f"Environment variable {var_name} is not set with ENV={self.ENV}!"
             raise ValueError(msg)
         return ""
+
+    def __repr__(self) -> str:
+        # Returns all env vars in a readable format
+        return "\n".join([f"{k}={v}" for k, v in self.__dict__.items()])
 
 
 # NOTE: load and store envvars once

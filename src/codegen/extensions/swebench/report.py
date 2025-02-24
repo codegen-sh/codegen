@@ -2,24 +2,21 @@
 
 import json
 import subprocess
-import uuid
 from collections import defaultdict
 from pathlib import Path
 
 from codegen.extensions.swebench.tests import remove_patches_to_tests
 from codegen.extensions.swebench.utils import SWEBenchDataset
 
-using_dataset = "lite"
-LOG_DIR = Path(__file__).parent / "logs"
 NUM_EVAL_PROCS = 5
 
 
-def run_evals(predictions_jsonl, logs_dir: Path, dataset: SWEBenchDataset):
+def run_evals(predictions_jsonl, logs_dir: Path, dataset: SWEBenchDataset, run_id: str):
     """Run the evaluations on the predictions on modal."""
     run_evals_cmd = f"""
 python -m swebench.harness.run_evaluation
     --predictions_path {predictions_jsonl}
-    --run_id {uuid.uuid4()!s}
+    --run_id {run_id}
     --dataset_name {dataset.value}
     --cache_level instance
     --report_dir {logs_dir}
@@ -31,7 +28,7 @@ python -m swebench.harness.run_evaluation
     subprocess.run(run_evals_cmd.split(), check=True)
 
 
-def get_report(predictions_jsonl):
+def get_report(predictions_jsonl, logs_dir: Path):
     # Load and parse the evaluation results directly from the predictions file
     results = defaultdict(list)
 
@@ -44,7 +41,7 @@ def get_report(predictions_jsonl):
             results["generated"].append(instance_id)
 
             # Check for evaluation logs
-            log_file = LOG_DIR / f"{instance_id}.eval.log"
+            log_file = logs_dir / f"{instance_id}.eval.log"
             if log_file.exists():
                 results["with_logs"].append(instance_id)
                 log_content = log_file.read_text()
@@ -80,7 +77,7 @@ def update_pred_json(predictions, report, predictions_dir: Path):
 
         # Construct json_fname if it doesn't exist
         if "json_fname" not in pred:
-            json_fname = predictions_dir / "results" / f"{instance_id}.json"
+            json_fname = predictions_dir / f"{instance_id}.json"
         else:
             json_fname = pred["json_fname"]
             del save["json_fname"]  # Remove from save data if it exists
@@ -91,7 +88,7 @@ def update_pred_json(predictions, report, predictions_dir: Path):
 
 
 def preds_to_jsonl(predictions, predictions_dir: Path):
-    dname = predictions_dir / "results"
+    dname = predictions_dir
 
     predictions_jsonl = str(dname / "all_preds.jsonl")
     print(f"Creating JSONL file: {predictions_jsonl}")
@@ -110,14 +107,13 @@ def preds_to_jsonl(predictions, predictions_dir: Path):
     return predictions_jsonl
 
 
-def generate_report(predictions_dir: Path, logs_dir: Path, dataset: SWEBenchDataset):
+def generate_report(predictions_dir: Path, logs_dir: Path, dataset: SWEBenchDataset, run_id: str):
     # Automatically find all JSON files in predictions/results
-    results_dir = predictions_dir / "results"
-    if not results_dir.exists():
-        print(f"Directory does not exist: {results_dir}")
+    if not predictions_dir.exists():
+        print(f"Directory does not exist: {predictions_dir}")
         return 1
 
-    prediction_files = list(results_dir.glob("*.json"))
+    prediction_files = list(predictions_dir.glob("*.json"))
     print(f"Found {len(prediction_files)} prediction files")
 
     predictions = {}
@@ -144,19 +140,10 @@ def generate_report(predictions_dir: Path, logs_dir: Path, dataset: SWEBenchData
         print(f"Using log directory: {log_dir}")
 
         # Run evaluations
-        run_evals(predictions_jsonl, logs_dir, dataset)
+        run_evals(predictions_jsonl, logs_dir, dataset, run_id)
 
         # Get and display report
-        model_name = "results"  # or whatever model name you want to use
-        report = get_report(predictions_jsonl)
-
-        print("\nEvaluation Results:")
-        print(f"Total predictions: {len(predictions)}")
-        print(f"Successfully applied: {len(report.get('applied', []))}")
-        print(f"Resolved: {len(report.get('resolved', []))}")
-        print(f"Failed to apply: {len(report.get('no_apply', []))}")
-        print(f"With logs: {len(report.get('with_logs', []))}")
-        print(f"No logs: {len(report.get('no_logs', []))}")
+        report = get_report(predictions_jsonl, logs_dir)
 
         # Update prediction JSONs with results
         predictions = update_pred_json(predictions, report, predictions_dir)

@@ -45,6 +45,8 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
+MINIFIED_FILE_THRESHOLD = 500
+
 
 @apidoc
 class File(Editable[None]):
@@ -577,6 +579,12 @@ class SourceFile(
     def from_content(cls, filepath: str | PathLike | Path, content: str, ctx: CodebaseContext, sync: bool = True, verify_syntax: bool = True) -> Self | None:
         """Creates a new file from content and adds it to the graph."""
         path = ctx.to_absolute(filepath)
+
+        # Sanity check to ensure file is not a minified file
+        if any(len(line) >= MINIFIED_FILE_THRESHOLD for line in content.split("\n")):
+            logger.info(f"File {filepath} is a minified file (Line length < {MINIFIED_FILE_THRESHOLD}). Skipping...", extra={"filepath": filepath})
+            return None
+
         ts_node = parse_file(path, content)
         if ts_node.has_error and verify_syntax:
             logger.info("Failed to parse file %s", filepath)

@@ -14,9 +14,10 @@ from git import Commit as GitCommit
 from git import Diff, GitCommandError, InvalidGitRepositoryError, Remote
 from git import Repo as GitCLI
 from git.remote import PushInfoList
+from github.IssueComment import IssueComment
 from github.PullRequest import PullRequest
 
-from codegen.configs.models.secrets import DefaultSecrets
+from codegen.configs.models.secrets import SecretsConfig
 from codegen.git.clients.git_repo_client import GitRepoClient
 from codegen.git.configs.constants import CODEGEN_BOT_EMAIL, CODEGEN_BOT_NAME
 from codegen.git.repo_operator.local_git_repo import LocalGitRepo
@@ -51,13 +52,13 @@ class RepoOperator:
         self,
         repo_config: RepoConfig,
         access_token: str | None = None,
-        bot_commit: bool = True,
+        bot_commit: bool = False,
         setup_option: SetupOption | None = None,
         shallow: bool | None = None,
     ) -> None:
         assert repo_config is not None
         self.repo_config = repo_config
-        self.access_token = access_token or DefaultSecrets.github_token
+        self.access_token = access_token or SecretsConfig().github_token
         self.base_dir = repo_config.base_dir
         self.bot_commit = bot_commit
 
@@ -717,7 +718,7 @@ class RepoOperator:
         """Returns the data associated with a PR"""
         return self.remote_git_repo.get_pr_data(pr_number)
 
-    def create_pr_comment(self, pr_number: int, body: str) -> None:
+    def create_pr_comment(self, pr_number: int, body: str) -> IssueComment:
         """Create a general comment on a pull request.
 
         Args:
@@ -726,7 +727,8 @@ class RepoOperator:
         """
         pr = self.remote_git_repo.get_pull_safe(pr_number)
         if pr:
-            self.remote_git_repo.create_issue_comment(pr, body)
+            comment = self.remote_git_repo.create_issue_comment(pr, body)
+            return comment
 
     def create_pr_review_comment(
         self,
@@ -837,7 +839,7 @@ class RepoOperator:
             url (str): Git URL of the repository
             access_token (str | None): Optional GitHub API key for operations that need GitHub access
         """
-        access_token = access_token or DefaultSecrets.github_token
+        access_token = access_token or SecretsConfig().github_token
         if access_token:
             url = add_access_token_to_url(url=url, token=access_token)
 

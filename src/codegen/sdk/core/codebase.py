@@ -22,8 +22,8 @@ from openai import OpenAI
 from rich.console import Console
 from typing_extensions import TypeVar, deprecated
 
-from codegen.configs.models.codebase import CodebaseConfig, DefaultCodebaseConfig
-from codegen.configs.models.secrets import DefaultSecrets, SecretsConfig
+from codegen.configs.models.codebase import CodebaseConfig
+from codegen.configs.models.secrets import SecretsConfig
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.enums import CheckoutResult
 from codegen.git.utils.pr_review import CodegenPR
@@ -130,8 +130,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         *,
         language: None = None,
         projects: list[ProjectConfig] | ProjectConfig,
-        config: CodebaseConfig = DefaultCodebaseConfig,
-        secrets: SecretsConfig = DefaultSecrets,
+        config: CodebaseConfig | None = None,
+        secrets: SecretsConfig | None = None,
         io: IO | None = None,
         progress: Progress | None = None,
     ) -> None: ...
@@ -143,8 +143,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         *,
         language: Literal["python", "typescript"] | ProgrammingLanguage | None = None,
         projects: None = None,
-        config: CodebaseConfig = DefaultCodebaseConfig,
-        secrets: SecretsConfig = DefaultSecrets,
+        config: CodebaseConfig | None = None,
+        secrets: SecretsConfig | None = None,
         io: IO | None = None,
         progress: Progress | None = None,
     ) -> None: ...
@@ -155,8 +155,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         *,
         language: Literal["python", "typescript"] | ProgrammingLanguage | None = None,
         projects: list[ProjectConfig] | ProjectConfig | None = None,
-        config: CodebaseConfig = DefaultCodebaseConfig,
-        secrets: SecretsConfig = DefaultSecrets,
+        config: CodebaseConfig | None = None,
+        secrets: SecretsConfig | None = None,
         io: IO | None = None,
         progress: Progress | None = None,
     ) -> None:
@@ -1257,8 +1257,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         tmp_dir: str | None = "/tmp/codegen",
         commit: str | None = None,
         language: Literal["python", "typescript"] | ProgrammingLanguage | None = None,
-        config: CodebaseConfig = DefaultCodebaseConfig,
-        secrets: SecretsConfig = DefaultSecrets,
+        config: CodebaseConfig | None = None,
+        secrets: SecretsConfig | None = None,
     ) -> "Codebase":
         """Fetches a codebase from GitHub and returns a Codebase instance.
 
@@ -1268,8 +1268,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             commit (Optional[str]): The specific commit hash to clone. Defaults to HEAD
             shallow (bool): Whether to do a shallow clone. Defaults to True
             language (Literal["python", "typescript"] | ProgrammingLanguage | None): The programming language of the repo. Defaults to None.
-            config (CodebaseConfig): Configuration for the codebase. Defaults to pre-defined defaults.
-            secrets (SecretsConfig): Configuration for the secrets. Defaults to empty values.
+            config (CodebaseConfig): Configuration for the codebase. Defaults to pre-defined defaults if None.
+            secrets (SecretsConfig): Configuration for the secrets. Defaults to empty values if None.
 
         Returns:
             Codebase: A Codebase instance initialized with the cloned repository
@@ -1295,10 +1295,10 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             # Use RepoOperator to fetch the repository
             logger.info("Cloning repository...")
             if commit is None:
-                repo_operator = RepoOperator.create_from_repo(repo_path=repo_path, url=repo_url, access_token=secrets.github_token)
+                repo_operator = RepoOperator.create_from_repo(repo_path=repo_path, url=repo_url)
             else:
                 # Ensure the operator can handle remote operations
-                repo_operator = RepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url, access_token=secrets.github_token)
+                repo_operator = RepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url)
             logger.info("Clone completed successfully")
 
             # Initialize and return codebase with proper context

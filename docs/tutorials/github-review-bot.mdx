@@ -1,0 +1,222 @@
+---
+title: "Building an AI-Powered GitHub PR Review Bot"
+sidebarTitle: "GitHub PR Review Bot"
+icon: "github"
+iconType: "solid"
+---
+
+This tutorial demonstrates how to build an intelligent GitHub PR review bot that automatically reviews pull requests when triggered by labels. The bot uses Codegen's GitHub integration and AI capabilities to provide comprehensive code reviews with actionable feedback.
+
+<Info>View the full code and setup instructions in our [examples repository](https://github.com/codegen-sh/codegen-sdk/tree/develop/codegen-examples/examples/pr_review_bot)</Info>
+
+<Tip>The bot is triggered by adding a "Codegen" label to PRs, making it easy to integrate into your existing workflow</Tip>
+
+## Overview
+
+The process involves three main components:
+
+1. Setting up a Modal web endpoint for GitHub webhooks
+2. Handling PR label events
+3. Running an AI-powered code review agent
+
+Let's walk through each component using Codegen.
+
+## Step 1: Setting Up the Modal App
+
+First, we set up a Modal application to handle GitHub webhooks:
+
+```python
+import modal
+from codegen.extensions.events.app import CodegenApp
+from fastapi import Request
+
+# Set up the base image with required dependencies
+base_image = (
+    modal.Image.debian_slim(python_version="3.12")
+    .apt_install("git")
+    .pip_install(
+        "codegen>=0.18",
+        "openai>=1.1.0",
+        "fastapi[standard]",
+        "slack_sdk",
+    )
+)
+
+# Initialize the Codegen app with GitHub integration
+app = CodegenApp(name="github", image=base_image)
+
+@app.function(secrets=[modal.Secret.from_dotenv()])
+@modal.web_endpoint(method="POST")
+def entrypoint(event: dict, request: Request):
+    return app.github.handle(event, request)
+```
+
+<Note>
+The Modal app provides a webhook endpoint that GitHub can call when PR events occur.
+Make sure to configure your GitHub repository's webhook settings to point to your Modal endpoint.
+</Note>
+
+## Step 2: Handling PR Events
+
+Next, we set up event handlers for PR label events:
+
+```python
+from codegen.extensions.github.types.events.pull_request import (
+    PullRequestLabeledEvent,
+    PullRequestUnlabeledEvent
+)
+
+@app.github.event("pull_request:labeled")
+def handle_labeled(event: PullRequestLabeledEvent):
+    """Handle PR labeled events."""
+    if event.label.name == "Codegen":
+        # Optional: Notify a Slack channel
+        app.slack.client.chat_postMessage(
+            channel="YOUR_CHANNEL_ID",
+            text=f"PR #{event.number} labeled with Codegen, starting review",
+        )
+        # Start the review process
+        pr_review_agent(event)
+
+@app.github.event("pull_request:unlabeled")
+def handle_unlabeled(event: PullRequestUnlabeledEvent):
+    """Handle PR unlabeled events."""
+    if event.label.name == "Codegen":
+        # Clean up bot comments when label is removed
+        remove_bot_comments(event)
+```
+
+<Tip>
+The bot only triggers on PRs labeled with "Codegen", giving you control over which PRs get reviewed.
+</Tip>
+
+## Step 3: Implementing the Review Agent
+
+Finally, we implement the AI-powered review agent:
+
+```python
+from codegen import Codebase, CodeAgent
+from codegen.extensions.langchain.tools import (
+    GithubViewPRTool,
+    GithubCreatePRCommentTool,
+    GithubCreatePRReviewCommentTool,
+)
+
+def pr_review_agent(event: PullRequestLabeledEvent) -> None:
+    """Run the PR review agent."""
+    # Initialize codebase for the repository
+    repo_str = f"{event.organization.login}/{event.repository.name}"
+    codebase = Codebase.from_repo(
+        repo_str,
+        language='python',
+        secrets=SecretsConfig(github_token=os.environ["GITHUB_TOKEN"])
+    )
+
+    # Create a temporary comment to show the bot is working
+    review_message = "CodegenBot is starting to review the PR please wait..."
+    comment = codebase._op.create_pr_comment(event.number, review_message)
+
+    # Set up PR review tools
+    pr_tools = [
+        GithubViewPRTool(codebase),
+        GithubCreatePRCommentTool(codebase),
+        GithubCreatePRReviewCommentTool(codebase),
+    ]
+
+    # Create and run the review agent
+    agent = CodeAgent(codebase=codebase, tools=pr_tools)
+    prompt = f"""
+Review this pull request like a senior engineer:
+{event.pull_request.url}
+
+Be explicit about the changes, produce a short summary, and point out possible improvements.
+Focus on facts and technical details, using code snippets where helpful.
+"""
+    result = agent.run(prompt)
+    
+    # Clean up the temporary comment
+    comment.delete()
+```
+
+## Setting Up the Environment
+
+Before running the bot, you'll need:
+
+1. Create a `.env` file with your credentials:
+
+```env
+GITHUB_TOKEN=your_github_token
+GITHUB_API_KEY=your_github_token
+ANTHROPIC_API_KEY=your_anthropic_key
+SLACK_BOT_TOKEN=your_slack_token  # Optional
+```
+
+2. Deploy the Modal app:
+```bash
+uv sync  # Install dependencies
+uv run modal deploy app.py
+```
+
+3. Configure GitHub webhook:
+   - Go to your repository settings
+   - Add webhook pointing to your Modal endpoint
+   - Select "Pull request" events
+   - Add a webhook secret (optional but recommended)
+
+## Example Usage
+
+1. Create or update a pull request in your repository
+2. Add the "Codegen" label to trigger a review
+3. The bot will:
+   - Post a temporary "starting review" comment
+   - Analyze the PR changes
+   - Post detailed review comments
+   - Remove the temporary comment when done
+
+To remove the bot's comments:
+1. Remove the "Codegen" label
+2. The bot will automatically clean up its comments
+
+## Extensions
+
+While this example demonstrates a basic PR review bot, you can extend it to:
+- Customize the review criteria
+- Add more sophisticated analysis tools
+- Integrate with other services
+- Add automatic fix suggestions
+- ... etc.
+
+<Tip>Check out our [Code Agent tutorial](/tutorials/build-code-agent) to learn more about building sophisticated AI agents with Codegen</Tip>
+
+## Learn More
+
+<CardGroup cols={2}>
+  <Card
+    title="Code Agent Guide"
+    icon="robot"
+    href="/building-with-codegen/code-agent"
+  >
+    Learn how to build intelligent code agents with Codegen.
+  </Card>
+  <Card
+    title="GitHub Integration"
+    icon="github"
+    href="/building-with-codegen/github-integration"
+  >
+    Explore Codegen's GitHub integration features.
+  </Card>
+  <Card
+    title="Modal Deployment"
+    icon="cloud"
+    href="https://modal.com/docs/guide"
+  >
+    Learn about deploying apps with Modal.
+  </Card>
+  <Card
+    title="Code Review Best Practices"
+    icon="code-pull-request"
+    href="https://google.github.io/eng-practices/review/"
+  >
+    Understand code review patterns and best practices.
+  </Card>
+</CardGroup> 
