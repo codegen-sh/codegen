@@ -593,7 +593,8 @@ class CodebaseContext:
         if node_id is not None:
             return self.get_node(node_id)
         if ignore_case:
-            parent = self.to_absolute(file_path).parent
+            # Using `get_directory` so that the case insensitive lookup works
+            parent = self.get_directory(self.to_absolute(file_path).parent, ignore_case=ignore_case).path
             for file in parent.iterdir():
                 if str(file_path).lower() == str(self.to_relative(file)).lower():
                     return self.get_file(file, ignore_case=False)
