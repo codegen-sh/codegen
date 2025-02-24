@@ -51,38 +51,38 @@ class HasSymbols(Generic[TFile, TSymbol, TImportStatement, TGlobalVar, TClass, T
     @property
     def symbols(self) -> list[TSymbol]:
         """Get a recursive list of all symbols in files container."""
-        return list(chain.from_iterable(f.symbols for f in self.files_generator(recursive=True)))
+        return list(chain.from_iterable(f.symbols for f in self.files_generator()))
 
     @property
     def import_statements(self) -> list[TImportStatement]:
         """Get a recursive list of all import statements in files container."""
-        return list(chain.from_iterable(f.import_statements for f in self.files_generator(recursive=True)))
+        return list(chain.from_iterable(f.import_statements for f in self.files_generator()))
 
     @property
     def global_vars(self) -> list[TGlobalVar]:
         """Get a recursive list of all global variables in files container."""
-        return list(chain.from_iterable(f.global_vars for f in self.files_generator(recursive=True)))
+        return list(chain.from_iterable(f.global_vars for f in self.files_generator()))
 
     @property
     def classes(self) -> list[TClass]:
         """Get a recursive list of all classes in files container."""
-        return list(chain.from_iterable(f.classes for f in self.files_generator(recursive=True)))
+        return list(chain.from_iterable(f.classes for f in self.files_generator()))
 
     @property
     def functions(self) -> list[TFunction]:
         """Get a recursive list of all functions in files container."""
-        return list(chain.from_iterable(f.functions for f in self.files_generator(recursive=True)))
+        return list(chain.from_iterable(f.functions for f in self.files_generator()))
 
     @property
     @py_noapidoc
     def exports(self) -> "list[TSExport]":
         """Get a recursive list of all exports in files container."""
-        return list(chain.from_iterable(f.exports for f in self.files_generator(recursive=True)))
+        return list(chain.from_iterable(f.exports for f in self.files_generator()))
 
     @property
     def imports(self) -> list[TImport]:
         """Get a recursive list of all imports in files container."""
-        return list(chain.from_iterable(f.imports for f in self.files_generator(recursive=True)))
+        return list(chain.from_iterable(f.imports for f in self.files_generator()))
 
     def get_symbol(self, name: str) -> TSymbol | None:
         """Get a symbol by name in files container."""

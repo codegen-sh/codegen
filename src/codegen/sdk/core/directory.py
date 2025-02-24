@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Generic, Literal, Self
 
 from codegen.sdk._proxy import proxy_property
 from codegen.sdk.core.interfaces.has_symbols import (
+    FilesParam,
     HasSymbols,
     TClass,
     TFile,
@@ -211,9 +212,9 @@ class Directory(
 
     @noapidoc
     @cached_generator()
-    def files_generator(self, *, extensions: list[str] | Literal["*"] | None = None, recursive: bool = False) -> Iterator[TFile]:
+    def files_generator(self, *args: FilesParam.args, **kwargs: FilesParam.kwargs) -> Iterator[TFile]:
         """Yield files recursively from the directory."""
-        yield from self.files(extensions=extensions, recursive=recursive)
+        yield from self.files(*args, extensions="*", **kwargs, recursive=True)
 
     def get_file(self, filename: str, ignore_case: bool = False) -> TFile | None:
         """Get a file by its name relative to the directory."""
