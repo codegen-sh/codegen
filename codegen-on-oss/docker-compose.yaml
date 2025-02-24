@@ -1,0 +1,9 @@
+services:
+  codegen-benchmark:
+    image: codegen-benchmark
+    build: .
+    env_file:
+      - .env
+    command: ["tail", "-f", "/dev/null"]
+    volumes:
+      - .:/app

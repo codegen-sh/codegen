@@ -66,8 +66,6 @@ def parse_repo_on_modal(
     env: dict[str, str],
     log_output_path: str = "output.logs",
     metrics_output_path: str = "metrics.csv",
-    repo_cache_volume: str = "codegen-oss-repo-volume",
-    input_volume: str = "codegen-oss-input-volume",
 ):
     """
     Parse repositories on Modal.
@@ -79,9 +77,6 @@ def parse_repo_on_modal(
         metrics_output_path: The path to the metrics file.
     """
     os.environ.update(env)
-    repo_cache_volume = modal.Volume.from_name(
-        repo_cache_volume, create_if_missing=True
-    )
 
     logger.add(
         log_output_path,
@@ -105,11 +100,12 @@ def parse_repo_on_modal(
             # Commit any cache changes to the repo volume
             codegen_repo_volume.commit()
 
-    BucketStore(bucket_name=os.getenv("BUCKET_NAME", "codegen-oss-parse")).upload_run(
-        repo_source,
-        log_output_path,
-        metrics_output_path,
-    )
+    store = BucketStore(bucket_name=os.getenv("BUCKET_NAME", "codegen-oss-parse"))
+    log_key = store.upload_file(log_output_path, "output.logs")
+    metrics_key = store.upload_file(metrics_output_path, "metrics.csv")
+
+    logger.info(f"Uploaded logs to {log_key} in bucket {store.bucket_name}")
+    logger.info(f"Uploaded metrics to {metrics_key} in bucket {store.bucket_name}")
 
 
 @parse_app.local_entrypoint()

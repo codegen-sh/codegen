@@ -42,6 +42,9 @@ dev = [
 [project.scripts]
 cgparse = "codegen_on_oss.cli:cli"
 
+[project.optional-dependencies]
+sql = ["alembic>=1.14.1", "psycopg2-binary>=2.9.10", "sqlalchemy>=2.0.38"]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

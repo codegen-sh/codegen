@@ -1,3 +1,4 @@
+from datetime import datetime
 from importlib.metadata import version
 from typing import TYPE_CHECKING
 
@@ -6,8 +7,6 @@ from boto3 import client
 if TYPE_CHECKING:
     from types_boto3_s3 import S3Client
 
-    from codegen_on_oss.sources import RepoSource
-
 
 class BucketStore:
     s3_client: "S3Client"
@@ -15,26 +14,13 @@ class BucketStore:
     def __init__(self, bucket_name: str):
         self.bucket_name = bucket_name
         self.s3_client = client("s3")
+        self.key_prefix: str = str(version("codegen"))
 
-    def upload_run(
-        self,
-        repo_source: "RepoSource",
-        log_output_path: str,
-        metrics_output_path: str,
-    ):
-        codegen_version = str(version("codegen"))
-        key_prefix: str = f"{codegen_version}/{repo_source.source_type}"
-        config_key = f"{key_prefix}/config.json"
-
-        self.s3_client.put_object(
-            Bucket=self.bucket_name,
-            Key=config_key,
-            Body=repo_source.settings.model_dump_json(indent=4).encode("utf-8"),
-            ContentType="application/json",
+    def upload_file(self, local_path: str, remote_path: str) -> str:
+        key = f"{self.key_prefix}/{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}/{remote_path}"
+        self.s3_client.upload_file(
+            local_path,
+            self.bucket_name,
+            key,
         )
-
-        log_key = f"{key_prefix}/output.logs"
-        self.s3_client.upload_file(log_output_path, self.bucket_name, log_key)
-
-        metrics_key = f"{key_prefix}/metrics.csv"
-        self.s3_client.upload_file(metrics_output_path, self.bucket_name, metrics_key)
+        return key

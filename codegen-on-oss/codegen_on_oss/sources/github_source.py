@@ -55,4 +55,5 @@ class GithubSource(RepoSource[GithubSettings]):
         for idx, repository in enumerate(repositories):
             if idx >= self.settings.num_repos:
                 break
-            yield repository.clone_url, None
+            commit = repository.get_commits()[0]
+            yield repository.clone_url, commit.sha

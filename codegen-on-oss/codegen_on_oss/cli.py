@@ -6,6 +6,7 @@ from loguru import logger
 
 from codegen_on_oss.cache import cachedir
 from codegen_on_oss.metrics import MetricsProfiler
+from codegen_on_oss.outputs.csv_output import CSVOutput
 from codegen_on_oss.parser import CodegenParser
 from codegen_on_oss.sources import RepoSource, all_sources
 
@@ -60,7 +61,8 @@ def run_one(
     """
     logger.add(error_output_path, level="ERROR")
     logger.add(sys.stdout, level="DEBUG" if debug else "INFO")
-    metrics_profiler = MetricsProfiler(output_path)
+    output = CSVOutput(MetricsProfiler.fields(), output_path)
+    metrics_profiler = MetricsProfiler(output)
 
     parser = CodegenParser(Path(cache_dir) / "repositories", metrics_profiler)
     parser.parse(url, commit_hash)
@@ -115,7 +117,8 @@ def run(
     )
 
     repo_source = RepoSource.from_source_type(source)
-    metrics_profiler = MetricsProfiler(output_path)
+    output = CSVOutput(MetricsProfiler.fields(), output_path)
+    metrics_profiler = MetricsProfiler(output)
     parser = CodegenParser(Path(cache_dir) / "repositories", metrics_profiler)
     for repo_url, commit_hash in repo_source:
         parser.parse(repo_url, commit_hash)

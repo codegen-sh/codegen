@@ -18,9 +18,14 @@ RUN apt-get update && apt-get install -y git \
 
 FROM python:3.12-slim
 
-ENV PATH="/venv/bin:$PATH"
+ENV PATH="/venv/bin:/app/scripts:$PATH"
 # Copy the project into the image
 COPY --from=installer /app/.venv/ /venv
+
+RUN apt-get update && apt-get install -y postgresql-client \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
 
 WORKDIR /app
 

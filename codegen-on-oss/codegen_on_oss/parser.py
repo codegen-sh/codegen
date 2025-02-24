@@ -30,7 +30,9 @@ class CodegenParser:
         self.metrics_profiler = metrics_profiler
         sys.setrecursionlimit(10000000)
 
-    def parse(self, url: str, commit_hash: str | None = None):
+    def parse(
+        self, url: str, language: str | None = None, commit_hash: str | None = None
+    ):
         """
         Parse the repository at the given URL. MetricsProfiler is used to profile the parse and
         post_init_validation.
@@ -48,7 +50,7 @@ class CodegenParser:
         self.gc()
 
         with self.metrics_profiler.start_profiler(
-            name=repo_name, revision=commit_hash, logger=repo_logger
+            name=repo_name, revision=commit_hash, language=language, logger=repo_logger
         ) as profile:
             # Awkward design here is due to adapting to using Codebase.from_repo() and parsing done in __init__.
             # May want to consider  __init__ with parsed state from a separate input handling / parser class.
@@ -63,8 +65,9 @@ class CodegenParser:
                     )
                     # from_repo would have performed any repo initialization necessary
                     # It could pull or use cached
-                    profile.measure("repo_init")
+                    profile.reset_checkpoint()
                     super().__init__(*args, projects=projects, **kwargs)
+                    profile.language = profile.language or str(self.language).lower()
                     profile.measure("codebase_parse")
                     validation_status = post_init_validation(self)
 
