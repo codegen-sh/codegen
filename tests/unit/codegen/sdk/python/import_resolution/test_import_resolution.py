@@ -1,3 +1,4 @@
+import sys
 from typing import TYPE_CHECKING
 
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
@@ -178,7 +179,7 @@ import a as A
         assert z[7].alias.source == "A"
 
 
-def test_import_resolution_file_import(tmpdir: str, monkeypatch) -> None:
+def test_import_resolution_file_import(tmpdir: str) -> None:
     """Tests function.usages returns usages from file imports"""
     # language=python
     with get_codebase_session(
@@ -190,14 +191,9 @@ def update():
 """,
             "consumer.py": """
 from a.b.c import src as operations
-from b.c import src as operations_pythonpath
-from b.c.src import funct_1
 
-def func_1():
+def func():
     operations.update()
-
-def func_2():
-    operations_pythonpath.update()
 """,
         },
     ) as codebase:
@@ -205,25 +201,12 @@ def func_2():
         consumer_file: SourceFile = codebase.get_file("consumer.py")
 
         # =====[ Imports & Resolution ]=====
-        assert len(consumer_file.imports) == 3
+        assert len(consumer_file.imports) == 1
         src_import: Import = consumer_file.imports[0]
         src_import_resolution: ImportResolution = src_import.resolve_import()
         assert src_import_resolution
         assert src_import_resolution.from_file is src_file
         assert src_import_resolution.imports_file is True
-
-        # =====[ Consider PYTHONPATH env variable ]=====
-        monkeypatch.setenv("PYTHONPATH", "a")
-        src_import = consumer_file.imports[1]
-        src_import_resolution = src_import.resolve_import()
-        assert src_import_resolution
-        assert src_import_resolution.from_file is src_file
-        assert src_import_resolution.imports_file is True
-        src_import = consumer_file.imports[2]
-        src_import_resolution = src_import.resolve_import()
-        assert src_import_resolution
-        assert src_import_resolution.from_file is src_file
-        assert src_import_resolution.imports_file is False
 
         # =====[ Look at call-sites ]=====
         update = src_file.get_function("update")
@@ -231,6 +214,180 @@ def func_2():
         assert len(call_sites) == 1
         call_site = call_sites[0]
         assert call_site.file == consumer_file
+
+
+def test_import_resolution_file_syspath_inactive(tmpdir: str, monkeypatch) -> None:
+    """Tests function.usages returns usages from file imports"""
+    # language=python
+    with get_codebase_session(
+        tmpdir,
+        files={
+            "a/b/c/src.py": """
+def update():
+    pass
+""",
+            "consumer.py": """
+from b.c import src as operations
+
+def func():
+    operations.update()
+""",
+        },
+    ) as codebase:
+        src_file: SourceFile = codebase.get_file("a/b/c/src.py")
+        consumer_file: SourceFile = codebase.get_file("consumer.py")
+
+        # Disable resolution via sys.path
+        codebase.ctx.config.py_resolve_syspath = False
+
+        # =====[ Imports cannot be found without sys.path being set and not active ]=====
+        assert len(consumer_file.imports) == 1
+        src_import: Import = consumer_file.imports[0]
+        src_import_resolution: ImportResolution = src_import.resolve_import()
+        assert src_import_resolution is None
+
+        # Modify sys.path for this test only
+        monkeypatch.syspath_prepend("a")
+
+        # =====[ Imports cannot be found with sys.path set but not active ]=====
+        src_import_resolution = src_import.resolve_import()
+        assert src_import_resolution is None
+
+
+def test_import_resolution_file_syspath_active(tmpdir: str, monkeypatch) -> None:
+    """Tests function.usages returns usages from file imports"""
+    # language=python
+    with get_codebase_session(
+        tmpdir,
+        files={
+            "a/b/c/src.py": """
+def update():
+    pass
+""",
+            "consumer.py": """
+from b.c import src as operations
+
+def func():
+    operations.update()
+""",
+        },
+    ) as codebase:
+        src_file: SourceFile = codebase.get_file("a/b/c/src.py")
+        consumer_file: SourceFile = codebase.get_file("consumer.py")
+
+        # Enable resolution via sys.path
+        codebase.ctx.config.py_resolve_syspath = True
+
+        # =====[ Imports cannot be found without sys.path being set ]=====
+        assert len(consumer_file.imports) == 1
+        src_import: Import = consumer_file.imports[0]
+        src_import_resolution: ImportResolution = src_import.resolve_import()
+        assert src_import_resolution is None
+
+        # Modify sys.path for this test only
+        monkeypatch.syspath_prepend("a")
+
+        # =====[ Imports can be found with sys.path set and active ]=====
+        codebase.ctx.config.py_resolve_syspath = True
+        src_import_resolution = src_import.resolve_import()
+        assert src_import_resolution 
+        assert src_import_resolution.from_file is src_file
+        assert src_import_resolution.imports_file is True
+
+
+def test_import_resolution_file_custom_resolve_path(tmpdir: str) -> None:
+    """Tests function.usages returns usages from file imports"""
+    # language=python
+    with get_codebase_session(
+        tmpdir,
+        files={
+            "a/b/c/src.py": """
+def update():
+    pass
+""",
+            "consumer.py": """
+from b.c import src as operations
+from c import src as operations2
+
+def func():
+    operations.update()
+""",
+        },
+    ) as codebase:
+        src_file: SourceFile = codebase.get_file("a/b/c/src.py")
+        consumer_file: SourceFile = codebase.get_file("consumer.py")
+
+        # =====[ Imports cannot be found without custom resolve path being set ]=====
+        assert len(consumer_file.imports) == 2
+        src_import: Import = consumer_file.imports[0]
+        src_import_resolution: ImportResolution = src_import.resolve_import()
+        assert src_import_resolution is None
+
+        # =====[ Imports cannot be found with custom resolve path set to invalid path ]=====
+        codebase.ctx.config.py_resolve_overrides = ["x"]
+        src_import_resolution = src_import.resolve_import()
+        assert src_import_resolution is None
+
+        # =====[ Imports can be found with custom resolve path set ]=====
+        codebase.ctx.config.py_resolve_overrides = ["a"]
+        src_import_resolution = src_import.resolve_import()
+        assert src_import_resolution 
+        assert src_import_resolution.from_file is src_file
+        assert src_import_resolution.imports_file is True
+
+        # =====[ Imports can be found with custom resolve multi-path set ]=====
+        src_import = consumer_file.imports[1]
+        codebase.ctx.config.py_resolve_overrides = ["a/b"]
+        src_import_resolution = src_import.resolve_import()
+        assert src_import_resolution 
+        assert src_import_resolution.from_file is src_file
+        assert src_import_resolution.imports_file is True
+
+
+def test_import_resolution_file_custom_resolve_and_syspath(tmpdir: str, monkeypatch) -> None:
+    """Tests function.usages returns usages from file imports"""
+    # language=python
+    with get_codebase_session(
+        tmpdir,
+        files={
+            "a/c/src.py": """
+def update1():
+    pass
+""",
+            "a/b/c/src.py": """
+def update2():
+    pass
+""",
+            "consumer.py": """
+from c import src as operations
+
+def func():
+    operations.update2()
+""",
+        },
+    ) as codebase:
+        src_file: SourceFile = codebase.get_file("a/b/c/src.py")
+        consumer_file: SourceFile = codebase.get_file("consumer.py")
+
+        # Ensure we don't have overrites and enable syspath resolution
+        codebase.ctx.config.py_resolve_overrides = []
+        codebase.ctx.config.py_resolve_syspath = True
+
+        # =====[ Import with sys.path set can be found ]=====
+        assert len(consumer_file.imports) == 1
+        # Modify sys.path for this test only
+        monkeypatch.syspath_prepend("a")
+        src_import: Import = consumer_file.imports[0]
+        src_import_resolution = src_import.resolve_import()
+        assert src_import_resolution 
+        assert src_import_resolution.from_file.file_path == "a/c/src.py"
+
+        # =====[ Imports can be found with custom resolve over sys.path ]=====
+        codebase.ctx.config.py_resolve_overrides = ["a/b"]
+        src_import_resolution = src_import.resolve_import()
+        assert src_import_resolution 
+        assert src_import_resolution.from_file is src_file
+        assert src_import_resolution.imports_file is True
 
 
 def test_import_resolution_circular(tmpdir: str) -> None:

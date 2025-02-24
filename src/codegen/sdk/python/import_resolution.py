@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from typing import TYPE_CHECKING
 
 from codegen.sdk.core.autocommit import reader
@@ -107,9 +108,12 @@ class PyImport(Import["PyFile"]):
         if file := self.ctx.get_file(filepath):
             return ImportResolution(from_file=file, symbol=None, imports_file=True)
 
-        # =====[ Check if we are importing an entire file with PYTHONPATH set ]=====
-        if file := self._file_by_pythonpath(filepath):
-            return ImportResolution(from_file=file, symbol=None, imports_file=True)
+        # =====[ Check if we are importing an entire file with custom resolve path or sys.path enabled ]=====
+        if len(self.ctx.config.py_resolve_overrides) > 0 or self.ctx.config.py_resolve_syspath:
+            # Handle resolve overrides first if both is set
+            resolve_paths: list[str] = self.ctx.config.py_resolve_overrides + (sys.path if self.ctx.config.py_resolve_syspath else [])
+            if file := self._file_by_custom_resolve_paths(resolve_paths, filepath):
+                return ImportResolution(from_file=file, symbol=None, imports_file=True)
 
         filepath = filepath.replace(".py", "/__init__.py")
         if file := self.ctx.get_file(filepath):
@@ -124,10 +128,13 @@ class PyImport(Import["PyFile"]):
             symbol = file.get_node_by_name(symbol_name)
             return ImportResolution(from_file=file, symbol=symbol)
 
-        # =====[ Check if `module.py` file exists in the graph with PYTHONPATH set ]=====
-        if file := self._file_by_pythonpath(filepath):
-            symbol = file.get_node_by_name(symbol_name)
-            return ImportResolution(from_file=file, symbol=symbol)
+        # =====[ Check if `module.py` file exists in the graph with custom resolve path or sys.path enabled  ]=====
+        if len(self.ctx.config.py_resolve_overrides) > 0 or self.ctx.config.py_resolve_syspath:
+            # Handle resolve overrides first if both is set
+            resolve_paths: list[str] = self.ctx.config.py_resolve_overrides + (sys.path if self.ctx.config.py_resolve_syspath else [])
+            if file := self._file_by_custom_resolve_paths(resolve_paths, filepath):
+                symbol = file.get_node_by_name(symbol_name)
+                return ImportResolution(from_file=file, symbol=symbol)
 
         # =====[ Check if `module/__init__.py` file exists in the graph ]=====
         filepath = filepath.replace(".py", "/__init__.py")
@@ -159,19 +166,13 @@ class PyImport(Import["PyFile"]):
 
     @noapidoc
     @reader
-    def _file_by_pythonpath(self, filepath: str) -> SourceFile | None:
-        """Helper to check if a certain import is in the list of files when a PYTHONPATH
-        is set. Returns either None or the SourceFile.
+    def _file_by_custom_resolve_paths(self, resolve_paths: list[str], filepath: str) -> SourceFile | None:
+        """Check if a certain file import can be found within a set sys.path
+        
+        Returns either None or the SourceFile.
         """
-        python_paths: str | None = os.environ.get("PYTHONPATH", None)
-        if python_paths is None:
-            return None
-
-        python_path_tokens: list[str] = python_paths.split(":")
-        for python_path in python_path_tokens:
-            if len(python_path) == 0:
-                continue
-            filepath_new: str = os.path.join(python_path, filepath)
+        for resolve_path in resolve_paths:
+            filepath_new: str = os.path.join(resolve_path, filepath)
             if file := self.ctx.get_file(filepath_new):
                 return file
 
