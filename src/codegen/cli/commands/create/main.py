@@ -68,17 +68,17 @@ def make_relative(path: Path) -> str:
 @click.command(name="create")
 @requires_init
 @click.argument("name", type=str)
-@click.argument("path", type=click.Path(path_type=Path), default=Path.cwd())
+@click.argument("path", type=click.Path(path_type=Path), default=None)
 @click.option("--description", "-d", default=None, help="Description of what this codemod does.")
 @click.option("--overwrite", is_flag=True, help="Overwrites function if it already exists.")
-def create_command(session: CodegenSession, name: str, path: Path, description: str | None = None, overwrite: bool = False):
+def create_command(session: CodegenSession, name: str, path: Path | None, description: str | None = None, overwrite: bool = False):
     """Create a new codegen function.
 
     NAME is the name/label for the function
     PATH is where to create the function (default: current directory)
     """
     # Get the target path for the function
-    codemod_path, prompt_path = get_target_paths(name, path)
+    codemod_path, prompt_path = get_target_paths(name, path or Path.cwd())
 
     # Check if file exists
     if codemod_path.exists() and not overwrite:

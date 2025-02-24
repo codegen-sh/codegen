@@ -31,6 +31,9 @@ dev-dependencies = [
   "deptry>=0.22.0",
 ]
 
+[tool.uv.workspace]
+members = ["examples/swebench_agent_run"]
+
 [tool.pre-commit-uv]
 requirements = ["strict-requirements"]
 

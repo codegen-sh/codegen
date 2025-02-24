@@ -79,7 +79,7 @@ def cli():
 @cli.command()
 @click.argument("repo_name", required=False)
 @click.option("--query", "-q", default=None, help="Initial research query to start with.")
-def research(repo_name: Optional[str] = None, query: Optional[str] = None):
+def research(repo_name: Optional[str] = None, query: Optional[str] = None, thread_id: Optional[int] = 100):
     """[bold green]Start a code research session[/bold green]
 
     [blue]Arguments:[/blue]
@@ -107,7 +107,7 @@ def research(repo_name: Optional[str] = None, query: Optional[str] = None):
 
     # Initialize agent with research tools
     with console.status("[bold blue]Initializing research agent...[/bold blue]") as status:
-        agent = create_agent_with_tools(codebase=codebase, tools=tools, chat_history=[SystemMessage(content=RESEARCH_AGENT_PROMPT)], verbose=True)
+        agent = create_agent_with_tools(codebase=codebase, tools=tools, system_message=SystemMessage(content=RESEARCH_AGENT_PROMPT))
         status.update("[bold green]✓ Research agent ready![/bold green]")
 
     # Get initial query if not provided
@@ -136,11 +136,11 @@ def research(repo_name: Optional[str] = None, query: Optional[str] = None):
             try:
                 result = agent.invoke(
                     {"input": query},
-                    config={"configurable": {"session_id": "research"}},
+                    config={"configurable": {"thread_id": thread_id}},
                 )
                 # Display the result
                 console.print("\n[bold blue]📊 Research Findings:[/bold blue]")
-                console.print(Markdown(result["output"]))
+                console.print(Markdown(result["messages"][-1].content))
             except Exception as e:
                 console.print(f"\n[bold red]Error during research:[/bold red] {e}")
 

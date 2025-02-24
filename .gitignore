@@ -65,3 +65,9 @@ graph-sitter-types/typings/**
 coverage.json
 tests/integration/verified_codemods/codemod_data/repo_commits.json
 .benchmarks/*
+
+# SWE Bench results
+results.*.json
+codegen-examples/examples/swebench_agent_run/results/*
+codegen-examples/examples/swebench_agent_run/predictions/*
+codegen-examples/examples/swebench_agent_run/logs/*

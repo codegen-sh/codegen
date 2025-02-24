@@ -1407,25 +1407,22 @@ You can customize the behavior of your Codebase instance by passing a `CodebaseC
 
 ```python
 from codegen import Codebase
-from codegen.sdk.codebase.config import CodebaseConfig, GSFeatureFlags, Secrets
+from codegen.configs.models.codebase import CodebaseConfig
+from codegen.configs.models.secrets import SecretsConfig
 
 codebase = Codebase(
     "path/to/repository",
     config=CodebaseConfig(
-        secrets=Secrets(
-            openai_key="your-openai-key"  # For AI-powered features
-        ),
-        feature_flags=GSFeatureFlags(
-            sync_enabled=True,  # Enable graph synchronization
-            ...  # Add other feature flags as needed
-        )
-    )
+        sync_enabled=True,   # Enable graph synchronization
+        ...  # Add other feature flags as needed
+    ),
+    secrets=SecretsConfig(openai_api_key="your-openai-key")     # For AI-powered features
 )
 ```
 
-The `CodebaseConfig` allows you to configure:
-- `secrets`: API keys and other sensitive information needed by the codebase
-- `feature_flags`: Toggle specific features like language engines, dependency management, and graph synchronization
+- `CodebaseConfig` and `SecretsConfig` allow you to configure
+  - `config`: Toggle specific features like language engines, dependency management, and graph synchronization
+  - `secrets`: API keys and other sensitive information needed by the codebase
 
 For a complete list of available feature flags and configuration options, see the [source code on GitHub](https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/codebase/config.py).
 
@@ -1641,12 +1638,12 @@ The environment is created during `codegen init` and used by commands like `code
 
 ### Configuration
 
-The `config.toml` file stores your project settings:
+The `.env` file stores your project settings:
 
-```toml
-organization_name = "your-org"
-repo_name = "your-repo"
-programming_language = "python"  # or other supported language
+```env
+REPOSITORY_OWNER = "your-org"
+REPOSITORY_PATH = "/root/git/your-repo"
+REPOSITORY_LANGUAGE = "python"  # or other supported language
 ```
 
 This configuration is used by Codegen to provide language-specific features and proper repository context.
@@ -6478,28 +6475,28 @@ Let's see some examples of how to interact with the agent:
 result = agent.invoke(
     {
         "input": "What are the dependencies of the FastAPI class?",
-        "config": {"configurable": {"session_id": "demo"}}
+        "config": {"configurable": {"thread_id": 1}}
     }
 )
-print(result["output"])
+print(result["messages"][-1].content)
 
 # Find usage patterns
 result = agent.invoke(
     {
         "input": "Show me examples of dependency injection in the codebase",
-        "config": {"configurable": {"session_id": "demo"}}
+        "config": {"configurable": {"thread_id": 1}}
     }
 )
-print(result["output"])
+print(result["messages"][-1].content)
 
 # Perform code analysis
 result = agent.invoke(
     {
         "input": "What's the most complex function in terms of dependencies?",
-        "config": {"configurable": {"session_id": "demo"}}
+        "config": {"configurable": {"thread_id": 1}}
     }
 )
-print(result["output"])
+print(result["messages"][-1].content)
 ```
 
 The agent maintains conversation history, so it can reference previous queries and build context over time.
@@ -6513,7 +6510,7 @@ The agent can also perform code changes:
 result = agent.invoke(
     {
         "input": "Move the validate_email function to validation_utils.py",
-        "config": {"configurable": {"session_id": "demo"}}
+        "config": {"configurable": {"thread_id": 1}}
     }
 )
 
@@ -6521,7 +6518,7 @@ result = agent.invoke(
 result = agent.invoke(
     {
         "input": "Rename the UserModel class to User and update all imports",
-        "config": {"configurable": {"session_id": "demo"}}
+        "config": {"configurable": {"thread_id": 1}}
     }
 )
 
@@ -6529,7 +6526,7 @@ result = agent.invoke(
 result = agent.invoke(
     {
         "input": "Add proper error handling to the process_data function",
-        "config": {"configurable": {"session_id": "demo"}}
+        "config": {"configurable": {"thread_id": 1}}
     }
 )
 ```

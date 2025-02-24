@@ -2,7 +2,7 @@ import uuid
 import warnings
 
 import rich_click as click
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_core.messages import SystemMessage
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.prompt import Prompt
@@ -73,13 +73,11 @@ def agent_command(query: str):
     ]
 
     # Initialize chat history with system message
-    chat_history = [
-        SystemMessage(
-            content="""You are a helpful AI assistant with access to the local codebase.
+    system_message = SystemMessage(
+        content="""You are a helpful AI assistant with access to the local codebase.
 You can help with code exploration, editing, and general programming tasks.
 Always explain what you're planning to do before taking actions."""
-        )
-    ]
+    )
 
     # Get initial query if not provided via command line
     if not query:
@@ -92,7 +90,7 @@ Always explain what you're planning to do before taking actions."""
         query = Prompt.ask("[bold]>[/bold]")  # Simple arrow prompt
 
     # Create the agent
-    agent = create_agent_with_tools(codebase, tools, chat_history=chat_history)
+    agent = create_agent_with_tools(codebase=codebase, tools=tools, system_message=system_message)
 
     # Main chat loop
     while True:
@@ -105,21 +103,19 @@ Always explain what you're planning to do before taking actions."""
         if user_input.lower() in ["exit", "quit"]:
             break
 
-        # Add user message to chat history
-        chat_history.append(HumanMessage(content=user_input))
-
         # Invoke the agent
         with console.status("[bold green]Agent is thinking...") as status:
             try:
-                session_id = str(uuid.uuid4())
+                thread_id = str(uuid.uuid4())
                 result = agent.invoke(
                     {"input": user_input},
-                    config={"configurable": {"session_id": session_id}},
+                    config={"configurable": {"thread_id": thread_id}},
                 )
+
+                result = result["messages"][-1].content
                 # Update chat history with AI's response
-                if result.get("output"):
-                    say(result["output"])
-                    chat_history.append(AIMessage(content=result["output"]))
+                if result:
+                    say(result)
             except Exception as e:
                 console.print(f"[bold red]Error during agent execution:[/bold red] {e}")
                 break

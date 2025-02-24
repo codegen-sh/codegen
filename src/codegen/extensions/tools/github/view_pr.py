@@ -18,6 +18,12 @@ class ViewPRObservation(Observation):
     patch: str = Field(
         description="The PR's patch/diff content",
     )
+    file_commit_sha: dict[str, str] = Field(
+        description="Commit SHAs for each file in the PR",
+    )
+    modified_symbols: list[str] = Field(
+        description="Names of modified symbols in the PR",
+    )
 
     str_template: ClassVar[str] = "PR #{pr_id}"
 
@@ -30,12 +36,14 @@ def view_pr(codebase: Codebase, pr_id: int) -> ViewPRObservation:
         pr_id: Number of the PR to get the contents for
     """
     try:
-        modified_symbols, patch = codebase.get_modified_symbols_in_pr(pr_id)
+        patch, file_commit_sha, moddified_symbols = codebase.get_modified_symbols_in_pr(pr_id)
 
         return ViewPRObservation(
             status="success",
             pr_id=pr_id,
             patch=patch,
+            file_commit_sha=file_commit_sha,
+            modified_symbols=moddified_symbols,
         )
 
     except Exception as e:
@@ -44,4 +52,6 @@ def view_pr(codebase: Codebase, pr_id: int) -> ViewPRObservation:
             error=f"Failed to view PR: {e!s}",
             pr_id=pr_id,
             patch="",
+            file_commit_sha={},
+            modified_symbols=[],
         )

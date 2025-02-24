@@ -262,9 +262,9 @@ class TSConfig:
             return import_path
 
         # Step 1: Try to resolve with import_resolution_overrides
-        if self.config_file.ctx.config.feature_flags.import_resolution_overrides:
-            if path_check := TSConfig._find_matching_path(frozenset(self.config_file.ctx.config.feature_flags.import_resolution_overrides.keys()), import_path):
-                to_base = self.config_file.ctx.config.feature_flags.import_resolution_overrides[path_check]
+        if self.config_file.ctx.config.import_resolution_overrides:
+            if path_check := TSConfig._find_matching_path(frozenset(self.config_file.ctx.config.import_resolution_overrides.keys()), import_path):
+                to_base = self.config_file.ctx.config.import_resolution_overrides[path_check]
 
                 # Get the remaining path after the matching prefix
                 remaining_path = import_path[len(path_check) :].lstrip("/")

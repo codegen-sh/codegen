@@ -141,7 +141,7 @@ class PyAssignment(Assignment["PyAssignmentStatement"], PySymbol):
         Returns:
             None
         """
-        if self.ctx.config.feature_flags.unpacking_assignment_partial_removal:
+        if self.ctx.config.unpacking_assignment_partial_removal:
             if isinstance(self.parent, AssignmentStatement) and len(self.parent.assignments) > 1:
                 # Unpacking assignments
                 name = self.get_name()

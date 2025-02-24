@@ -79,6 +79,7 @@ The response will indicate if there are more lines available to view."""
             end_line=end_line,
             max_lines=max_lines if max_lines is not None else 250,
         )
+
         return result.render()
 
 
@@ -246,7 +247,7 @@ class RevealSymbolTool(BaseTool):
         result = reveal_symbol(
             codebase=self.codebase,
             symbol_name=symbol_name,
-            degree=degree,
+            max_depth=degree,
             max_tokens=max_tokens,
             collect_dependencies=collect_dependencies,
             collect_usages=collect_usages,
@@ -254,6 +255,7 @@ class RevealSymbolTool(BaseTool):
         return result.render()
 
 
+# Note: a large file is over 300 lines. Please specify a range larger than the edit you want to make.
 _SEMANTIC_EDIT_BRIEF = """Tool for file editing via an LLM delegate. Describe the changes you want to make and an expert will apply them to the file.
 
 Specify the changes you want to make in the edit_content field, with helpful comments, like so:
@@ -493,8 +495,7 @@ class GithubCreatePRReviewCommentInput(BaseModel):
     body: str = Field(..., description="The comment text")
     commit_sha: str = Field(..., description="The commit SHA to attach the comment to")
     path: str = Field(..., description="The file path to comment on")
-    line: int | None = Field(None, description="The line number to comment on")
-    side: str | None = Field(None, description="Which version of the file to comment on ('LEFT' or 'RIGHT')")
+    line: int = Field(..., description="The line number to comment on use the indices from the diff")
     start_line: int | None = Field(None, description="For multi-line comments, the starting line")
 
 
@@ -515,8 +516,7 @@ class GithubCreatePRReviewCommentTool(BaseTool):
         body: str,
         commit_sha: str,
         path: str,
-        line: int | None = None,
-        side: str | None = None,
+        line: int,
         start_line: int | None = None,
     ) -> str:
         result = create_pr_review_comment(
@@ -526,8 +526,6 @@ class GithubCreatePRReviewCommentTool(BaseTool):
             commit_sha=commit_sha,
             path=path,
             line=line,
-            side=side,
-            start_line=start_line,
         )
         return result.render()
 

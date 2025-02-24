@@ -1,9 +1,8 @@
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel
 
 from .base import GitHubRepository, GitHubUser
-from .label import GitHubLabel
 
 
 class PullRequestRef(BaseModel):
@@ -23,6 +22,16 @@ class PullRequestLinks(BaseModel):
     review_comment: dict
     commits: dict
     statuses: dict
+
+
+class Label(BaseModel):
+    id: int
+    node_id: str
+    url: str
+    name: str
+    description: str | None = None
+    color: str
+    default: bool
 
 
 class PullRequest(BaseModel):
@@ -48,7 +57,7 @@ class PullRequest(BaseModel):
     assignees: list[GitHubUser]
     requested_reviewers: list[GitHubUser]
     requested_teams: list[dict]
-    labels: list[GitHubLabel]
+    labels: list[Label]
     milestone: Optional[dict]
     draft: bool
     head: PullRequestRef
@@ -69,3 +78,12 @@ class PullRequest(BaseModel):
     additions: int
     deletions: int
     changed_files: int
+
+
+class PullRequestLabeledEvent(BaseModel):
+    action: Literal["labeled"]
+    number: int
+    pull_request: PullRequest
+    label: Label
+    repository: dict  # Simplified for now
+    sender: dict  # Simplified for now

@@ -16,7 +16,7 @@ T = TypeVar("T")
 @pytest.mark.timeout(120, func_only=True)
 def test_codemods_cloned_repos(codemod: Codemod, codebase: Codebase, expected: Path, tmp_path: Path, diff_folder: Path, snapshot: Snapshot) -> None:
     codemod.execute(codebase)
-    codebase.commit(codebase.ctx.config.feature_flags.verify_graph)
+    codebase.commit(codebase.ctx.config.codebase.verify_graph)
     compare_codebase_diff(codebase=codebase, expected_dir=tmp_path, expected_diff=expected, diff_path=diff_folder, snapshot=snapshot)
-    if codebase.ctx.config.feature_flags.verify_graph:
+    if codebase.ctx.config.codebase.verify_graph:
         codebase.reset()

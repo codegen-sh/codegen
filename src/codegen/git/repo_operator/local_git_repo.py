@@ -27,6 +27,14 @@ class LocalGitRepo:
         return os.path.basename(self.repo_path)
 
     @cached_property
+    def owner(self) -> str | None:
+        if not self.origin_remote:
+            return None
+
+        parsed = giturlparse.parse(self.origin_remote.url)
+        return parsed.owner
+
+    @cached_property
     def full_name(self) -> str | None:
         if not self.origin_remote:
             return None
@@ -39,6 +47,7 @@ class LocalGitRepo:
         """Returns the url of the first remote found on the repo, or None if no remotes are set"""
         if self.has_remote():
             return self.git_cli.remote("origin")
+        return None
 
     @cached_property
     def base_url(self) -> str | None:

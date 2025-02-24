@@ -1,83 +1,84 @@
-import functools
 import logging
-import os
-from typing import Callable
+from typing import Any, Callable, TypeVar
 
-import modal  # deptry: ignore
 from pydantic import BaseModel
 
-from codegen.extensions.clients.linear import LinearClient
 from codegen.extensions.events.interface import EventHandlerManagerProtocol
+from codegen.extensions.linear.types import LinearEvent
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
-
-class RegisteredWebhookHandler(BaseModel):
-    webhook_id: str | None = None
-    handler_func: Callable
-    event_name: str
+# Type variable for event types
+T = TypeVar("T", bound=BaseModel)
 
 
 class Linear(EventHandlerManagerProtocol):
-    def __init__(self, app: modal.App):
+    def __init__(self, app):
         self.app = app
-        self.access_token = os.environ["LINEAR_ACCESS_TOKEN"]  # move to extensions config.
-        self.signing_secret = os.environ["LINEAR_SIGNING_SECRET"]
-        self.linear_team_id = os.environ["LINEAR_TEAM_ID"]
         self.registered_handlers = {}
-        self._webhook_url = None
-
-    def subscribe_handler_to_webhook(self, handler: RegisteredWebhookHandler):
-        client = LinearClient(access_token=self.access_token)
-        web_url = modal.Function.from_name(app_name=self.app.name, name=handler.handler_func.__qualname__).web_url
-        result = client.register_webhook(team_id=self.linear_team_id, webhook_url=web_url, enabled=True, resource_types=[handler.event_name], secret=self.signing_secret)
-        return result
-
-    def subscribe_all_handlers(self):
-        for handler_key in self.registered_handlers:
-            handler = self.registered_handlers[handler_key]
-            result = self.subscribe_handler_to_webhook(handler=self.registered_handlers[handler_key])
-            handler.webhook_id = result
-
-    def unsubscribe_handler_to_webhook(self, registered_handler: RegisteredWebhookHandler):
-        webhook_id = registered_handler.webhook_id
-
-        client = LinearClient(access_token=self.access_token)
-        if webhook_id:
-            print(f"Unsubscribing from webhook {webhook_id}")
-            result = client.unregister_webhook(webhook_id)
-            return result
-        else:
-            print("No webhook id found for handler")
-            return None
 
     def unsubscribe_all_handlers(self):
-        for handler in self.registered_handlers:
-            self.unsubscribe_handler_to_webhook(self.registered_handlers[handler])
+        logger.info("[HANDLERS] Clearing all handlers")
+        self.registered_handlers.clear()
 
-    def event(self, event_name, should_handle: Callable[[dict], bool] | None = None):
-        """Decorator for registering an event handler.
+    def event(self, event_name: str):
+        """Decorator for registering a Linear event handler.
 
-        :param event_name: The name of the event to handle.
-        :param register_hook: An optional function to call during registration,
-                              e.g., to make an API call to register the webhook.
+        Args:
+            event_name: The type of event to handle (e.g. 'Issue', 'Comment')
         """
+        logger.info(f"[EVENT] Registering handler for {event_name}")
 
-        def decorator(func):
-            # Register the handler with the app's registry.
-            modal_ready_func = func
+        def register_handler(func: Callable[[LinearEvent], Any]):
             func_name = func.__qualname__
-            self.registered_handlers[func_name] = RegisteredWebhookHandler(handler_func=modal_ready_func, event_name=event_name)
+            logger.info(f"[EVENT] Registering function {func_name} for {event_name}")
 
-            @functools.wraps(func)
-            def wrapper(*args, **kwargs):
-                should_handle_result = should_handle(*args, **kwargs) if should_handle else True
-                if should_handle is None or should_handle_result:
-                    return func(*args, **kwargs)
-                else:
-                    logger.info(f"Skipping event {event_name} for {func_name}")
+            def new_func(raw_event: dict):
+                # Get event type from payload
+                event_type = raw_event.get("type")
+                if event_type != event_name:
+                    logger.info(f"[HANDLER] Event type mismatch: expected {event_name}, got {event_type}")
                     return None
 
-            return wrapper
+                # Parse event into LinearEvent type
+                event = LinearEvent.model_validate(raw_event)
+                return func(event)
 
-        return decorator
+            self.registered_handlers[event_name] = new_func
+            return func
+
+        return register_handler
+
+    async def handle(self, event: dict) -> dict:
+        """Handle incoming Linear events.
+
+        Args:
+            event: The event payload from Linear
+
+        Returns:
+            Response dictionary
+        """
+        logger.info("[HANDLER] Handling Linear event")
+
+        try:
+            # Extract event type
+            event_type = event.get("type")
+            if not event_type:
+                logger.info("[HANDLER] No event type found in payload")
+                return {"message": "Event type not found"}
+
+            if event_type not in self.registered_handlers:
+                logger.info(f"[HANDLER] No handler found for event type: {event_type}")
+                return {"message": "Event handled successfully"}
+            else:
+                logger.info(f"[HANDLER] Handling event: {event_type}")
+                handler = self.registered_handlers[event_type]
+                result = handler(event)
+                if hasattr(result, "__await__"):
+                    result = await result
+                return result
+
+        except Exception as e:
+            logger.exception(f"Error handling Linear event: {e}")
+            return {"error": f"Failed to handle event: {e!s}"}

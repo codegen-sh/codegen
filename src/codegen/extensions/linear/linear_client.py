@@ -4,37 +4,10 @@ import os
 from typing import Optional
 
 import requests
-from pydantic import BaseModel
+
+from codegen.extensions.linear.types import LinearComment, LinearIssue, LinearTeam, LinearUser
 
 logger = logging.getLogger(__name__)
-
-
-# --- TYPES
-
-
-class LinearUser(BaseModel):
-    id: str
-    name: str
-
-
-class LinearTeam(BaseModel):
-    """Represents a Linear team."""
-
-    id: str
-    name: str
-    key: str
-
-
-class LinearComment(BaseModel):
-    id: str
-    body: str
-    user: LinearUser | None = None
-
-
-class LinearIssue(BaseModel):
-    id: str
-    title: str
-    description: str | None = None
 
 
 class LinearClient:

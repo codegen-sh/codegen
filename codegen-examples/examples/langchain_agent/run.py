@@ -14,37 +14,45 @@ from codegen.extensions.langchain.tools import (
     SemanticEditTool,
     ViewFileTool,
 )
-from langchain import hub
-from langchain.agents import AgentExecutor
-from langchain.agents.openai_functions_agent.base import OpenAIFunctionsAgent
-from langchain_core.chat_history import ChatMessageHistory
-from langchain_core.runnables.history import RunnableWithMessageHistory
-from langchain_openai import ChatOpenAI
+
+from codegen.extensions.langchain.llm import LLM
+from codegen.extensions.langchain.prompts import REASONER_SYSTEM_MESSAGE
+
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph.graph import CompiledGraph
+from langgraph.prebuilt import create_react_agent
+from langchain_core.messages import SystemMessage
 
 
 def create_codebase_agent(
-    codebase: Codebase,
-    model_name: str = "gpt-4o",
-    temperature: float = 0,
-    verbose: bool = True,
-) -> RunnableWithMessageHistory:
+    codebase: "Codebase",
+    model_provider: str = "anthropic",
+    model_name: str = "claude-3-5-sonnet-latest",
+    system_message: SystemMessage = SystemMessage(REASONER_SYSTEM_MESSAGE),
+    memory: bool = True,
+    debug: bool = True,
+    **kwargs,
+) -> CompiledGraph:
     """Create an agent with all codebase tools.
 
     Args:
         codebase: The codebase to operate on
-        model_name: Name of the model to use (default: gpt-4)
-        temperature: Model temperature (default: 0)
+        model_provider: The model provider to use ("anthropic" or "openai")
+        model_name: Name of the model to use
         verbose: Whether to print agent's thought process (default: True)
+        chat_history: Optional list of messages to initialize chat history with
+        **kwargs: Additional LLM configuration options. Supported options:
+            - temperature: Temperature parameter (0-1)
+            - top_p: Top-p sampling parameter (0-1)
+            - top_k: Top-k sampling parameter (>= 1)
+            - max_tokens: Maximum number of tokens to generate
 
     Returns:
         Initialized agent with message history
     """
-    # Initialize language model
-    llm = ChatOpenAI(
-        model_name=model_name,
-        temperature=temperature,
-    )
+    llm = LLM(model_provider=model_provider, model_name=model_name, **kwargs)
 
+    # Get all codebase tools
     # Get all codebase tools
     tools = [
         ViewFileTool(codebase),
@@ -60,33 +68,9 @@ def create_codebase_agent(
         CommitTool(codebase),
     ]
 
-    # Get the prompt to use
-    prompt = hub.pull("hwchase17/openai-functions-agent")
+    memory = MemorySaver() if memory else None
 
-    # Create the agent
-    agent = OpenAIFunctionsAgent(
-        llm=llm,
-        tools=tools,
-        prompt=prompt,
-    )
-
-    # Create the agent executor
-    agent_executor = AgentExecutor(
-        agent=agent,
-        tools=tools,
-        verbose=verbose,
-    )
-
-    # Create message history handler
-    message_history = ChatMessageHistory()
-
-    # Wrap with message history
-    return RunnableWithMessageHistory(
-        agent_executor,
-        lambda session_id: message_history,
-        input_messages_key="input",
-        history_messages_key="chat_history",
-    )
+    return create_react_agent(model=llm, tools=tools, prompt=system_message, checkpointer=memory, debug=debug)
 
 
 if __name__ == "__main__":
@@ -101,6 +85,6 @@ if __name__ == "__main__":
     print("\nAsking agent to analyze symbol relationships...")
     result = agent.invoke(
         {"input": "What are the dependencies of the reveal_symbol function?"},
-        config={"configurable": {"session_id": "demo"}},
+        config={"configurable": {"thread_id": 1}},
     )
     print("Messages:", result["messages"])
