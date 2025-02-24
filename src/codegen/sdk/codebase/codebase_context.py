@@ -46,7 +46,7 @@ if TYPE_CHECKING:
     from codegen.sdk.core.dataclasses.usage import Usage
     from codegen.sdk.core.expressions import Expression
     from codegen.sdk.core.external_module import ExternalModule
-    from codegen.sdk.core.file import SourceFile
+    from codegen.sdk.core.file import File, SourceFile
     from codegen.sdk.core.interfaces.importable import Importable
     from codegen.sdk.core.node_id_factory import NodeId
     from codegen.sdk.core.parser import Parser
@@ -598,6 +598,15 @@ class CodebaseContext:
             for file in parent.iterdir():
                 if str(file_path).lower() == str(self.to_relative(file)).lower():
                     return self.get_file(file, ignore_case=False)
+
+    def _get_raw_file_from_path(self, path: Path) -> File | None:
+        from codegen.sdk.core.file import File
+
+        try:
+            return File.from_content(path, self.io.read_text(path), self, sync=False)
+        except UnicodeDecodeError:
+            # Handle when file is a binary file
+            return File.from_content(path, self.io.read_bytes(path), self, sync=False, binary=True)
 
     def get_external_module(self, module: str, import_name: str) -> ExternalModule | None:
         node_id = self._ext_module_idx.get(module + "::" + import_name, None)

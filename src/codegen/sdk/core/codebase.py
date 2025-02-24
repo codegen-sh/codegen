@@ -522,14 +522,6 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         Raises:
             ValueError: If file not found and optional=False.
         """
-
-        def get_file_from_path(path: Path) -> File | None:
-            try:
-                return File.from_content(path, self.ctx.io.read_text(path), self.ctx, sync=False)
-            except UnicodeDecodeError:
-                # Handle when file is a binary file
-                return File.from_content(path, self.ctx.io.read_bytes(path), self.ctx, sync=False, binary=True)
-
         # Try to get the file from the graph first
         file = self.ctx.get_file(filepath, ignore_case=ignore_case)
         if file is not None:
@@ -537,14 +529,14 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         # If the file is not in the graph, check the filesystem
         absolute_path = self.ctx.to_absolute(filepath)
         if self.ctx.io.file_exists(absolute_path):
-            return get_file_from_path(absolute_path)
+            return self.ctx._get_raw_file_from_path(absolute_path)
         # If the file is not in the graph, check the filesystem
         if absolute_path.parent.exists():
             for file in absolute_path.parent.iterdir():
                 if ignore_case and str(absolute_path).lower() == str(file).lower():
-                    return get_file_from_path(file)
+                    return self.ctx._get_raw_file_from_path(file)
                 elif not ignore_case and str(absolute_path) == str(file):
-                    return get_file_from_path(file)
+                    return self.ctx._get_raw_file_from_path(file)
 
         # If we get here, the file is not found
         if not optional:

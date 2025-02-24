@@ -217,15 +217,6 @@ class Directory(
 
     def get_file(self, filename: str, ignore_case: bool = False) -> TFile | None:
         """Get a file by its name relative to the directory."""
-        from codegen.sdk.core.file import File
-
-        def get_file_from_path(path: Path) -> File | None:
-            try:
-                return File.from_content(path, self.ctx.io.read_text(path), self.ctx, sync=False)
-            except UnicodeDecodeError:
-                # Handle when file is a binary file
-                return File.from_content(path, self.ctx.io.read_bytes(path), self.ctx, sync=False, binary=True)
-
         file_path = os.path.join(self.dirpath, filename)
         absolute_path = self.ctx.to_absolute(file_path)
         # Try to get the file from the graph first
@@ -235,9 +226,9 @@ class Directory(
         # If the file is not in the graph, check the filesystem
         for file in absolute_path.parent.iterdir():
             if ignore_case and str(absolute_path).lower() == str(file).lower():
-                return get_file_from_path(file)
+                return self.ctx._get_raw_file_from_path(file)
             elif not ignore_case and str(absolute_path) == str(file):
-                return get_file_from_path(file)
+                return self.ctx._get_raw_file_from_path(file)
         return None
 
     def get_subdirectory(self, subdirectory_name: str) -> Self | None:
