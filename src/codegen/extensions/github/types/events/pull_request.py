@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from ..base import GitHubRepository, GitHubUser
 from ..enterprise import GitHubEnterprise
 from ..installation import GitHubInstallation
+from ..label import GitHubLabel
 from ..organization import GitHubOrganization
 from ..pull_request import PullRequest
 
