@@ -94,7 +94,7 @@ base_image = (
 app = modal.App("codegen-test")
 
 
-@app.function(image=base_image)
+@app.function(image=base_image, secrets=[modal.Secret.from_dotenv()])
 @modal.asgi_app()
 def fastapi_app():
     return cg.app
