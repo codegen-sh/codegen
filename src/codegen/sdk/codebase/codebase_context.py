@@ -594,10 +594,9 @@ class CodebaseContext:
             return self.get_node(node_id)
         if ignore_case:
             parent = self.to_absolute(file_path).parent
-            if parent == Path(self.repo_path):
-                for file in self.to_absolute(self.repo_path).iterdir():
-                    if str(file_path).lower() == str(self.to_absolute(file)).lower():
-                        return self.get_file(file, ignore_case=False)
+            for file in parent.iterdir():
+                if str(file_path).lower() == str(self.to_relative(file)).lower():
+                    return self.get_file(file, ignore_case=False)
 
     def get_external_module(self, module: str, import_name: str) -> ExternalModule | None:
         node_id = self._ext_module_idx.get(module + "::" + import_name, None)

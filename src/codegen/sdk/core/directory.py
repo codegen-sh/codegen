@@ -67,23 +67,24 @@ class Directory(
             return False
         return self.parent._is_a_subdirectory_of(target_directory=target_directory)
 
-    def __contains__(self, item: str | TFile | Self, recursive: bool = False) -> bool:
+    def __contains__(self, item: str | TFile | Self, recursive: bool = True) -> bool:
+        from codegen.sdk.core.file import File
         # Try to match all file and subdirectory names
         if isinstance(item, str):
-            if item in [item.name for item in self.items]:
+            if item in self.item_names:
                 return True
         # Try to match all subdirectories
         elif isinstance(item, Directory):
             if item.name in [directory.name for directory in self.subdirectories]:
                 return True
         # Try to match all files
-        elif isinstance(item, TFile):
-            if item.name in [file.name for file in self.files]:
+        elif isinstance(item, File):
+            if item.name in [file.name for file in self.files(extensions="*")]:
                 return True
 
         # Attempt to match recursively
         if recursive:
-            for directory in self.subdirectories:
+            for directory in self.subdirectories(recursive=False):
                 if item in directory:
                     return True
 
