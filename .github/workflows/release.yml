@@ -52,6 +52,7 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ inputs.release-tag || github.event.pull_request.head.ref || github.ref }}
+          repository: ${{ github.event.repository.full_name }}
 
       - name: Install UV
         uses: astral-sh/setup-uv@v5.3
