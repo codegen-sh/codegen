@@ -10,6 +10,7 @@ ENV NVM_DIR=/root/.nvm \
     PYTHONPATH="/usr/local/lib/python3.13/site-packages" \
     IS_SANDBOX=True \
     HATCH_BUILD_HOOKS_ENABLE=1
+
 # Update packages lists and install git and curl
 RUN apt-get update && apt-get install -y \
     git \
@@ -41,17 +42,14 @@ RUN node --version \
     && pnpm --version \
     && python --version
 
-# Install codegen from source instead of PyPI
+# Build codegen
 WORKDIR /codegen-sdk
 COPY . .
-
-# Install dependencies and build codegen with entry points
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv venv && source .venv/bin/activate \
     && uv sync --frozen --no-dev --all-extras \
     && uv pip install --system -e . --no-deps \
     && uv pip install --system .
-
 RUN codegen --version
 
 # Create a non-root user for local development + debugging

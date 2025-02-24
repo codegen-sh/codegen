@@ -9,23 +9,26 @@ from rich.panel import Panel
 
 from codegen.configs.models.secrets import SecretsConfig
 from codegen.git.schemas.repo_config import RepoConfig
+from codegen.shared.network.port import get_free_port
 
 
 @click.command(name="start")
 @click.option("--platform", "-t", type=click.Choice(["linux/amd64", "linux/arm64", "linux/amd64,linux/arm64"]), default="linux/amd64,linux/arm64", help="Target platform(s) for the Docker image")
-@click.option("--port", "-p", type=int, default=8000)
+@click.option("--port", "-p", type=int, default=None, help="Port to run the server on")
 @click.option("--detached", "-d", is_flag=True, default=False, help="Starts up the server as detached background process")
-def start_command(port: int, platform: str, detached: bool):
+def start_command(port: int | None, platform: str, detached: bool):
     """Starts a local codegen server"""
     codegen_version = version("codegen")
     rich.print(f"[bold green]Codegen version:[/bold green] {codegen_version}")
     codegen_root = Path(__file__).parent.parent.parent.parent.parent.parent
+    if port is None:
+        port = get_free_port()
 
     try:
         rich.print("[bold blue]Building Docker image...[/bold blue]")
         _build_docker_image(codegen_root, platform)
         rich.print("[bold blue]Starting Docker container...[/bold blue]")
-        _run_docker_container(port, platform, detached)
+        _run_docker_container(port, detached)
         rich.print(Panel(f"[green]Server started successfully![/green]\nAccess the server at: [bold]http://0.0.0.0:{port}[/bold]", box=ROUNDED, title="Codegen Server"))
     except subprocess.CalledProcessError as e:
         rich.print(f"[bold red]Error:[/bold red] Failed to {e.cmd[0]} Docker container")
@@ -64,7 +67,6 @@ def _run_docker_container(port: int, detached: bool):
         "GITHUB_TOKEN": SecretsConfig().github_token,
     }
     envvars_args = [arg for k, v in envvars.items() for arg in ("--env", f"{k}={v}")]
-
     mount_args = ["-v", f"{repo_path}:{container_repo_path}"]
     run_mode = "-d" if detached else "-it"
     entry_point = f"uv run --frozen uvicorn codegen.runner.sandbox.server:app --host 0.0.0.0 --port {port}"
