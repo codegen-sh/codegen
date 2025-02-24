@@ -1311,6 +1311,119 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             logger.exception(f"Failed to initialize codebase: {e}")
             raise
 
+    @classmethod
+    def from_string(
+        cls,
+        code: str,
+        *,
+        language: Literal["python", "typescript"] | ProgrammingLanguage,
+    ) -> "Codebase":
+        """Creates a Codebase instance from a string of code.
+
+        Args:
+            code (str): The source code string
+            language (Literal["python", "typescript"] | ProgrammingLanguage): The programming language of the code.
+
+        Returns:
+            Codebase: A Codebase instance initialized with the provided code
+        """
+        logger.info("Creating codebase from string")
+
+        # Determine language and filename
+        prog_lang = ProgrammingLanguage(language.upper()) if isinstance(language, str) else language
+        filename = "test.ts" if prog_lang == ProgrammingLanguage.TYPESCRIPT else "test.py"
+
+        # Create temporary directory
+        import tempfile
+
+        tmp_dir = tempfile.mkdtemp(prefix="codegen_")
+        logger.info(f"Using directory: {tmp_dir}")
+
+        # Create codebase using factory
+        from codegen.sdk.codebase.factory.codebase_factory import CodebaseFactory
+
+        files = {filename: code}
+        codebase = CodebaseFactory.get_codebase_from_files(repo_path=tmp_dir, files=files, programming_language=prog_lang)
+        logger.info("Codebase initialization complete")
+        return codebase
+
+    @classmethod
+    def from_files(
+        cls,
+        files: dict[str, str],
+        *,
+        language: Literal["python", "typescript"] | ProgrammingLanguage | None = None,
+    ) -> "Codebase":
+        """Creates a Codebase instance from multiple files.
+
+        Args:
+            files: Dictionary mapping filenames to their content, e.g. {"main.py": "print('hello')"}
+            language: Optional language override. If not provided, will be inferred from file extensions.
+                     All files must have extensions matching the same language.
+
+        Returns:
+            Codebase: A Codebase instance initialized with the provided files
+
+        Raises:
+            ValueError: If file extensions don't match a single language or if explicitly provided
+                       language doesn't match the extensions
+
+        Example:
+            >>> # Language inferred as Python
+            >>> files = {"main.py": "print('hello')", "utils.py": "def add(a, b): return a + b"}
+            >>> codebase = Codebase.from_files(files)
+
+            >>> # Language inferred as TypeScript
+            >>> files = {"index.ts": "console.log('hello')", "utils.tsx": "export const App = () => <div>Hello</div>"}
+            >>> codebase = Codebase.from_files(files)
+        """
+        logger.info("Creating codebase from files")
+
+        if not files:
+            # Default to Python if no files provided
+            prog_lang = ProgrammingLanguage.PYTHON if language is None else (ProgrammingLanguage(language.upper()) if isinstance(language, str) else language)
+            logger.info(f"No files provided, using {prog_lang}")
+        else:
+            # Map extensions to languages
+            py_extensions = {".py"}
+            ts_extensions = {".ts", ".tsx", ".js", ".jsx"}
+
+            # Get unique extensions from files
+            extensions = {os.path.splitext(f)[1].lower() for f in files}
+
+            # Determine language from extensions
+            inferred_lang = None
+            if all(ext in py_extensions for ext in extensions):
+                inferred_lang = ProgrammingLanguage.PYTHON
+            elif all(ext in ts_extensions for ext in extensions):
+                inferred_lang = ProgrammingLanguage.TYPESCRIPT
+            else:
+                msg = f"Cannot determine single language from extensions: {extensions}. Files must all be Python (.py) or TypeScript (.ts, .tsx, .js, .jsx)"
+                raise ValueError(msg)
+
+            # If language was explicitly provided, verify it matches inferred language
+            if language is not None:
+                explicit_lang = ProgrammingLanguage(language.upper()) if isinstance(language, str) else language
+                if explicit_lang != inferred_lang:
+                    msg = f"Provided language {explicit_lang} doesn't match inferred language {inferred_lang} from file extensions"
+                    raise ValueError(msg)
+
+            prog_lang = inferred_lang
+            logger.info(f"Using language: {prog_lang} ({'inferred' if language is None else 'explicit'})")
+
+        # Create temporary directory
+        import tempfile
+
+        tmp_dir = tempfile.mkdtemp(prefix="codegen_")
+        logger.info(f"Using directory: {tmp_dir}")
+
+        # Create codebase using factory
+        from codegen.sdk.codebase.factory.codebase_factory import CodebaseFactory
+
+        codebase = CodebaseFactory.get_codebase_from_files(repo_path=tmp_dir, files=files, programming_language=prog_lang)
+        logger.info("Codebase initialization complete")
+        return codebase
+
     def get_modified_symbols_in_pr(self, pr_id: int) -> tuple[str, dict[str, str], list[str]]:
         """Get all modified symbols in a pull request"""
         pr = self._op.get_pull_request(pr_id)
