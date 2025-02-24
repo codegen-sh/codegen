@@ -18,6 +18,7 @@ def test_directory_init(tmpdir) -> None:
         assert len(directory.items) == 2
         assert set(directory.item_names) == {"example.py", "subdir"}
 
+
 def test_name_property(tmpdir) -> None:
     with get_codebase_session(
         tmpdir=tmpdir,
@@ -47,7 +48,9 @@ def test_add_and_file(tmpdir) -> None:
 
 def test_remove_file(tmpdir) -> None:
     with get_codebase_session(
-        tmpdir=tmpdir, files={"mock_dir/example.py": ""}, programming_language=ProgrammingLanguage.PYTHON,
+        tmpdir=tmpdir,
+        files={"mock_dir/example.py": ""},
+        programming_language=ProgrammingLanguage.PYTHON,
     ) as codebase:
         # Remove the file
         file = codebase.get_file("mock_dir/example.py")
@@ -61,7 +64,9 @@ def test_remove_file(tmpdir) -> None:
 
 def test_get_file(tmpdir) -> None:
     with get_codebase_session(
-        tmpdir=tmpdir, files={"mock_dir/example.py": ""}, programming_language=ProgrammingLanguage.PYTHON,
+        tmpdir=tmpdir,
+        files={"mock_dir/example.py": ""},
+        programming_language=ProgrammingLanguage.PYTHON,
     ) as codebase:
         # Get the directory and get the file
         directory = codebase.get_directory("mock_dir")
@@ -177,7 +182,6 @@ def test_rename(tmpdir) -> None:
         assert codebase.get_file("mock_dir/example.py", optional=True) is None
 
 
-
 def test_contains(tmpdir) -> None:
     with get_codebase_session(tmpdir=tmpdir, files={"mock_dir/example.py": "", "mock_dir/subdir/empty.py": ""}) as codebase:
         # Get the directory and check the contains
@@ -204,4 +208,3 @@ def test_unicode_in_filename(tmpdir) -> None:
         file = codebase.get_file("test/我很喜欢冰激淋/test-file 12'3_🍦.py")
         assert file is not None
         assert file.content == "print('Hello, world!')"
-
