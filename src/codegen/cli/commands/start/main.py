@@ -8,6 +8,7 @@ from rich.box import ROUNDED
 from rich.panel import Panel
 
 from codegen.configs.models.secrets import SecretsConfig
+from codegen.git.repo_operator.local_git_repo import LocalGitRepo
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.shared.network.port import get_free_port
 
@@ -62,7 +63,7 @@ def _run_docker_container(port: int, detached: bool):
     container_repo_path = f"/app/git/{repo_config.name}"
     envvars = {
         "REPOSITORY_LANGUAGE": repo_config.language.value,
-        "REPOSITORY_OWNER": repo_config.organization_name,
+        "REPOSITORY_OWNER": LocalGitRepo(repo_path).owner,
         "REPOSITORY_PATH": container_repo_path,
         "GITHUB_TOKEN": SecretsConfig().github_token,
     }
@@ -70,7 +71,7 @@ def _run_docker_container(port: int, detached: bool):
     mount_args = ["-v", f"{repo_path}:{container_repo_path}"]
     run_mode = "-d" if detached else "-it"
     entry_point = f"uv run --frozen uvicorn codegen.runner.sandbox.server:app --host 0.0.0.0 --port {port}"
-    run_cmd = ["docker", "run", run_mode, "-p", f"8000:{port}", *mount_args, *envvars_args, "codegen-runner", entry_point]
+    run_cmd = ["docker", "run", run_mode, "-p", f"{port}:{port}", *mount_args, *envvars_args, "codegen-runner", entry_point]
 
     rich.print(f"run_cmd: {str.join(' ', run_cmd)}")
     subprocess.run(run_cmd, check=True)

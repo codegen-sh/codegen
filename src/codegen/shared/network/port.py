@@ -2,13 +2,13 @@ import socket
 from contextlib import closing
 
 
-def get_free_port() -> str:
+def get_free_port() -> int:
     """Find and return a free port on localhost"""
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
         s.bind(("", 0))
         s.listen(1)
         port = s.getsockname()[1]
-        return str(port)
+        return int(port)
 
 
 def is_port_free(port: int, host: str = "localhost") -> bool:
