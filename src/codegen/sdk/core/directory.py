@@ -69,6 +69,7 @@ class Directory(
 
     def __contains__(self, item: str | TFile | Self, recursive: bool = True) -> bool:
         from codegen.sdk.core.file import File
+
         # Try to match all file and subdirectory names
         if isinstance(item, str):
             if item in self.item_names:
