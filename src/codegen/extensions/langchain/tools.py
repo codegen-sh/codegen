@@ -255,6 +255,7 @@ class RevealSymbolTool(BaseTool):
         return result.render()
 
 
+# Note: a large file is over 300 lines. Please specify a range larger than the edit you want to make.
 _SEMANTIC_EDIT_BRIEF = """Tool for file editing via an LLM delegate. Describe the changes you want to make and an expert will apply them to the file.
 
 Specify the changes you want to make in the edit_content field, with helpful comments, like so:
