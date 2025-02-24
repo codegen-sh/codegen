@@ -65,6 +65,7 @@ jobs:
           cache-suffix: 3.${{ matrix.python }}
 
       - name: Fetch tags
+        if: ${{ inputs.release-tag || startsWith(github.ref, 'refs/tags/') }}
         run: |
           git branch
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
