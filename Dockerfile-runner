@@ -34,14 +34,16 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | b
 
 # Add node and npm to PATH
 ENV PATH=$NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
+RUN node --version \
+    && corepack --version \
+    && npm --version \
+    && yarn --version \
+    && pnpm --version \
+    && python --version
 
 # Install codegen from source instead of PyPI
 WORKDIR /codegen-sdk
-
-# Add build argument for repo path
-ARG REPO_PATH=.
-# Copy from specified repo path instead of current directory
-COPY ${REPO_PATH} .
+COPY . .
 
 # Install dependencies and build codegen with entry points
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -50,17 +52,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     && uv pip install --system -e . --no-deps \
     && uv pip install --system .
 
-# Change back to app directory for running
-WORKDIR /app
-
-# Verify all installations
-RUN codegen --version \
-    && node --version \
-    && corepack --version \
-    && npm --version \
-    && yarn --version \
-    && pnpm --version \
-    && python --version
+RUN codegen --version
 
 # Create a non-root user for local development + debugging
 RUN useradd -m -s /bin/bash user
