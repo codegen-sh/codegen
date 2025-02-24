@@ -45,7 +45,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-MINIFIED_FILE_THRESHOLD = 1000
+MINIFIED_FILE_THRESHOLD = 5000
 
 
 @apidoc
