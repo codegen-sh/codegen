@@ -291,11 +291,16 @@ def is_minified_js(content):
 
         # Decision logic - tuned threshold values
         is_minified = (
-            (avg_line_length > 100) and  # Long average line length
-            (semicolon_ratio > 0.5 or has_common_patterns) and  # High semicolon ratio or minification patterns
-            (whitespace_ratio < 0.15) and  # Low whitespace ratio
-            (not variable_names or avg_var_length < 3)  # Short variable names or no vars
+            (avg_line_length > 250) and  # Very long average line length
+            (semicolon_ratio > 0.8 or has_common_patterns) and  # High semicolon ratio or minification patterns
+            (whitespace_ratio < 0.08) and  # Very low whitespace ratio
+            (avg_var_length < 3 or not variable_names)  # Extremely short variable names or no vars
         )
+
+        # (avg_line_length > 100) and  # Long average line length
+        #     (semicolon_ratio > 0.5 or has_common_patterns) and  # High semicolon ratio or minification patterns
+        #     (whitespace_ratio < 0.15) and  # Low whitespace ratio
+        #     (not variable_names or avg_var_length < 3)  # Short variable names or no vars
 
         return is_minified
 
