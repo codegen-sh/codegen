@@ -63,7 +63,7 @@ risky_var = 'risky'
 def risky():
     call()
     try:
-        call()`
+        call()
         if a:
             call()
     except NameError as e:
