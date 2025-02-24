@@ -581,10 +581,7 @@ class SourceFile(
         path = ctx.to_absolute(filepath)
 
         # Sanity check to ensure file is not a minified file
-        if any(
-            len(line) >= MINIFIED_FILE_THRESHOLD
-            for line in content.split("\n")
-        ):
+        if any(len(line) >= MINIFIED_FILE_THRESHOLD for line in content.split("\n")):
             logger.info(f"File {filepath} is a minified file (Line length < {MINIFIED_FILE_THRESHOLD}). Skipping...", extra={"filepath": filepath})
             return None
 
