@@ -263,7 +263,7 @@ def is_minified_js(content):
             return False
 
         # Characteristics of minified JS files
-        lines = content.split('\n')
+        lines = content.split("\n")
 
         # 1. Check for average line length (minified files have very long lines)
         line_lengths = [len(line) for line in lines if line.strip()]
@@ -273,20 +273,20 @@ def is_minified_js(content):
         avg_line_length = statistics.mean(line_lengths)
 
         # 2. Check for semicolon-to-newline ratio (minified often has ; instead of newlines)
-        semicolons = content.count(';')
+        semicolons = content.count(";")
         newlines = len(lines) - 1
         semicolon_ratio = semicolons / max(newlines, 1)  # Avoid division by zero
 
         # 3. Check whitespace ratio (minified has low whitespace)
-        whitespace_chars = len(re.findall(r'[\s]', content))
+        whitespace_chars = len(re.findall(r"[\s]", content))
         total_chars = len(content)
         whitespace_ratio = whitespace_chars / total_chars if total_chars else 0
 
         # 4. Check for common minification patterns
-        has_common_patterns = bool(re.search(r'[\w\)]\{[\w:]+\}', content))  # Condensed object notation
+        has_common_patterns = bool(re.search(r"[\w\)]\{[\w:]+\}", content))  # Condensed object notation
 
         # 5. Check for short variable names (common in minified code)
-        variable_names = re.findall(r'var\s+(\w+)', content)
+        variable_names = re.findall(r"var\s+(\w+)", content)
         avg_var_length = statistics.mean([len(name) for name in variable_names]) if variable_names else 0
 
         # Decision logic - tuned threshold values
