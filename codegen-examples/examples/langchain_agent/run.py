@@ -1,23 +1,11 @@
 """Demo implementation of an agent with Codegen tools."""
 
-from codegen import Codebase
-from codegen.extensions.langchain.tools import (
-    CommitTool,
-    CreateFileTool,
-    DeleteFileTool,
-    EditFileTool,
-    ListDirectoryTool,
-    MoveSymbolTool,
-    RenameFileTool,
-    RevealSymbolTool,
-    SearchTool,
-    SemanticEditTool,
-    ViewFileTool,
-)
-
 from codegen.extensions.langchain.llm import LLM
 from codegen.extensions.langchain.prompts import REASONER_SYSTEM_MESSAGE
 
+from codegen.extensions.tools.tools_client import get_tools
+from codegen.git.schemas.repo_config import RepoConfig
+from codegen.runner.clients.sandbox_client import RemoteSandboxClient
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph.graph import CompiledGraph
 from langgraph.prebuilt import create_react_agent
@@ -25,7 +13,7 @@ from langchain_core.messages import SystemMessage
 
 
 def create_codebase_agent(
-    codebase: "Codebase",
+    codebase_client: RemoteSandboxClient,
     model_provider: str = "anthropic",
     model_name: str = "claude-3-5-sonnet-latest",
     system_message: SystemMessage = SystemMessage(REASONER_SYSTEM_MESSAGE),
@@ -54,19 +42,7 @@ def create_codebase_agent(
 
     # Get all codebase tools
     # Get all codebase tools
-    tools = [
-        ViewFileTool(codebase),
-        ListDirectoryTool(codebase),
-        SearchTool(codebase),
-        EditFileTool(codebase),
-        CreateFileTool(codebase),
-        DeleteFileTool(codebase),
-        RenameFileTool(codebase),
-        MoveSymbolTool(codebase),
-        RevealSymbolTool(codebase),
-        SemanticEditTool(codebase),
-        CommitTool(codebase),
-    ]
+    tools = get_tools(codebase_client)
 
     memory = MemorySaver() if memory else None
 
@@ -76,11 +52,11 @@ def create_codebase_agent(
 if __name__ == "__main__":
     # Initialize codebase
     print("Initializing codebase...")
-    codebase = Codebase.from_repo("fastapi/fastapi", language="python")
+    codebase_client = RemoteSandboxClient(RepoConfig.from_repo_path("/Users/caroljung/git/codegen/codegen-agi"))
 
     # Create agent with history
     print("Creating agent...")
-    agent = create_codebase_agent(codebase)
+    agent = create_codebase_agent(codebase_client)
 
     print("\nAsking agent to analyze symbol relationships...")
     result = agent.invoke(

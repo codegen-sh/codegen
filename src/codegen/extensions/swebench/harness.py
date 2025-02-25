@@ -10,13 +10,14 @@ from pathlib import Path
 
 import lox
 
-from codegen import Codebase
 from codegen.agents.code_agent import CodeAgent
 from codegen.extensions.swebench.utils import (
     SweBenchExample,
     get_swe_bench_examples,
     load_predictions,
 )
+from codegen.git.schemas.repo_config import RepoConfig
+from codegen.runner.clients.codebase_client import CodebaseClient
 
 PARENT_DIR = Path(__file__).parent
 
@@ -48,7 +49,7 @@ def show_problems(dataset):
         print(f"{inst}: {problem}")
 
 
-def run_agent_on_entry(entry: SweBenchExample):
+def run_agent_on_entry(entry: SweBenchExample, codebase_client: CodebaseClient | None = None):
     """Process one `entry` from SWE Bench using the LLM `models` at the
     given `temperature`.  Set `model_name_or_path` in the result json.
     """
@@ -63,9 +64,13 @@ def run_agent_on_entry(entry: SweBenchExample):
 
     gold_files = files_in_patch(entry.patch)
 
-    codebase = Codebase.from_repo(repo_full_name=entry.repo, commit=base_commit, language="python")  # check out the repo
+    repo_config = RepoConfig(
+        full_name=entry.repo,
+        language="python",
+    )
+    codebase_client = CodebaseClient(repo_config)
 
-    agent = CodeAgent(codebase=codebase)
+    agent = CodeAgent(codebase_client=codebase_client)
 
     pprint.pprint(instance_id)
     pprint.pprint(gold_files)
@@ -89,7 +94,8 @@ Propose changes to update the repo to fix the problem below.
         raise agent_error
 
     # Get the diff between the current state and the original commit
-    model_patch = codebase.get_diff(base=base_commit)
+    res = codebase_client.post("get_diff", {"base": base_commit, "head": entry.commit})
+    model_patch = res.json().get("content")
     pprint.pprint(model_patch)
 
     # Record the results for the logs

@@ -6,16 +6,16 @@ import uuid
 import modal
 import click
 from datetime import datetime
-from codegen.extensions.swebench.utils import SWEBenchDataset, get_swe_bench_example, get_swe_bench_examples
+from codegen.extensions.swebench.utils import SWEBenchDataset, SweBenchExample, get_swe_bench_example, get_swe_bench_examples
 from codegen.extensions.swebench.report import generate_report
 
 PREDS_DNAME = Path(__file__).parent / "predictions"
 LOG_DIR = Path(__file__).parent / "logs"
 
-run_agent_modal = modal.Function.lookup("swebench-agent-run", "run_agent_modal")
+SwebenchAgentRun = modal.Cls.from_name(app_name="swebench-agent-run", name="SwebenchAgentRun")
 
 
-async def process_batch(examples, batch_size=10):
+async def process_batch(examples: list[SweBenchExample], batch_size=10):
     """Process a batch of examples concurrently.
 
     Args:
@@ -31,7 +31,7 @@ async def process_batch(examples, batch_size=10):
         batch = examples[i : i + batch_size]
 
         # Create tasks for this batch
-        batch_tasks = [run_agent_modal.remote.aio(example) for example in batch]
+        batch_tasks = [SwebenchAgentRun(repo_full_name=example.repo, commit=example.base_commit).run.remote.aio(example) for example in batch]
 
         # Wait for all tasks in this batch to complete
         print(f"Processing batch {i // batch_size + 1}/{len(examples) // batch_size + 1} (examples {i + 1}-{min(i + batch_size, len(examples))})")

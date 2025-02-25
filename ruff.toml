@@ -53,6 +53,7 @@ exclude = [
 convention = "google"
 [lint.pyflakes]
 extend-generics = [
+  "codegen.git.models.pr_options.PROptions",
   "codegen.sdk.codebase.flagging.enums.MessageType",
   "codegen.sdk.codebase.flagging.enums.FlagKwargs",
   "codegen.sdk.codebase.span.Span",

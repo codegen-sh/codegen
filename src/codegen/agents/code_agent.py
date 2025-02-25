@@ -1,19 +1,25 @@
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 from uuid import uuid4
 
 from langchain.tools import BaseTool
 from langchain_core.messages import AIMessage
 
 from codegen.extensions.langchain.agent import create_codebase_agent
-
-if TYPE_CHECKING:
-    from codegen import Codebase
+from codegen.runner.clients.sandbox_client import RemoteSandboxClient
 
 
 class CodeAgent:
     """Agent for interacting with a codebase."""
 
-    def __init__(self, codebase: "Codebase", model_provider: str = "anthropic", model_name: str = "claude-3-5-sonnet-latest", memory: bool = True, tools: Optional[list[BaseTool]] = None, **kwargs):
+    def __init__(
+        self,
+        codebase_client: RemoteSandboxClient,
+        model_provider: str = "anthropic",
+        model_name: str = "claude-3-5-sonnet-latest",
+        memory: bool = True,
+        tools: Optional[list[BaseTool]] = None,
+        **kwargs,
+    ):
         """Initialize a CodeAgent.
 
         Args:
@@ -28,8 +34,8 @@ class CodeAgent:
                 - top_k: Top-k sampling parameter (>= 1)
                 - max_tokens: Maximum number of tokens to generate
         """
-        self.codebase = codebase
-        self.agent = create_codebase_agent(self.codebase, model_provider=model_provider, model_name=model_name, memory=memory, additional_tools=tools, **kwargs)
+        self.codebase_client = codebase_client
+        self.agent = create_codebase_agent(self.codebase_client, model_provider=model_provider, model_name=model_name, memory=memory, additional_tools=tools, **kwargs)
 
     def run(self, prompt: str, thread_id: Optional[str] = None) -> str:
         """Run the agent with a prompt.

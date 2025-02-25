@@ -19,6 +19,7 @@ from codegen.git.models.pull_request_context import PullRequestContext
 from codegen.shared.exceptions.control_flow import StopCodemodException
 
 # GraphSitter imports (public)
+from codegen.git.models.pr_options import PROptions
 from codegen.sdk.codebase.flagging.enums import FlagKwargs
 from codegen.sdk.codebase.flagging.enums import MessageType
 from codegen.sdk.codebase.span import Span
