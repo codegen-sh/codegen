@@ -1,20 +1,15 @@
 """Demo implementation of an agent with Codegen tools."""
 
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
-from langchain.agents import AgentExecutor, create_tool_calling_agent
-from langchain.agents.openai_functions_agent.base import OpenAIFunctionsAgent
-from langchain.hub import pull
 from langchain.tools import BaseTool
-from langchain_anthropic import ChatAnthropic
-from langchain_core.chat_history import InMemoryChatMessageHistory
-from langchain_core.messages import BaseMessage
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.runnables.history import RunnableWithMessageHistory
-from langchain_openai import ChatOpenAI
+from langchain_core.messages import SystemMessage
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph.graph import CompiledGraph
+from langgraph.prebuilt import create_react_agent
 
-from codegen.sdk.core.codebase import Codebase
-
+from .llm import LLM
+from .prompts import REASONER_SYSTEM_MESSAGE
 from .tools import (
     CreateFileTool,
     DeleteFileTool,
@@ -29,38 +24,38 @@ from .tools import (
     ViewFileTool,
 )
 
+if TYPE_CHECKING:
+    from codegen import Codebase
+
 
 def create_codebase_agent(
-    codebase: Codebase,
+    codebase: "Codebase",
+    model_provider: str = "anthropic",
     model_name: str = "claude-3-5-sonnet-latest",
-    temperature: float = 0,
-    verbose: bool = True,
-    chat_history: list[BaseMessage] = [],
+    system_message: SystemMessage = SystemMessage(REASONER_SYSTEM_MESSAGE),
+    memory: bool = True,
+    debug: bool = False,
     additional_tools: Optional[list[BaseTool]] = None,
-) -> RunnableWithMessageHistory:
+    **kwargs,
+) -> CompiledGraph:
     """Create an agent with all codebase tools.
 
     Args:
         codebase: The codebase to operate on
-        model_name: Name of the model to use (default: gpt-4)
-        temperature: Model temperature (default: 0)
+        model_provider: The model provider to use ("anthropic" or "openai")
+        model_name: Name of the model to use
         verbose: Whether to print agent's thought process (default: True)
         chat_history: Optional list of messages to initialize chat history with
-        additional_tools: Optional list of additional tools to provide to the agent
+        **kwargs: Additional LLM configuration options. Supported options:
+            - temperature: Temperature parameter (0-1)
+            - top_p: Top-p sampling parameter (0-1)
+            - top_k: Top-k sampling parameter (>= 1)
+            - max_tokens: Maximum number of tokens to generate
 
     Returns:
         Initialized agent with message history
     """
-    # Initialize language model
-    # llm = ChatOpenAI(
-    #     model_name=model_name,
-    #     temperature=temperature,
-    # )
-
-    llm = ChatAnthropic(
-        model="claude-3-5-sonnet-latest",
-        temperature=temperature,
-    )
+    llm = LLM(model_provider=model_provider, model_name=model_name, **kwargs)
 
     # Get all codebase tools
     tools = [
@@ -83,122 +78,41 @@ def create_codebase_agent(
         # GithubCreatePRCommentTool(codebase),
         # GithubCreatePRReviewCommentTool(codebase),
     ]
+
     # Add additional tools if provided
     if additional_tools:
         tools.extend(additional_tools)
 
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            (
-                "system",
-                """
-            You are an expert software engineer with deep knowledge of code analysis, refactoring, and development best practices.
-            You have access to a powerful set of tools from  codegen that allow you to analyze and modify codebases:
+    memory = MemorySaver() if memory else None
 
-        Core Capabilities:
-        1. Code Analysis & Navigation:
-        - Search codebases using text or regex patterns
-        - View file contents and metadata (functions, classes, imports)
-        - Analyze code structure and dependencies
-        - Reveal symbol definitions and usages
-
-        2. File Operations:
-        - View, create, edit, and delete files
-        - Rename files while updating all imports
-        - Move symbols between files
-        - Commit changes to disk
-
-        3. Semantic Editing:
-        - Make precise, context-aware code edits
-        - Analyze affected code structures
-        - Preview changes before applying
-        - Ensure code quality with linting
-
-        4. Code Search:
-        - Text-based and semantic search
-        - Search within specific directories
-        - Filter by file extensions
-        - Get paginated results
-
-        Best Practices:
-        - Always analyze code structure before making changes
-        - Preview edits to understand their impact
-        - Update imports and dependencies when moving code
-        - Use semantic edits for complex changes
-        - Commit changes after significant modifications
-        - Maintain code quality and consistency
-
-        Remember: You can combine these tools to perform complex refactoring
-        and development tasks. Always explain your approach before making changes.
-        Important rules: If you are asked to make any edits to a file, always
-        first view the file to understand its context and make sure you understand
-        the impact of the changes. Only then make the changes.
-        Ensure if specifiying line numbers, it's chosen with room (around 20
-        lines before and 20 lines after the edit range)
-        """,
-            ),
-            MessagesPlaceholder("chat_history", optional=True),
-            ("human", "{input}"),
-            MessagesPlaceholder("agent_scratchpad"),
-        ]
-    )
-
-    # Create the agent
-    # agent = OpenAIFunctionsAgent(
-    #     llm=llm,
-    #     tools=tools,
-    #     prompt=prompt,
-    # )
-    agent = create_tool_calling_agent(
-        llm=llm,
-        tools=tools,
-        prompt=prompt,
-    )
-
-    # Create the agent executor
-    agent_executor = AgentExecutor(
-        agent=agent,
-        tools=tools,
-        verbose=verbose,
-    )
-
-    # Create message history handler
-    message_history = InMemoryChatMessageHistory(messages=chat_history)
-
-    # Wrap with message history
-    return RunnableWithMessageHistory(
-        agent_executor,
-        lambda session_id: message_history,
-        input_messages_key="input",
-        history_messages_key="chat_history",
-    )
+    return create_react_agent(model=llm, tools=tools, prompt=system_message, checkpointer=memory, debug=debug)
 
 
 def create_codebase_inspector_agent(
-    codebase: Codebase,
+    codebase: "Codebase",
+    model_provider: str = "openai",
     model_name: str = "gpt-4o",
-    temperature: float = 0,
-    verbose: bool = True,
-    chat_history: list[BaseMessage] = [],
-) -> RunnableWithMessageHistory:
-    """Create an agent with all codebase tools.
+    system_message: SystemMessage = SystemMessage(REASONER_SYSTEM_MESSAGE),
+    memory: bool = True,
+    debug: bool = True,
+    **kwargs,
+) -> CompiledGraph:
+    """Create an inspector agent with read-only codebase tools.
 
     Args:
         codebase: The codebase to operate on
-        model_name: Name of the model to use (default: gpt-4)
-        temperature: Model temperature (default: 0)
-        verbose: Whether to print agent's thought process (default: True)
+        model_provider: The model provider to use ("anthropic" or "openai")
+        model_name: Name of the model to use
+        system_message: Custom system message to use (defaults to standard reasoner message)
+        memory: Whether to enable memory/checkpointing
+        **kwargs: Additional LLM configuration options
 
     Returns:
-        Initialized agent with message history
+        Compiled langgraph agent
     """
-    # Initialize language model
-    llm = ChatOpenAI(
-        model_name=model_name,
-        temperature=temperature,
-    )
+    llm = LLM(model_provider=model_provider, model_name=model_name, **kwargs)
 
-    # Get all codebase tools
+    # Get read-only codebase tools
     tools = [
         ViewFileTool(codebase),
         ListDirectoryTool(codebase),
@@ -207,86 +121,39 @@ def create_codebase_inspector_agent(
         RevealSymbolTool(codebase),
     ]
 
-    # Get the prompt to use
-    prompt = pull("codegen-agent/codebase-agent")
-
-    # Create the agent
-    agent = OpenAIFunctionsAgent(
-        llm=llm,
-        tools=tools,
-        prompt=prompt,
-    )
-
-    # Create the agent executor
-    agent_executor = AgentExecutor(
-        agent=agent,
-        tools=tools,
-        verbose=verbose,
-    )
-
-    # Create message history handler
-    message_history = InMemoryChatMessageHistory(messages=chat_history)
-
-    # Wrap with message history
-    return RunnableWithMessageHistory(
-        agent_executor,
-        lambda session_id: message_history,
-        input_messages_key="input",
-        history_messages_key="chat_history",
-    )
+    memory = MemorySaver() if memory else None
+    return create_react_agent(model=llm, tools=tools, prompt=system_message, checkpointer=memory, debug=debug)
 
 
 def create_agent_with_tools(
-    codebase: Codebase,
     tools: list[BaseTool],
+    model_provider: str = "openai",
     model_name: str = "gpt-4o",
-    temperature: float = 0,
-    verbose: bool = True,
-    chat_history: list[BaseMessage] = [],
-) -> RunnableWithMessageHistory:
+    system_message: SystemMessage = SystemMessage(REASONER_SYSTEM_MESSAGE),
+    memory: bool = True,
+    debug: bool = True,
+    **kwargs,
+) -> CompiledGraph:
     """Create an agent with a specific set of tools.
 
     Args:
         codebase: The codebase to operate on
         tools: List of tools to provide to the agent
-        model_name: Name of the model to use (default: gpt-4)
-        temperature: Model temperature (default: 0)
-        verbose: Whether to print agent's thought process (default: True)
-        chat_history: Optional list of messages to initialize chat history with
+        model_provider: The model provider to use ("anthropic" or "openai")
+        model_name: Name of the model to use
+        system_message: Custom system message to use (defaults to standard reasoner message)
+        memory: Whether to enable memory/checkpointing
+        **kwargs: Additional LLM configuration options. Supported options:
+            - temperature: Temperature parameter (0-1)
+            - top_p: Top-p sampling parameter (0-1)
+            - top_k: Top-k sampling parameter (>= 1)
+            - max_tokens: Maximum number of tokens to generate
 
     Returns:
-        Initialized agent with message history
+        Compiled langgraph agent
     """
-    # Initialize language model
-    llm = ChatOpenAI(
-        model_name=model_name,
-        temperature=temperature,
-    )
+    llm = LLM(model_provider=model_provider, model_name=model_name, **kwargs)
 
-    # Get the prompt to use
-    prompt = pull("hwchase17/openai-functions-agent")
+    memory = MemorySaver() if memory else None
 
-    # Create the agent
-    agent = OpenAIFunctionsAgent(
-        llm=llm,
-        tools=tools,
-        prompt=prompt,
-    )
-
-    # Create the agent executor
-    agent_executor = AgentExecutor(
-        agent=agent,
-        tools=tools,
-        verbose=verbose,
-    )
-
-    # Create message history handler
-    message_history = InMemoryChatMessageHistory(messages=chat_history)
-
-    # Wrap with message history
-    return RunnableWithMessageHistory(
-        agent_executor,
-        lambda session_id: message_history,
-        input_messages_key="input",
-        history_messages_key="chat_history",
-    )
+    return create_react_agent(model=llm, tools=tools, prompt=system_message, checkpointer=memory, debug=debug)

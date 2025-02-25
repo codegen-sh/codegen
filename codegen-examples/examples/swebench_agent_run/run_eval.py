@@ -2,6 +2,7 @@ import asyncio
 import json
 import traceback
 from pathlib import Path
+import uuid
 import modal
 import click
 from datetime import datetime
@@ -87,7 +88,9 @@ async def process_batch(examples, batch_size=10):
     return results
 
 
-async def run_eval(use_existing_preds, dataset, length, instance_id=None):
+async def run_eval(use_existing_preds: str | None, dataset: str, length: int, instance_id: str | None = None):
+    run_id = use_existing_preds or str(uuid.uuid4())
+    predictions_dir = PREDS_DNAME / f"results_{run_id}"
     dataset = SWEBenchDataset(dataset)
     if instance_id:
         examples = [get_swe_bench_example(instance_id, dataset=dataset)]
@@ -95,13 +98,11 @@ async def run_eval(use_existing_preds, dataset, length, instance_id=None):
         examples = get_swe_bench_examples(dataset=dataset, length=length)
 
     try:
-        if not use_existing_preds:
+        if use_existing_preds is None:
             print(f"Processing {len(examples)} examples...")
 
             # Create output directory if it doesn't exist
-            PREDS_DNAME.mkdir(exist_ok=True)
-            results_dir = PREDS_DNAME / "results"
-            results_dir.mkdir(exist_ok=True)
+            predictions_dir.mkdir(exist_ok=True, parents=True)
 
             # Create a timestamp for this run
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -113,12 +114,13 @@ async def run_eval(use_existing_preds, dataset, length, instance_id=None):
             for result in results:
                 if result and "instance_id" in result:
                     instance_id = result["instance_id"]
-                    output_file = results_dir / f"{instance_id}.json"
+                    output_file = predictions_dir / f"{instance_id}.json"
+                    output_file.parent.mkdir(exist_ok=True, parents=True)
                     with open(output_file, "w") as f:
                         json.dump(result, f, indent=4)
 
             # Save summary file
-            summary_file = results_dir / f"summary_{timestamp}.json"
+            summary_file = predictions_dir / f"summary_{timestamp}.json"
             summary = {
                 "timestamp": timestamp,
                 "total_examples": len(examples),
@@ -138,7 +140,7 @@ async def run_eval(use_existing_preds, dataset, length, instance_id=None):
                 json.dump(summary, f, indent=4)
 
             print("\nProcessing complete!")
-            print(f"Results saved to: {results_dir}")
+            print(f"Results saved to: {predictions_dir}")
             print(f"Summary saved to: {summary_file}")
             print(f"Successful: {summary['successful']}/{summary['total_examples']}")
             print(f"Failed: {summary['failed']}/{summary['total_examples']}")
@@ -148,7 +150,7 @@ async def run_eval(use_existing_preds, dataset, length, instance_id=None):
                     print(f"  {error_type}: {count}")
 
         # Generate Report on Modal
-        generate_report(PREDS_DNAME, LOG_DIR, dataset)
+        generate_report(predictions_dir, LOG_DIR, dataset, run_id)
     except Exception:
         print("Fatal error in run_eval:")
         traceback.print_exc()
@@ -156,10 +158,10 @@ async def run_eval(use_existing_preds, dataset, length, instance_id=None):
 
 
 @click.command()
-@click.option("--use-existing-preds", is_flag=True, help="Use existing predictions instead of generating new ones.")
+@click.option("--use-existing-preds", help="The run ID of the existing predictions to use.", type=str, default=None)
 @click.option("--dataset", help="The dataset to use.", type=click.Choice([dataset.value for dataset in SWEBenchDataset]), default=SWEBenchDataset.LITE.value)
 @click.option("--length", help="The number of examples to process.", type=int, default=10)
-@click.option("--instance-id", help="The instance ID of the example to process.")
+@click.option("--instance-id", help="The instance ID of the example to process.", type=str, default=None)
 def run_eval_command(use_existing_preds, dataset, length, instance_id):
     asyncio.run(run_eval(use_existing_preds, dataset, length, instance_id))
 

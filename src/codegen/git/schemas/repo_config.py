@@ -38,4 +38,5 @@ class RepoConfig(BaseModel):
     def organization_name(self) -> str | None:
         if self.full_name is not None:
             return self.full_name.split("/")[0]
+
         return None

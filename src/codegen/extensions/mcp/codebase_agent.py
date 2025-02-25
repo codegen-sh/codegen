@@ -24,18 +24,30 @@ def query_codebase(
     codebase_dir: Annotated[str, "Absolute path to the codebase root directory. It is highly encouraged to provide the root codebase directory and not a sub directory"],
     codebase_language: Annotated[ProgrammingLanguage, "The language the codebase is written in"],
 ):
+    # Input validation
+    if not query or not query.strip():
+        return {"error": "Query cannot be empty"}
+
+    if not codebase_dir or not codebase_dir.strip():
+        return {"error": "Codebase directory path cannot be empty"}
+
     # Check if codebase directory exists
     if not os.path.exists(codebase_dir):
         return {"error": f"Codebase directory '{codebase_dir}' does not exist. Please provide a valid directory path."}
-    # Initialize codebase
-    codebase = Codebase(repo_path=codebase_dir, language=codebase_language)
 
-    # Create the agent
-    agent = create_codebase_inspector_agent(codebase=codebase, model_name="gpt-4", verbose=True)
+    try:
+        # Initialize codebase
+        codebase = Codebase(repo_path=codebase_dir, language=codebase_language)
 
-    result = agent.invoke({"input": query}, config={"configurable": {"session_id": "demo"}})
+        # Create the agent
+        agent = create_codebase_inspector_agent(codebase=codebase, model_provider="openai", model_name="gpt-4o")
 
-    return result["output"]
+        result = agent.invoke({"input": query}, config={"configurable": {"thread_id": 1}})
+
+        return result["messages"][-1].content
+
+    except Exception as e:
+        return {"error": f"An error occurred while processing the request: {e!s}"}
 
 
 if __name__ == "__main__":

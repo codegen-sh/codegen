@@ -11,8 +11,8 @@ from typing import TYPE_CHECKING, Any
 
 from rustworkx import PyDiGraph, WeightedEdgeList
 
-from codegen.configs.models.codebase import DefaultCodebaseConfig
-from codegen.configs.models.secrets import DefaultSecrets, SecretsConfig
+from codegen.configs.models.codebase import CodebaseConfig
+from codegen.configs.models.secrets import SecretsConfig
 from codegen.sdk.codebase.config import ProjectConfig, SessionOptions
 from codegen.sdk.codebase.config_parser import ConfigParser, get_config_parser_for_language
 from codegen.sdk.codebase.diff_lite import ChangeType, DiffLite
@@ -39,7 +39,6 @@ if TYPE_CHECKING:
     from codeowners import CodeOwners as CodeOwnersParser
     from git import Commit as GitCommit
 
-    from codegen.configs.models.codebase import CodebaseConfig
     from codegen.git.repo_operator.repo_operator import RepoOperator
     from codegen.sdk.codebase.io.io import IO
     from codegen.sdk.codebase.node_classes.node_classes import NodeClasses
@@ -47,7 +46,7 @@ if TYPE_CHECKING:
     from codegen.sdk.core.dataclasses.usage import Usage
     from codegen.sdk.core.expressions import Expression
     from codegen.sdk.core.external_module import ExternalModule
-    from codegen.sdk.core.file import SourceFile
+    from codegen.sdk.core.file import File, SourceFile
     from codegen.sdk.core.interfaces.importable import Importable
     from codegen.sdk.core.node_id_factory import NodeId
     from codegen.sdk.core.parser import Parser
@@ -67,6 +66,10 @@ GLOBAL_FILE_IGNORE_LIST = [
     ".*/tests/static/chunk-.*.js",
     ".*/ace/.*.js",
     "src/vs/platform/contextview/browser/contextMenuService.ts",
+    "*/semver.js",
+    "*/compiled/*",
+    "*.min.js",
+    "*@*.js",
 ]
 
 
@@ -132,8 +135,8 @@ class CodebaseContext:
     def __init__(
         self,
         projects: list[ProjectConfig],
-        config: CodebaseConfig = DefaultCodebaseConfig,
-        secrets: SecretsConfig = DefaultSecrets,
+        config: CodebaseConfig | None = None,
+        secrets: SecretsConfig | None = None,
         io: IO | None = None,
         progress: Progress | None = None,
     ) -> None:
@@ -159,8 +162,8 @@ class CodebaseContext:
         self.io = io or FileIO()
         context = projects[0]
         self.node_classes = get_node_classes(context.programming_language)
-        self.config = config
-        self.secrets = secrets
+        self.config = config or CodebaseConfig()
+        self.secrets = secrets or SecretsConfig()
         self.repo_name = context.repo_operator.repo_name
         self.repo_path = str(Path(context.repo_operator.repo_path).resolve())
         self.full_path = os.path.join(self.repo_path, context.base_path) if context.base_path else self.repo_path
@@ -172,7 +175,7 @@ class CodebaseContext:
         self.init_nodes = None
         self.init_edges = None
         self.directories = dict()
-        self.parser = Parser.from_node_classes(self.node_classes, log_parse_warnings=config.debug)
+        self.parser = Parser.from_node_classes(self.node_classes, log_parse_warnings=self.config.debug)
         self.extensions = self.node_classes.file_cls.get_extensions()
         # ORDER IS IMPORTANT HERE!
         self.config_parser = get_config_parser_for_language(context.programming_language, self)
@@ -342,33 +345,15 @@ class CodebaseContext:
                 self.remove_node(module.node_id)
                 self._ext_module_idx.pop(module._idx_key, None)
 
-    def build_directory_tree(self, files: list[SourceFile]) -> None:
+    def build_directory_tree(self) -> None:
         """Builds the directory tree for the codebase"""
         # Reset and rebuild the directory tree
         self.directories = dict()
-        created_dirs = set()
-        for file in files:
-            directory = self.get_directory(file.path.parent, create_on_missing=True)
-            directory.add_file(file)
-            file._set_directory(directory)
-            created_dirs.add(file.path.parent)
 
-        def _dir_has_file(filepath):
-            gen = os.scandir(filepath)
-            while entry := next(gen, None):
-                if entry.is_file():
-                    return True
-            return False
-
-        for ctx in self.projects:
-            for rel_filepath in ctx.repo_operator.get_filepaths_for_repo(GLOBAL_FILE_IGNORE_LIST):
-                abs_filepath = self.to_absolute(rel_filepath)
-                if not abs_filepath.is_dir():
-                    abs_filepath = abs_filepath.parent
-
-                if abs_filepath not in created_dirs and self.is_subdir(abs_filepath) and _dir_has_file(abs_filepath):
-                    directory = self.get_directory(abs_filepath, create_on_missing=True)
-                    created_dirs.add(abs_filepath)
+        for file_path, _ in self.projects[0].repo_operator.iter_files(subdirs=self.projects[0].subdirectories, ignore_list=GLOBAL_FILE_IGNORE_LIST):
+            file_path = Path(file_path)
+            directory = self.get_directory(file_path.parent, create_on_missing=True)
+            directory._add_file(file_path.name)
 
     def get_directory(self, directory_path: PathLike, create_on_missing: bool = False, ignore_case: bool = False) -> Directory | None:
         """Returns the directory object for the given path, or None if the directory does not exist.
@@ -396,16 +381,16 @@ class CodebaseContext:
 
             # Base Case
             if str(absolute_path) == str(self.repo_path) or str(absolute_path) == str(parent_path):
-                root_directory = Directory(path=absolute_path, dirpath="", parent=None)
+                root_directory = Directory(ctx=self, path=absolute_path, dirpath="")
                 self.directories[absolute_path] = root_directory
                 return root_directory
 
             # Recursively create the parent directory
             parent = self.get_directory(parent_path, create_on_missing=True)
             # Create the directory
-            directory = Directory(path=absolute_path, dirpath=str(self.to_relative(absolute_path)), parent=parent)
+            directory = Directory(ctx=self, path=absolute_path, dirpath=str(self.to_relative(absolute_path)))
             # Add the directory to the parent
-            parent.add_subdirectory(directory)
+            parent._add_subdirectory(directory.name)
             # Add the directory to the tree
             self.directories[absolute_path] = directory
             return directory
@@ -511,7 +496,7 @@ class CodebaseContext:
         # Step 6: Build directory tree
         logger.info("> Building directory tree")
         files = [f for f in sort_editables(self.get_nodes(NodeType.FILE), alphabetical=True, dedupe=False)]
-        self.build_directory_tree(files)
+        self.build_directory_tree()
 
         # Step 7: Build configs
         if self.config_parser is not None:
@@ -610,13 +595,20 @@ class CodebaseContext:
         if node_id is not None:
             return self.get_node(node_id)
         if ignore_case:
-            parent = self.to_absolute(file_path).parent
-            if parent == Path(self.repo_path):
-                for file in self.to_absolute(self.repo_path).iterdir():
-                    if str(file_path).lower() == str(self.to_absolute(file)).lower():
-                        return self.get_file(file, ignore_case=False)
-            if directory := self.get_directory(parent, ignore_case=ignore_case):
-                return directory.get_file(os.path.basename(file_path), ignore_case=ignore_case)
+            # Using `get_directory` so that the case insensitive lookup works
+            parent = self.get_directory(self.to_absolute(file_path).parent, ignore_case=ignore_case).path
+            for file in parent.iterdir():
+                if str(file_path).lower() == str(self.to_relative(file)).lower():
+                    return self.get_file(file, ignore_case=False)
+
+    def _get_raw_file_from_path(self, path: Path) -> File | None:
+        from codegen.sdk.core.file import File
+
+        try:
+            return File.from_content(path, self.io.read_text(path), self, sync=False)
+        except UnicodeDecodeError:
+            # Handle when file is a binary file
+            return File.from_content(path, self.io.read_bytes(path), self, sync=False, binary=True)
 
     def get_external_module(self, module: str, import_name: str) -> ExternalModule | None:
         node_id = self._ext_module_idx.get(module + "::" + import_name, None)

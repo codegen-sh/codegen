@@ -83,7 +83,7 @@ Propose changes to update the repo to fix the problem below.
     message += problem_statement
 
     try:
-        result = agent.run(prompt=message, session_id="swebench")
+        result = agent.run(prompt=message)
     except Exception as agent_error:
         pprint.pprint(f"Instance ID: {instance_id} terminated with error: {agent_error}")
         raise agent_error

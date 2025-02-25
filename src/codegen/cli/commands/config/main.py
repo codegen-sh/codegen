@@ -5,8 +5,8 @@ import rich_click as click
 from rich.table import Table
 
 from codegen.configs.constants import ENV_FILENAME, GLOBAL_ENV_FILE
-from codegen.configs.session_manager import session_manager
 from codegen.configs.user_config import UserConfig
+from codegen.shared.path import get_git_root_path
 
 
 @click.group(name="config")
@@ -16,8 +16,7 @@ def config_command():
 
 
 @config_command.command(name="list")
-@click.option("--global", "is_global", is_flag=True, help="Lists the global configuration values")
-def list_command(is_global: bool):
+def list_command():
     """List current configuration values."""
 
     def flatten_dict(data: dict, prefix: str = "") -> dict:
@@ -33,7 +32,7 @@ def list_command(is_global: bool):
                 items[full_key] = value
         return items
 
-    config = _get_user_config(is_global)
+    config = _get_user_config()
     flat_config = flatten_dict(config.to_dict())
     sorted_items = sorted(flat_config.items(), key=lambda x: x[0])
 
@@ -82,10 +81,9 @@ def list_command(is_global: bool):
 
 @config_command.command(name="get")
 @click.argument("key")
-@click.option("--global", "is_global", is_flag=True, help="Get the global configuration value")
-def get_command(key: str, is_global: bool):
+def get_command(key: str):
     """Get a configuration value."""
-    config = _get_user_config(is_global)
+    config = _get_user_config()
     if not config.has_key(key):
         rich.print(f"[red]Error: Configuration key '{key}' not found[/red]")
         return
@@ -98,10 +96,9 @@ def get_command(key: str, is_global: bool):
 @config_command.command(name="set")
 @click.argument("key")
 @click.argument("value")
-@click.option("--global", "is_global", is_flag=True, help="Sets the global configuration value")
-def set_command(key: str, value: str, is_global: bool):
+def set_command(key: str, value: str):
     """Set a configuration value and write to .env"""
-    config = _get_user_config(is_global)
+    config = _get_user_config()
     if not config.has_key(key):
         rich.print(f"[red]Error: Configuration key '{key}' not found[/red]")
         return
@@ -118,10 +115,10 @@ def set_command(key: str, value: str, is_global: bool):
     rich.print(f"[green]Successfully set {key}=[magenta]{value}[/magenta] and saved to {ENV_FILENAME}[/green]")
 
 
-def _get_user_config(is_global: bool) -> UserConfig:
-    if is_global or (active_session_path := session_manager.get_active_session()) is None:
+def _get_user_config() -> UserConfig:
+    if (project_root := get_git_root_path()) is None:
         env_filepath = GLOBAL_ENV_FILE
     else:
-        env_filepath = active_session_path / ENV_FILENAME
+        env_filepath = project_root / ENV_FILENAME
 
     return UserConfig(env_filepath)

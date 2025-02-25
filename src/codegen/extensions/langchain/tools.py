@@ -79,6 +79,7 @@ The response will indicate if there are more lines available to view."""
             end_line=end_line,
             max_lines=max_lines if max_lines is not None else 250,
         )
+
         return result.render()
 
 
@@ -246,7 +247,7 @@ class RevealSymbolTool(BaseTool):
         result = reveal_symbol(
             codebase=self.codebase,
             symbol_name=symbol_name,
-            degree=degree,
+            max_depth=degree,
             max_tokens=max_tokens,
             collect_dependencies=collect_dependencies,
             collect_usages=collect_usages,
@@ -254,6 +255,7 @@ class RevealSymbolTool(BaseTool):
         return result.render()
 
 
+# Note: a large file is over 300 lines. Please specify a range larger than the edit you want to make.
 _SEMANTIC_EDIT_BRIEF = """Tool for file editing via an LLM delegate. Describe the changes you want to make and an expert will apply them to the file.
 
 Specify the changes you want to make in the edit_content field, with helpful comments, like so:
