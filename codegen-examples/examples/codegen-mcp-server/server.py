@@ -1,4 +1,5 @@
 import asyncio
+import functools
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -11,6 +12,7 @@ from codegen.cli.api.endpoints import CODEGEN_SYSTEM_PROMPT_URL
 from codegen.cli.auth.token_manager import get_current_token
 from codegen.cli.codemod.convert import convert_to_cli
 from codegen.cli.utils.default_code import DEFAULT_CODEMOD
+from codegen.extensions.tools.reveal_symbol import reveal_symbol
 from mcp.server.fastmcp import FastMCP
 
 ################################################################################
@@ -22,16 +24,25 @@ from mcp.server.fastmcp import FastMCP
 class CodebaseState:
     """Class to manage codebase state and parsing."""
 
-    parse_task: Optional[asyncio.Future] = None
     parsed_codebase: Optional[Codebase] = None
     log_buffer: List[str] = field(default_factory=list)
     codemod_tasks: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    codebase_path: str = "."
 
-    def parse(self, path: str) -> Codebase:
+    def __post_init__(self):
+        """Initialize by parsing the codebase immediately."""
+        print("Starting codebase parsing...")
+        self.parse(self.codebase_path)
+        print(f"Codebase parsing completed. Found {len(self.parsed_codebase.files)} files.")
+
+    def parse(self, path: str) -> None:
         """Parse the codebase at the given path."""
-        codebase = Codebase(path)
-        self.parsed_codebase = codebase
-        return codebase
+        try:
+            self.codebase_path = path
+            self.parsed_codebase = Codebase(path, language="python")
+        except Exception as e:
+            print(f"Error parsing codebase: {str(e)}")
+            self.parsed_codebase = None
 
     def reset(self) -> None:
         """Reset the state."""
@@ -46,8 +57,8 @@ mcp = FastMCP(
     dependencies=["codegen"],
 )
 
-# Initialize state
-state = CodebaseState()
+# Initialize state with a specific path
+state = CodebaseState(codebase_path="/Users/jonhack/CS/CODEGEN/codegen-sdk")
 
 
 def capture_output(*args, **kwargs) -> None:
@@ -56,15 +67,35 @@ def capture_output(*args, **kwargs) -> None:
         state.log_buffer.append(str(arg))
 
 
-def update_codebase(future: asyncio.Future):
+# Decorator to require codebase to be parsed
+def requires_parsed_codebase(func):
+    @functools.wraps(func)
+    async def wrapper(*args, **kwargs):
+        if state.parsed_codebase is None:
+            return {"error": "Codebase has not been parsed successfully. Please run parse_codebase first."}
+        return await func(*args, **kwargs)
+
+    return wrapper
+
+
+@mcp.tool(name="parse_codebase", description="Parse the codebase at the specified path")
+async def parse_codebase(codebase_path: Annotated[str, "path to the codebase to be parsed. Usually this is just '.'"]) -> Dict[str, str]:
     try:
-        result = future.result()
-        if result is not None:
-            state.parsed_codebase = result
+        print(f"Parsing codebase at {codebase_path}...")
+        state.parse(codebase_path)
+        if state.parsed_codebase:
+            return {"message": f"Codebase parsed successfully. Found {len(state.parsed_codebase.files)} files.", "status": "success"}
         else:
-            state.parsed_codebase = None
-    except Exception:
-        pass
+            return {"message": "Codebase parsing failed.", "status": "error"}
+    except Exception as e:
+        return {"message": f"Error parsing codebase: {str(e)}", "status": "error"}
+
+
+@mcp.tool(name="check_parse_status", description="Check if codebase is parsed")
+async def check_parse_status() -> Dict[str, str]:
+    if state.parsed_codebase is None:
+        return {"message": "Codebase has not been parsed successfully.", "status": "not_parsed"}
+    return {"message": f"Codebase is parsed. Found {len(state.parsed_codebase.files)} files.", "status": "parsed"}
 
 
 async def create_codemod_task(name: str, description: str, language: str = "python") -> Dict[str, Any]:
@@ -231,25 +262,8 @@ def get_config() -> str:
 ################################################################################
 
 
-@mcp.tool(name="parse_codebase", description="Initiate codebase parsing")
-async def parse_codebase(codebase_path: Annotated[str, "path to the codebase to be parsed. Usually this is just '.'"]) -> Dict[str, str]:
-    if not state.parse_task or state.parse_task.done():
-        state.parse_task = asyncio.get_event_loop().run_in_executor(None, lambda: state.parse(codebase_path))
-        state.parse_task.add_done_callback(update_codebase)
-        return {"message": "Codebase parsing initiated, this may take some time depending on the size of the codebase. Use the `check_parse_status` tool to check if the parse has completed."}
-    return {"message": "Codebase is already being parsed.", "status": "error"}
-
-
-@mcp.tool(name="check_parse_status", description="Check if codebase parsing has completed")
-async def check_parse_status() -> Dict[str, str]:
-    if not state.parse_task:
-        return {"message": "No codebase provided to parse."}
-    if state.parse_task.done():
-        return {"message": "Codebase parsing completed."}
-    return {"message": "Codebase parsing in progress."}
-
-
 @mcp.tool(name="create_codemod", description="Initiate creation of a new codemod in the `.codegen/codemods/{name}` directory")
+@requires_parsed_codebase
 async def create_codemod(
     name: Annotated[str, "Name of the codemod to create"],
     description: Annotated[str, "Description of what the codemod does. Be specific, as this is passed to an expert LLM to generate the first draft"] = None,
@@ -332,15 +346,10 @@ async def run_codemod(
     name: Annotated[str, "Name of the codemod to run"],
     arguments: Annotated[str, "JSON string of arguments to pass to the codemod"] = None,
 ) -> Dict[str, Any]:
-    if not state.parse_task or not state.parse_task.done():
+    if not state.parsed_codebase:
         return {"error": "Codebase is not ready for codemod execution. Parse a codebase first."}
 
     try:
-        # Wait for codebase to be ready
-        await state.parse_task
-        if state.parsed_codebase is None:
-            return {"error": "Codebase path is not set."}
-
         # Get the codemod using CodemodManager
         try:
             from codegen.cli.utils.codemod_manager import CodemodManager
@@ -430,8 +439,20 @@ async def reset() -> Dict[str, Any]:
 ################################################################################
 
 
+@mcp.tool(name="reveal_symbol", description="Shows all usages + dependencies of the provided symbol, up to the specified max depth (e.g. show 2nd-level usages/dependencies)")
+async def reveal_symbol_fn(
+    symbol: Annotated[str, "symbol to show usages and dependencies for"],
+    filepath: Annotated[str, "file path to the target file to split"] = None,
+    max_depth: Annotated[int, "maximum depth to show dependencies"] = 1,
+):
+    codebase = state.parsed_codebase
+    output = reveal_symbol(codebase=codebase, symbol_name=symbol, filepath=filepath, max_depth=max_depth, max_tokens=10000)
+    return output
+
+
 @mcp.tool(name="split_out_functions", description="split out the functions in defined in the provided file into new files, re-importing them to the original")
-def split_out_functions(target_file: Annotated[str, "file path to the target file to split"]):
+@requires_parsed_codebase
+async def split_out_functions(target_file: Annotated[str, "file path to the target file to split"]):
     new_files = {}
     codebase = state.parsed_codebase
     file = codebase.get_file(target_file)
@@ -444,14 +465,21 @@ def split_out_functions(target_file: Annotated[str, "file path to the target fil
         new_files[new_file.filepath] = [function.name]
 
     codebase.commit()
-
     result = {"description": "the following new files have been created with each with containing the function specified", "new_files": new_files}
-
     return json.dumps(result, indent=2)
+
+
+################################################################################
+# MAIN
+################################################################################
 
 
 def main():
     print("starting codegen-mcp-server")
+    # Start parsing the codebase on server boot
+    print("starting codebase parsing")
+    state.parse(state.codebase_path)
+    print("codebase parsing started")
     run = mcp.run_stdio_async()
     print("codegen-mcp-server started")
     asyncio.get_event_loop().run_until_complete(run)
