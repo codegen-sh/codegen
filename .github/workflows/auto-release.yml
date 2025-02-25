@@ -40,6 +40,7 @@ jobs:
     needs: semantic-version
     name: Generate Changelog
     runs-on: ubuntu-latest
+    environment: auto-release
     permissions:
       contents: write
     steps:
@@ -52,8 +53,8 @@ jobs:
 
       - name: Generate changelog
         env:
-          OPENAI_TOKEN: ${{ secrets.OPENAI_TOKEN }}
-        run: uv run python src/codegen/gscli/cli.py generate changelog --openai-key ${{ secrets.OPENAI_TOKEN }}
+          OPEN_AI_TOKEN: ${{ secrets.OPEN_AI_TOKEN }}
+        run: uv run python src/codegen/gscli/cli.py generate changelog --openai-key ${{ secrets.OPEN_AI_TOKEN }}
 
       - name: Commit changes
         run: |
