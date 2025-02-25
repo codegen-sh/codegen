@@ -51,6 +51,8 @@ logger = logging.getLogger(__name__)
 class File(Editable[None]):
     """Represents a generic file.
 
+    [FILE CLASS TEST DOC]
+
     Could represent a source file or a non-code file such as a markdown file or image file.
 
     Attributes:
