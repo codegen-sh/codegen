@@ -400,4 +400,3 @@ def linear_get_teams_tool(client: LinearClient) -> LinearTeamsObservation:
             error=f"Failed to get teams: {e!s}",
             teams=[],
         )
-

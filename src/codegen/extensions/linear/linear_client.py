@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 from typing import Optional
@@ -16,8 +15,7 @@ class LinearClient:
     api_headers: dict
     api_endpoint = "https://api.linear.app/graphql"
 
-    def __init__(self, access_token: Optional[str] = None, team_id: Optional[str] = None,
-                 max_retries: int = 3, backoff_factor: float = 0.5):
+    def __init__(self, access_token: Optional[str] = None, team_id: Optional[str] = None, max_retries: int = 3, backoff_factor: float = 0.5):
         if not access_token:
             access_token = os.getenv("LINEAR_ACCESS_TOKEN")
             if not access_token:
@@ -40,7 +38,7 @@ class LinearClient:
             total=max_retries,
             backoff_factor=backoff_factor,
             status_forcelist=[429, 500, 502, 503, 504],
-            allowed_methods=["POST", "GET"]  # POST is important for GraphQL
+            allowed_methods=["POST", "GET"],  # POST is important for GraphQL
         )
         adapter = HTTPAdapter(max_retries=retry_strategy)
         self.session.mount("https://", adapter)
@@ -57,11 +55,7 @@ class LinearClient:
             }
         """
         variables = {"issueId": issue_id}
-        response = self.session.post(
-            self.api_endpoint,
-            headers=self.api_headers,
-            json={"query": query, "variables": variables}
-        )
+        response = self.session.post(self.api_endpoint, headers=self.api_headers, json={"query": query, "variables": variables})
         data = response.json()
         issue_data = data["data"]["issue"]
         return LinearIssue(id=issue_data["id"], title=issue_data["title"], description=issue_data["description"])
@@ -85,11 +79,7 @@ class LinearClient:
             }
         """
         variables = {"issueId": issue_id}
-        response = self.session.post(
-            self.api_endpoint,
-            headers=self.api_headers,
-            json={"query": query, "variables": variables}
-        )
+        response = self.session.post(self.api_endpoint, headers=self.api_headers, json={"query": query, "variables": variables})
         data = response.json()
         comments = data["data"]["issue"]["comments"]["nodes"]
 
@@ -130,12 +120,8 @@ class LinearClient:
             comment_data = data["data"]["commentCreate"]["comment"]
             user_data = comment_data.get("user", None)
             user = LinearUser(id=user_data["id"], name=user_data["name"]) if user_data else None
-            
-            return LinearComment(
-                id=comment_data["id"],
-                body=comment_data["body"],
-                user=user
-            )
+
+            return LinearComment(id=comment_data["id"], body=comment_data["body"], user=user)
         except Exception as e:
             msg = f"Error creating comment\n{data}\n{e}"
             raise ValueError(msg)
@@ -163,11 +149,7 @@ class LinearClient:
             }
         }
 
-        response = self.session.post(
-            self.api_endpoint,
-            headers=self.api_headers,
-            json={"query": mutation, "variables": variables}
-        )
+        response = self.session.post(self.api_endpoint, headers=self.api_headers, json={"query": mutation, "variables": variables})
         body = response.json()
         return body
 
