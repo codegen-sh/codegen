@@ -485,7 +485,7 @@ class Editable(JSONable, Generic[Parent]):
 
     @reader
     def find(self, strings_to_match: list[str] | str, *, exact: bool = False) -> list[Editable]:
-        r"""Find and return matching nodes or substrings \within an Editable instance.
+        """Find and return matching nodes or substrings within an Editable instance.
 
         This method searches through the extended_nodes of the Editable instance and returns all nodes or substrings that match the given search criteria.
 
