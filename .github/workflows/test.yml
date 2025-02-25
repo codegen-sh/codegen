@@ -11,7 +11,17 @@ on:
   workflow_dispatch:
 
 jobs:
+  access-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions-cool/check-user-permission@v2
+        with:
+          require: write
+          username: ${{ github.triggering_actor }}
+          error-if-missing: true
+
   unit-tests:
+    needs: access-check
     runs-on: ubuntu-latest-8
     environment: testing
     steps:
@@ -34,6 +44,7 @@ jobs:
           codecov_flags: unit-tests
 
   codemod-tests:
+    needs: access-check
     # TODO: re-enable when this check is a develop required check
     if: false
     runs-on: ubuntu-latest-32
@@ -76,6 +87,7 @@ jobs:
           GITHUB_WORKSPACE: $GITHUB_WORKSPACE
 
   parse-tests:
+    needs: access-check
     if: contains(github.event.pull_request.labels.*.name, 'parse-tests') || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest-32
     environment: testing
@@ -147,6 +159,7 @@ jobs:
             }
 
   integration-tests:
+    needs: access-check
     runs-on: ubuntu-latest-16
     environment: testing
     steps:
