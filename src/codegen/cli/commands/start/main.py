@@ -7,7 +7,8 @@ import rich
 from rich.box import ROUNDED
 from rich.panel import Panel
 
-from codegen.cli.commands.start.docker_session import CODEGEN_RUNNER_IMAGE, DockerSession, DockerSessions
+from codegen.cli.commands.start.docker_container import DockerContainer
+from codegen.cli.commands.start.docker_fleet import CODEGEN_RUNNER_IMAGE, DockerFleet
 from codegen.configs.models.secrets import SecretsConfig
 from codegen.git.repo_operator.local_git_repo import LocalGitRepo
 from codegen.git.schemas.repo_config import RepoConfig
@@ -23,9 +24,9 @@ def start_command(port: int | None, platform: str):
     """Starts a local codegen server"""
     repo_path = Path.cwd().resolve()
     repo_config = RepoConfig.from_repo_path(str(repo_path))
-    docker_sessions = DockerSessions.load()
-    if (existing_session := docker_sessions.get(repo_config.name)) is not None:
-        return _handle_existing_session(repo_config, existing_session)
+    fleet = DockerFleet.load()
+    if (container := fleet.get(repo_config.name)) is not None:
+        return _handle_existing_container(repo_config, container)
 
     codegen_version = version("codegen")
     rich.print(f"[bold green]Codegen version:[/bold green] {codegen_version}")
@@ -48,19 +49,19 @@ def start_command(port: int | None, platform: str):
         raise click.Abort()
 
 
-def _handle_existing_session(repo_config: RepoConfig, docker_session: DockerSession) -> None:
-    if docker_session.is_running():
+def _handle_existing_container(repo_config: RepoConfig, container: DockerContainer) -> None:
+    if container.is_running():
         rich.print(
             Panel(
-                f"[green]Codegen server for {repo_config.name} is already running at: [bold]http://{docker_session.host}:{docker_session.port}[/bold][/green]",
+                f"[green]Codegen server for {repo_config.name} is already running at: [bold]http://{container.host}:{container.port}[/bold][/green]",
                 box=ROUNDED,
                 title="Codegen Server",
             )
         )
         return
 
-    if docker_session.start():
-        rich.print(Panel(f"[yellow]Docker session for {repo_config.name} is not running. Restarting...[/yellow]", box=ROUNDED, title="Docker Session"))
+    if container.start():
+        rich.print(Panel(f"[yellow]Docker container for {repo_config.name} is not running. Restarting...[/yellow]", box=ROUNDED, title="Docker Session"))
         return
 
     rich.print(Panel(f"[red]Failed to restart container for {repo_config.name}[/red]", box=ROUNDED, title="Docker Session"))
