@@ -105,15 +105,17 @@ class PyImport(Import["PyFile"]):
                 base_path,
                 module_source.replace(".", "/") + "/" + symbol_name + ".py",
             )
-        if file := self.ctx.get_file(filepath):
-            return ImportResolution(from_file=file, symbol=None, imports_file=True)
 
         # =====[ Check if we are importing an entire file with custom resolve path or sys.path enabled ]=====
-        if len(self.ctx.config.py_resolve_overrides) > 0 or self.ctx.config.py_resolve_syspath:
+        if len(self.ctx.config.import_resolution_paths) > 0 or self.ctx.config.py_resolve_syspath:
             # Handle resolve overrides first if both is set
-            resolve_paths: list[str] = self.ctx.config.py_resolve_overrides + (sys.path if self.ctx.config.py_resolve_syspath else [])
+            resolve_paths: list[str] = self.ctx.config.import_resolution_paths + (sys.path if self.ctx.config.py_resolve_syspath else [])
             if file := self._file_by_custom_resolve_paths(resolve_paths, filepath):
                 return ImportResolution(from_file=file, symbol=None, imports_file=True)
+
+        # =====[ Default path ]=====
+        if file := self.ctx.get_file(filepath):
+            return ImportResolution(from_file=file, symbol=None, imports_file=True)
 
         filepath = filepath.replace(".py", "/__init__.py")
         if file := self.ctx.get_file(filepath):
@@ -121,20 +123,20 @@ class PyImport(Import["PyFile"]):
             # You can't do `from a.b.c import foo` => `foo.utils.x` right now since `foo` is just a file...
             return ImportResolution(from_file=file, symbol=None, imports_file=True)
 
-        # =====[ Check if `module.py` file exists in the graph ]=====
+        # =====[ Check if `module.py` file exists in the graph with custom resolve path or sys.path enabled  ]=====
         filepath = module_source.replace(".", "/") + ".py"
+        if len(self.ctx.config.import_resolution_paths) > 0 or self.ctx.config.py_resolve_syspath:
+            # Handle resolve overrides first if both is set
+            resolve_paths: list[str] = self.ctx.config.import_resolution_paths + (sys.path if self.ctx.config.py_resolve_syspath else [])
+            if file := self._file_by_custom_resolve_paths(resolve_paths, filepath):
+                symbol = file.get_node_by_name(symbol_name)
+                return ImportResolution(from_file=file, symbol=symbol)
+
+        # =====[ Check if `module.py` file exists in the graph ]=====
         filepath = os.path.join(base_path, filepath)
         if file := self.ctx.get_file(filepath):
             symbol = file.get_node_by_name(symbol_name)
             return ImportResolution(from_file=file, symbol=symbol)
-
-        # =====[ Check if `module.py` file exists in the graph with custom resolve path or sys.path enabled  ]=====
-        if len(self.ctx.config.py_resolve_overrides) > 0 or self.ctx.config.py_resolve_syspath:
-            # Handle resolve overrides first if both is set
-            resolve_paths: list[str] = self.ctx.config.py_resolve_overrides + (sys.path if self.ctx.config.py_resolve_syspath else [])
-            if file := self._file_by_custom_resolve_paths(resolve_paths, filepath):
-                symbol = file.get_node_by_name(symbol_name)
-                return ImportResolution(from_file=file, symbol=symbol)
 
         # =====[ Check if `module/__init__.py` file exists in the graph ]=====
         filepath = filepath.replace(".py", "/__init__.py")

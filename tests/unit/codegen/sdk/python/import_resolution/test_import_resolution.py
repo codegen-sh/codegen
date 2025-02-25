@@ -324,12 +324,12 @@ def func():
         assert src_import_resolution is None
 
         # =====[ Imports cannot be found with custom resolve path set to invalid path ]=====
-        codebase.ctx.config.py_resolve_overrides = ["x"]
+        codebase.ctx.config.import_resolution_paths = ["x"]
         src_import_resolution = src_import.resolve_import()
         assert src_import_resolution is None
 
         # =====[ Imports can be found with custom resolve path set ]=====
-        codebase.ctx.config.py_resolve_overrides = ["a"]
+        codebase.ctx.config.import_resolution_paths = ["a"]
         src_import_resolution = src_import.resolve_import()
         assert src_import_resolution 
         assert src_import_resolution.from_file is src_file
@@ -337,14 +337,14 @@ def func():
 
         # =====[ Imports can be found with custom resolve multi-path set ]=====
         src_import = consumer_file.imports[1]
-        codebase.ctx.config.py_resolve_overrides = ["a/b"]
+        codebase.ctx.config.import_resolution_paths = ["a/b"]
         src_import_resolution = src_import.resolve_import()
         assert src_import_resolution 
         assert src_import_resolution.from_file is src_file
         assert src_import_resolution.imports_file is True
 
 
-def test_import_resolution_file_custom_resolve_and_syspath(tmpdir: str, monkeypatch) -> None:
+def test_import_resolution_file_custom_resolve_and_syspath_precedence(tmpdir: str, monkeypatch) -> None:
     """Tests function.usages returns usages from file imports"""
     # language=python
     with get_codebase_session(
@@ -370,7 +370,7 @@ def func():
         consumer_file: SourceFile = codebase.get_file("consumer.py")
 
         # Ensure we don't have overrites and enable syspath resolution
-        codebase.ctx.config.py_resolve_overrides = []
+        codebase.ctx.config.import_resolution_paths = []
         codebase.ctx.config.py_resolve_syspath = True
 
         # =====[ Import with sys.path set can be found ]=====
@@ -383,11 +383,64 @@ def func():
         assert src_import_resolution.from_file.file_path == "a/c/src.py"
 
         # =====[ Imports can be found with custom resolve over sys.path ]=====
-        codebase.ctx.config.py_resolve_overrides = ["a/b"]
+        codebase.ctx.config.import_resolution_paths = ["a/b"]
         src_import_resolution = src_import.resolve_import()
         assert src_import_resolution 
         assert src_import_resolution.from_file is src_file
         assert src_import_resolution.imports_file is True
+
+
+def test_import_resolution_default_conflicts_overrite(tmpdir: str, monkeypatch) -> None:
+    """Tests function.usages returns usages from file imports"""
+    # language=python
+    with get_codebase_session(
+        tmpdir,
+        files={
+            "a/src.py": """
+def update1():
+    pass
+""",
+            "b/a/src.py": """
+def update2():
+    pass
+""",
+            "consumer.py": """
+from a import src as operations
+
+def func():
+    operations.update2()
+""",
+        },
+    ) as codebase:
+        src_file: SourceFile = codebase.get_file("a/src.py")
+        src_file_overrite: SourceFile = codebase.get_file("b/a/src.py")
+        consumer_file: SourceFile = codebase.get_file("consumer.py")
+
+        # Ensure we don't have overrites and enable syspath resolution
+        codebase.ctx.config.import_resolution_paths = []
+        codebase.ctx.config.py_resolve_syspath = True
+
+        # =====[ Default import works ]=====
+        assert len(consumer_file.imports) == 1
+        src_import: Import = consumer_file.imports[0]
+        src_import_resolution = src_import.resolve_import()
+        assert src_import_resolution 
+        assert src_import_resolution.from_file is src_file
+
+        # =====[ Sys.path overrite has precedence ]=====
+        monkeypatch.syspath_prepend("b")
+        src_import_resolution = src_import.resolve_import()
+        assert src_import_resolution 
+        assert src_import_resolution.from_file is not src_file
+        assert src_import_resolution.from_file is src_file_overrite
+
+        # =====[ Custom overrite has precedence ]=====
+        codebase.ctx.config.import_resolution_paths = ["b"]
+        src_import_resolution = src_import.resolve_import()
+        assert src_import_resolution 
+        assert src_import_resolution.from_file is not src_file
+        assert src_import_resolution.from_file is src_file_overrite
+
 
 
 def test_import_resolution_circular(tmpdir: str) -> None:
