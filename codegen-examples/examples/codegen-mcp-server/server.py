@@ -13,6 +13,10 @@ from codegen.cli.codemod.convert import convert_to_cli
 from codegen.cli.utils.default_code import DEFAULT_CODEMOD
 from mcp.server.fastmcp import FastMCP
 
+################################################################################
+# State + Server Definition
+################################################################################
+
 
 @dataclass
 class CodebaseState:
@@ -114,8 +118,121 @@ async def create_codemod_task(name: str, description: str, language: str = "pyth
         return {"status": "error", "message": f"Error creating codemod: {str(e)}"}
 
 
+################################################################################
+# Prompts
+################################################################################
+
+
+@mcp.prompt()
+def codegen_system_prompt():
+    """System prompt for the codegen server"""
+    return """
+Codegen is a tool for programmatically manipulating codebases via "codemods".
+
+It provides a scriptable interface to a powerful, multi-lingual language server built on top of Tree-sitter.
+
+For example, consider the following script:
+
+```python
+from codegen import Codebase
+
+# Codegen builds a complete graph connecting
+# functions, classes, imports and their relationships
+codebase = Codebase("./")
+
+# Work with code without dealing with syntax trees or parsing
+for function in codebase.functions:
+    # Comprehensive static analysis for references, dependencies, etc.
+    if not function.usages:
+        # Auto-handles references and imports to maintain correctness
+        function.remove()
+
+# Fast, in-memory code index
+codebase.commit()
+```
+
+This script will remove all functions that are not used in the codebase.
+
+You can run this script using the `run_codemod` tool.
+
+# Developing Codemods
+
+Codegen codemods are functions that take a `Codebase` as input and manipulate it.
+
+They live in the `.codegen/codemods/{name}/{name.py}` directory, and take the following form:
+```python
+from codegen import Codebase
+
+@codegen.function('{name}')
+def codemod(codebase: Codebase):
+    for function in codebase.functions:
+        if not function.usages:
+            print(f"🗑️ Removing: {function.name}")
+            function.remove()
+```
+
+You can run these codemods using the `run_codemod` tool and modify the codemod behavior by editing the `{name}.py` file.
+
+## Developer Flow
+
+Typically, developers will need to iterate on a codemod until it is working as expected.
+
+The developer flow typically consists of the following steps:
+
+1. Create a new codemod using the `create_codemod` tool.
+    - This will create a new codemod in the `.codegen/codemods/{name}` directory.
+    - The codemod will be created with an initial implementation created by an expert LLM
+    - It will also included documentation in a text file, containing similar examples and explanations of relevant syntax.
+    - You have to wait until the `view_codemods` tool shows the codemod as `completed` before you can run it!
+2. Run the codemod using the `run_codemod` tool
+    - This will run the codemod on the codebase
+    - Logs (print statements) will be captured and displayed in the response
+    - All changes will be written to the file system
+3. Inspect the results using the `git diff` command or similar
+    - This will show the changes that were made to the codebase.
+4. Reset the codebase to the previous state using the `reset` tool
+    - This will preserve all files in the `.codegen` directory, allowing you to re-run the codemod and inspect the results.
+5. Modify the codemod until it is working as expected
+    - This can be done by editing the `{name}.py` file directly
+    - Then proceed to step 2 again!
+
+## Async APIs
+
+Two actions take ~10s and will trigger MCP timeouts if they are performed synchronously:
+
+1. `create_codemod`
+2. `parse_codebase`
+
+
+Therefore, both of these have associated tools that will initiate the action in a background thread, and return immediately.
+
+You can use the `view_codemods` tool to check the status of these background tasks.
+
+Similarly, you can use the `view_parse_status` tool to check the status of the codebase parsing task.
+
+## Helpful Tips
+
+- Only develop codemods on a clean commit
+  - This ensures that you can return to a working state by calling `reset`
+  - Otherwise, `reset` will blow away all of your non-codemod changes!
+
+
+"""
+
+
+@mcp.resource("config://app")
+def get_config() -> str:
+    """Static configuration data"""
+    return "App configuration here"
+
+
+################################################################################
+# MCP Server Tools
+################################################################################
+
+
 @mcp.tool(name="parse_codebase", description="Initiate codebase parsing")
-async def parse_codebase(codebase_path: Annotated[str, "path to the codebase to be parsed"]) -> Dict[str, str]:
+async def parse_codebase(codebase_path: Annotated[str, "path to the codebase to be parsed. Usually this is just '.'"]) -> Dict[str, str]:
     if not state.parse_task or state.parse_task.done():
         state.parse_task = asyncio.get_event_loop().run_in_executor(None, lambda: state.parse(codebase_path))
         state.parse_task.add_done_callback(update_codebase)
@@ -132,35 +249,11 @@ async def check_parse_status() -> Dict[str, str]:
     return {"message": "Codebase parsing in progress."}
 
 
-@mcp.tool(name="execute_codemod", description="Execute a codemod on the codebase")
-async def execute_codemod(codemod: Annotated[str, "The python codemod code to execute on the codebase"]) -> Dict[str, Any]:
-    if not state.parse_task or not state.parse_task.done():
-        return {"error": "Codebase is not ready for codemod execution."}
-
-    try:
-        await state.parse_task
-        if state.parsed_codebase is None:
-            return {"error": "Codebase path is not set."}
-        else:
-            # TODO: Implement proper sandboxing for code execution
-            context = {
-                "codebase": state.parsed_codebase,
-                "print": capture_output,
-            }
-            exec(codemod, context)
-
-        logs = "\n".join(state.log_buffer)
-        state.reset()
-        return {"message": "Codemod executed, view the logs for any output and your source code for any resulting updates.", "logs": logs}
-    except Exception as e:
-        return {"error": f"Error executing codemod: {str(e)}", "details": {"type": type(e).__name__, "message": str(e)}}
-
-
-@mcp.tool(name="create_codemod", description="Initiate creation of a new codemod in the .codegen directory")
+@mcp.tool(name="create_codemod", description="Initiate creation of a new codemod in the `.codegen/codemods/{name}` directory")
 async def create_codemod(
     name: Annotated[str, "Name of the codemod to create"],
-    description: Annotated[str, "Description of what the codemod does"] = None,
-    language: Annotated[str, "Programming language for the codemod"] = "python",
+    description: Annotated[str, "Description of what the codemod does. Be specific, as this is passed to an expert LLM to generate the first draft"] = None,
+    language: Annotated[str, "Programming language for the codemod (default Python)"] = "python",
 ) -> Dict[str, Any]:
     # Check if a task with this name already exists
     if name in state.codemod_tasks:
@@ -194,7 +287,7 @@ async def create_codemod(
     return {"status": "initiated", "message": f"Codemod '{name}' creation initiated. Use view_codemods to check status."}
 
 
-@mcp.tool(name="view_codemods", description="View all codemods and their creation status")
+@mcp.tool(name="view_codemods", description="View all available codemods and their creation status")
 async def view_codemods() -> Dict[str, Any]:
     result = {"active_tasks": {}, "available_codemods": []}
 
@@ -234,7 +327,7 @@ async def view_codemods() -> Dict[str, Any]:
     return result
 
 
-@mcp.tool(name="run_codemod", description="Run a codemod from the .codegen directory")
+@mcp.tool(name="run_codemod", description="Runs a codemod from the `.codegen/codemods/{name}` directory and writes output to disk")
 async def run_codemod(
     name: Annotated[str, "Name of the codemod to run"],
     arguments: Annotated[str, "JSON string of arguments to pass to the codemod"] = None,
