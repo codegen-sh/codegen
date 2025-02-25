@@ -299,6 +299,39 @@ async def run_codemod(
         return {"error": f"Error executing codemod: {str(e)}", "details": {"type": type(e).__name__, "message": str(e)}}
 
 
+@mcp.tool(name="reset", description="Reset git repository while preserving all files in .codegen directory")
+async def reset() -> Dict[str, Any]:
+    try:
+        # Import necessary functions from reset command
+        from codegen.cli.commands.reset.main import backup_codegen_files, remove_untracked_files, restore_codegen_files
+        from codegen.cli.git.repo import get_git_repo
+        from pygit2.enums import ResetMode
+
+        # Get the git repository
+        repo = get_git_repo()
+        if not repo:
+            return {"error": "Not a git repository"}
+
+        # Backup .codegen files and their staged status
+        codegen_changes = backup_codegen_files(repo)
+
+        # Reset everything
+        repo.reset(repo.head.target, ResetMode.HARD)
+
+        # Restore .codegen files and their staged status
+        restore_codegen_files(repo, codegen_changes)
+
+        # Remove untracked files except .codegen
+        remove_untracked_files(repo)
+
+        return {
+            "message": "Reset complete. Repository has been restored to HEAD (preserving .codegen) and untracked files have been removed (except .codegen)",
+            "preserved_files": len(codegen_changes),
+        }
+    except Exception as e:
+        return {"error": f"Error during reset: {str(e)}"}
+
+
 def main():
     print("starting codegen-mcp-server")
     run = mcp.run_stdio_async()
