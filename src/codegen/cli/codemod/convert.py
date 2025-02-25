@@ -3,7 +3,7 @@ from textwrap import indent
 
 def convert_to_cli(input: str, language: str, name: str) -> str:
     return f"""import codegen
-from codegen.sdk.core.codebase import Codebase
+from codegen import Codebase
 
 
 @codegen.function('{name}')
