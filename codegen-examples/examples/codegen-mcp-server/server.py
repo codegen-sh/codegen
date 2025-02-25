@@ -274,7 +274,7 @@ async def run_codemod(
         # Create a session for the codemod
         from codegen.cli.auth.session import CodegenSession
 
-        session = CodegenSession(state.parsed_codebase.path)
+        session = CodegenSession(state.parsed_codebase.repo_path)
         session.codebase = state.parsed_codebase
 
         # Capture output
@@ -285,15 +285,12 @@ async def run_codemod(
 
         try:
             # Run the codemod using run_local
-            from codegen.cli.commands.run.run_local import run_local
 
-            run_local(session, codemod, diff_preview=None, arguments=args_dict)
-
-            # Collect logs
+            codemod.run(state.parsed_codebase)
+            state.parsed_codebase.get_diff()
             logs = "\n".join(state.log_buffer)
-            state.reset()
 
-            return {"message": f"Codemod '{name}' executed successfully", "logs": logs, "codemod_path": str(codemod.path), "result": "Codemod applied successfully"}
+            return {"message": f"Codemod '{name}' executed successfully", "logs": json.dumps(logs), "result": "Codemod applied successfully. Run `git diff` to view the changes!"}
         finally:
             # Restore original print
             builtins.print = original_print
