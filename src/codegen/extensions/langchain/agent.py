@@ -20,8 +20,9 @@ from .tools import (
     ReplacementEditTool,
     RevealSymbolTool,
     SearchTool,
-    SemanticEditTool,
+    # SemanticEditTool,
     ViewFileTool,
+    RelaceEditTool
 )
 
 if TYPE_CHECKING:
@@ -62,14 +63,15 @@ def create_codebase_agent(
         ViewFileTool(codebase),
         ListDirectoryTool(codebase),
         SearchTool(codebase),
-        EditFileTool(codebase),
+        # EditFileTool(codebase),
         CreateFileTool(codebase),
         DeleteFileTool(codebase),
         RenameFileTool(codebase),
         MoveSymbolTool(codebase),
         RevealSymbolTool(codebase),
-        SemanticEditTool(codebase),
+        # SemanticEditTool(codebase),
         ReplacementEditTool(codebase),
+        RelaceEditTool(codebase),
         # SemanticSearchTool(codebase),
         # =====[ Github Integration ]=====
         # Enable Github integration
