@@ -32,17 +32,21 @@ class CodegenApp:
         self.linear = Linear(self)
         self.slack = Slack(self)
         self.github = GitHub(self)
+        self.repos = repos
 
         # Initialize codebase cache
         self.codebases: dict[str, Codebase] = {}
 
-        # Parse initial repos if provided
-        if repos:
-            for repo in repos:
-                self._parse_repo(repo)
 
         # Register routes
         self._setup_routes()
+
+
+    def parse_repos(self) -> None:
+        # Parse initial repos if provided
+        if self.repos:
+            for repo in self.repos:
+                self._parse_repo(repo)
 
     def _parse_repo(self, repo_name: str) -> None:
         """Parse a GitHub repository and cache it.

@@ -79,8 +79,8 @@ def create_app_module(file_path: Path) -> str:
     # Create a module that imports and exposes the app
     module_name = f"codegen_app_{file_path.stem}"
     module_code = f"""
-from {file_path.stem} import cg
-app = cg.app
+from {file_path.stem} import app
+app = app
 """
     module_path = file_path.parent / f"{module_name}.py"
     module_path.write_text(module_code)
