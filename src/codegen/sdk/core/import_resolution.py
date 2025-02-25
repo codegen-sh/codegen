@@ -342,14 +342,13 @@ class Import(Usable[ImportStatement], Chainable, Generic[TSourceFile], HasAttrib
             if self.import_type == ImportType.NAMED_EXPORT:
                 if export := symbol.valid_import_names.get(name, None):
                     return export
-        elif resolve_exports and isinstance(symbol,PyFile):
+        elif resolve_exports and isinstance(symbol, PyFile):
             name = self.symbol_name.source if self.symbol_name else ""
             if self.import_type == ImportType.NAMED_EXPORT:
-                if symbol.name==name:
+                if symbol.name == name:
                     return symbol
-                if imp:= symbol.valid_import_names.get(name,None):
+                if imp := symbol.valid_import_names.get(name, None):
                     return imp
-
 
         if symbol is not self:
             return symbol
@@ -642,8 +641,8 @@ class Import(Usable[ImportStatement], Chainable, Generic[TSourceFile], HasAttrib
         #             if used_frame.parent_frame:
         #                 used_frame.parent_frame.add_usage(self.symbol_name or self.module, SymbolUsageType.IMPORTED_WILDCARD, self, self.ctx)
         # else:
-        if isinstance(self, Import) and self.import_type==ImportType.NAMED_EXPORT:
-            #It could be a wildcard import downstream, hence we have to pop the cache
+        if isinstance(self, Import) and self.import_type == ImportType.NAMED_EXPORT:
+            # It could be a wildcard import downstream, hence we have to pop the cache
             if file := self.from_file:
                 file.invalidate()
 

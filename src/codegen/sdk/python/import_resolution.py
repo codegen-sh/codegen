@@ -119,7 +119,7 @@ class PyImport(Import["PyFile"]):
         if file := self.ctx.get_file(filepath):
             symbol = file.get_node_by_name(symbol_name)
             if symbol is None:
-                return ImportResolution(from_file=file, symbol=None,imports_file=True)
+                return ImportResolution(from_file=file, symbol=None, imports_file=True)
             else:
                 return ImportResolution(from_file=file, symbol=symbol)
 
@@ -128,7 +128,7 @@ class PyImport(Import["PyFile"]):
         if from_file := self.ctx.get_file(filepath):
             symbol = from_file.get_node_by_name(symbol_name)
             if symbol is None:
-                return ImportResolution(from_file=from_file, symbol=None,imports_file=True)
+                return ImportResolution(from_file=from_file, symbol=None, imports_file=True)
             else:
                 return ImportResolution(from_file=from_file, symbol=symbol)
 

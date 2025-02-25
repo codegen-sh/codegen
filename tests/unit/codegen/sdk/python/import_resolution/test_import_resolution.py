@@ -608,14 +608,17 @@ def test_import_resolution_init_wildcard_chainging_deep(tmpdir: str) -> None:
     content3 = """from .dir import *"""
     content4 = """from .dir import  TEST_CONST
     test1=TEST_CONST"""
-    with get_codebase_session(tmpdir=tmpdir, files={
-        "dir/dir/dir/dir/file1.py": content1,
-        "dir/dir/dir/dir/__init__.py": content2,
-        "dir/dir/dir/__init__.py": content3,
-        "dir/dir/__init__.py": content3,
-        "dir/__init__.py": content3,
-        "file2.py": content4
-        }) as codebase:
+    with get_codebase_session(
+        tmpdir=tmpdir,
+        files={
+            "dir/dir/dir/dir/file1.py": content1,
+            "dir/dir/dir/dir/__init__.py": content2,
+            "dir/dir/dir/__init__.py": content3,
+            "dir/dir/__init__.py": content3,
+            "dir/__init__.py": content3,
+            "file2.py": content4,
+        },
+    ) as codebase:
         file1: SourceFile = codebase.get_file("dir/dir/dir/dir/file1.py")
         file2: SourceFile = codebase.get_file("file2.py")
 
