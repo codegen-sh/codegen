@@ -119,7 +119,11 @@ class PyImport(Import["PyFile"]):
         if file := self.ctx.get_file(filepath):
             symbol = file.get_node_by_name(symbol_name)
             if symbol is None:
-                return ImportResolution(from_file=file, symbol=None, imports_file=True)
+                if file.get_node_from_wildcard_chain(symbol_name):
+                    return ImportResolution(from_file=file, symbol=None, imports_file=True)
+                else:
+                    #This is most likely a broken import
+                    return ImportResolution(from_file=file, symbol=None)
             else:
                 return ImportResolution(from_file=file, symbol=symbol)
 
@@ -128,9 +132,15 @@ class PyImport(Import["PyFile"]):
         if from_file := self.ctx.get_file(filepath):
             symbol = from_file.get_node_by_name(symbol_name)
             if symbol is None:
-                return ImportResolution(from_file=from_file, symbol=None, imports_file=True)
+                if from_file.get_node_from_wildcard_chain(symbol_name):
+                    return ImportResolution(from_file=from_file, symbol=None, imports_file=True)
+                else:
+                    #This is most likely a broken import
+                    return ImportResolution(from_file=from_file, symbol=None)
+
             else:
                 return ImportResolution(from_file=from_file, symbol=symbol)
+
 
         # =====[ Case: Can't resolve the import ]=====
         if base_path == "":
