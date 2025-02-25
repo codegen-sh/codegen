@@ -11,19 +11,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  access-check:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check user permissions
-        # TODO: switch to use triggering_actor + write permission instead?
-        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.author_association != 'MEMBER' }}
-        run: |
-          echo "Action was not triggered by an organization member: ${{ github.event.pull_request.user.login }}. Exiting now."
-          exit 1
-
   unit-tests:
     runs-on: ubuntu-latest-8
-    needs: access-check
     steps:
       - uses: actions/checkout@v4
         with:
@@ -47,7 +36,6 @@ jobs:
     # TODO: re-enable when this check is a develop required check
     if: false
     runs-on: ubuntu-latest-32
-    needs: access-check
     strategy:
       matrix:
         sync_graph: [ true, false ]
@@ -88,7 +76,6 @@ jobs:
   parse-tests:
     if: contains(github.event.pull_request.labels.*.name, 'parse-tests') || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest-32
-    needs: access-check
     environment: parse-tests
     steps:
       - uses: actions/checkout@v4
@@ -159,7 +146,6 @@ jobs:
 
   integration-tests:
     runs-on: ubuntu-latest-16
-    needs: access-check
     steps:
       - uses: actions/checkout@v4
         with:
