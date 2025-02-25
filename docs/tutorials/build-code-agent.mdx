@@ -32,7 +32,6 @@ The agent has access to powerful code viewing and manipulation tools powered by 
 - `DeleteFileTool`: Delete files
 - `RenameFileTool`: Rename files
 - `EditFileTool`: Edit files 
-- `MoveSymbolTool`: Move symbols between files with import handling
 
 
 
@@ -67,6 +66,8 @@ agent = CodeAgent(
     model_name="gpt-4o",
 )
 ```
+
+<Note>If using a non-default model provider, make sure to set the appropriate API key (e.g., `OPENAI_API_KEY` for OpenAI models) in your env.</Note>
 
 # Available Tools
 
@@ -179,5 +180,5 @@ class CustomCodeTool(BaseTool):
 
 # Add custom tool to agent
 tools.append(CustomCodeTool())
-agent = CodebaseAgent(codebase, tools=tools, model_name="gpt-4o")
+agent = CodebaseAgent(codebase, tools=tools, model_name="claude-3-5-sonnet-latest")
 ```

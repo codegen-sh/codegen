@@ -72,6 +72,7 @@ dependencies = [
   "langchain-anthropic>=0.3.7",
   "lox>=0.12.0",
   "httpx>=0.28.1",
+  "docker>=6.1.3",
 ]
 
 license = { text = "Apache-2.0" }
