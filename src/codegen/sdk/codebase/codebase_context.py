@@ -211,8 +211,9 @@ class CodebaseContext:
 
         # =====[ Add all files to the graph in parallel ]=====
         syncs = defaultdict(lambda: [])
-        for filepath, _ in repo_operator.iter_files(subdirs=self.projects[0].subdirectories, extensions=self.extensions, ignore_list=GLOBAL_FILE_IGNORE_LIST):
-            syncs[SyncType.ADD].append(self.to_absolute(filepath))
+        if not self.config.disable_file_parse:
+            for filepath, _ in repo_operator.iter_files(subdirs=self.projects[0].subdirectories, extensions=self.extensions, ignore_list=GLOBAL_FILE_IGNORE_LIST):
+                syncs[SyncType.ADD].append(self.to_absolute(filepath))
         logger.info(f"> Parsing {len(syncs[SyncType.ADD])} files in {self.projects[0].subdirectories or 'ALL'} subdirectories with {self.extensions} extensions")
         self._process_diff_files(syncs, incremental=False)
         files: list[SourceFile] = self.get_nodes(NodeType.FILE)
@@ -252,19 +253,20 @@ class CodebaseContext:
             else:
                 logger.warning(f"Unhandled diff change type: {diff.change_type}")
         by_sync_type = defaultdict(lambda: [])
-        for filepath, sync_type in files_to_sync.items():
-            if self.get_file(filepath) is None:
-                if sync_type is SyncType.DELETE:
-                    # SourceFile is already deleted, nothing to do here
-                    continue
-                elif sync_type is SyncType.REPARSE:
-                    # SourceFile needs to be parsed for the first time
-                    sync_type = SyncType.ADD
-            elif sync_type is SyncType.ADD:
-                # If the file was deleted earlier, we need to reparse so we can remove old edges
-                sync_type = SyncType.REPARSE
+        if not self.config.disable_file_parse:
+            for filepath, sync_type in files_to_sync.items():
+                if self.get_file(filepath) is None:
+                    if sync_type is SyncType.DELETE:
+                        # SourceFile is already deleted, nothing to do here
+                        continue
+                    elif sync_type is SyncType.REPARSE:
+                        # SourceFile needs to be parsed for the first time
+                        sync_type = SyncType.ADD
+                elif sync_type is SyncType.ADD:
+                    # If the file was deleted earlier, we need to reparse so we can remove old edges
+                    sync_type = SyncType.REPARSE
 
-            by_sync_type[sync_type].append(filepath)
+                by_sync_type[sync_type].append(filepath)
         self.generation += 1
         self._process_diff_files(by_sync_type)
 
