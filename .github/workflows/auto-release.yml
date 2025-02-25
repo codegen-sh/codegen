@@ -35,6 +35,40 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  generate-changelog:
+    if: ${{ needs.semantic-version.outputs.release-tag }}
+    needs: semantic-version
+    name: Generate Changelog
+    runs-on: ubuntu-latest
+    environment: auto-release
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup backend
+        uses: ./.github/actions/setup-environment
+
+      - name: Generate changelog
+        env:
+          OPEN_AI_TOKEN: ${{ secrets.OPEN_AI_TOKEN }}
+        run: uv run python src/codegen/gscli/cli.py generate changelog --openai-key ${{ secrets.OPEN_AI_TOKEN }}
+
+      - name: Commit changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add docs/changelog/changelog.mdx
+          git diff --staged --quiet || git commit -m "update changelog"
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
+
   release:
     if: ${{ needs.semantic-version.outputs.release-tag }}
     needs: semantic-version
