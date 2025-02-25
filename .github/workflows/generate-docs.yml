@@ -3,7 +3,7 @@ name: Generate Documentation
 on:
   push:
     branches:
-      - develop
+      - test-doc-gen
 
 permissions:
   contents: write  # Need write permission to commit changes
