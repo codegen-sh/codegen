@@ -13,14 +13,14 @@ from .prompts import REASONER_SYSTEM_MESSAGE
 from .tools import (
     CreateFileTool,
     DeleteFileTool,
-    EditFileTool,
     ListDirectoryTool,
     MoveSymbolTool,
+    RelaceEditTool,
     RenameFileTool,
     ReplacementEditTool,
     RevealSymbolTool,
     SearchTool,
-    SemanticEditTool,
+    # SemanticEditTool,
     ViewFileTool,
 )
 
@@ -62,14 +62,15 @@ def create_codebase_agent(
         ViewFileTool(codebase),
         ListDirectoryTool(codebase),
         SearchTool(codebase),
-        EditFileTool(codebase),
+        # EditFileTool(codebase),
         CreateFileTool(codebase),
         DeleteFileTool(codebase),
         RenameFileTool(codebase),
         MoveSymbolTool(codebase),
         RevealSymbolTool(codebase),
-        SemanticEditTool(codebase),
+        # SemanticEditTool(codebase),
         ReplacementEditTool(codebase),
+        RelaceEditTool(codebase),
         # SemanticSearchTool(codebase),
         # =====[ Github Integration ]=====
         # Enable Github integration
