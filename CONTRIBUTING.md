@@ -12,21 +12,46 @@ By contributing to Codegen, you agree that:
 
 See our [CLA](CLA.md) for more details.
 
-## Development Setup
+# Development Setup
 
-### Installing UV Package Manager
+This guide will help you set up the development environment for this project.
 
-UV is a fast Python package installer and resolver. To install:
+## Installing UV Package Manager
 
-**macOS**:
+UV is a fast Python package installer and resolver.
+
+### macOS
+
+Install UV using Homebrew:
 
 ```bash
 brew install uv
 ```
 
-For other platforms, see the [UV installation docs](https://github.com/astral-sh/uv).
+### Debian/Ubuntu
 
-### Setting Up the Development Environment
+#### Install Required Dependencies
+
+Before installing UV, ensure `clang` and `curl` are installed:
+
+```bash
+sudo apt-get update
+sudo apt-get install -y clang curl
+```
+
+> **Note**: `clang` is required for compilation steps during `uv sync`.
+
+#### Install UV
+
+Once dependencies are installed, install UV:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+For other platforms, refer to the [UV installation docs](https://github.com/astral-sh/uv).
+
+## Setting Up the Development Environment
 
 After installing UV, set up your development environment:
 
@@ -36,10 +61,20 @@ source .venv/bin/activate
 uv sync --dev
 ```
 
-> [!TIP]
->
-> - If sync fails with `missing field 'version'`, you may need to delete lockfile and rerun `rm uv.lock && uv sync --dev`.
-> - If sync fails with failed compilation, you may need to install clang and rerun `uv sync --dev`.
+### Troubleshooting
+
+- If `uv sync` fails with `missing field 'version'`, it may be due to an older version of uv incompatible with the lock file. Try:
+
+  ```bash
+  uv self update
+  uv sync --dev
+  ```
+
+- If `uv sync` fails due to a compilation error, ensure `clang` is installed and then rerun:
+
+  ```bash
+  uv sync --dev
+  ```
 
 ### Running Tests
 
