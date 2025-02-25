@@ -6,18 +6,14 @@ on:
       - "develop"
   pull_request:
     types: [ opened, synchronize, reopened, labeled ]
+    branches:
+      - "develop"
   workflow_dispatch:
 
 jobs:
   access-check:
     runs-on: ubuntu-latest
     steps:
-      - name: Check base branch
-        if: ${{ github.head_ref != 'develop' }}
-        run: |
-          echo "Base branch is not develop. Exiting now."
-          exit 1
-
       - name: Check user permissions
         if: ${{ github.event_name == 'pull_request' && github.event.pull_request.author_association != 'MEMBER' }}
         run: |
