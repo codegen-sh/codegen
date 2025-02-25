@@ -300,7 +300,17 @@ async def create_codemod(
     state.codemod_tasks[name] = {"task": task, "name": name, "description": description, "language": language, "started_at": loop.time()}
 
     # Return immediately
-    return {"status": "initiated", "message": f"Codemod '{name}' creation initiated. Use view_codemods to check status."}
+    return {
+        "status": "initiated",
+        "message": f"""
+Codemod '{name}' creation initiated.
+
+Next steps:
+- Use `view_codemods` tool to check status
+- Use `run_codemod` tool to run the codemod. Important! Use this tool instead of directly executing the codemod file - this ensures it uses a properly-parsed codebase.
+- Use `reset` tool to revert to the current state of the codebase if you need to make modifications to the codemod itself.
+""",
+    }
 
 
 @mcp.tool(name="view_codemods", description="View all available codemods and their creation status")
@@ -336,7 +346,7 @@ async def view_codemods() -> Dict[str, Any]:
                 if codemod_dir.is_dir():
                     codemod_file = codemod_dir / f"{codemod_dir.name}.py"
                     if codemod_file.exists():
-                        result["available_codemods"].append({"name": codemod_dir.name, "path": str(codemod_file)})
+                        result["available_codemods"].append({"name": codemod_dir.name, "path": str(codemod_file), "run_with": f"run_codemod('{codemod_dir.name}')"})
     except Exception as e:
         result["error"] = f"Error listing codemods: {str(e)}"
 
