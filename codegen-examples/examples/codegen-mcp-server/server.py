@@ -366,7 +366,7 @@ async def run_codemod(
         try:
             from codegen.cli.utils.codemod_manager import CodemodManager
 
-            codemod = CodemodManager.get_codemod(name)
+            codemod = CodemodManager.get_codemod(name, start_path=state.parsed_codebase.repo_path)
         except Exception as e:
             return {"error": f"Error loading codemod '{name}': {str(e)}"}
 
