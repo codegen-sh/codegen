@@ -11,6 +11,9 @@ class DockerClient(Client):
     """Client for interacting with the locally hosted sandbox server hosted on a docker container."""
 
     def __init__(self, container: DockerContainer):
+        if not container.is_running() or container.host is None or container.port is None:
+            msg = f"Container {container.name} is not running."
+            raise Exception(msg)
         super().__init__(container.host, container.port)
 
 
