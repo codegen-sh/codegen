@@ -2,6 +2,7 @@ import asyncio
 import functools
 import json
 from dataclasses import dataclass, field
+from logging import getLogger
 from pathlib import Path
 from typing import Annotated, Any, Dict, List, Optional
 
@@ -15,9 +16,12 @@ from codegen.cli.utils.default_code import DEFAULT_CODEMOD
 from codegen.extensions.tools.reveal_symbol import reveal_symbol
 from mcp.server.fastmcp import FastMCP
 
+logger = getLogger(__name__)
+
 ################################################################################
 # State + Server Definition
 ################################################################################
+REPO_PATH = "/Users/jonhack/CS/CODEGEN/codegen-sdk"
 
 
 @dataclass
@@ -31,17 +35,14 @@ class CodebaseState:
 
     def __post_init__(self):
         """Initialize by parsing the codebase immediately."""
-        print("Starting codebase parsing...")
         self.parse(self.codebase_path)
-        print(f"Codebase parsing completed. Found {len(self.parsed_codebase.files)} files.")
 
     def parse(self, path: str) -> None:
         """Parse the codebase at the given path."""
         try:
             self.codebase_path = path
             self.parsed_codebase = Codebase(path, language="python")
-        except Exception as e:
-            print(f"Error parsing codebase: {str(e)}")
+        except Exception:
             self.parsed_codebase = None
 
     def reset(self) -> None:
@@ -58,7 +59,7 @@ mcp = FastMCP(
 )
 
 # Initialize state with a specific path
-state = CodebaseState(codebase_path="/Users/jonhack/CS/CODEGEN/codegen-sdk")
+state = CodebaseState(codebase_path=REPO_PATH)
 
 
 def capture_output(*args, **kwargs) -> None:
@@ -78,24 +79,24 @@ def requires_parsed_codebase(func):
     return wrapper
 
 
-@mcp.tool(name="parse_codebase", description="Parse the codebase at the specified path")
-async def parse_codebase(codebase_path: Annotated[str, "path to the codebase to be parsed. Usually this is just '.'"]) -> Dict[str, str]:
-    try:
-        print(f"Parsing codebase at {codebase_path}...")
-        state.parse(codebase_path)
-        if state.parsed_codebase:
-            return {"message": f"Codebase parsed successfully. Found {len(state.parsed_codebase.files)} files.", "status": "success"}
-        else:
-            return {"message": "Codebase parsing failed.", "status": "error"}
-    except Exception as e:
-        return {"message": f"Error parsing codebase: {str(e)}", "status": "error"}
+# @mcp.tool(name="parse_codebase", description="Parse the codebase at the specified path")
+# async def parse_codebase(codebase_path: Annotated[str, "path to the codebase to be parsed. Usually this is just '.'"]) -> Dict[str, str]:
+#     try:
+#         print(f"Parsing codebase at {codebase_path}...")
+#         state.parse(codebase_path)
+#         if state.parsed_codebase:
+#             return {"message": f"Codebase parsed successfully. Found {len(state.parsed_codebase.files)} files.", "status": "success"}
+#         else:
+#             return {"message": "Codebase parsing failed.", "status": "error"}
+#     except Exception as e:
+#         return {"message": f"Error parsing codebase: {str(e)}", "status": "error"}
 
 
-@mcp.tool(name="check_parse_status", description="Check if codebase is parsed")
-async def check_parse_status() -> Dict[str, str]:
-    if state.parsed_codebase is None:
-        return {"message": "Codebase has not been parsed successfully.", "status": "not_parsed"}
-    return {"message": f"Codebase is parsed. Found {len(state.parsed_codebase.files)} files.", "status": "parsed"}
+# @mcp.tool(name="check_parse_status", description="Check if codebase is parsed")
+# async def check_parse_status() -> Dict[str, str]:
+#     if state.parsed_codebase is None:
+#         return {"message": "Codebase has not been parsed successfully.", "status": "not_parsed"}
+#     return {"message": f"Codebase is parsed. Found {len(state.parsed_codebase.files)} files.", "status": "parsed"}
 
 
 async def create_codemod_task(name: str, description: str, language: str = "python") -> Dict[str, Any]:
@@ -105,13 +106,15 @@ async def create_codemod_task(name: str, description: str, language: str = "pyth
         name_snake = name.lower().replace("-", "_").replace(" ", "_")
 
         # Create path within .codegen/codemods
-        codemods_dir = Path(".codegen") / "codemods"
+        codemods_dir = REPO_PATH / Path(".codegen") / "codemods"
         function_dir = codemods_dir / name_snake
         codemod_path = function_dir / f"{name_snake}.py"
         prompt_path = function_dir / f"{name_snake}-system-prompt.txt"
 
         # Create directories if they don't exist
+        logger.info(f"Creating directories for codemod {name} in {function_dir}")
         function_dir.mkdir(parents=True, exist_ok=True)
+        logger.info(f"Created directories for codemod {name} in {function_dir}")
 
         # Use API to generate implementation if description is provided
         if description:
@@ -263,7 +266,6 @@ def get_config() -> str:
 
 
 @mcp.tool(name="create_codemod", description="Initiate creation of a new codemod in the `.codegen/codemods/{name}` directory")
-@requires_parsed_codebase
 async def create_codemod(
     name: Annotated[str, "Name of the codemod to create"],
     description: Annotated[str, "Description of what the codemod does. Be specific, as this is passed to an expert LLM to generate the first draft"] = None,
@@ -328,7 +330,7 @@ async def view_codemods() -> Dict[str, Any]:
 
     # Find existing codemods
     try:
-        codemods_dir = Path(".codegen") / "codemods"
+        codemods_dir = REPO_PATH / Path(".codegen") / "codemods"
         if codemods_dir.exists():
             for codemod_dir in codemods_dir.iterdir():
                 if codemod_dir.is_dir():
