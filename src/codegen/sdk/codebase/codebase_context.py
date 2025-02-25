@@ -69,7 +69,7 @@ GLOBAL_FILE_IGNORE_LIST = [
     "*/semver.js",
     "*/compiled/*",
     "*.min.js",
-    "*@*.js"
+    "*@*.js",
 ]
 
 
