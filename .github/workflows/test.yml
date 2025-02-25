@@ -1,10 +1,10 @@
-name: Unit Tests
+name: Tests
 
 on:
   push:
     branches:
       - "develop"
-  pull_request:
+  pull_request_target:
     types: [ opened, synchronize, reopened, labeled ]
     branches:
       - "develop"
@@ -17,8 +17,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
       - name: Setup environment
         uses: ./.github/actions/setup-environment
+
       - name: Run ATS and Tests
         uses: ./.github/actions/run-ats
         timeout-minutes: 15
@@ -48,10 +51,15 @@ jobs:
     name: "Codemod tests ${{matrix.size}}: Sync Graph=${{matrix.sync_graph}}"
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
       - name: Setup environment
         uses: ./.github/actions/setup-environment
+
       - name: Cache oss-repos
         uses: ./.github/actions/setup-oss-repos
+
       - name: Run ATS and Tests
         uses: ./.github/actions/run-ats
         timeout-minutes: 15
@@ -66,11 +74,14 @@ jobs:
           GITHUB_WORKSPACE: $GITHUB_WORKSPACE
 
   parse-tests:
-    runs-on: ubuntu-latest-32
     if: contains(github.event.pull_request.labels.*.name, 'parse-tests') || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest-32
     environment: parse-tests
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
       - name: Setup environment
         uses: ./.github/actions/setup-environment
 
@@ -91,10 +102,12 @@ jobs:
             -n auto \
             -o junit_suite_name="${{github.job}}" \
             tests/integration/codemod/test_parse.py
+
       - uses: ./.github/actions/report
         with:
           flag: no-flag
           codecov_token: ${{ secrets.CODECOV_TOKEN }}
+
       - name: Notify parse tests failure
         uses: slackapi/slack-github-action@v2.0.0
         if: failure() && github.event_name == 'push' && false
@@ -135,8 +148,12 @@ jobs:
     runs-on: ubuntu-latest-16
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
       - name: Setup environment
         uses: ./.github/actions/setup-environment
+
       - name: Test with pytest
         timeout-minutes: 5
         env:
@@ -147,6 +164,7 @@ jobs:
             -n auto \
             -o junit_suite_name="${{github.job}}" \
             tests/integration/codegen
+
       - uses: ./.github/actions/report
         with:
           flag: integration-tests
