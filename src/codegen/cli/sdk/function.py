@@ -25,7 +25,6 @@ class Function:
     codemod_id: int
     version_id: int
     _api_client: RestAPI | None = None
-    _docker_client: DockerClient | None = None
 
     @classmethod
     def lookup(cls, name: str) -> "Function":
