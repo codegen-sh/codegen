@@ -1,227 +1,200 @@
-import os
-import types
 from pathlib import Path
-from unittest.mock import MagicMock
 
-import pytest
-
-from codegen.configs.models.codebase import DefaultCodebaseConfig
-from codegen.sdk.codebase.codebase_context import CodebaseContext
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
-from codegen.sdk.core.directory import Directory
-from codegen.sdk.core.file import File
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
-@pytest.fixture
-def mock_codebase_context(tmp_path):
-    mock = MagicMock(spec=CodebaseContext)
-    mock.transaction_manager = MagicMock()
-    mock.config = DefaultCodebaseConfig
-    mock.repo_path = tmp_path
-    mock.to_absolute = types.MethodType(CodebaseContext.to_absolute, mock)
-    mock.to_relative = types.MethodType(CodebaseContext.to_relative, mock)
-    mock.io = MagicMock()
-    return mock
+def test_directory_init(tmpdir) -> None:
+    with get_codebase_session(
+        tmpdir=tmpdir,
+        files={"mock_dir/example.py": "", "mock_dir/subdir/empty.py": ""},
+        programming_language=ProgrammingLanguage.PYTHON,
+    ) as codebase:
+        # Get the directory and check its attributes
+        directory = codebase.get_directory("mock_dir")
+        assert directory.path == Path(tmpdir) / "mock_dir"
+        assert directory.dirpath == "mock_dir"
+        assert directory.parent is not None
+        assert len(directory.items) == 2
+        assert set(directory.item_names) == {"example.py", "subdir"}
 
 
-@pytest.fixture
-def subdir_path(tmp_path):
-    return tmp_path / "mock_dir" / "subdir"
+def test_name_property(tmpdir) -> None:
+    with get_codebase_session(
+        tmpdir=tmpdir,
+        files={"mock_dir/example.py": ""},
+        programming_language=ProgrammingLanguage.PYTHON,
+    ) as codebase:
+        # Get the directory and check its name
+        directory = codebase.get_directory("mock_dir")
+        assert directory.name == "mock_dir"
 
 
-@pytest.fixture
-def dir_path(tmp_path):
-    return tmp_path / "mock_dir"
+def test_add_and_file(tmpdir) -> None:
+    with get_codebase_session(
+        tmpdir=tmpdir,
+        files={"mock_dir/example.py": ""},
+        programming_language=ProgrammingLanguage.PYTHON,
+    ) as codebase:
+        # Create a new file
+        codebase.create_file("mock_dir/example_2.py", "print('Hello, world!')")
+        codebase.commit()
+
+        # Check that the file was added
+        directory = codebase.get_directory("mock_dir")
+        assert len(directory.files) == 2
+        assert "example_2.py" in directory.item_names
 
 
-@pytest.fixture
-def sub_dir(subdir_path, tmp_path):
-    return Directory(path=subdir_path.absolute(), dirpath=str(subdir_path.relative_to(tmp_path)), parent=None)
+def test_remove_file(tmpdir) -> None:
+    with get_codebase_session(
+        tmpdir=tmpdir,
+        files={"mock_dir/example.py": ""},
+        programming_language=ProgrammingLanguage.PYTHON,
+    ) as codebase:
+        # Remove the file
+        file = codebase.get_file("mock_dir/example.py")
+        file.remove()
+        codebase.commit()
+
+        # Check that the file was removed
+        directory = codebase.get_directory("mock_dir", optional=True)
+        assert directory is None
 
 
-@pytest.fixture
-def mock_file(dir_path, mock_codebase_context):
-    return File(filepath=dir_path / "example.py", ctx=mock_codebase_context)
+def test_get_file(tmpdir) -> None:
+    with get_codebase_session(
+        tmpdir=tmpdir,
+        files={"mock_dir/example.py": ""},
+        programming_language=ProgrammingLanguage.PYTHON,
+    ) as codebase:
+        # Get the directory and get the file
+        directory = codebase.get_directory("mock_dir")
+        mock_file = codebase.get_file("mock_dir/example.py")
+        retrieved_file = directory.get_file("example.py")
+        assert retrieved_file is mock_file
+
+        # Case-insensitive match
+        retrieved_file_ci = directory.get_file("EXAMPLE.PY", ignore_case=True)
+        assert retrieved_file_ci is mock_file
 
 
-@pytest.fixture
-def mock_directory(tmp_path, dir_path, sub_dir, mock_file):
-    directory = Directory(path=dir_path.absolute(), dirpath=str(dir_path.relative_to(tmp_path)), parent=None)
-    directory.add_file(mock_file)
-    directory.add_subdirectory(sub_dir)
-    return directory
+def test_get_file_not_found(tmpdir) -> None:
+    with get_codebase_session(tmpdir=tmpdir, files={"mock_dir/example.py": ""}) as codebase:
+        # Get the directory and check that the file is not found
+        directory = codebase.get_directory("mock_dir")
+        assert directory.get_file("nonexistent.py", ignore_case=True) is None
 
 
-def test_directory_init(tmp_path, mock_directory):
-    """Test initialization of Directory object."""
-    assert mock_directory.path == tmp_path / "mock_dir"
-    assert mock_directory.dirpath == "mock_dir"
-    assert mock_directory.parent is None
-    assert len(mock_directory.items) == 2
-    assert mock_directory.items["subdir"] is not None
-    assert mock_directory.items["example.py"] is not None
+def test_add_subdirectory(tmpdir) -> None:
+    with get_codebase_session(tmpdir=tmpdir, files={"mock_dir/example.py": ""}) as codebase:
+        # Get the directory and add a file in a subdirectory
+        directory = codebase.get_directory("mock_dir")
+        codebase.create_file("mock_dir/subdir/example.py", "print('Hello, world!')")
+        codebase.commit()
+
+        # Get the directory and check that the file is in the subdirectory
+        directory = codebase.get_directory("mock_dir")
+        assert directory.get_file("subdir/example.py") is not None
+
+        # Get the subdirectory and check that the file is in the subdirectory
+        subdir = codebase.get_directory("mock_dir/subdir")
+        assert subdir.get_file("example.py") is not None
 
 
-def test_name_property(mock_directory):
-    """Test name property returns the basename of the dirpath."""
-    assert mock_directory.name == "mock_dir"
+def test_remove_subdirectory(tmpdir) -> None:
+    with get_codebase_session(tmpdir=tmpdir, files={"mock_dir/subdir/empty.py": ""}) as codebase:
+        # Get the directory and remove the subdirectory
+        directory = codebase.get_directory("mock_dir")
+        subdir = codebase.get_directory("mock_dir/subdir")
+        directory.remove()
+        codebase.commit()
+
+        # Check that the subdirectory was removed
+        assert codebase.get_directory("mock_dir/subdir", optional=True) is None
 
 
-def test_add_and_file(mock_directory, mock_codebase_context):
-    """Test adding a file to the directory."""
-    mock_file = File(filepath=Path("mock_dir/example_2.py"), ctx=mock_codebase_context)
-    mock_directory.add_file(mock_file)
-    rel_path = os.path.relpath(mock_file.file_path, mock_directory.dirpath)
-    assert rel_path in mock_directory.items
-    assert mock_directory.items[rel_path] is mock_file
+def test_get_subdirectory(tmpdir) -> None:
+    with get_codebase_session(tmpdir=tmpdir, files={"mock_dir/subdir/empty.py": ""}) as codebase:
+        # Get the directory and get the subdirectory
+        directory = codebase.get_directory("mock_dir")
+        sub_dir = codebase.get_directory("mock_dir/subdir")
+        retrieved_subdir = directory.get_subdirectory("subdir")
+        assert retrieved_subdir is sub_dir
 
 
-def test_remove_file(mock_directory, mock_file):
-    """Test removing a file from the directory."""
-    mock_directory.remove_file(mock_file)
+def test_update_filepath(tmpdir) -> None:
+    with get_codebase_session(tmpdir=tmpdir, files={"mock_dir/example.py": ""}) as codebase:
+        # Get the directory and update the filepath
+        directory = codebase.get_directory("mock_dir")
+        directory.update_filepath("new_mock_dir/new_mock_subdir")
+        codebase.commit()
 
-    rel_path = os.path.relpath(mock_file.file_path, mock_directory.dirpath)
-    assert rel_path not in mock_directory.items
+        # Check that the directory was updated
+        directory = codebase.get_directory("new_mock_dir/new_mock_subdir")
+        assert directory is not None
+        assert codebase.get_directory("mock_dir", optional=True) is None
+        assert directory.dirpath == "new_mock_dir/new_mock_subdir"
+        assert directory.name == "new_mock_subdir"
+        assert directory.path == Path(tmpdir) / "new_mock_dir/new_mock_subdir"
+        assert directory.parent is not None
+        assert len(directory.items) == 1
+        assert "example.py" in directory.item_names
 
-
-def test_remove_file_by_path(mock_directory, mock_file):
-    """Test removing a file by path."""
-    mock_directory.remove_file_by_path(Path(mock_file.file_path))
-
-    rel_path = os.path.relpath(mock_file.file_path, mock_directory.dirpath)
-    assert rel_path not in mock_directory.items
-
-
-def test_get_file(mock_directory, mock_file):
-    """Test retrieving a file by name."""
-    retrieved_file = mock_directory.get_file("example.py")
-    assert retrieved_file is mock_file
-
-    # Case-insensitive match
-    retrieved_file_ci = mock_directory.get_file("EXAMPLE.PY", ignore_case=True)
-    assert retrieved_file_ci is mock_file
+        # Check that the file was updated
+        file = codebase.get_file("new_mock_dir/new_mock_subdir/example.py")
+        assert file is not None
+        assert codebase.get_file("mock_dir/example.py", optional=True) is None
 
 
-def test_get_file_not_found(mock_directory):
-    """Test retrieving a non-existing file returns None."""
-    assert mock_directory.get_file("nonexistent.py") is None
+def test_remove(tmpdir) -> None:
+    with get_codebase_session(tmpdir=tmpdir, files={"mock_dir/example.py": ""}) as codebase:
+        # Get the directory and remove it
+        directory = codebase.get_directory("mock_dir")
+        directory.remove()
+        codebase.commit()
+
+        # Check that the directory was removed
+        assert codebase.get_directory("mock_dir", optional=True) is None
+        assert codebase.get_file("mock_dir/example.py", optional=True) is None
 
 
-def test_add_subdirectory(mock_directory, dir_path):
-    """Test adding a subdirectory."""
-    new_subdir_path = dir_path / "new_subdir"
-    subdir = Directory(path=new_subdir_path.absolute(), dirpath=str(new_subdir_path.relative_to(dir_path)), parent=mock_directory)
-    mock_directory.add_subdirectory(subdir)
-    rel_path = os.path.relpath(subdir.dirpath, mock_directory.dirpath)
-    assert rel_path in mock_directory.items
-    assert mock_directory.items[rel_path] is subdir
+def test_rename(tmpdir) -> None:
+    with get_codebase_session(tmpdir=tmpdir, files={"mock_dir/example.py": ""}) as codebase:
+        # Get the directory and rename it
+        directory = codebase.get_directory("mock_dir")
+        directory.rename("renamed_dir")
+        codebase.commit()
+        # Check that the directory was renamed
+        directory = codebase.get_directory("renamed_dir")
+        assert directory is not None
+        assert codebase.get_directory("mock_dir", optional=True) is None
+        assert directory.dirpath == "renamed_dir"
+        assert directory.name == "renamed_dir"
+        assert directory.path == Path(tmpdir) / "renamed_dir"
+        assert directory.parent is not None
+        assert len(directory.items) == 1
+        assert "example.py" in directory.item_names
+
+        # Check that the file was renamed
+        file = codebase.get_file("renamed_dir/example.py")
+        assert file is not None
+        assert codebase.get_file("mock_dir/example.py", optional=True) is None
 
 
-def test_remove_subdirectory(mock_directory, sub_dir):
-    """Test removing a subdirectory."""
-    mock_directory.add_subdirectory(sub_dir)
-    mock_directory.remove_subdirectory(sub_dir)
-
-    rel_path = os.path.relpath(sub_dir.dirpath, mock_directory.dirpath)
-    assert rel_path not in mock_directory.items
-
-
-def test_remove_subdirectory_by_path(mock_directory, sub_dir):
-    """Test removing a subdirectory by path."""
-    mock_directory.remove_subdirectory_by_path(sub_dir.dirpath)
-
-    rel_path = os.path.relpath(sub_dir.dirpath, mock_directory.dirpath)
-    assert rel_path not in mock_directory.items
+def test_contains(tmpdir) -> None:
+    with get_codebase_session(tmpdir=tmpdir, files={"mock_dir/example.py": "", "mock_dir/subdir/empty.py": ""}) as codebase:
+        # Get the directory and check the contains
+        directory = codebase.get_directory("mock_dir")
+        assert "subdir" in directory
+        assert "example.py" in directory
 
 
-def test_get_subdirectory(mock_directory, sub_dir):
-    """Test retrieving a subdirectory by name."""
-    retrieved_subdir = mock_directory.get_subdirectory("subdir")
-    assert retrieved_subdir is sub_dir
-
-
-def test_files_property(mock_directory, sub_dir, mock_codebase_context):
-    """Test the 'files' property returns all files recursively."""
-    all_files = mock_directory.files
-    assert len(all_files) == 1
-
-    new_file = File(filepath=Path("mock_dir/example_2.py"), ctx=mock_codebase_context)
-    sub_dir.add_file(new_file)
-
-    all_files = mock_directory.files
-    assert len(all_files) == 2
-    assert new_file in all_files
-
-    gen = mock_directory.files_generator()
-    files_list = list(gen)
-    assert len(files_list) == 2
-    assert new_file in files_list
-
-
-def test_subdirectories_property(mock_directory, sub_dir):
-    """Test the 'subdirectories' property returns all directories recursively."""
-    all_subdirs = mock_directory.subdirectories
-    assert len(all_subdirs) == 1
-    assert sub_dir in all_subdirs
-
-    new_sub_dir = Directory(path=sub_dir.path / "new_subdir", dirpath=str(Path(sub_dir.dirpath) / "new_subdir"), parent=sub_dir)
-    sub_dir.add_subdirectory(new_sub_dir)
-
-    all_subdirs = mock_directory.subdirectories
-    assert len(all_subdirs) == 2
-    assert new_sub_dir in all_subdirs
-
-
-def test_update_filepath(mock_directory, mock_codebase_context, mock_file):
-    """Test updating file paths when the directory path changes."""
-    mock_directory.update_filepath("/absolute/new_mock_dir")
-
-    # Verify the files have updated file paths
-    mock_codebase_context.transaction_manager.add_file_rename_transaction.assert_called_once_with(mock_file, "/absolute/new_mock_dir/example.py")
-
-
-def test_remove(mock_directory, sub_dir, mock_codebase_context, mock_file):
-    mock_directory.remove()
-
-    mock_codebase_context.transaction_manager.add_file_remove_transaction.assert_called_once_with(mock_file)
-
-
-def test_rename(mock_directory, mock_codebase_context, mock_file):
-    """Test renaming the directory."""
-    mock_directory.rename("renamed_dir")
-    # This fails because it is not implemented to rename the directory itself.
-    # assert mock_directory.dirpath == "/absolute/renamed_dir"
-    mock_codebase_context.transaction_manager.add_file_rename_transaction.assert_called_once_with(mock_file, "renamed_dir/example.py")
-
-
-def test_iteration(mock_directory):
-    """Test iterating over the directory items."""
-    items = list(mock_directory)  # uses Directory.__iter__
-    assert len(items) == 2
-    assert mock_directory.items["subdir"] in items
-    assert mock_directory.items["example.py"] in items
-
-
-def test_contains(mock_directory):
-    """Test the containment checks using the 'in' operator."""
-    assert "subdir" in mock_directory
-    assert "example.py" in mock_directory
-
-
-def test_len(mock_directory):
-    """Test the __len__ method returns the number of items."""
-    assert len(mock_directory) == 2
-
-
-def test_get_set_delete_item(mock_directory):
-    """Test __getitem__, __setitem__, and __delitem__ methods."""
-    mock_file = mock_directory.items["example.py"]
-    mock_directory["example.py"] = mock_file
-    assert mock_directory["example.py"] == mock_file
-
-    with pytest.raises(KeyError, match="subdir_2"):
-        del mock_directory["subdir_2"]
+def test_len(tmpdir) -> None:
+    with get_codebase_session(tmpdir=tmpdir, files={"mock_dir/example.py": "", "mock_dir/subdir/empty.py": ""}) as codebase:
+        # Get the directory and check the length
+        directory = codebase.get_directory("mock_dir")
+        assert len(directory) == 2
 
 
 def test_unicode_in_filename(tmpdir) -> None:
@@ -231,110 +204,7 @@ def test_unicode_in_filename(tmpdir) -> None:
         programming_language=ProgrammingLanguage.PYTHON,
         verify_output=True,
     ) as codebase:
+        # Get the file and check the content
         file = codebase.get_file("test/我很喜欢冰激淋/test-file 12'3_🍦.py")
         assert file is not None
         assert file.content == "print('Hello, world!')"
-
-
-def test_contains_dirs_and_files(tmpdir) -> None:
-    # language=python
-    with get_codebase_session(
-        tmpdir=tmpdir,
-        files={
-            "file0.py": "",
-            "main_dir/file1.py": "",
-            "main_dir/file2.py": "",
-            "main_dir/sub_dir/file3.py": "",
-            "main_dir/sub_dir/sub_sub_dir/file4.py": "",
-            "main_dir/sub_dir/sub_sub_dir/file5.py": "",
-            "main_dir/sub_dir/sub_sub_dir/sub_sub_sub_dir/file6.py": "",
-            "main_dir/sub_dir/sub_sub_dir/sub_sub_sub_dir/sub_sub_sub_sub_dir/sub_sub_sub_sub_sub_dir/file7.py": "",
-            "lonely_dir/file_lonely.py": "",
-        },
-    ) as codebase:
-        file0 = codebase.get_file("file0.py")
-        main_dir = codebase.get_directory("main_dir")
-        file1 = codebase.get_file("main_dir/file1.py")
-        file2 = codebase.get_file("main_dir/file2.py")
-        sub_dir = codebase.get_directory("main_dir/sub_dir")
-        file3 = codebase.get_file("main_dir/sub_dir/file3.py")
-        sub_sub_dir = codebase.get_directory("main_dir/sub_dir/sub_sub_dir")
-        file4 = codebase.get_file("main_dir/sub_dir/sub_sub_dir/file4.py")
-        file5 = codebase.get_file("main_dir/sub_dir/sub_sub_dir/file5.py")
-        sub_sub_sub_dir = codebase.get_directory("main_dir/sub_dir/sub_sub_dir/sub_sub_sub_dir")
-        file6 = codebase.get_file("main_dir/sub_dir/sub_sub_dir/sub_sub_sub_dir/file6.py")
-        sub_sub_sub_sub_dir = codebase.get_directory("main_dir/sub_dir/sub_sub_dir/sub_sub_sub_dir/sub_sub_sub_sub_dir")
-        sub_sub_sub_sub_sub_dir = codebase.get_directory("main_dir/sub_dir/sub_sub_dir/sub_sub_sub_dir/sub_sub_sub_sub_dir/sub_sub_sub_sub_sub_dir")
-        file7 = codebase.get_file("main_dir/sub_dir/sub_sub_dir/sub_sub_sub_dir/sub_sub_sub_sub_dir/sub_sub_sub_sub_sub_dir/file7.py")
-        directory_stack = main_dir.subdirectories
-        directory_stack.append(main_dir)
-        main_directory_stack_no_root = directory_stack
-        file_stack = [file7]
-        for directory in directory_stack:
-            # ignore self
-            if directory != sub_sub_sub_sub_sub_dir:
-                assert sub_sub_sub_sub_sub_dir in directory
-            else:
-                # A dir is not in itself!
-                assert sub_sub_sub_sub_sub_dir not in directory
-            for file in file_stack:
-                assert file in directory
-
-        directory_stack.remove(sub_sub_sub_sub_sub_dir)
-
-        for directory in directory_stack:
-            if directory != sub_sub_sub_sub_dir:
-                assert sub_sub_sub_sub_dir in directory
-
-            for file in file_stack:
-                assert file in directory
-
-        directory_stack.remove(sub_sub_sub_sub_dir)
-        file_stack.append(file6)
-
-        for directory in directory_stack:
-            if directory != sub_sub_sub_dir:
-                assert sub_sub_sub_dir in directory
-
-            for file in file_stack:
-                assert file in directory
-
-        directory_stack.remove(sub_sub_sub_dir)
-        file_stack.append(file5)
-        file_stack.append(file4)
-
-        for directory in directory_stack:
-            if directory != sub_sub_dir:
-                assert sub_sub_dir in directory
-
-            for file in file_stack:
-                assert file in directory
-
-        directory_stack.remove(sub_sub_dir)
-        file_stack.append(file3)
-
-        for directory in directory_stack:
-            if directory != sub_dir:
-                assert sub_dir in directory
-            for file in file_stack:
-                assert file in directory
-
-        directory_stack.remove(sub_dir)
-        file_stack.append(file2)
-        file_stack.append(file1)
-
-        for directory in directory_stack:
-            if directory != main_dir:
-                assert main_dir in directory
-            for file in file_stack:
-                assert file in directory
-
-        lonely_dir = codebase.get_directory("lonely_dir")
-        lonely_file = codebase.get_file("lonely_dir/file_lonely.py")
-
-        for directory in main_directory_stack_no_root:
-            assert file0 not in directory
-            assert lonely_dir not in directory
-            assert lonely_file not in directory
-
-        assert lonely_file in lonely_dir

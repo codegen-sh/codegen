@@ -22,11 +22,18 @@ agent.run("Tell me about this repo")
 
 The agent has access to powerful code viewing and manipulation tools powered by Codegen, including:
 - `ViewFileTool`: View contents and metadata of files
-- `SemanticSearchTool`: Search over code using natural language queries
 - `SemanticEditTool`: Make intelligent edits to files
 - `RevealSymbolTool`: Analyze symbol dependencies and usages
 - `MoveSymbolTool`: Move symbols between files with import handling
-- And many more...
+- `ReplacementEditTool`: Make regex-based replacement editing on files
+- `ListDirectoryTool`: List directory contents
+- `SearchTool`: Search for files and symbols
+- `CreateFileTool`: Create new files
+- `DeleteFileTool`: Delete files
+- `RenameFileTool`: Rename files
+- `EditFileTool`: Edit files 
+
+
 
 <Info>View the full code for the default tools and agent implementation in our [examples repository](https://github.com/codegen-sh/codegen-sdk/tree/develop/src/codegen/extensions/langchain/tools)</Info>
 
@@ -48,7 +55,7 @@ agent.run("Tell me about this repo")
 ```
 
 
-<Note>Your `ANTHROPIC_API_KEY` and/or `OPENAI_API_KEY` must be set in your env.</Note>
+<Note>Your `ANTHROPIC_API_KEY` must be set in your env.</Note>
 
 The default implementation uses `anthropic/claude-3-5-sonnet-latest` for the model but this can be changed through the `model_provider` and `model_name` arguments.
 
@@ -60,22 +67,25 @@ agent = CodeAgent(
 )
 ```
 
+<Note>If using a non-default model provider, make sure to set the appropriate API key (e.g., `OPENAI_API_KEY` for OpenAI models) in your env.</Note>
+
 # Available Tools
 
 The agent comes with a comprehensive set of tools for code analysis and manipulation. Here are some key tools:
 
 ```python
 from codegen.extensions.langchain.tools import (
-    ViewFileTool,
-    SemanticSearchTool, 
-    SemanticEditTool,
-    RevealSymbolTool,
-    MoveSymbolTool,
-    EditFileTool,
     CreateFileTool,
     DeleteFileTool,
+    EditFileTool,
     ListDirectoryTool,
+    MoveSymbolTool,
+    RenameFileTool,
+    ReplacementEditTool,
+    RevealSymbolTool,
     SearchTool,
+    SemanticEditTool,
+    ViewFileTool,
 )
 ```
 
@@ -170,5 +180,5 @@ class CustomCodeTool(BaseTool):
 
 # Add custom tool to agent
 tools.append(CustomCodeTool())
-agent = CodebaseAgent(codebase, tools=tools, model_name="gpt-4o")
+agent = CodebaseAgent(codebase, tools=tools, model_name="claude-3-5-sonnet-latest")
 ```

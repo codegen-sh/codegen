@@ -31,7 +31,7 @@ class SandboxRunner:
 
     def __init__(self, repo_config: RepoConfig) -> None:
         self.repo = repo_config
-        self.op = RepoOperator(repo_config=self.repo, setup_option=SetupOption.PULL_OR_CLONE)
+        self.op = RepoOperator(repo_config=self.repo, setup_option=SetupOption.PULL_OR_CLONE, bot_commit=True)
         self.commit = self.op.git_cli.head.commit
 
     async def warmup(self) -> None:
