@@ -72,9 +72,10 @@ class RepoOperator:
             os.makedirs(self.repo_path, exist_ok=True)
             GitCLI.init(self.repo_path)
             self._local_git_repo = LocalGitRepo(repo_path=repo_config.repo_path)
-
-            if repo_config.full_name is None:
-                repo_config.full_name = self._local_git_repo.full_name
+            logger.info(f"DEBUG: attempting to set repo full_name: {self._local_git_repo.full_name}")
+            if self.repo_config.full_name is None:
+                logger.info(f"DEBUG: setting repo full_name: {self._local_git_repo.full_name}")
+                self.repo_config.full_name = self._local_git_repo.full_name
 
     ####################################################################################################################
     # PROPERTIES
@@ -813,7 +814,7 @@ class RepoOperator:
         return op
 
     @classmethod
-    def create_from_commit(cls, repo_path: str, commit: str, url: str, access_token: str | None = None) -> Self:
+    def create_from_commit(cls, repo_path: str, commit: str, url: str, access_token: str | None = None, full_name: str | None = None) -> Self:
         """Do a shallow checkout of a particular commit to get a repository from a given remote URL.
 
         Args:
@@ -822,7 +823,8 @@ class RepoOperator:
             url (str): Git URL of the repository
             access_token (str | None): Optional GitHub API key for operations that need GitHub access
         """
-        op = cls(repo_config=RepoConfig.from_repo_path(repo_path), bot_commit=False, access_token=access_token)
+        op = cls(repo_config=RepoConfig.from_repo_path(repo_path, full_name=full_name), bot_commit=False, access_token=access_token)
+        
         op.discard_changes()
         if op.get_active_branch_or_commit() != commit:
             op.create_remote("origin", url)
@@ -857,7 +859,7 @@ class RepoOperator:
                     remote_head = git_cli.remotes.origin.refs[git_cli.active_branch.name].commit
                     # If up to date, use existing repo
                     if local_head.hexsha == remote_head.hexsha:
-                        return cls(repo_config=RepoConfig.from_repo_path(repo_path), bot_commit=False, access_token=access_token)
+                        return cls(repo_config=RepoConfig.from_repo_path(repo_path, full_name=full_name), bot_commit=False, access_token=access_token)
             except Exception:
                 # If any git operations fail, fallback to fresh clone
                 pass

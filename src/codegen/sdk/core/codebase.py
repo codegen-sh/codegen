@@ -25,7 +25,7 @@ from typing_extensions import TypeVar, deprecated
 from codegen.configs.models.codebase import CodebaseConfig
 from codegen.configs.models.secrets import SecretsConfig
 from codegen.git.repo_operator.repo_operator import RepoOperator
-from codegen.git.schemas.enums import CheckoutResult
+from codegen.git.schemas.enums import CheckoutResult, SetupOption
 from codegen.git.utils.pr_review import CodegenPR
 from codegen.sdk._proxy import proxy_property
 from codegen.sdk.ai.client import get_openai_client
@@ -1259,6 +1259,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         language: Literal["python", "typescript"] | ProgrammingLanguage | None = None,
         config: CodebaseConfig | None = None,
         secrets: SecretsConfig | None = None,
+        setup_option: SetupOption | None = None,
     ) -> "Codebase":
         """Fetches a codebase from GitHub and returns a Codebase instance.
 
@@ -1298,7 +1299,9 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
                 repo_operator = RepoOperator.create_from_repo(repo_path=repo_path, url=repo_url)
             else:
                 # Ensure the operator can handle remote operations
-                repo_operator = RepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url)
+                access_token = secrets.github_token if secrets else None
+                repo_operator = RepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url, full_name=repo_full_name, access_token=secrets.github_token)
+                logger.info(f"DEBUG repo operator init from commit: {repo_operator.repo_config}")
             logger.info("Clone completed successfully")
 
             # Initialize and return codebase with proper context

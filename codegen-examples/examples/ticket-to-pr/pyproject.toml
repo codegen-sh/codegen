@@ -5,7 +5,7 @@ description = "A example implementation of a agentic linear bot that can create 
 readme = "README.md"
 requires-python = ">=3.12, <3.14"
 dependencies = [
-  "codegen==0.26.3",
+  "codegen@git+https://github.com/codegen-sh/codegen-sdk.git@1f4dddb258a61574bce8edd06c81510c42e1e255",
   "fastapi>=0.115.8",
   "modal>=0.73.51",
   "pydantic>=2.10.6",
