@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check user permissions
+        # TODO: switch to use triggering_actor + write permission instead?
         if: ${{ github.event_name == 'pull_request' && github.event.pull_request.author_association != 'MEMBER' }}
         run: |
           echo "Action was not triggered by an organization member: ${{ github.event.pull_request.user.login }}. Exiting now."
