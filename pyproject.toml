@@ -73,6 +73,7 @@ dependencies = [
   "lox>=0.12.0",
   "httpx>=0.28.1",
   "docker>=6.1.3",
+  "urllib3>=2.0.0",
 ]
 
 license = { text = "Apache-2.0" }
