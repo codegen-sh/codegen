@@ -425,6 +425,31 @@ async def reset() -> Dict[str, Any]:
         return {"error": f"Error during reset: {str(e)}"}
 
 
+################################################################################
+# CUSTOM TOOLS
+################################################################################
+
+
+@mcp.tool(name="split_out_functions", description="split out the functions in defined in the provided file into new files, re-importing them to the original")
+def split_out_functions(target_file: Annotated[str, "file path to the target file to split"]):
+    new_files = {}
+    codebase = state.parsed_codebase
+    file = codebase.get_file(target_file)
+    # for each test_function in the file
+    for function in file.functions:
+        # Create a new file for each test function using its name
+        new_file = codebase.create_file(f"{file.directory.path}/{function.name}.py", sync=False)
+        # Move the test function to the newly created file
+        function.move_to_file(new_file, strategy="add_back_edge")
+        new_files[new_file.filepath] = [function.name]
+
+    codebase.commit()
+
+    result = {"description": "the following new files have been created with each with containing the function specified", "new_files": new_files}
+
+    return json.dumps(result, indent=2)
+
+
 def main():
     print("starting codegen-mcp-server")
     run = mcp.run_stdio_async()
