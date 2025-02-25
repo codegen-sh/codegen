@@ -16,6 +16,7 @@ from codegen.extensions.tools.linear.linear import (
     linear_search_issues_tool,
 )
 from codegen.extensions.tools.link_annotation import add_links_to_message
+from codegen.extensions.tools.relace_edit import relace_edit
 from codegen.extensions.tools.replacement_edit import replacement_edit
 from codegen.extensions.tools.reveal_symbol import reveal_symbol
 from codegen.extensions.tools.search import search
@@ -37,6 +38,7 @@ from ..tools import (
     view_file,
     view_pr,
 )
+from ..tools.relace_edit_prompts import RELACE_EDIT_PROMPT
 from ..tools.semantic_edit_prompts import FILE_EDIT_PROMPT
 
 
@@ -729,9 +731,10 @@ def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
         RevealSymbolTool(codebase),
         RunBashCommandTool(),  # Note: This tool doesn't need the codebase
         SearchTool(codebase),
-        SemanticEditTool(codebase),
+        # SemanticEditTool(codebase),
         SemanticSearchTool(codebase),
         ViewFileTool(codebase),
+        RelaceEditTool(codebase),
         # Github
         GithubCreatePRTool(codebase),
         GithubCreatePRCommentTool(codebase),
@@ -787,4 +790,48 @@ class ReplacementEditTool(BaseTool):
             end=end,
             count=count,
         )
+        return result.render()
+
+
+# Brief description for the Relace Edit tool
+_RELACE_EDIT_BRIEF = """Tool for file editing using the Relace Instant Apply API.
+This high-speed code generation engine optimizes for real-time performance at 2000 tokens/second.
+
+Provide an edit snippet that describes the changes you want to make, with helpful comments to indicate unchanged sections, like so:
+```
+// ... keep existing imports ...
+
+// Add new function
+function calculateDiscount(price, discountPercent) {
+  return price * (discountPercent / 100);
+}
+
+// ... keep existing code ...
+```
+
+The API will merge your edit snippet with the existing code to produce the final result.
+The API key will be automatically retrieved from the RELACE_API environment variable.
+"""
+
+
+class RelaceEditInput(BaseModel):
+    """Input for Relace editing."""
+
+    filepath: str = Field(..., description="Path of the file relative to workspace root")
+    edit_snippet: str = Field(..., description=RELACE_EDIT_PROMPT)
+
+
+class RelaceEditTool(BaseTool):
+    """Tool for editing files using the Relace Instant Apply API."""
+
+    name: ClassVar[str] = "relace_edit"
+    description: ClassVar[str] = _RELACE_EDIT_BRIEF
+    args_schema: ClassVar[type[BaseModel]] = RelaceEditInput
+    codebase: Codebase = Field(exclude=True)
+
+    def __init__(self, codebase: Codebase) -> None:
+        super().__init__(codebase=codebase)
+
+    def _run(self, filepath: str, edit_snippet: str) -> str:
+        result = relace_edit(self.codebase, filepath, edit_snippet)
         return result.render()

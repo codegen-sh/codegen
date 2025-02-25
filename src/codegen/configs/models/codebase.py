@@ -15,6 +15,7 @@ class CodebaseConfig(BaseConfig):
     full_range_index: bool = False
     ignore_process_errors: bool = True
     disable_graph: bool = False
+    disable_file_parse: bool = False
     generics: bool = True
     import_resolution_overrides: dict[str, str] = Field(default_factory=lambda: {})
     ts_dependency_manager: bool = False
