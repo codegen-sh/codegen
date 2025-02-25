@@ -4,6 +4,8 @@ import os
 from typing import Optional
 
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 from codegen.extensions.linear.types import LinearComment, LinearIssue, LinearTeam, LinearUser
 
@@ -14,7 +16,8 @@ class LinearClient:
     api_headers: dict
     api_endpoint = "https://api.linear.app/graphql"
 
-    def __init__(self, access_token: Optional[str] = None, team_id: Optional[str] = None):
+    def __init__(self, access_token: Optional[str] = None, team_id: Optional[str] = None,
+                 max_retries: int = 3, backoff_factor: float = 0.5):
         if not access_token:
             access_token = os.getenv("LINEAR_ACCESS_TOKEN")
             if not access_token:
@@ -31,6 +34,18 @@ class LinearClient:
             "Authorization": self.access_token,
         }
 
+        # Set up a session with retry logic
+        self.session = requests.Session()
+        retry_strategy = Retry(
+            total=max_retries,
+            backoff_factor=backoff_factor,
+            status_forcelist=[429, 500, 502, 503, 504],
+            allowed_methods=["POST", "GET"]  # POST is important for GraphQL
+        )
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        self.session.mount("https://", adapter)
+        self.session.mount("http://", adapter)
+
     def get_issue(self, issue_id: str) -> LinearIssue:
         query = """
             query getIssue($issueId: String!) {
@@ -42,7 +57,11 @@ class LinearClient:
             }
         """
         variables = {"issueId": issue_id}
-        response = requests.post(self.api_endpoint, headers=self.api_headers, json={"query": query, "variables": variables})
+        response = self.session.post(
+            self.api_endpoint,
+            headers=self.api_headers,
+            json={"query": query, "variables": variables}
+        )
         data = response.json()
         issue_data = data["data"]["issue"]
         return LinearIssue(id=issue_data["id"], title=issue_data["title"], description=issue_data["description"])
@@ -66,7 +85,11 @@ class LinearClient:
             }
         """
         variables = {"issueId": issue_id}
-        response = requests.post(self.api_endpoint, headers=self.api_headers, json={"query": query, "variables": variables})
+        response = self.session.post(
+            self.api_endpoint,
+            headers=self.api_headers,
+            json={"query": query, "variables": variables}
+        )
         data = response.json()
         comments = data["data"]["issue"]["comments"]["nodes"]
 
@@ -80,8 +103,8 @@ class LinearClient:
         # Convert raw comments to LinearComment objects
         return parsed_comments
 
-    def comment_on_issue(self, issue_id: str, body: str) -> dict:
-        """issue_id is our internal issue ID"""
+    def comment_on_issue(self, issue_id: str, body: str) -> LinearComment:
+        """Add a comment to an issue."""
         query = """mutation makeComment($issueId: String!, $body: String!) {
           commentCreate(input: {issueId: $issueId, body: $body}) {
             comment {
@@ -97,19 +120,25 @@ class LinearClient:
         }
         """
         variables = {"issueId": issue_id, "body": body}
-        response = requests.post(
+        response = self.session.post(
             self.api_endpoint,
             headers=self.api_headers,
-            data=json.dumps({"query": query, "variables": variables}),
+            json={"query": query, "variables": variables},
         )
         data = response.json()
         try:
             comment_data = data["data"]["commentCreate"]["comment"]
-
-            return comment_data
+            user_data = comment_data.get("user", None)
+            user = LinearUser(id=user_data["id"], name=user_data["name"]) if user_data else None
+            
+            return LinearComment(
+                id=comment_data["id"],
+                body=comment_data["body"],
+                user=user
+            )
         except Exception as e:
             msg = f"Error creating comment\n{data}\n{e}"
-            raise Exception(msg)
+            raise ValueError(msg)
 
     def register_webhook(self, webhook_url: str, team_id: str, secret: str, enabled: bool, resource_types: list[str]):
         mutation = """
@@ -134,7 +163,11 @@ class LinearClient:
             }
         }
 
-        response = requests.post(self.api_endpoint, headers=self.api_headers, json={"query": mutation, "variables": variables})
+        response = self.session.post(
+            self.api_endpoint,
+            headers=self.api_headers,
+            json={"query": mutation, "variables": variables}
+        )
         body = response.json()
         return body
 
@@ -160,7 +193,7 @@ class LinearClient:
             }
         """
         variables = {"query": query, "limit": limit}
-        response = requests.post(
+        response = self.session.post(
             self.api_endpoint,
             headers=self.api_headers,
             json={"query": graphql_query, "variables": variables},
@@ -222,7 +255,7 @@ class LinearClient:
             }
         }
 
-        response = requests.post(
+        response = self.session.post(
             self.api_endpoint,
             headers=self.api_headers,
             json={"query": mutation, "variables": variables},
@@ -258,7 +291,7 @@ class LinearClient:
             }
         """
 
-        response = requests.post(
+        response = self.session.post(
             self.api_endpoint,
             headers=self.api_headers,
             json={"query": query},

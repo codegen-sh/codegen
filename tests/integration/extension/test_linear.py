@@ -2,6 +2,8 @@
 
 import os
 
+import requests
+
 import pytest
 
 from codegen.extensions.linear.linear_client import LinearClient
@@ -98,3 +100,17 @@ def test_get_teams(client: LinearClient) -> None:
     assert "id" in team
     assert "name" in team
     assert "key" in team
+
+def test_linear_get_issue_network_error(client):
+    """Test handling of network errors."""
+    # Setup mock to raise network error
+    client.get_issue.side_effect = requests.exceptions.ConnectionError("Network error")
+    
+    # Call function
+    result = linear_get_issue_tool(client, "TEST-123")
+    
+    # Verify
+    assert result.status == "error"
+    assert "Network error" in result.error
+    assert result.issue_id == "TEST-123"
+    assert result.issue_data == {}
