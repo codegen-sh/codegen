@@ -1,18 +1,15 @@
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING, Self, override
+from typing import TYPE_CHECKING
 
 from codegen.sdk.core.autocommit import reader
 from codegen.sdk.core.expressions import Name
 from codegen.sdk.core.import_resolution import ExternalImportResolver, Import, ImportResolution
 from codegen.sdk.enums import ImportType, NodeType
-from codegen.sdk.extensions.resolution import ResolutionStack
 from codegen.shared.decorators.docs import noapidoc, py_apidoc
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
-
     from tree_sitter import Node as TSNode
 
     from codegen.sdk.codebase.codebase_context import CodebaseContext
@@ -30,10 +27,6 @@ logger = logging.getLogger(__name__)
 @py_apidoc
 class PyImport(Import["PyFile"]):
     """Extends Import for Python codebases."""
-
-    def __init__(self, ts_node, file_node_id, G, parent, module_node, name_node, alias_node, import_type=ImportType.UNKNOWN):
-        super().__init__(ts_node, file_node_id, G, parent, module_node, name_node, alias_node, import_type)
-        self._requesting_names = set()
 
     @reader
     def is_module_import(self) -> bool:
@@ -124,14 +117,20 @@ class PyImport(Import["PyFile"]):
         filepath = module_source.replace(".", "/") + ".py"
         filepath = os.path.join(base_path, filepath)
         if file := self.ctx.get_file(filepath):
-            symbol = file.get_node_wildcard_resolves_for(symbol_name)
-            return ImportResolution(from_file=file, symbol=symbol)
+            symbol = file.get_node_by_name(symbol_name)
+            if symbol is None:
+                return ImportResolution(from_file=file, symbol=None,imports_file=True)
+            else:
+                return ImportResolution(from_file=file, symbol=symbol)
 
         # =====[ Check if `module/__init__.py` file exists in the graph ]=====
         filepath = filepath.replace(".py", "/__init__.py")
         if from_file := self.ctx.get_file(filepath):
-            symbol = from_file.get_node_wildcard_resolves_for(symbol_name)
-            return ImportResolution(from_file=from_file, symbol=symbol)
+            symbol = from_file.get_node_by_name(symbol_name)
+            if symbol is None:
+                return ImportResolution(from_file=from_file, symbol=None,imports_file=True)
+            else:
+                return ImportResolution(from_file=from_file, symbol=symbol)
 
         # =====[ Case: Can't resolve the import ]=====
         if base_path == "":
@@ -238,33 +237,6 @@ class PyImport(Import["PyFile"]):
             imp = cls(import_statement, file_node_id, ctx, parent, module_node=module_node, name_node=module_node, alias_node=module_node, import_type=ImportType.SIDE_EFFECT)
             imports.append(imp)
         return imports
-
-    @reader
-    @noapidoc
-    @override
-    def _resolved_types(self) -> Generator[ResolutionStack[Self], None, None]:
-        """Resolve the types used by this import."""
-        ix_seen = set()
-
-        aliased = self.is_aliased_import()
-        if imported := self._imported_symbol(resolve_exports=True):
-            if isinstance(imported, PyImport) and imported.is_wildcard_import:
-                imported.set_requesting_names(self)
-            yield from self.with_resolution_frame(imported, direct=False, aliased=aliased)
-        else:
-            yield ResolutionStack(self, aliased=aliased)
-
-        if self.is_wildcard_import():
-            for name, wildcard_import in self.names:
-                if name in self._requesting_names:
-                    yield from [frame.parent_frame for frame in wildcard_import.resolved_type_frames]
-
-    @noapidoc
-    def set_requesting_names(self, requester: PyImport):
-        if requester.is_wildcard_import():
-            self._requesting_names.update(requester._requesting_names)
-        else:
-            self._requesting_names.add(requester.name)
 
     @property
     @reader

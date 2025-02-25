@@ -403,12 +403,10 @@ def test_import_resolution_init_deep_nested_wildcards_named(tmpdir: str) -> None
         test_used_parent = deepest_layer.get_symbol("test_used_parent")
 
         test_const_imp = main.get_import("test_const")
-        test_const_imp_2 = test_nest.get_import(".nest")
 
-        assert len(test_const.usages) == 3
+        assert len(test_const.usages) == 2
         assert test_const.usages[0].usage_symbol == main_test
         assert test_const.usages[1].usage_symbol == test_const_imp
-        assert test_const.usages[2].usage_symbol == test_const_imp_2
 
         assert len(test_not_used.usages) == 0
         assert len(test_used_parent.usages) == 1
@@ -567,4 +565,63 @@ def test_import_wildcard_preserves_import_resolution(tmpdir: str) -> None:
     ) as codebase:
         mainfile: SourceFile = codebase.get_file("file.py")
 
-        assert len(mainfile.ctx.edges) == 12
+        assert len(mainfile.ctx.edges) == 10
+
+
+def test_import_resolution_init_wildcard_no_dupe(tmpdir: str) -> None:
+    """Tests that named import from a file with wildcard resolves properly and doesn't
+    result in duplicate usages
+    """
+    # language=python
+    content1 = """TEST_CONST=2
+    foo=9
+    """
+    content2 = """from testdir.test1 import *
+    bar=foo
+    test=TEST_CONST"""
+    content3 = """from testdir import TEST_CONST
+    test3=TEST_CONST"""
+    content4 = """from testdir import  foo
+    test4=foo"""
+    with get_codebase_session(tmpdir=tmpdir, files={"testdir/test1.py": content1, "testdir/__init__.py": content2, "test3.py": content3, "test4.py": content4}) as codebase:
+        file1: SourceFile = codebase.get_file("testdir/test1.py")
+        file2: SourceFile = codebase.get_file("testdir/__init__.py")
+        file3: SourceFile = codebase.get_file("test3.py")
+
+        symb = file1.get_symbol("TEST_CONST")
+        test = file2.get_symbol("test")
+        test3 = file3.get_symbol("test3")
+        test3_import = file3.get_import("TEST_CONST")
+
+        assert len(symb.usages) == 3
+        assert symb.symbol_usages == [test, test3, test3_import]
+
+
+def test_import_resolution_init_wildcard_chainging_deep(tmpdir: str) -> None:
+    """Tests that named import from a file with wildcard resolves properly and doesn't
+    result in duplicate usages
+    """
+    # language=python
+    content1 = """TEST_CONST=2
+    """
+    content2 = """from .file1 import *"""
+    content3 = """from .dir import *"""
+    content4 = """from .dir import  TEST_CONST
+    test1=TEST_CONST"""
+    with get_codebase_session(tmpdir=tmpdir, files={
+        "dir/dir/dir/dir/file1.py": content1,
+        "dir/dir/dir/dir/__init__.py": content2,
+        "dir/dir/dir/__init__.py": content3,
+        "dir/dir/__init__.py": content3,
+        "dir/__init__.py": content3,
+        "file2.py": content4
+        }) as codebase:
+        file1: SourceFile = codebase.get_file("dir/dir/dir/dir/file1.py")
+        file2: SourceFile = codebase.get_file("file2.py")
+
+        symb = file1.get_symbol("TEST_CONST")
+        test1 = file2.get_symbol("test1")
+        imp = file2.get_import("TEST_CONST")
+
+        assert len(symb.usages) == 2
+        assert symb.symbol_usages == [test1, imp]
