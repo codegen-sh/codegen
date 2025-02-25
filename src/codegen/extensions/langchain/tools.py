@@ -794,7 +794,7 @@ class ReplacementEditTool(BaseTool):
 
 
 # Brief description for the Relace Edit tool
-_RELACE_EDIT_BRIEF = """Tool for file editing using the Relace Instant Apply API. 
+_RELACE_EDIT_BRIEF = """Tool for file editing using the Relace Instant Apply API.
 This high-speed code generation engine optimizes for real-time performance at 2000 tokens/second.
 
 Provide an edit snippet that describes the changes you want to make, with helpful comments to indicate unchanged sections, like so:

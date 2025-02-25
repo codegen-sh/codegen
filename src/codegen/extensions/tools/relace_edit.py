@@ -1,11 +1,10 @@
 """Tool for making edits to files using the Relace Instant Apply API."""
 
-import json
-import os
-import requests
 import difflib
+import os
 from typing import ClassVar, Optional
 
+import requests
 from pydantic import Field
 
 from codegen.sdk.core.codebase import Codebase
@@ -62,16 +61,17 @@ def generate_diff(original: str, modified: str) -> str:
 
 def get_relace_api_key() -> str:
     """Get the Relace API key from environment variables.
-    
+
     Returns:
         The Relace API key
-        
+
     Raises:
         ValueError: If the API key is not found
     """
     api_key = os.environ.get("RELACE_API")
     if not api_key:
-        raise ValueError("RELACE_API environment variable not found. Please set it in your .env file.")
+        msg = "RELACE_API environment variable not found. Please set it in your .env file."
+        raise ValueError(msg)
     return api_key
 
 
@@ -91,34 +91,28 @@ def apply_relace_edit(api_key: str, initial_code: str, edit_snippet: str, stream
         Exception: If the API request fails
     """
     url = "https://instantapply.endpoint.relace.run/v1/code/apply"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {api_key}"
-    }
+    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
 
-    data = {
-        "initialCode": initial_code,
-        "editSnippet": edit_snippet,
-        "stream": stream
-    }
+    data = {"initialCode": initial_code, "editSnippet": edit_snippet, "stream": stream}
 
     try:
         response = requests.post(url, headers=headers, json=data)
         response.raise_for_status()
         return response.json()["mergedCode"]
     except Exception as e:
-        raise Exception(f"Relace API request failed: {str(e)}")
+        msg = f"Relace API request failed: {e!s}"
+        raise Exception(msg)
 
 
 def relace_edit(codebase: Codebase, filepath: str, edit_snippet: str, api_key: Optional[str] = None) -> RelaceEditObservation:
     """Edit a file using the Relace Instant Apply API.
-    
+
     Args:
         codebase: Codebase object
         filepath: Path to the file to edit
         edit_snippet: The edit snippet containing the modifications
         api_key: Optional Relace API key. If not provided, will be retrieved from environment variables.
-        
+
     Returns:
         RelaceEditObservation with the results
     """
@@ -159,11 +153,11 @@ def relace_edit(codebase: Codebase, filepath: str, edit_snippet: str, api_key: O
     # Apply the edit to the file
     file.edit(merged_code)
     codebase.commit()
-    
+
     return RelaceEditObservation(
         status="success",
         filepath=filepath,
         diff=diff,
         new_content=add_line_numbers(merged_code),
         line_count=len(merged_code.split("\n")),
-    ) 
+    )
