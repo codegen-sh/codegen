@@ -13,14 +13,12 @@ from codegen.cli.workspace.venv_manager import VenvManager
 @click.command(name="run")
 @requires_init
 @click.argument("label", required=True)
-@click.option("--path", type=str, help="Path to build the codebase from. Defaults to the repo root.")
 @click.option("--web", is_flag=True, help="Run the function on the web service instead of locally")
 @click.option("--diff-preview", type=int, help="Show a preview of the first N lines of the diff")
 @click.option("--arguments", type=str, help="Arguments as a json string to pass as the function's 'arguments' parameter")
 def run_command(
     session: CodegenSession,
     label: str,
-    path: str | None = None,
     web: bool = False,
     diff_preview: int | None = None,
     arguments: str | None = None,
@@ -59,4 +57,4 @@ def run_command(
     else:
         from codegen.cli.commands.run.run_local import run_local
 
-        run_local(session, codemod, diff_preview=diff_preview, path=path)
+        run_local(session, codemod, diff_preview=diff_preview)

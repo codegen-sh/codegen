@@ -6,10 +6,16 @@ from rich.status import Status
 
 from codegen.cli.auth.session import CodegenSession
 from codegen.cli.utils.function_finder import DecoratedFunction
+from codegen.git.repo_operator.repo_operator import RepoOperator
+from codegen.git.schemas.repo_config import RepoConfig
+from codegen.sdk.codebase.config import ProjectConfig
 from codegen.sdk.core.codebase import Codebase
 
 
-def parse_codebase(repo_root: Path) -> Codebase:
+def parse_codebase(
+    repo_path: Path,
+    subdirectories: list[str] | None = None,
+) -> Codebase:
     """Parse the codebase at the given root.
 
     Args:
@@ -18,7 +24,14 @@ def parse_codebase(repo_root: Path) -> Codebase:
     Returns:
         Parsed Codebase object
     """
-    codebase = Codebase(repo_root)
+    codebase = Codebase(
+        projects=[
+            ProjectConfig(
+                repo_operator=RepoOperator(repo_config=RepoConfig.from_repo_path(repo_path=repo_path)),
+                subdirectories=subdirectories,
+            )
+        ]
+    )
     return codebase
 
 
@@ -26,7 +39,6 @@ def run_local(
     session: CodegenSession,
     function: DecoratedFunction,
     diff_preview: int | None = None,
-    path: Path | None = None,
 ) -> None:
     """Run a function locally against the codebase.
 
@@ -36,10 +48,8 @@ def run_local(
         diff_preview: Number of lines of diff to preview (None for all)
     """
     # Parse codebase and run
-    codebase_path = f"{session.repo_path}/{path}" if path else session.repo_path
-
-    with Status(f"[bold]Parsing codebase at {codebase_path} ...", spinner="dots") as status:
-        codebase = parse_codebase(codebase_path)
+    with Status(f"[bold]Parsing codebase at {session.repo_path} with subdirectories {function.subdirectories or 'ALL'} ...", spinner="dots") as status:
+        codebase = parse_codebase(repo_path=session.repo_path, subdirectories=function.subdirectories)
         status.update("[bold green]✓ Parsed codebase")
 
         status.update("[bold]Running codemod...")

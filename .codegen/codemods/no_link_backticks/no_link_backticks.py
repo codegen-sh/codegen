@@ -2,7 +2,7 @@ import codegen
 from codegen import Codebase
 
 
-@codegen.function("no-link-backticks")
+@codegen.function(name="no-link-backticks", subdirectories=["test/unit"])
 def run(codebase: Codebase):
     import re
 
