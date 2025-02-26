@@ -5,12 +5,10 @@ Each matching line will be returned with its line number.
 Results are paginated with a default of 10 files per page.
 """
 
+import os
 import re
 import subprocess
-import shlex
-import os
-from pathlib import Path
-from typing import ClassVar, Optional, List, Dict, Any
+from typing import ClassVar, Optional
 
 from pydantic import Field
 
@@ -123,48 +121,48 @@ def _search_with_ripgrep(
     use_regex: bool = False,
 ) -> SearchObservation:
     """Search the codebase using ripgrep.
-    
+
     This is faster than the Python implementation, especially for large codebases.
     """
     # Build ripgrep command
     cmd = ["rg", "--line-number"]
-    
+
     # Add case insensitivity if not using regex
     if not use_regex:
         cmd.append("--fixed-strings")
         cmd.append("--ignore-case")
-    
+
     # Add file extensions if specified
     if file_extensions:
         for ext in file_extensions:
             # Remove leading dot if present
             ext = ext[1:] if ext.startswith(".") else ext
             cmd.extend(["--type-add", f"custom:{ext}", "--type", "custom"])
-    
+
     # Add target directories if specified
     search_path = codebase.repo_path
     if target_directories:
         # We'll handle target directories by filtering results later
         pass
-    
+
     # Add the query and path
     cmd.append(query)
     cmd.append(search_path)
-    
+
     # Run ripgrep
     try:
         # Use text mode and UTF-8 encoding
         result = subprocess.run(
-            cmd, 
-            capture_output=True, 
-            text=True, 
+            cmd,
+            capture_output=True,
+            text=True,
             encoding="utf-8",
-            check=False  # Don't raise exception on non-zero exit code (no matches)
+            check=False,  # Don't raise exception on non-zero exit code (no matches)
         )
-        
+
         # Parse the output
-        all_results: Dict[str, List[SearchMatch]] = {}
-        
+        all_results: dict[str, list[SearchMatch]] = {}
+
         # ripgrep returns non-zero exit code when no matches are found
         if result.returncode != 0 and result.returncode != 1:
             # Real error occurred
@@ -178,26 +176,26 @@ def _search_with_ripgrep(
                 files_per_page=files_per_page,
                 results=[],
             )
-        
+
         # Parse output lines
         for line in result.stdout.splitlines():
             # ripgrep output format: file:line:content
-            parts = line.split(':', 2)
+            parts = line.split(":", 2)
             if len(parts) < 3:
                 continue
-                
+
             filepath, line_number_str, content = parts
-            
+
             # Convert to relative path within the codebase
             rel_path = os.path.relpath(filepath, codebase.repo_path)
-            
+
             # Skip if not in target directories
             if target_directories and not any(rel_path.startswith(d) for d in target_directories):
                 continue
-                
+
             try:
                 line_number = int(line_number_str)
-                
+
                 # Find the actual match text
                 match_text = query
                 if use_regex:
@@ -208,11 +206,11 @@ def _search_with_ripgrep(
                     match_obj = pattern.search(content)
                     if match_obj:
                         match_text = match_obj.group(0)
-                
+
                 # Create or append to file results
                 if rel_path not in all_results:
                     all_results[rel_path] = []
-                    
+
                 all_results[rel_path].append(
                     SearchMatch(
                         status="success",
@@ -224,7 +222,7 @@ def _search_with_ripgrep(
             except ValueError:
                 # Skip lines with invalid line numbers
                 continue
-        
+
         # Convert to SearchFileResult objects
         file_results = []
         for filepath, matches in all_results.items():
@@ -235,19 +233,19 @@ def _search_with_ripgrep(
                     matches=sorted(matches, key=lambda x: x.line_number),
                 )
             )
-        
+
         # Sort results by filepath
         file_results.sort(key=lambda x: x.filepath)
-        
+
         # Calculate pagination
         total_files = len(file_results)
         total_pages = (total_files + files_per_page - 1) // files_per_page
         start_idx = (page - 1) * files_per_page
         end_idx = start_idx + files_per_page
-        
+
         # Get the current page of results
         paginated_results = file_results[start_idx:end_idx]
-        
+
         return SearchObservation(
             status="success",
             query=query,
@@ -257,11 +255,11 @@ def _search_with_ripgrep(
             files_per_page=files_per_page,
             results=paginated_results,
         )
-        
+
     except (subprocess.SubprocessError, FileNotFoundError) as e:
         # Let the caller handle this by falling back to Python implementation
         raise
-        
+
 
 def _search_with_python(
     codebase: Codebase,
@@ -273,7 +271,7 @@ def _search_with_python(
     use_regex: bool = False,
 ) -> SearchObservation:
     """Search the codebase using Python's regex engine.
-    
+
     This is a fallback for when ripgrep is not available.
     """
     # Validate pagination parameters
@@ -397,13 +395,7 @@ def search(
     """
     # Try to use ripgrep first
     try:
-        return _search_with_ripgrep(
-            codebase, query, target_directories, file_extensions, 
-            page, files_per_page, use_regex
-        )
+        return _search_with_ripgrep(codebase, query, target_directories, file_extensions, page, files_per_page, use_regex)
     except (FileNotFoundError, subprocess.SubprocessError):
         # Fall back to Python implementation if ripgrep fails or isn't available
-        return _search_with_python(
-            codebase, query, target_directories, file_extensions, 
-            page, files_per_page, use_regex
-        )
+        return _search_with_python(codebase, query, target_directories, file_extensions, page, files_per_page, use_regex)

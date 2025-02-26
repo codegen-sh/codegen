@@ -49,15 +49,7 @@ def search_codebase_tool(
     use_regex: Annotated[bool, "use regex for the search query"] = False,
 ):
     codebase = Codebase(repo_path=codebase_dir, language=codebase_language)
-    result = search(
-        codebase, 
-        query, 
-        target_directories=target_directories,
-        file_extensions=file_extensions,
-        page=page,
-        files_per_page=files_per_page,
-        use_regex=use_regex
-    )
+    result = search(codebase, query, target_directories=target_directories, file_extensions=file_extensions, page=page, files_per_page=files_per_page, use_regex=use_regex)
     return json.dumps(result, indent=2)
 
 
