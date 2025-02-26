@@ -944,61 +944,55 @@ class SourceFile(
             imp.set_import_module(new_module_name)
 
     @writer
-    def add_symbol_import(
-        self,
-        symbol: Symbol,
-        alias: str | None = None,
-        import_type: ImportType = ImportType.UNKNOWN,
-        is_type_import: bool = False,
-    ) -> Import | None:
-        """Adds an import to a file for a given symbol.
+    def add_import(self, imp: Symbol | str, *, alias: str | None = None, import_type: ImportType = ImportType.UNKNOWN, is_type_import: bool = False) -> Import | None:
+        """Adds an import to the file.
 
-        This method adds an import statement to the file for a specified symbol. If an import for the
-        symbol already exists, it returns the existing import instead of creating a new one.
-
-        Args:
-            symbol (Symbol): The symbol to import.
-            alias (str | None): Optional alias for the imported symbol. Defaults to None.
-            import_type (ImportType): The type of import to use. Defaults to ImportType.UNKNOWN.
-            is_type_import (bool): Whether this is a type-only import. Defaults to False.
-
-        Returns:
-            Import | None: The existing import for the symbol or None if it was added.
-        """
-        imports = self.imports
-        match = next((x for x in imports if x.imported_symbol == symbol), None)
-        if match:
-            return match
-
-        import_string = symbol.get_import_string(alias, import_type=import_type, is_type_import=is_type_import)
-        self.add_import_from_import_string(import_string)
-
-    @writer(commit=False)
-    def add_import_from_import_string(self, import_string: str) -> None:
-        """Adds import to the file from a string representation of an import statement.
-
-        This method adds a new import statement to the file based on its string representation.
+        This method adds an import statement to the file. It can handle both string imports and symbol imports.
         If the import already exists in the file, or is pending to be added, it won't be added again.
         If there are existing imports, the new import will be added before the first import,
         otherwise it will be added at the beginning of the file.
 
         Args:
-            import_string (str): The string representation of the import statement to add.
+            imp (Symbol | str): Either a Symbol to import or a string representation of an import statement.
+            alias (str | None): Optional alias for the imported symbol. Only used when imp is a Symbol. Defaults to None.
+            import_type (ImportType): The type of import to use. Only used when imp is a Symbol. Defaults to ImportType.UNKNOWN.
+            is_type_import (bool): Whether this is a type-only import. Only used when imp is a Symbol. Defaults to False.
 
         Returns:
-            None
+            Import | None: The existing import for the symbol if found, otherwise None.
         """
-        if any(import_string.strip() in imp.source for imp in self.imports):
-            return
+        # Handle Symbol imports
+        if isinstance(imp, str):
+            # Handle string imports
+            import_string = imp
+            # Check for duplicate imports
+            if any(import_string.strip() in imp.source for imp in self.imports):
+                return None
+        else:
+            # Check for existing imports of this symbol
+            imports = self.imports
+            match = next((x for x in imports if x.imported_symbol == imp), None)
+            if match:
+                return match
+
+            # Convert symbol to import string
+            import_string = imp.get_import_string(alias, import_type=import_type, is_type_import=is_type_import)
+
         if import_string.strip() in self._pending_imports:
             # Don't add the import string if it will already be added by another symbol
-            return
+            return None
+
+        # Add to pending imports and setup undo
         self._pending_imports.add(import_string.strip())
         self.transaction_manager.pending_undos.add(lambda: self._pending_imports.clear())
+
+        # Insert the import at the appropriate location
         if self.imports:
             self.imports[0].insert_before(import_string, priority=1)
         else:
             self.insert_before(import_string, priority=1)
+
+        return None
 
     @writer
     def add_symbol_from_source(self, source: str) -> None:

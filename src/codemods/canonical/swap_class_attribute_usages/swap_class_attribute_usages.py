@@ -42,7 +42,7 @@ class SwapClassAttributeUsages(Codemod, Skill):
                 class_a_param.edit("cache_config: CacheConfig")
 
                 # Add import of `CacheConfig` to function definition file
-                function.file.add_symbol_import(class_b_symb)
+                function.file.add_import(class_b_symb)
 
                 # Check if the function body is using `cache_config`
                 if len(function.code_block.get_variable_usages(class_a_param.name)) > 0:

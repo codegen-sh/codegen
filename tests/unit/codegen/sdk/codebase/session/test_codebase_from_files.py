@@ -6,28 +6,25 @@ from codegen.sdk.core.codebase import Codebase
 def test_from_files_python():
     """Test creating a Python codebase from multiple files"""
     files = {"main.py": "from utils import add\nprint(add(1, 2))", "utils.py": "def add(a, b):\n    return a + b"}
-    # Language is optional, will be inferred
     codebase = Codebase.from_files(files)
     assert len(codebase.files) == 2
     assert any(f.filepath.endswith("main.py") for f in codebase.files)
     assert any(f.filepath.endswith("utils.py") for f in codebase.files)
-    assert any("from utils import add" in f.content for f in codebase.files)
+    assert any("from utils import add" in f.source for f in codebase.files)
 
 
 def test_from_files_typescript():
     """Test creating a TypeScript codebase from multiple files"""
     files = {"index.ts": "import { add } from './utils';\nconsole.log(add(1, 2));", "utils.ts": "export function add(a: number, b: number): number {\n    return a + b;\n}"}
-    # Language is optional, will be inferred
     codebase = Codebase.from_files(files)
     assert len(codebase.files) == 2
     assert any(f.filepath.endswith("index.ts") for f in codebase.files)
     assert any(f.filepath.endswith("utils.ts") for f in codebase.files)
-    assert any("import { add }" in f.content for f in codebase.files)
+    assert any("import { add }" in f.source for f in codebase.files)
 
 
 def test_from_files_empty():
     """Test creating a codebase with no files"""
-    # Defaults to Python when no files provided
     codebase = Codebase.from_files({})
     assert len(codebase.files) == 0
 
@@ -47,7 +44,6 @@ def test_from_files_typescript_multiple_extensions():
         "utils.js": "module.exports = { add: (a, b) => a + b }",
         "button.jsx": "export const Button = () => <button>Click</button>",
     }
-    # Language is optional, will be inferred as TypeScript
     codebase = Codebase.from_files(files)
     assert len(codebase.files) == 4
 

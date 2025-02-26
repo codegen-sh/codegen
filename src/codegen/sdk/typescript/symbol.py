@@ -283,9 +283,9 @@ class TSSymbol(Symbol["TSHasBlock", "TSCodeBlock"], Exportable):
                     # =====[ Imports - copy over ]=====
                     elif isinstance(dep, TSImport):
                         if dep.imported_symbol:
-                            file.add_symbol_import(dep.imported_symbol, alias=dep.alias.source, import_type=dep.import_type)
+                            file.add_import(dep.imported_symbol, alias=dep.alias.source, import_type=dep.import_type)
                         else:
-                            file.add_import_from_import_string(dep.source)
+                            file.add_import(dep.source)
 
                     else:
                         msg = f"Unknown dependency type {type(dep)}"
@@ -301,7 +301,7 @@ class TSSymbol(Symbol["TSHasBlock", "TSCodeBlock"], Exportable):
 
                     # =====[ Symbols - move over ]=====
                     elif isinstance(dep, Symbol) and dep.is_top_level:
-                        file.add_symbol_import(symbol=dep, alias=dep.name, import_type=ImportType.NAMED_EXPORT, is_type_import=isinstance(dep, TypeAlias))
+                        file.add_import(imp=dep, alias=dep.name, import_type=ImportType.NAMED_EXPORT, is_type_import=isinstance(dep, TypeAlias))
 
                         if not dep.is_exported:
                             dep.file.add_export_to_symbol(dep)
@@ -310,9 +310,9 @@ class TSSymbol(Symbol["TSHasBlock", "TSCodeBlock"], Exportable):
                     # =====[ Imports - copy over ]=====
                     elif isinstance(dep, TSImport):
                         if dep.imported_symbol:
-                            file.add_symbol_import(dep.imported_symbol, alias=dep.alias.source, import_type=dep.import_type, is_type_import=dep.is_type_import())
+                            file.add_import(dep.imported_symbol, alias=dep.alias.source, import_type=dep.import_type, is_type_import=dep.is_type_import())
                         else:
-                            file.add_import_from_import_string(dep.source)
+                            file.add_import(dep.source)
 
             except Exception as e:
                 print(f"Failed to move dependencies of {self.name}: {e}")
@@ -336,12 +336,12 @@ class TSSymbol(Symbol["TSHasBlock", "TSCodeBlock"], Exportable):
         # Here, we will add a "back edge" to the old file importing the self
         elif strategy == "add_back_edge":
             if is_used_in_file:
-                self.file.add_import_from_import_string(import_line)
+                self.file.add_import(import_line)
                 if self.is_exported:
-                    self.file.add_import_from_import_string(f"export {{ {self.name} }}")
+                    self.file.add_import(f"export {{ {self.name} }}")
             elif self.is_exported:
                 module_name = file.name
-                self.file.add_import_from_import_string(f"export {{ {self.name} }} from '{module_name}'")
+                self.file.add_import(f"export {{ {self.name} }} from '{module_name}'")
             # Delete the original symbol
             self.remove()
 
@@ -352,7 +352,7 @@ class TSSymbol(Symbol["TSHasBlock", "TSCodeBlock"], Exportable):
                 if isinstance(usage.usage_symbol, TSImport):
                     # Add updated import
                     if usage.usage_symbol.resolved_symbol is not None and usage.usage_symbol.resolved_symbol.node_type == NodeType.SYMBOL and usage.usage_symbol.resolved_symbol == self:
-                        usage.usage_symbol.file.add_import_from_import_string(import_line)
+                        usage.usage_symbol.file.add_import(import_line)
                         usage.usage_symbol.remove()
                 elif usage.usage_type == UsageType.CHAINED:
                     # Update all previous usages of import * to the new import name
@@ -361,9 +361,9 @@ class TSSymbol(Symbol["TSHasBlock", "TSCodeBlock"], Exportable):
                             usage.match.get_name().edit(self.name)
                         if isinstance(usage.match, ChainedAttribute):
                             usage.match.edit(self.name)
-                        usage.usage_symbol.file.add_import_from_import_string(import_line)
+                        usage.usage_symbol.file.add_import(import_line)
             if is_used_in_file:
-                self.file.add_import_from_import_string(import_line)
+                self.file.add_import(import_line)
             # Delete the original symbol
             self.remove()
 
@@ -377,7 +377,7 @@ class TSSymbol(Symbol["TSHasBlock", "TSCodeBlock"], Exportable):
             if prop_type.attribute.source == "node":
                 return "T"
             if prop_type.attribute.source == "element":
-                self.file.add_import_from_import_string("import React from 'react';\n")
+                self.file.add_import("import React from 'react';\n")
                 return "React.ReactElement"
             if prop_type.attribute.source in type_map:
                 return type_map[prop_type.attribute.source]
@@ -476,7 +476,7 @@ class TSSymbol(Symbol["TSHasBlock", "TSCodeBlock"], Exportable):
             if "PropTypes.node" in proptypes.source:
                 generics = "<T extends React.ReactNode>"
                 generic_name = "<React.ReactNode>"
-                self.file.add_import_from_import_string("import React from 'react';\n")
+                self.file.add_import("import React from 'react';\n")
             interface_name = f"{component_name}Props"
             # Create interface definition
             interface_def = f"interface {interface_name}{generics} {self._convert_dict(proptypes, 1)}"

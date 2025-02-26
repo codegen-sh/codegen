@@ -141,13 +141,13 @@ class SkipAllTests(Skill, ABC):
         for file in codebase.files:
             for function in file.functions:
                 if function.name.startswith("test_"):
-                    file.add_import_from_import_string("import pytest")
+                    file.add_import("import pytest")
                     function.add_decorator('@pytest.mark.skip(reason="This is a test")')
 
             for cls in file.classes:
                 for method in cls.methods:
                     if method.name.startswith("test_"):
-                        file.add_import_from_import_string("import pytest")
+                        file.add_import("import pytest")
                         method.add_decorator('@pytest.mark.skip(reason="This is a test")')
 
     @staticmethod
@@ -181,7 +181,7 @@ class AddTypeHintsSkill(Skill, ABC):
                     function.set_return_type("None")
                 else:
                     function.set_return_type("Any")
-                    function.file.add_import_from_import_string("from typing import Any")
+                    function.file.add_import("from typing import Any")
 
             for param in function.parameters:
                 if not param.is_typed:
@@ -191,7 +191,7 @@ class AddTypeHintsSkill(Skill, ABC):
                         param.set_type_annotation("str")
                     else:
                         param.set_type_annotation("Any")
-                        function.file.add_import_from_import_string("from typing import Any")
+                        function.file.add_import("from typing import Any")
 
     @staticmethod
     @skill_impl(test_cases=[], skip_test=True, language=ProgrammingLanguage.TYPESCRIPT)

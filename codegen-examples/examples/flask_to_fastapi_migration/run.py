@@ -57,7 +57,7 @@ def setup_static_files(file):
     print(f"📁 Processing file: {file.filepath}")
 
     # Add import for StaticFiles
-    file.add_import_from_import_string("from fastapi.staticfiles import StaticFiles")
+    file.add_import("from fastapi.staticfiles import StaticFiles")
     print("✅ Added import: from fastapi.staticfiles import StaticFiles")
 
     # Add app.mount for static file handling

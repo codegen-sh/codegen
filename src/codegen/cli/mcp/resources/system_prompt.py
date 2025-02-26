@@ -2909,7 +2909,7 @@ for module, imports in module_imports.items():
     if len(imports) > 1:
         # Create combined import
         symbols = [imp.name for imp in imports]
-        file.add_import_from_import_string(
+        file.add_import(
             f"import {{ {', '.join(symbols)} }} from '{module}'"
         )
         # Remove old imports
@@ -5180,7 +5180,7 @@ for function in codebase.functions:
 
                 # Add import if needed
                 if not file.has_import("NewComponent"):
-                    file.add_symbol_import(new_component)
+                    file.add_import(new_component)
 ```
 
 
@@ -7316,17 +7316,17 @@ def organize_file_imports(file):
     # Add imports back in organized groups
     if std_lib_imports:
         for imp in std_lib_imports:
-            file.add_import_from_import_string(imp.source)
+            file.add_import(imp.source)
         file.insert_after_imports("")  # Add newline
 
     if third_party_imports:
         for imp in third_party_imports:
-            file.add_import_from_import_string(imp.source)
+            file.add_import(imp.source)
         file.insert_after_imports("")  # Add newline
 
     if local_imports:
         for imp in local_imports:
-            file.add_import_from_import_string(imp.source)
+            file.add_import(imp.source)
 
 # Organize imports in all files
 for file in codebase.files:
@@ -8593,7 +8593,7 @@ const {class_def.name} = ({class_def.get_method("render").parameters[0].name}) =
     # Add required imports
     file = class_def.file
     if not any("useState" in imp.source for imp in file.imports):
-        file.add_import_from_import_string("import { useState, useEffect } from 'react';")
+        file.add_import("import { useState, useEffect } from 'react';")
 ```
 
 ## Migrating to Modern Hooks
@@ -8611,7 +8611,7 @@ for function in codebase.functions:
         # Convert withRouter to useNavigate
         if call.name == "withRouter":
             # Add useNavigate import
-            function.file.add_import_from_import_string(
+            function.file.add_import(
                 "import { useNavigate } from 'react-router-dom';"
             )
             # Add navigate hook
@@ -9813,7 +9813,7 @@ FastAPI handles static files differently than Flask. We need to add the StaticFi
 
 ```python
 # Add StaticFiles import
-file.add_import_from_import_string("from fastapi.staticfiles import StaticFiles")
+file.add_import("from fastapi.staticfiles import StaticFiles")
 
 # Mount static directory
 file.add_symbol_from_source(

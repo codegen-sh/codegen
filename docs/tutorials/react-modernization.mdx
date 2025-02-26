@@ -82,7 +82,7 @@ const {class_def.name} = ({class_def.get_method("render").parameters[0].name}) =
     # Add required imports
     file = class_def.file
     if not any("useState" in imp.source for imp in file.imports):
-        file.add_import_from_import_string("import { useState, useEffect } from 'react';")
+        file.add_import("import { useState, useEffect } from 'react';")
 ```
 
 ## Migrating to Modern Hooks
@@ -100,7 +100,7 @@ for function in codebase.functions:
         # Convert withRouter to useNavigate
         if call.name == "withRouter":
             # Add useNavigate import
-            function.file.add_import_from_import_string(
+            function.file.add_import(
                 "import { useNavigate } from 'react-router-dom';"
             )
             # Add navigate hook
