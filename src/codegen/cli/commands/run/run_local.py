@@ -37,7 +37,7 @@ def run_local(
     # Parse codebase and run
     repo_root = session.repo_path
 
-    with Status("[bold]Parsing codebase...", spinner="dots") as status:
+    with Status(f"[bold]Parsing codebase at {repo_root} ...", spinner="dots") as status:
         codebase = parse_codebase(repo_root)
         status.update("[bold green]✓ Parsed codebase")
 
