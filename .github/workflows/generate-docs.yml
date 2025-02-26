@@ -24,11 +24,14 @@ jobs:
       - name: Generate API reference
         run: uv run python src/codegen/gscli/cli.py generate docs
 
+      - name: Generate System Prompt
+        run: uv run python src/codegen/gscli/cli.py generate system-prompt
+
       - name: Commit changes
         run: |
           git config --local user.email ${{ secrets.DOCS_USER_EMAIL }}
           git config --local user.name ${{ secrets.DOCS_USER_NAME }}
-          git add docs/
+          git add docs/ src/codegen/sdk/system-prompt.txt
           git diff --staged --quiet || git commit -m "docs: updated API reference"
 
       - name: Push changes
