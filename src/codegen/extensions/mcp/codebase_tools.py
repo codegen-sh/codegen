@@ -37,7 +37,7 @@ def reveal_symbol_tool(
     return json.dumps(result, indent=2)
 
 
-@mcp.tool(name="search_codebase", description="Search the codebase using text search or regex pattern matching")
+@mcp.tool(name="search_codebase", description="The search query to find in the codebase. When ripgrep is available, this will be passed as a ripgrep pattern. For regex searches, set use_regex=True")
 def search_codebase_tool(
     query: Annotated[str, "The search query to find in the codebase. When ripgrep is available, this will be passed as a ripgrep pattern. For regex searches, set use_regex=True."],
     codebase_dir: Annotated[str, "The root directory of your codebase"],
