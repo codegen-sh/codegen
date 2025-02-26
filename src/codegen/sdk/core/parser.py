@@ -8,8 +8,7 @@ from rich.console import Console
 from codegen.sdk.core.expressions.placeholder_type import PlaceholderType
 from codegen.sdk.core.expressions.value import Value
 from codegen.sdk.core.statements.symbol_statement import SymbolStatement
-from codegen.sdk.extensions.utils import find_all_descendants, find_first_descendant
-from codegen.sdk.utils import find_first_function_descendant
+from codegen.sdk.utils import find_first_function_descendant, find_import_node
 
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
@@ -81,42 +80,6 @@ class Parser(Generic[Expression]):
                 ret.children
         return ret
 
-    def get_import_node(self, node: TSNode) -> TSNode | None:
-        """Get the import node from a node that may contain an import.
-        Returns None if the node does not contain an import.
-
-        Returns:
-            TSNode | None: The import_statement or call_expression node if it's an import, None otherwise
-        """
-        # Static imports
-        if node.type == "import_statement":
-            return node
-
-        # Dynamic imports and requires can be either:
-        # 1. Inside expression_statement -> call_expression
-        # 2. Direct call_expression
-
-        # we only parse imports inside expressions and variable declarations
-        call_expression = find_first_descendant(node, ["call_expression"])
-        if member_expression := find_first_descendant(node, ["member_expression"]):
-            # there may be multiple call expressions (for cases such as import(a).then(module => module).then(module => module)
-            descendants = find_all_descendants(member_expression, ["call_expression"])
-            if descendants:
-                import_node = descendants[-1]
-            else:
-                # this means this is NOT a dynamic import()
-                return None
-        else:
-            import_node = call_expression
-
-        # thus we only consider the deepest one
-        if import_node:
-            function = import_node.child_by_field_name("function")
-            if function and (function.type == "import" or (function.type == "identifier" and function.text.decode("utf-8") == "require")):
-                return import_node
-
-        return None
-
     def log_unparsed(self, node: TSNode) -> None:
         if self._should_log and node.is_named and node.type not in self._uncovered_nodes:
             self._uncovered_nodes.add(node.type)
@@ -172,7 +135,7 @@ class Parser(Generic[Expression]):
 
             # =====[ Type Alias Declarations ]=====
             elif child.type == "type_alias_declaration":
-                if import_node := self.get_import_node(child):
+                if import_node := find_import_node(child):
                     statements.append(TSImportStatement(import_node, file_node_id, ctx, parent, len(statements)))
                 else:
                     statements.append(SymbolStatement(child, file_node_id, ctx, parent, len(statements)))
@@ -184,11 +147,6 @@ class Parser(Generic[Expression]):
             # =====[ Exports ]=====
             elif child.type == "export_statement" or child.text.decode("utf-8") == "export *;":
                 statements.append(ExportStatement(child, file_node_id, ctx, parent, len(statements)))
-
-            # # =====[ Imports ] =====
-            # elif child.type == "import_statement":
-            #     # statements.append(TSImportStatement(child, file_node_id, ctx, parent, len(statements)))
-            #     pass  # Temporarily opting to identify all imports using find_all_descendants
 
             # =====[ Non-symbol statements ] =====
             elif child.type == "comment":
@@ -210,7 +168,7 @@ class Parser(Generic[Expression]):
             elif child.type in ["lexical_declaration", "variable_declaration"]:
                 if function_node := find_first_function_descendant(child):
                     statements.append(SymbolStatement(child, file_node_id, ctx, parent, len(statements), function_node))
-                elif import_node := self.get_import_node(child):
+                elif import_node := find_import_node(child):
                     statements.append(TSImportStatement(import_node, file_node_id, ctx, parent, len(statements)))
                 else:
                     statements.append(
@@ -221,7 +179,7 @@ class Parser(Generic[Expression]):
             elif child.type in ["public_field_definition", "property_signature", "enum_assignment"]:
                 statements.append(TSAttribute(child, file_node_id, ctx, parent, pos=len(statements)))
             elif child.type == "expression_statement":
-                if import_node := self.get_import_node(child):
+                if import_node := find_import_node(child):
                     statements.append(TSImportStatement(import_node, file_node_id, ctx, parent, pos=len(statements)))
                     continue
 

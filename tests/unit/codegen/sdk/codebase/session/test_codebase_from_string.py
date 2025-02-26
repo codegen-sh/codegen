@@ -13,7 +13,7 @@ def hello():
     codebase = Codebase.from_string(code, language="python")
     assert len(codebase.files) == 1
     assert codebase.files[0].filepath.endswith("test.py")
-    assert "def hello" in codebase.files[0].content
+    assert "def hello" in codebase.files[0].source
 
 
 def test_from_string_typescript():
@@ -26,7 +26,7 @@ function hello(): string {
     codebase = Codebase.from_string(code, language="typescript")
     assert len(codebase.files) == 1
     assert codebase.files[0].filepath.endswith("test.ts")
-    assert "function hello" in codebase.files[0].content
+    assert "function hello" in codebase.files[0].source
 
 
 def test_from_string_with_enum():
@@ -42,14 +42,14 @@ def test_from_string_invalid_syntax():
     code = "this is not valid python"
     codebase = Codebase.from_string(code, language="python")
     assert len(codebase.files) == 1
-    assert codebase.files[0].content == code
+    assert codebase.files[0].source == code
 
 
 def test_from_string_empty():
     """Test creating a codebase from empty string"""
     codebase = Codebase.from_string("", language="python")
     assert len(codebase.files) == 1
-    assert codebase.files[0].content == ""
+    assert codebase.files[0].source == ""
 
 
 def test_from_string_missing_language():
