@@ -47,6 +47,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GHA_TOKEN }}
 
       - name: Setup backend
         uses: ./.github/actions/setup-environment
@@ -66,7 +67,6 @@ jobs:
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
-          github_token: ${{ secrets.GHA_TOKEN }}
           branch: ${{ github.ref }}
 
   release:
