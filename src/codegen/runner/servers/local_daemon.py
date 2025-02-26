@@ -19,7 +19,7 @@ from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 # Configure logging at module level
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     force=True,
 )
