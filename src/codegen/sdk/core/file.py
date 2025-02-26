@@ -467,14 +467,9 @@ class SourceFile(
         self.code_block = self._parse_code_block(self.ts_node)
 
         self.code_block.parse()
-        self._parse_imports()
         # We need to clear the valid symbol/import names before we start resolving exports since these can be outdated.
         self.invalidate()
         sort_editables(self._nodes)
-
-    @abstractmethod
-    @commiter
-    def _parse_imports(self) -> None: ...
 
     @noapidoc
     @commiter

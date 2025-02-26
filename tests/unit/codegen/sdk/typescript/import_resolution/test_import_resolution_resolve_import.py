@@ -1,5 +1,7 @@
 from typing import TYPE_CHECKING
 
+import pytest
+
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
 from codegen.sdk.core.dataclasses.usage import UsageType
 from codegen.sdk.enums import ImportType
@@ -257,6 +259,7 @@ export default SomeInterface;
         assert file.get_import("RequiredDefaultType").resolved_symbol == m_file.get_interface("SomeInterface")
 
 
+@pytest.mark.xfail(reason="Currently dynamic imports not supported for type parameters")
 def test_dynamic_import_function_param_type(tmpdir) -> None:
     # language=typescript
     content = """

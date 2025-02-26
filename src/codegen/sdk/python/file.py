@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from codegen.sdk.core.autocommit import commiter, reader, writer
+from codegen.sdk.core.autocommit import reader, writer
 from codegen.sdk.core.file import SourceFile
 from codegen.sdk.core.interface import Interface
 from codegen.sdk.enums import ImportType
-from codegen.sdk.extensions.utils import cached_property, iter_all_descendants
+from codegen.sdk.extensions.utils import cached_property
 from codegen.sdk.python import PyAssignment
 from codegen.sdk.python.class_definition import PyClass
 from codegen.sdk.python.detached_symbols.code_block import PyCodeBlock
@@ -15,7 +15,6 @@ from codegen.sdk.python.function import PyFunction
 from codegen.sdk.python.import_resolution import PyImport
 from codegen.sdk.python.interfaces.has_block import PyHasBlock
 from codegen.sdk.python.statements.attribute import PyAttribute
-from codegen.sdk.python.statements.import_statement import PyImportStatement
 from codegen.shared.decorators.docs import noapidoc, py_apidoc
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 
@@ -58,12 +57,6 @@ class PyFile(SourceFile[PyImport, PyFunction, PyClass, PyAssignment, Interface[P
             bool: Always returns True as Python files can contain any Python symbol type.
         """
         return True
-
-    @noapidoc
-    @commiter
-    def _parse_imports(self) -> None:
-        for import_node in iter_all_descendants(self.ts_node, frozenset({"import_statement", "import_from_statement", "future_import_statement"})):
-            PyImportStatement(import_node, self.node_id, self.ctx, self.code_block, 0)
 
     ####################################################################################################################
     # GETTERS

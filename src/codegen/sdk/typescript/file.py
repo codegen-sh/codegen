@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from typing import TYPE_CHECKING
 
-from codegen.sdk.core.autocommit import commiter, mover, reader, writer
+from codegen.sdk.core.autocommit import mover, reader, writer
 from codegen.sdk.core.file import SourceFile
 from codegen.sdk.core.interfaces.exportable import Exportable
 from codegen.sdk.enums import ImportType, NodeType, SymbolType
@@ -18,8 +18,7 @@ from codegen.sdk.typescript.import_resolution import TSImport
 from codegen.sdk.typescript.interface import TSInterface
 from codegen.sdk.typescript.interfaces.has_block import TSHasBlock
 from codegen.sdk.typescript.namespace import TSNamespace
-from codegen.sdk.typescript.statements.import_statement import TSImportStatement
-from codegen.sdk.utils import calculate_base_path, find_all_descendants
+from codegen.sdk.utils import calculate_base_path
 from codegen.shared.decorators.docs import noapidoc, ts_apidoc
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 
@@ -227,18 +226,6 @@ class TSFile(SourceFile[TSImport, TSFunction, TSClass, TSAssignment, TSInterface
         """
         # TODO: this should be in symbol.py class. Rename as `add_export`
         symbol.add_keyword("export")
-
-    @noapidoc
-    @commiter
-    def _parse_imports(self) -> None:
-        import_nodes = find_all_descendants(self.ts_node, {"import_statement", "call_expression"})
-        for import_node in import_nodes:
-            if import_node.type == "import_statement":
-                TSImportStatement(import_node, self.node_id, self.ctx, self.code_block, 0)
-            elif import_node.type == "call_expression":
-                function = import_node.child_by_field_name("function")
-                if function.type == "import" or (function.type == "identifier" and function.text.decode("utf-8") == "require"):
-                    TSImportStatement(import_node, self.node_id, self.ctx, self.code_block, 0)
 
     @writer
     def remove_unused_exports(self) -> None:

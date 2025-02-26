@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import re
+import tempfile
 from collections.abc import Generator
 from contextlib import contextmanager
 from functools import cached_property
@@ -1333,19 +1334,16 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         prog_lang = ProgrammingLanguage(language.upper()) if isinstance(language, str) else language
         filename = "test.ts" if prog_lang == ProgrammingLanguage.TYPESCRIPT else "test.py"
 
-        # Create temporary directory
-        import tempfile
+        with tempfile.TemporaryDirectory(prefix="codegen_") as tmp_dir:
+            logger.info(f"Using directory: {tmp_dir}")
 
-        tmp_dir = tempfile.mkdtemp(prefix="codegen_")
-        logger.info(f"Using directory: {tmp_dir}")
+            # Create codebase using factory
+            from codegen.sdk.codebase.factory.codebase_factory import CodebaseFactory
 
-        # Create codebase using factory
-        from codegen.sdk.codebase.factory.codebase_factory import CodebaseFactory
-
-        files = {filename: code}
-        codebase = CodebaseFactory.get_codebase_from_files(repo_path=tmp_dir, files=files, programming_language=prog_lang)
-        logger.info("Codebase initialization complete")
-        return codebase
+            files = {filename: code}
+            codebase = CodebaseFactory.get_codebase_from_files(repo_path=tmp_dir, files=files, programming_language=prog_lang)
+            logger.info("Codebase initialization complete")
+            return codebase
 
     @classmethod
     def from_files(
@@ -1411,18 +1409,15 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             prog_lang = inferred_lang
             logger.info(f"Using language: {prog_lang} ({'inferred' if language is None else 'explicit'})")
 
-        # Create temporary directory
-        import tempfile
+        with tempfile.TemporaryDirectory(prefix="codegen_") as tmp_dir:
+            logger.info(f"Using directory: {tmp_dir}")
 
-        tmp_dir = tempfile.mkdtemp(prefix="codegen_")
-        logger.info(f"Using directory: {tmp_dir}")
+            # Create codebase using factory
+            from codegen.sdk.codebase.factory.codebase_factory import CodebaseFactory
 
-        # Create codebase using factory
-        from codegen.sdk.codebase.factory.codebase_factory import CodebaseFactory
-
-        codebase = CodebaseFactory.get_codebase_from_files(repo_path=tmp_dir, files=files, programming_language=prog_lang)
-        logger.info("Codebase initialization complete")
-        return codebase
+            codebase = CodebaseFactory.get_codebase_from_files(repo_path=tmp_dir, files=files, programming_language=prog_lang)
+            logger.info("Codebase initialization complete")
+            return codebase
 
     def get_modified_symbols_in_pr(self, pr_id: int) -> tuple[str, dict[str, str], list[str]]:
         """Get all modified symbols in a pull request"""
