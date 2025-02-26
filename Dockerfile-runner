@@ -21,6 +21,10 @@ RUN apt-get update && apt-get install -y \
     # Cleanup apt cache to reduce image size
     && rm -rf /var/lib/apt/lists/*
 
+# Set git config
+RUN git config --global user.email "team+codegenbot@codegen.sh" \
+    && git config --global user.name "codegen-bot"
+
 # Install nvm and Node.js
 SHELL ["/bin/bash", "-c"]
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash \

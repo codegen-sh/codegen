@@ -136,7 +136,6 @@ class RepoOperator:
 
     @cached_property
     def git_cli(self) -> GitCLI:
-        logger.info("**** Initializing git_cli!!!*****")
         git_cli = GitCLI(self.repo_path)
         username = None
         user_level = None
@@ -476,7 +475,6 @@ class RepoOperator:
                 commit_args.append(f"--author='{CODEGEN_BOT_NAME} <{CODEGEN_BOT_EMAIL}>'")
             if not verify:
                 commit_args.append("--no-verify")
-            logger.info(f"****** Committing changes with args: {commit_args} ******")
             self.git_cli.git.commit(*commit_args)
             return True
         else:
