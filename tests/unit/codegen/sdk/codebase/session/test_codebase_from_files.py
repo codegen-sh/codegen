@@ -11,7 +11,7 @@ def test_from_files_python():
     assert len(codebase.files) == 2
     assert any(f.filepath.endswith("main.py") for f in codebase.files)
     assert any(f.filepath.endswith("utils.py") for f in codebase.files)
-    assert any("from utils import add" in f.content for f in codebase.files)
+    assert any("from utils import add" in f.source for f in codebase.files)
 
 
 def test_from_files_typescript():
@@ -22,14 +22,13 @@ def test_from_files_typescript():
     assert len(codebase.files) == 2
     assert any(f.filepath.endswith("index.ts") for f in codebase.files)
     assert any(f.filepath.endswith("utils.ts") for f in codebase.files)
-    assert any("import { add }" in f.content for f in codebase.files)
+    assert any("import { add }" in f.source for f in codebase.files)
 
 
 def test_from_files_empty():
-    """Test creating a codebase with no files"""
-    # Defaults to Python when no files provided
-    codebase = Codebase.from_files({})
-    assert len(codebase.files) == 0
+    """Test creating a codebase with no files raises ValueError"""
+    with pytest.raises(ValueError, match="No files provided"):
+        Codebase.from_files({})
 
 
 def test_from_files_mixed_extensions():
