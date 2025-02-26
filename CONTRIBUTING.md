@@ -51,6 +51,10 @@ uv run pytest tests/unit -n auto
 uv run pytest tests/integration/codemod/test_codemods.py -n auto
 ```
 
+> [!TIP]
+>
+> - If on Linux the error `OSError: [Errno 24] Too many open files` appears then you might want to increase your _ulimit_
+
 ## Pull Request Process
 
 1. Fork the repository and create your branch from `develop`.

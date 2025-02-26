@@ -471,6 +471,8 @@ class RepoOperator:
         staged_changes = self.git_cli.git.diff("--staged")
         if staged_changes:
             commit_args = ["-m", message]
+            if self.bot_commit:
+                commit_args.append(f"--author='{CODEGEN_BOT_NAME} <{CODEGEN_BOT_EMAIL}>'")
             if not verify:
                 commit_args.append("--no-verify")
             self.git_cli.git.commit(*commit_args)
@@ -571,7 +573,11 @@ class RepoOperator:
     def get_filepaths_for_repo(self, ignore_list):
         # Get list of files to iterate over based on gitignore setting
         if self.repo_config.respect_gitignore:
-            filepaths = self.git_cli.git.ls_files().split("\n")
+            # ls-file flags:
+            # -c: show cached files
+            # -o: show other / untracked files
+            # --exclude-standard: exclude standard gitignore rules
+            filepaths = self.git_cli.git.ls_files("-co", "--exclude-standard").split("\n")
         else:
             filepaths = glob.glob("**", root_dir=self.repo_path, recursive=True, include_hidden=True)
             # Filter filepaths by ignore list.

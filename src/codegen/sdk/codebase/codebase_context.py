@@ -46,7 +46,7 @@ if TYPE_CHECKING:
     from codegen.sdk.core.dataclasses.usage import Usage
     from codegen.sdk.core.expressions import Expression
     from codegen.sdk.core.external_module import ExternalModule
-    from codegen.sdk.core.file import SourceFile
+    from codegen.sdk.core.file import File, SourceFile
     from codegen.sdk.core.interfaces.importable import Importable
     from codegen.sdk.core.node_id_factory import NodeId
     from codegen.sdk.core.parser import Parser
@@ -66,8 +66,10 @@ GLOBAL_FILE_IGNORE_LIST = [
     ".*/tests/static/chunk-.*.js",
     ".*/ace/.*.js",
     "src/vs/platform/contextview/browser/contextMenuService.ts",
+    "*/semver.js",
     "*/compiled/*",
     "*.min.js",
+    "*@*.js",
 ]
 
 
@@ -142,7 +144,8 @@ class CodebaseContext:
         from codegen.sdk.core.parser import Parser
 
         self.progress = progress or StubProgress()
-        self._graph = PyDiGraph()
+        self.__graph = PyDiGraph()
+        self.__graph_ready = False
         self.filepath_idx = {}
         self._ext_module_idx = {}
         self.generation = 0
@@ -187,7 +190,8 @@ class CodebaseContext:
             logger.warning("Some features may not work as expected. Advanced static analysis will be disabled but simple file IO will still work.")
 
         # Build the graph
-        self.build_graph(context.repo_operator)
+        if not self.config.exp_lazy_graph:
+            self.build_graph(context.repo_operator)
         try:
             self.synced_commit = context.repo_operator.head_commit
         except ValueError as e:
@@ -201,16 +205,29 @@ class CodebaseContext:
     def __repr__(self):
         return self.__class__.__name__
 
+    @property
+    def _graph(self) -> PyDiGraph[Importable, Edge]:
+        if not self.__graph_ready:
+            logger.info("Lazily Computing Graph")
+            self.build_graph(self.projects[0].repo_operator)
+        return self.__graph
+
+    @_graph.setter
+    def _graph(self, value: PyDiGraph[Importable, Edge]) -> None:
+        self.__graph = value
+
     @stopwatch_with_sentry(name="build_graph")
     @commiter
     def build_graph(self, repo_operator: RepoOperator) -> None:
         """Builds a codebase graph based on the current file state of the given repo operator"""
+        self.__graph_ready = True
         self._graph.clear()
 
         # =====[ Add all files to the graph in parallel ]=====
         syncs = defaultdict(lambda: [])
-        for filepath, _ in repo_operator.iter_files(subdirs=self.projects[0].subdirectories, extensions=self.extensions, ignore_list=GLOBAL_FILE_IGNORE_LIST):
-            syncs[SyncType.ADD].append(self.to_absolute(filepath))
+        if not self.config.disable_file_parse:
+            for filepath, _ in repo_operator.iter_files(subdirs=self.projects[0].subdirectories, extensions=self.extensions, ignore_list=GLOBAL_FILE_IGNORE_LIST):
+                syncs[SyncType.ADD].append(self.to_absolute(filepath))
         logger.info(f"> Parsing {len(syncs[SyncType.ADD])} files in {self.projects[0].subdirectories or 'ALL'} subdirectories with {self.extensions} extensions")
         self._process_diff_files(syncs, incremental=False)
         files: list[SourceFile] = self.get_nodes(NodeType.FILE)
@@ -250,19 +267,20 @@ class CodebaseContext:
             else:
                 logger.warning(f"Unhandled diff change type: {diff.change_type}")
         by_sync_type = defaultdict(lambda: [])
-        for filepath, sync_type in files_to_sync.items():
-            if self.get_file(filepath) is None:
-                if sync_type is SyncType.DELETE:
-                    # SourceFile is already deleted, nothing to do here
-                    continue
-                elif sync_type is SyncType.REPARSE:
-                    # SourceFile needs to be parsed for the first time
-                    sync_type = SyncType.ADD
-            elif sync_type is SyncType.ADD:
-                # If the file was deleted earlier, we need to reparse so we can remove old edges
-                sync_type = SyncType.REPARSE
+        if not self.config.disable_file_parse:
+            for filepath, sync_type in files_to_sync.items():
+                if self.get_file(filepath) is None:
+                    if sync_type is SyncType.DELETE:
+                        # SourceFile is already deleted, nothing to do here
+                        continue
+                    elif sync_type is SyncType.REPARSE:
+                        # SourceFile needs to be parsed for the first time
+                        sync_type = SyncType.ADD
+                elif sync_type is SyncType.ADD:
+                    # If the file was deleted earlier, we need to reparse so we can remove old edges
+                    sync_type = SyncType.REPARSE
 
-            by_sync_type[sync_type].append(filepath)
+                by_sync_type[sync_type].append(filepath)
         self.generation += 1
         self._process_diff_files(by_sync_type)
 
@@ -343,33 +361,15 @@ class CodebaseContext:
                 self.remove_node(module.node_id)
                 self._ext_module_idx.pop(module._idx_key, None)
 
-    def build_directory_tree(self, files: list[SourceFile]) -> None:
+    def build_directory_tree(self) -> None:
         """Builds the directory tree for the codebase"""
         # Reset and rebuild the directory tree
         self.directories = dict()
-        created_dirs = set()
-        for file in files:
-            directory = self.get_directory(file.path.parent, create_on_missing=True)
-            directory.add_file(file)
-            file._set_directory(directory)
-            created_dirs.add(file.path.parent)
 
-        def _dir_has_file(filepath):
-            gen = os.scandir(filepath)
-            while entry := next(gen, None):
-                if entry.is_file():
-                    return True
-            return False
-
-        for ctx in self.projects:
-            for rel_filepath in ctx.repo_operator.get_filepaths_for_repo(GLOBAL_FILE_IGNORE_LIST):
-                abs_filepath = self.to_absolute(rel_filepath)
-                if not abs_filepath.is_dir():
-                    abs_filepath = abs_filepath.parent
-
-                if abs_filepath not in created_dirs and self.is_subdir(abs_filepath) and _dir_has_file(abs_filepath):
-                    directory = self.get_directory(abs_filepath, create_on_missing=True)
-                    created_dirs.add(abs_filepath)
+        for file_path, _ in self.projects[0].repo_operator.iter_files(subdirs=self.projects[0].subdirectories, ignore_list=GLOBAL_FILE_IGNORE_LIST):
+            file_path = Path(file_path)
+            directory = self.get_directory(file_path.parent, create_on_missing=True)
+            directory._add_file(file_path.name)
 
     def get_directory(self, directory_path: PathLike, create_on_missing: bool = False, ignore_case: bool = False) -> Directory | None:
         """Returns the directory object for the given path, or None if the directory does not exist.
@@ -397,16 +397,16 @@ class CodebaseContext:
 
             # Base Case
             if str(absolute_path) == str(self.repo_path) or str(absolute_path) == str(parent_path):
-                root_directory = Directory(path=absolute_path, dirpath="", parent=None)
+                root_directory = Directory(ctx=self, path=absolute_path, dirpath="")
                 self.directories[absolute_path] = root_directory
                 return root_directory
 
             # Recursively create the parent directory
             parent = self.get_directory(parent_path, create_on_missing=True)
             # Create the directory
-            directory = Directory(path=absolute_path, dirpath=str(self.to_relative(absolute_path)), parent=parent)
+            directory = Directory(ctx=self, path=absolute_path, dirpath=str(self.to_relative(absolute_path)))
             # Add the directory to the parent
-            parent.add_subdirectory(directory)
+            parent._add_subdirectory(directory.name)
             # Add the directory to the tree
             self.directories[absolute_path] = directory
             return directory
@@ -512,7 +512,7 @@ class CodebaseContext:
         # Step 6: Build directory tree
         logger.info("> Building directory tree")
         files = [f for f in sort_editables(self.get_nodes(NodeType.FILE), alphabetical=True, dedupe=False)]
-        self.build_directory_tree(files)
+        self.build_directory_tree()
 
         # Step 7: Build configs
         if self.config_parser is not None:
@@ -611,13 +611,20 @@ class CodebaseContext:
         if node_id is not None:
             return self.get_node(node_id)
         if ignore_case:
-            parent = self.to_absolute(file_path).parent
-            if parent == Path(self.repo_path):
-                for file in self.to_absolute(self.repo_path).iterdir():
-                    if str(file_path).lower() == str(self.to_absolute(file)).lower():
-                        return self.get_file(file, ignore_case=False)
-            if directory := self.get_directory(parent, ignore_case=ignore_case):
-                return directory.get_file(os.path.basename(file_path), ignore_case=ignore_case)
+            # Using `get_directory` so that the case insensitive lookup works
+            parent = self.get_directory(self.to_absolute(file_path).parent, ignore_case=ignore_case).path
+            for file in parent.iterdir():
+                if str(file_path).lower() == str(self.to_relative(file)).lower():
+                    return self.get_file(file, ignore_case=False)
+
+    def _get_raw_file_from_path(self, path: Path) -> File | None:
+        from codegen.sdk.core.file import File
+
+        try:
+            return File.from_content(path, self.io.read_text(path), self, sync=False)
+        except UnicodeDecodeError:
+            # Handle when file is a binary file
+            return File.from_content(path, self.io.read_bytes(path), self, sync=False, binary=True)
 
     def get_external_module(self, module: str, import_name: str) -> ExternalModule | None:
         node_id = self._ext_module_idx.get(module + "::" + import_name, None)

@@ -114,7 +114,7 @@ class LinearClient:
             comment_data = data["data"]["commentCreate"]["comment"]
 
             return comment_data
-        except:
+        except Exception:
             msg = f"Error creating comment\n{data}"
             raise Exception(msg)
 

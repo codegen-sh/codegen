@@ -1,0 +1,40 @@
+name: Generate Documentation
+
+on:
+  push:
+    branches:
+      - develop
+
+permissions:
+  contents: write  # Need write permission to commit changes
+
+jobs:
+  generate-docs:
+    environment: auto-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GHA_TOKEN }}
+
+      - name: Setup backend
+        uses: ./.github/actions/setup-environment
+
+      - name: Generate API reference
+        run: uv run python src/codegen/gscli/cli.py generate docs
+
+      - name: Generate System Prompt
+        run: uv run python src/codegen/gscli/cli.py generate system-prompt
+
+      - name: Commit changes
+        run: |
+          git config --local user.email ${{ secrets.DOCS_USER_EMAIL }}
+          git config --local user.name ${{ secrets.DOCS_USER_NAME }}
+          git add docs/ src/codegen/sdk/system-prompt.txt
+          git diff --staged --quiet || git commit -m "docs: updated API reference"
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          branch: ${{ github.ref }}

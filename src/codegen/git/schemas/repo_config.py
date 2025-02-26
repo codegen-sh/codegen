@@ -4,6 +4,7 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
+from codegen.configs.models.repository import RepositoryConfig
 from codegen.git.schemas.enums import RepoVisibility
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 
@@ -23,6 +24,16 @@ class RepoConfig(BaseModel):
     respect_gitignore: bool = True
     base_path: str | None = None  # root directory of the codebase within the repo
     subdirectories: list[str] | None = None
+
+    @classmethod
+    def from_envs(cls) -> "RepoConfig":
+        default_repo_config = RepositoryConfig()
+        return RepoConfig(
+            name=default_repo_config.name,
+            full_name=default_repo_config.full_name,
+            base_dir=os.path.dirname(default_repo_config.path),
+            language=ProgrammingLanguage(default_repo_config.language.upper()),
+        )
 
     @classmethod
     def from_repo_path(cls, repo_path: str) -> "RepoConfig":

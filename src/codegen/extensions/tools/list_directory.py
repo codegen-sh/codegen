@@ -140,13 +140,13 @@ def list_directory(codebase: Codebase, path: str = "./", depth: int = 2) -> List
         """Helper function to get directory info recursively."""
         # Get direct files (always include files unless at max depth)
         all_files = []
-        for file in dir_obj.files:
+        for file in dir_obj.files(recursive=True):
             if file.directory == dir_obj:
                 all_files.append(file.filepath.split("/")[-1])
 
         # Get direct subdirectories
         subdirs = []
-        for subdir in dir_obj.subdirectories:
+        for subdir in dir_obj.subdirectories(recursive=True):
             # Only include direct descendants
             if subdir.parent == dir_obj:
                 if current_depth > 1 or current_depth == -1:
