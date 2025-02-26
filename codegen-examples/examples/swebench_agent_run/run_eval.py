@@ -6,7 +6,7 @@ import uuid
 import modal
 import click
 from datetime import datetime
-from codegen.extensions.swebench.utils import SWEBenchDataset, SweBenchExample, get_swe_bench_example, get_swe_bench_examples
+from codegen.extensions.swebench.utils import SWEBenchDataset, SweBenchExample, get_swe_bench_examples
 from codegen.extensions.swebench.report import generate_report
 
 PREDS_DNAME = Path(__file__).parent / "predictions"
@@ -92,10 +92,7 @@ async def run_eval(use_existing_preds: str | None, dataset: str, length: int, in
     run_id = use_existing_preds or str(uuid.uuid4())
     predictions_dir = PREDS_DNAME / f"results_{run_id}"
     dataset = SWEBenchDataset(dataset)
-    if instance_id:
-        examples = [get_swe_bench_example(instance_id, dataset=dataset)]
-    else:
-        examples = get_swe_bench_examples(dataset=dataset, length=length)
+    examples = get_swe_bench_examples(dataset=dataset, length=length, instance_id=instance_id)
 
     try:
         if use_existing_preds is None:

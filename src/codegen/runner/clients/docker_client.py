@@ -2,9 +2,10 @@
 
 from codegen.cli.commands.start.docker_container import DockerContainer
 from codegen.cli.commands.start.docker_fleet import DockerFleet
+from codegen.cli.utils.function_finder import DecoratedFunction
 from codegen.runner.clients.client import Client
-from codegen.runner.models.apis import DIFF_ENDPOINT, GetDiffRequest
-from codegen.runner.models.codemod import Codemod
+from codegen.runner.models.apis import RUN_FUNCTION_ENDPOINT, RunFunctionRequest
+from codegen.runner.models.codemod import CodemodRunResult
 
 
 class DockerClient(Client):
@@ -16,6 +17,16 @@ class DockerClient(Client):
             raise Exception(msg)
         super().__init__(container.host, container.port)
 
+    def run(self, codemod_source: str, commit: bool | None = None) -> CodemodRunResult:
+        req = RunFunctionRequest(function_name="unnamed", codemod_source=codemod_source, commit=commit)
+        response = self.post(RUN_FUNCTION_ENDPOINT, req.model_dump())
+        return CodemodRunResult.model_validate(response.json())
+
+    def run_function(self, function: DecoratedFunction, commit: bool) -> CodemodRunResult:
+        req = RunFunctionRequest(function_name=function.name, codemod_source=function.source, commit=commit)
+        response = self.post(RUN_FUNCTION_ENDPOINT, req.model_dump())
+        return CodemodRunResult.model_validate(response.json())
+
 
 if __name__ == "__main__":
     fleet = DockerFleet.load()
@@ -24,8 +35,6 @@ if __name__ == "__main__":
         msg = "No running container found. Run `codegen start` from a git repo first."
         raise Exception(msg)
     client = DockerClient(cur)
-    print(f"healthcheck: {client.healthcheck()}")
-    codemod = Codemod(user_code="print(codebase)")
-    diff_req = GetDiffRequest(codemod=codemod)
-    res = client.post(DIFF_ENDPOINT, diff_req.model_dump())
-    print(res.json())
+    print(f"healthcheck: {client.is_running()}")
+    result = client.run("print(codebase)")
+    print(result)

@@ -1,18 +1,16 @@
 import logging
 import traceback
-from collections.abc import Callable
-from functools import cached_property
 from http import HTTPStatus  # Add this import
-from typing import TypeVar
+from typing import Callable, TypeVar
 
 from starlette.background import BackgroundTasks
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
-from codegen.runner.models.apis import ServerInfo
 from codegen.runner.sandbox.runner import SandboxRunner
 from codegen.shared.exceptions.compilation import UserCodeException
+from codegen.shared.performance.stopwatch_utils import stopwatch
 
 logger = logging.getLogger(__name__)
 
@@ -21,27 +19,21 @@ TResponse = TypeVar("TResponse", bound=Response)
 
 
 class CodemodRunMiddleware[TRequest, TResponse](BaseHTTPMiddleware):
-    def __init__(self, app, path: str, server_info_fn: Callable[[], ServerInfo], runner_fn: Callable[[], SandboxRunner]) -> None:
+    def __init__(self, app, path: str, runner_fn: Callable[[], SandboxRunner]) -> None:
         super().__init__(app)
         self.path = path
-        self.server_info_fn = server_info_fn
         self.runner_fn = runner_fn
+
+    @property
+    def runner(self) -> SandboxRunner:
+        return self.runner_fn()
 
     async def dispatch(self, request: TRequest, call_next: RequestResponseEndpoint) -> TResponse:
         if request.url.path == self.path:
             return await self.process_request(request, call_next)
         return await call_next(request)
 
-    @cached_property
-    def server_info(self) -> ServerInfo:
-        return self.server_info_fn()
-
-    @cached_property
-    def runner(self) -> SandboxRunner:
-        return self.runner_fn()
-
     async def process_request(self, request: TRequest, call_next: RequestResponseEndpoint) -> TResponse:
-        self.server_info.is_running_codemod = True
         background_tasks = BackgroundTasks()
         try:
             logger.info(f"> (CodemodRunMiddleware) Request: {request.url.path}")
@@ -54,7 +46,6 @@ class CodemodRunMiddleware[TRequest, TResponse](BaseHTTPMiddleware):
         except UserCodeException as e:
             message = f"Invalid user code for {request.url.path}"
             logger.info(message)
-            self.server_info.is_running_codemod = False
             return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"detail": message, "error": str(e), "traceback": traceback.format_exc()})
 
         except Exception as e:
@@ -70,5 +61,12 @@ class CodemodRunMiddleware[TRequest, TResponse](BaseHTTPMiddleware):
             # TODO: instead of committing transactions, we should just rollback
             logger.info("Committing pending transactions due to exception")
             self.runner.codebase.ctx.commit_transactions(sync_graph=False)
-        self.runner.reset_runner()
-        self.server_info.is_running_codemod = False
+        await self.reset_runner()
+
+    @stopwatch
+    async def reset_runner(self):
+        logger.info("=====[ reset_runner ]=====")
+        logger.info(f"Syncing runner to commit: {self.runner.commit} ...")
+        self.runner.codebase.checkout(commit=self.runner.commit)
+        self.runner.codebase.clean_repo()
+        self.runner.codebase.checkout(branch=self.runner.codebase.default_branch, create_if_missing=True)

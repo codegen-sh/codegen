@@ -26,10 +26,9 @@ def test_from_files_typescript():
 
 
 def test_from_files_empty():
-    """Test creating a codebase with no files"""
-    # Defaults to Python when no files provided
-    codebase = Codebase.from_files({})
-    assert len(codebase.files) == 0
+    """Test creating a codebase with no files raises ValueError"""
+    with pytest.raises(ValueError, match="No files provided"):
+        Codebase.from_files({})
 
 
 def test_from_files_mixed_extensions():

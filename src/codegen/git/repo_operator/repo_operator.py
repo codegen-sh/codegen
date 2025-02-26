@@ -471,6 +471,8 @@ class RepoOperator:
         staged_changes = self.git_cli.git.diff("--staged")
         if staged_changes:
             commit_args = ["-m", message]
+            if self.bot_commit:
+                commit_args.append(f"--author='{CODEGEN_BOT_NAME} <{CODEGEN_BOT_EMAIL}>'")
             if not verify:
                 commit_args.append("--no-verify")
             self.git_cli.git.commit(*commit_args)

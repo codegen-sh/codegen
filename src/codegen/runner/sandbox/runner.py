@@ -12,7 +12,6 @@ from codegen.sdk.codebase.config import ProjectConfig, SessionOptions
 from codegen.sdk.codebase.factory.codebase_factory import CodebaseType
 from codegen.sdk.core.codebase import Codebase
 from codegen.shared.compilation.string_to_code import create_execute_function_from_codeblock
-from codegen.shared.performance.stopwatch_utils import stopwatch
 
 logger = logging.getLogger(__name__)
 
@@ -46,25 +45,6 @@ class SandboxRunner:
         logger.info("> Building graph...")
         projects = [ProjectConfig(programming_language=self.repo.language, repo_operator=self.op, base_path=self.repo.base_path, subdirectories=self.repo.subdirectories)]
         return Codebase(projects=projects)
-
-    @stopwatch
-    def reset_runner(self) -> None:
-        """Reset the runner to a cleaned/stable state for the next job.
-
-        At the start of every job the runner should be in the following state:
-        - Codebase is checked out to the pinned commit (i.e. self.commit)
-        - Codebase RP (RepoOperator) has only the origin remote and no branches
-
-        This method puts the runner in the above state and should be called at the end of every job.
-        """
-        # TODO: move self.codebase.reset() here instead of during run
-        # TODO assert codebase is on the default branch and its clean
-        # TODO re-enable this (i.e. rather than pinning the runner commit, always move it forward to the latest commit)
-        logger.info("=====[ reset_runner ]=====")
-        logger.info(f"Syncing runner to commit: {self.commit} ...")
-        self.codebase.checkout(commit=self.commit)
-        self.codebase.clean_repo()
-        self.codebase.checkout(branch=self.codebase.default_branch, create_if_missing=True)
 
     async def get_diff(self, request: GetDiffRequest) -> GetDiffResponse:
         custom_scope = {"context": request.codemod.codemod_context} if request.codemod.codemod_context else {}
