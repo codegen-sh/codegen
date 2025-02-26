@@ -56,7 +56,6 @@ def function(name: str, subdirectories: list[str] | None = None) -> DecoratedFun
             pass
 
     """
-    print(f"Creating function: {name} with subdirectories: {subdirectories}")
     return DecoratedFunction(name=name, subdirectories=subdirectories)
 
 
