@@ -23,7 +23,6 @@ jobs:
   unit-tests:
     needs: access-check
     runs-on: ubuntu-latest-8
-    environment: testing
     steps:
       - uses: actions/checkout@v4
         with:
@@ -48,7 +47,6 @@ jobs:
     # TODO: re-enable when this check is a develop required check
     if: false
     runs-on: ubuntu-latest-32
-    environment: testing
     strategy:
       matrix:
         sync_graph: [ true, false ]
@@ -90,7 +88,6 @@ jobs:
     needs: access-check
     if: contains(github.event.pull_request.labels.*.name, 'parse-tests') || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest-32
-    environment: testing
     steps:
       - uses: actions/checkout@v4
         with:
@@ -161,7 +158,6 @@ jobs:
   integration-tests:
     needs: access-check
     runs-on: ubuntu-latest-16
-    environment: testing
     steps:
       - uses: actions/checkout@v4
         with:

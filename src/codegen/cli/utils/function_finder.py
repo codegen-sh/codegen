@@ -14,6 +14,7 @@ class DecoratedFunction:
     source: str
     lint_mode: bool
     lint_user_whitelist: list[str]
+    subdirectories: list[str] | None = None
     filepath: Path | None = None
     parameters: list[tuple[str, str | None]] = dataclasses.field(default_factory=list)
     arguments_type_schema: dict | None = None
@@ -82,6 +83,20 @@ class DecoratedFunction:
 class CodegenFunctionVisitor(ast.NodeVisitor):
     def __init__(self):
         self.functions: list[DecoratedFunction] = []
+
+    def get_function_name(self, node: ast.Call) -> str:
+        keywords = {k.arg: k.value for k in node.keywords}
+        if "name" in keywords:
+            return ast.literal_eval(keywords["name"])
+        return ast.literal_eval(node.args[0])
+
+    def get_subdirectories(self, node: ast.Call) -> list[str] | None:
+        keywords = {k.arg: k.value for k in node.keywords}
+        if "subdirectories" in keywords:
+            return ast.literal_eval(keywords["subdirectories"])
+        if len(node.args) > 1:
+            return ast.literal_eval(node.args[1])
+        return None
 
     def get_function_body(self, node: ast.FunctionDef) -> str:
         """Extract and unindent the function body."""
@@ -178,7 +193,7 @@ class CodegenFunctionVisitor(ast.NodeVisitor):
         for decorator in node.decorator_list:
             if (
                 isinstance(decorator, ast.Call)
-                and len(decorator.args) >= 1
+                and (len(decorator.args) > 0 or len(decorator.keywords) > 0)
                 and (
                     # Check if it's a direct codegen.X call
                     (isinstance(decorator.func, ast.Attribute) and isinstance(decorator.func.value, ast.Name) and decorator.func.value.id == "codegen")
@@ -188,7 +203,8 @@ class CodegenFunctionVisitor(ast.NodeVisitor):
                 )
             ):
                 # Get the function name from the decorator argument
-                func_name = ast.literal_eval(decorator.args[0])
+                func_name = self.get_function_name(decorator)
+                subdirectories = self.get_subdirectories(decorator)
 
                 # Get additional metadata for webhook
                 lint_mode = decorator.func.attr == "webhook"
@@ -201,7 +217,16 @@ class CodegenFunctionVisitor(ast.NodeVisitor):
                 # Get just the function body, unindented
                 body_source = self.get_function_body(node)
                 parameters = self.get_function_parameters(node)
-                self.functions.append(DecoratedFunction(name=func_name, source=body_source, lint_mode=lint_mode, lint_user_whitelist=lint_user_whitelist, parameters=parameters))
+                self.functions.append(
+                    DecoratedFunction(
+                        name=func_name,
+                        subdirectories=subdirectories,
+                        source=body_source,
+                        lint_mode=lint_mode,
+                        lint_user_whitelist=lint_user_whitelist,
+                        parameters=parameters,
+                    )
+                )
 
     def _has_codegen_root(self, node):
         """Recursively check if an AST node chain starts with codegen."""

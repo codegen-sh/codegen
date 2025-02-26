@@ -29,18 +29,15 @@ codebase.commit()
 
 
 <Note>
-Codegen handles complex refactors while maintaining correctness, enabling a broad set of advanced code manipulation programs.
+Codegen handles complex refactors while maintaining correctness, enabling a broad set of advanced code manipulation programs. 
 </Note>
 
 <Tip>Codegen works with both Python and Typescript/JSX codebases. Learn more about language support [here](/building-with-codegen/language-support).</Tip>
 
 ## Installation
+<Warning>Codegen requires Python 3.13</Warning>
 
 ```bash
-# Install CLI
-uv tool install codegen
-
-# Install inside existing project
 pip install codegen
 ```
 
@@ -495,7 +492,7 @@ Let's walk through a minimal example of using Codegen in a project:
    ```bash
    codegen init
    ```
-
+   
    This creates a `.codegen/` directory with:
    ```bash
    .codegen/
@@ -563,7 +560,7 @@ Let's walk through a minimal example of using Codegen in a project:
 
 <Note>
 For more help, join our [community Slack](/introduction/community) or check the [FAQ](/introduction/faq).
-</Note>
+</Note> 
 
 ---
 title: "Using Codegen in Your IDE"
@@ -592,7 +589,7 @@ Codegen creates a custom Python environment in `.codegen/.venv`. Configure your 
        ```bash
        .codegen/.venv/bin/python
        ```
-
+    
     Alternatively, create a `.vscode/settings.json`:
         ```json
         {
@@ -614,7 +611,7 @@ Codegen creates a custom Python environment in `.codegen/.venv`. Configure your 
        .codegen/.venv/bin/python
        ```
   </Accordion>
-
+  
 </AccordionGroup>
 
 
@@ -1159,8 +1156,8 @@ iconType: "solid"
     </Tip>
   </Accordion>
   <Accordion title="Can I use Codegen with my existing tools?" icon="screwdriver-wrench">
-    Yes - [by design](/introduction/guiding-principles#python-first-composability).
-
+    Yes - [by design](/introduction/guiding-principles#python-first-composability). 
+    
     Codegen works like any other python package. It works alongside your IDE, version control system, and other development tools.
   </Accordion>
   <Accordion
@@ -1381,13 +1378,12 @@ codebase = Codebase("./", language="typescript")
 To fetch and parse a repository directly from GitHub, use the `from_repo` function.
 
 ```python
-import codegen
-
+from codegen import Codebase
 # Fetch and parse a repository (defaults to /tmp/codegen/{repo_name})
-codebase = codegen.from_repo('fastapi/fastapi')
+codebase = Codebase.from_repo('fastapi/fastapi')
 
 # Customize temp directory, clone depth, specific commit, or programming language
-codebase = codegen.from_repo(
+codebase = Codebase.from_repo(
     'fastapi/fastapi',
     tmp_dir='/custom/temp/dir',  # Optional: custom temp directory
     commit='786a8ada7ed0c7f9d8b04d49f24596865e4b7901',  # Optional: specific commit
@@ -1412,11 +1408,8 @@ from codegen.configs.models.secrets import SecretsConfig
 
 codebase = Codebase(
     "path/to/repository",
-    config=CodebaseConfig(
-        sync_enabled=True,   # Enable graph synchronization
-        ...  # Add other feature flags as needed
-    ),
-    secrets=SecretsConfig(openai_api_key="your-openai-key")     # For AI-powered features
+    config=CodebaseConfig(debug=True),
+    secrets=SecretsConfig(openai_api_key="your-openai-key")   # For AI-powered features
 )
 ```
 
@@ -1438,7 +1431,7 @@ Here's an example:
 
 ```python
 from codegen import Codebase
-from codegen.git.repo_operator.local_repo_operator import RepoOperator
+from codegen.git.repo_operator.local_repo_operator import LocalRepoOperator
 from codegen.git.schemas.repo_config import BaseRepoConfig
 from codegen.sdk.codebase.config import ProjectConfig
 
@@ -2120,7 +2113,7 @@ if not isinstance(mdx_file, SourceFile):
 ```
 
 <Note>
-  Currently, the codebase object can only parse source code files of one language at a time. This means that if you want to work with both Python and TypeScript files, you will need to create two separate codebase objects.
+  Currently, the codebase object can only parse source code files of one language at a time. This means that if you want to work with both Python and TypeScript files, you will need to create two separate codebase objects. 
 </Note>
 
 ## Accessing Code
@@ -2940,7 +2933,7 @@ for module, imports in module_imports.items():
 
 <Note>
 Always check if imports resolve to external modules before modification to avoid breaking third-party package imports.
-</Note>
+</Note> 
 
 ## Import Statements vs Imports
 
@@ -3142,7 +3135,7 @@ for exp in file.exports:
         # Get original and current symbols
         current = exp.exported_symbol
         original = exp.resolved_symbol
-
+        
         print(f"Re-exporting {original.name} from {exp.from_file.filepath}")
         print(f"Through: {' -> '.join(e.file.filepath for e in exp.export_chain)}")
 ```
@@ -3192,7 +3185,7 @@ for from_file, exports in file_exports.items():
 
 <Note>
 When managing exports, consider the impact on your module's public API. Not all symbols that can be exported should be exported.
-</Note>
+</Note> 
 
 ---
 title: "Inheritable Behaviors"
@@ -3682,9 +3675,9 @@ If `A` depends on `B`, then `B` is used by `A`. This relationship is tracked in 
 
 flowchart LR
     B(BaseClass)
-
-
-
+    
+    
+    
     A(MyClass)
     B ---| used by |A
     A ---|depends on |B
@@ -3853,7 +3846,7 @@ class A:
     def method_a(self): pass
 
 class B(A):
-    def method_b(self):
+    def method_b(self): 
         self.method_a()
 
 class C(B):
@@ -4743,7 +4736,7 @@ for attr in class_def.attributes:
     # Each attribute has an assignment property
     attr_type = attr.assignment.type  # -> TypeAnnotation
     print(f"{attr.name}: {attr_type.source}")  # e.g. "x: int"
-
+    
     # Set attribute type
     attr.assignment.set_type("int")
 
@@ -4760,7 +4753,7 @@ Union types ([UnionType](/api-reference/core/UnionType)) can be manipulated as c
 
 ```python
 # Get union type
-union_type = function.return_type  # -> A | B
+union_type = function.return_type  # -> A | B 
 print(union_type.symbols)  # ["A", "B"]
 
 # Add/remove options
@@ -5611,13 +5604,13 @@ Here's an example of using flags during code analysis:
 
 ```python
 def analyze_codebase(codebase):
-    for function in codebase.functions:
+    for function in codebase.functions:            
         # Check documentation
         if not function.docstring:
             function.flag(
                 message="Missing docstring",
             )
-
+            
         # Check error handling
         if function.is_async and not function.has_try_catch:
             function.flag(
@@ -5868,80 +5861,102 @@ icon: "magnifying-glass"
 iconType: "solid"
 ---
 
-Codegen's `VectorIndex` enables semantic code search capabilities using embeddings. This allows you to search codebases using natural language queries and find semantically related code, even when the exact terms aren't present.
+Codegen provides semantic code search capabilities using embeddings. This allows you to search codebases using natural language queries and find semantically related code, even when the exact terms aren't present.
 
 <Warning>This is under active development. Interested in an application? [Reach out to the team!](/introduction/about.tsx)</Warning>
 
 ## Basic Usage
 
-Create and save a vector index for your codebase:
+Here's how to create and use a semantic code search index:
 
 ```python
-from codegen.extensions import VectorIndex
+# Parse a codebase
+codebase = Codebase.from_repo('fastapi/fastapi', language='python')
 
-# Initialize with your codebase
-index = VectorIndex(codebase)
+# Create index
+index = FileIndex(codebase)
+index.create() # computes per-file embeddings
 
-# Create embeddings for all files
-index.create()
+# Save index to .pkl
+index.save('index.pkl')
 
-# Save to disk (defaults to .codegen/vector_index.pkl)
-index.save()
+# Load index into memory
+index.load('index.pkl')
+
+# Update index after changes
+codebase.files[0].edit('# 🌈 Replacing File Content 🌈')
+codebase.commit()
+index.update() # re-computes 1 embedding
 ```
 
-Later, load the index and perform semantic searches:
+
+## Searching Code
+
+Once you have an index, you can perform semantic searches:
 
 ```python
-# Create a codebase
-codebase = Codebase.from_repo('fastapi/fastapi')
-
-# Load a previously created index
-index = VectorIndex(codebase)
-index.load()
-
 # Search with natural language
 results = index.similarity_search(
     "How does FastAPI handle dependency injection?",
     k=5  # number of results
 )
 
-# Print results with previews
-for filepath, score in results:
-    print(f"\nScore: {score:.3f} | File: {filepath}")
-    file = codebase.get_file(filepath)
+# Print results
+for file, score in results:
+    print(f"\nScore: {score:.3f} | File: {file.filepath}")
     print(f"Preview: {file.content[:200]}...")
 ```
+<Tip>The `FileIndex` returns tuples of ([File](/api-reference/core/SourceFile), `score`)</Tip>
 
 <Note>
 The search uses cosine similarity between embeddings to find the most semantically related files, regardless of exact keyword matches.
 </Note>
 
-## Getting Embeddings
+## Available Indices
 
-You can also get embeddings for arbitrary text using the same model:
+Codegen provides two types of semantic indices:
+
+### FileIndex
+
+The `FileIndex` operates at the file level:
+- Indexes entire files, splitting large files into chunks
+- Best for finding relevant files or modules
+- Simpler and faster to create/update
 
 ```python
-# Get embeddings for a list of texts
-texts = [
-    "Some code or text to embed",
-    "Another piece of text"
-]
-embeddings = index.get_embeddings(texts)  # shape: (n_texts, embedding_dim)
+from codegen.extensions.index.file_index import FileIndex
+
+index = FileIndex(codebase)
+index.create()
+```
+
+### SymbolIndex (Experimental)
+
+The `SymbolIndex` operates at the symbol level:
+- Indexes individual functions, classes, and methods
+- Better for finding specific code elements
+- More granular search results
+
+```python
+from codegen.extensions.index.symbol_index import SymbolIndex
+
+index = SymbolIndex(codebase)
+index.create()
 ```
 
 ## How It Works
 
-The `VectorIndex` class:
-1. Processes each file in your codebase
-2. Splits large files into chunks that fit within token limits
-3. Uses OpenAI's text-embedding-3-small model to create embeddings
-4. Stores embeddings in a numpy array for efficient similarity search
-5. Saves the index to disk for reuse
+The semantic indices:
+1. Process code at either file or symbol level
+2. Split large content into chunks that fit within token limits
+3. Use OpenAI's text-embedding-3-small model to create embeddings
+4. Store embeddings efficiently for similarity search
+5. Support incremental updates when code changes
 
 When searching:
-1. Your query is converted to an embedding using the same model
-2. Cosine similarity is computed between the query and all file embeddings
-3. The most similar files are returned, along with their similarity scores
+1. Your query is converted to an embedding
+2. Cosine similarity is computed with all stored embeddings
+3. The most similar items are returned with their scores
 
 <Warning>
 Creating embeddings requires an OpenAI API key with access to the embeddings endpoint.
@@ -5949,7 +5964,7 @@ Creating embeddings requires an OpenAI API key with access to the embeddings end
 
 ## Example Searches
 
-Here are some example semantic searches that demonstrate the power of the system:
+Here are some example semantic searches:
 
 ```python
 # Find authentication-related code
@@ -6305,7 +6320,7 @@ Explore our tutorials to learn how to use Codegen for various code transformatio
   >
     Update API calls, handle breaking changes, and manage bulk updates across your codebase.
   </Card>
-  <Card
+  <Card 
     title="SQLAlchemy 1.4 to 2.0"
     icon="layer-group"
     href="/tutorials/sqlalchemy-1.4-to-2.0"
@@ -6319,9 +6334,9 @@ Explore our tutorials to learn how to use Codegen for various code transformatio
   >
     Convert Flask applications to FastAPI, updating routes and dependencies.
   </Card>
-  <Card
-    title="Python 2 to 3"
-    icon="snake"
+  <Card 
+    title="Python 2 to 3" 
+    icon="snake" 
     href="/tutorials/python2-to-python3"
   >
     Migrate Python 2 code to Python 3, updating syntax and modernizing APIs.
@@ -6338,9 +6353,9 @@ Explore our tutorials to learn how to use Codegen for various code transformatio
   >
     Restructure files, enforce naming conventions, and improve project layout.
   </Card>
-  <Card
-    title="Improve Modularity"
-    icon="cubes"
+  <Card 
+    title="Improve Modularity" 
+    icon="cubes" 
     href="/tutorials/modularity"
   >
     Split large files, extract shared logic, and manage dependencies.
@@ -6406,151 +6421,170 @@ Explore our tutorials to learn how to use Codegen for various code transformatio
 
 
 ---
-title: "Building a Code Agent with LangChain"
+title: "Building Code Agents"
 sidebarTitle: "Code Agent"
 icon: "robot"
 iconType: "solid"
 ---
 
-This guide demonstrates how to build an intelligent code agent that can analyze and manipulate codebases using Codegen's LangChain integration.
-
-This agent access to powerful code viewing and manipulation tools powered by Codegen, including:
-- `RevealSymbolTool`: reveal all N-th degree dependencies and usages of a function
-- `MoveSymbolTool`: move a symbol between files, updating all imports etc. (guaranteed correctness)
-- `SemanticEditTool`: implementation of Cursor-style smart file editing
-- `SemanticSearchTool`: search over an index of vector embeddings for files
-
-<Info>View the full code in our [examples repository](https://github.com/codegen-sh/codegen-sdk/tree/develop/src/codegen/extensions/langchain)</Info>
-
-## Step 1: Setting Up the Agent
-
-First, let's import the necessary components and create our agent:
+This guide demonstrates how to build an intelligent code agent that can analyze and manipulate codebases.
 
 ```python
-from langchain_openai import ChatOpenAI
-from codegen import Codebase
-from codegen.extensions.langchain import create_codebase_agent
+from codegen import CodeAgent, Codebase
 
-# Initialize codebase
-codebase = Codebase.from_repo("fastapi/fastapi")
+# Grab a repo from Github
+codebase = Codebase.from_repo('fastapi/fastapi')
 
-# Create the agent with GPT-4
-agent = create_codebase_agent(
+# Create a code agent with read/write codebase access
+agent = CodeAgent(codebase)
+
+# Run the agent with a prompt
+agent.run("Tell me about this repo")
+```
+
+The agent has access to powerful code viewing and manipulation tools powered by Codegen, including:
+- `ViewFileTool`: View contents and metadata of files
+- `SemanticEditTool`: Make intelligent edits to files
+- `RevealSymbolTool`: Analyze symbol dependencies and usages
+- `MoveSymbolTool`: Move symbols between files with import handling
+- `ReplacementEditTool`: Make regex-based replacement editing on files
+- `ListDirectoryTool`: List directory contents
+- `SearchTool`: Search for files and symbols
+- `CreateFileTool`: Create new files
+- `DeleteFileTool`: Delete files
+- `RenameFileTool`: Rename files
+- `EditFileTool`: Edit files 
+
+
+
+<Info>View the full code for the default tools and agent implementation in our [examples repository](https://github.com/codegen-sh/codegen-sdk/tree/develop/src/codegen/extensions/langchain/tools)</Info>
+
+# Basic Usage
+
+The following example shows how to create and run a `CodeAgent`:
+
+```python
+from codegen import CodeAgent, Codebase
+
+# Grab a repo from Github
+codebase = Codebase.from_repo('fastapi/fastapi')
+
+# Create a code agent with read/write codebase access
+agent = CodeAgent(codebase)
+
+# Run the agent with a prompt
+agent.run("Tell me about this repo")
+```
+
+
+<Note>Your `ANTHROPIC_API_KEY` must be set in your env.</Note>
+
+The default implementation uses `anthropic/claude-3-5-sonnet-latest` for the model but this can be changed through the `model_provider` and `model_name` arguments.
+
+```python
+agent = CodeAgent(
     codebase=codebase,
-    model_name="gpt-4",
-    temperature=0,
-    verbose=True
+    model_provider="openai",
+    model_name="gpt-4o",
 )
 ```
 
-The agent is initialized with:
-- A Codebase instance to operate on
-- An LLM (GPT-4 in this case)
-- Tools for code manipulation
-- A conversation memory to maintain context
+<Note>If using a non-default model provider, make sure to set the appropriate API key (e.g., `OPENAI_API_KEY` for OpenAI models) in your env.</Note>
 
-## Step 2: Available Tools
+# Available Tools
 
-The agent comes with several built-in tools for code operations:
+The agent comes with a comprehensive set of tools for code analysis and manipulation. Here are some key tools:
 
 ```python
-tools = [
-    ViewFileTool(codebase),      # View file contents
-    ListDirectoryTool(codebase),  # List directory contents
-    SearchTool(codebase),        # Search code
-    EditFileTool(codebase),      # Edit files
-    CreateFileTool(codebase),    # Create new files
-    DeleteFileTool(codebase),    # Delete files
-    RenameFileTool(codebase),    # Rename files
-    MoveSymbolTool(codebase),    # Move functions/classes
-    RevealSymbolTool(codebase),  # Analyze symbol relationships
-    SemanticEditTool(codebase),  # Make semantic edits
-    CommitTool(codebase),        # Commit changes
-]
+from codegen.extensions.langchain.tools import (
+    CreateFileTool,
+    DeleteFileTool,
+    EditFileTool,
+    ListDirectoryTool,
+    MoveSymbolTool,
+    RenameFileTool,
+    ReplacementEditTool,
+    RevealSymbolTool,
+    SearchTool,
+    SemanticEditTool,
+    ViewFileTool,
+)
 ```
 
-Each tool provides specific capabilities to the agent, allowing it to perform complex code operations.
+<Note>View the full set of [tools on Github](https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/extensions/langchain/tools.py)</Note>
 
-## Step 3: Interacting with the Agent
+Each tool provides specific capabilities:
 
-Let's see some examples of how to interact with the agent:
+# Extensions
+
+## GitHub Integration
+
+The agent includes tools for GitHub operations like PR management. Set up GitHub access with:
+
+```bash
+CODEGEN_SECRETS__GITHUB_TOKEN="..."
+```
+
+Import the GitHub tools:
 
 ```python
-# Analyze dependencies
-result = agent.invoke(
-    {
-        "input": "What are the dependencies of the FastAPI class?",
-        "config": {"configurable": {"thread_id": 1}}
-    }
+from codegen.extensions.langchain.tools import (
+    GithubCreatePRTool,
+    GithubViewPRTool,
+    GithubCreatePRCommentTool,
+    GithubCreatePRReviewCommentTool
 )
-print(result["messages"][-1].content)
-
-# Find usage patterns
-result = agent.invoke(
-    {
-        "input": "Show me examples of dependency injection in the codebase",
-        "config": {"configurable": {"thread_id": 1}}
-    }
-)
-print(result["messages"][-1].content)
-
-# Perform code analysis
-result = agent.invoke(
-    {
-        "input": "What's the most complex function in terms of dependencies?",
-        "config": {"configurable": {"thread_id": 1}}
-    }
-)
-print(result["messages"][-1].content)
 ```
 
-The agent maintains conversation history, so it can reference previous queries and build context over time.
+These tools enable:
+- Creating pull requests
+- Viewing PR contents and diffs
+- Adding general PR comments
+- Adding inline review comments
 
-## Step 4: Code Manipulation
+<Note>View all Github tools on [Github](https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/extensions/langchain/tools.py)</Note>
 
-The agent can also perform code changes:
+
+## Linear Integration
+
+The agent can interact with Linear for issue tracking and project management. To use Linear tools, set the following environment variables:
+
+```bash
+LINEAR_ACCESS_TOKEN="..."
+LINEAR_TEAM_ID="..."
+LINEAR_SIGNING_SECRET="..."
+```
+
+Import and use the Linear tools:
 
 ```python
-# Move a function to a new file
-result = agent.invoke(
-    {
-        "input": "Move the validate_email function to validation_utils.py",
-        "config": {"configurable": {"thread_id": 1}}
-    }
-)
-
-# Rename a class and update all references
-result = agent.invoke(
-    {
-        "input": "Rename the UserModel class to User and update all imports",
-        "config": {"configurable": {"thread_id": 1}}
-    }
-)
-
-# Add error handling
-result = agent.invoke(
-    {
-        "input": "Add proper error handling to the process_data function",
-        "config": {"configurable": {"thread_id": 1}}
-    }
+from codegen.extensions.langchain.tools import (
+    LinearGetIssueTool,
+    LinearGetIssueCommentsTool,
+    LinearCommentOnIssueTool,
+    LinearSearchIssuesTool,
+    LinearCreateIssueTool,
+    LinearGetTeamsTool
 )
 ```
 
-The agent will:
-1. Analyze the current code state
-2. Plan the necessary changes
-3. Execute the changes while maintaining code correctness
-4. Update all related imports and references
+These tools allow the agent to:
+- Create and search issues
+- Get issue details and comments
+- Add comments to issues
+- View team information
 
-## Advanced Usage
+<Note>View all Linear tools on [Github](https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/extensions/langchain/tools.py)</Note>
 
-### Adding Custom Tools
+
+## Adding Custom Tools
 
 You can extend the agent with custom tools:
 
 ```python
 from langchain.tools import BaseTool
 from pydantic import BaseModel, Field
+from codegen import CodeAgent
 
 class CustomToolInput(BaseModel):
     """Input schema for custom tool."""
@@ -6568,12 +6602,9 @@ class CustomCodeTool(BaseTool):
 
 # Add custom tool to agent
 tools.append(CustomCodeTool())
-agent = create_codebase_agent(
-    codebase=codebase,
-    tools=tools,
-    model_name="gpt-4"
-)
+agent = CodebaseAgent(codebase, tools=tools, model_name="claude-3-5-sonnet-latest")
 ```
+
 
 ---
 title: "Building a RAG-powered Slack Bot"
@@ -6795,6 +6826,446 @@ While this example demonstrates a simple RAG-based bot, you can extend it to bui
 
 
 ---
+title: "Building an AI-Powered GitHub PR Review Bot"
+sidebarTitle: "GitHub PR Review Bot"
+icon: "github"
+iconType: "solid"
+---
+
+This tutorial demonstrates how to build an intelligent GitHub PR review bot that automatically reviews pull requests when triggered by labels. The bot uses Codegen's GitHub integration and AI capabilities to provide comprehensive code reviews with actionable feedback.
+
+<Info>View the full code and setup instructions in our [examples repository](https://github.com/codegen-sh/codegen-sdk/tree/develop/codegen-examples/examples/pr_review_bot)</Info>
+
+<Tip>The bot is triggered by adding a "Codegen" label to PRs, making it easy to integrate into your existing workflow</Tip>
+
+## Overview
+
+The process involves three main components:
+
+1. Setting up a Modal web endpoint for GitHub webhooks
+2. Handling PR label events
+3. Running an AI-powered code review agent
+
+Let's walk through each component using Codegen.
+
+## Step 1: Setting Up the Modal App
+
+First, we set up a Modal application to handle GitHub webhooks:
+
+```python
+import modal
+from codegen.extensions.events.app import CodegenApp
+from fastapi import Request
+
+# Set up the base image with required dependencies
+base_image = (
+    modal.Image.debian_slim(python_version="3.12")
+    .apt_install("git")
+    .pip_install(
+        "codegen>=0.18",
+        "openai>=1.1.0",
+        "fastapi[standard]",
+        "slack_sdk",
+    )
+)
+
+# Initialize the Codegen app with GitHub integration
+app = CodegenApp(name="github", image=base_image)
+
+@app.function(secrets=[modal.Secret.from_dotenv()])
+@modal.web_endpoint(method="POST")
+def entrypoint(event: dict, request: Request):
+    return app.github.handle(event, request)
+```
+
+<Note>
+The Modal app provides a webhook endpoint that GitHub can call when PR events occur.
+Make sure to configure your GitHub repository's webhook settings to point to your Modal endpoint.
+</Note>
+
+## Step 2: Handling PR Events
+
+Next, we set up event handlers for PR label events:
+
+```python
+from codegen.extensions.github.types.events.pull_request import (
+    PullRequestLabeledEvent,
+    PullRequestUnlabeledEvent
+)
+
+@app.github.event("pull_request:labeled")
+def handle_labeled(event: PullRequestLabeledEvent):
+    """Handle PR labeled events."""
+    if event.label.name == "Codegen":
+        # Optional: Notify a Slack channel
+        app.slack.client.chat_postMessage(
+            channel="YOUR_CHANNEL_ID",
+            text=f"PR #{event.number} labeled with Codegen, starting review",
+        )
+        # Start the review process
+        pr_review_agent(event)
+
+@app.github.event("pull_request:unlabeled")
+def handle_unlabeled(event: PullRequestUnlabeledEvent):
+    """Handle PR unlabeled events."""
+    if event.label.name == "Codegen":
+        # Clean up bot comments when label is removed
+        remove_bot_comments(event)
+```
+
+<Tip>
+The bot only triggers on PRs labeled with "Codegen", giving you control over which PRs get reviewed.
+</Tip>
+
+## Step 3: Implementing the Review Agent
+
+Finally, we implement the AI-powered review agent:
+
+```python
+from codegen import Codebase, CodeAgent
+from codegen.extensions.langchain.tools import (
+    GithubViewPRTool,
+    GithubCreatePRCommentTool,
+    GithubCreatePRReviewCommentTool,
+)
+
+def pr_review_agent(event: PullRequestLabeledEvent) -> None:
+    """Run the PR review agent."""
+    # Initialize codebase for the repository
+    repo_str = f"{event.organization.login}/{event.repository.name}"
+    codebase = Codebase.from_repo(
+        repo_str,
+        language='python',
+        secrets=SecretsConfig(github_token=os.environ["GITHUB_TOKEN"])
+    )
+
+    # Create a temporary comment to show the bot is working
+    review_message = "CodegenBot is starting to review the PR please wait..."
+    comment = codebase._op.create_pr_comment(event.number, review_message)
+
+    # Set up PR review tools
+    pr_tools = [
+        GithubViewPRTool(codebase),
+        GithubCreatePRCommentTool(codebase),
+        GithubCreatePRReviewCommentTool(codebase),
+    ]
+
+    # Create and run the review agent
+    agent = CodeAgent(codebase=codebase, tools=pr_tools)
+    prompt = f"""
+Review this pull request like a senior engineer:
+{event.pull_request.url}
+
+Be explicit about the changes, produce a short summary, and point out possible improvements.
+Focus on facts and technical details, using code snippets where helpful.
+"""
+    result = agent.run(prompt)
+    
+    # Clean up the temporary comment
+    comment.delete()
+```
+
+## Setting Up the Environment
+
+Before running the bot, you'll need:
+
+1. Create a `.env` file with your credentials:
+
+```env
+GITHUB_TOKEN=your_github_token
+GITHUB_API_KEY=your_github_token
+ANTHROPIC_API_KEY=your_anthropic_key
+SLACK_BOT_TOKEN=your_slack_token  # Optional
+```
+
+2. Deploy the Modal app:
+```bash
+uv sync  # Install dependencies
+uv run modal deploy app.py
+```
+
+3. Configure GitHub webhook:
+   - Go to your repository settings
+   - Add webhook pointing to your Modal endpoint
+   - Select "Pull request" events
+   - Add a webhook secret (optional but recommended)
+
+## Example Usage
+
+1. Create or update a pull request in your repository
+2. Add the "Codegen" label to trigger a review
+3. The bot will:
+   - Post a temporary "starting review" comment
+   - Analyze the PR changes
+   - Post detailed review comments
+   - Remove the temporary comment when done
+
+To remove the bot's comments:
+1. Remove the "Codegen" label
+2. The bot will automatically clean up its comments
+
+## Extensions
+
+While this example demonstrates a basic PR review bot, you can extend it to:
+- Customize the review criteria
+- Add more sophisticated analysis tools
+- Integrate with other services
+- Add automatic fix suggestions
+- ... etc.
+
+<Tip>Check out our [Code Agent tutorial](/tutorials/build-code-agent) to learn more about building sophisticated AI agents with Codegen</Tip>
+
+## Learn More
+
+<CardGroup cols={2}>
+  <Card
+    title="Code Agent Guide"
+    icon="robot"
+    href="/building-with-codegen/code-agent"
+  >
+    Learn how to build intelligent code agents with Codegen.
+  </Card>
+  <Card
+    title="GitHub Integration"
+    icon="github"
+    href="/building-with-codegen/github-integration"
+  >
+    Explore Codegen's GitHub integration features.
+  </Card>
+  <Card
+    title="Modal Deployment"
+    icon="cloud"
+    href="https://modal.com/docs/guide"
+  >
+    Learn about deploying apps with Modal.
+  </Card>
+  <Card
+    title="Code Review Best Practices"
+    icon="code-pull-request"
+    href="https://google.github.io/eng-practices/review/"
+  >
+    Understand code review patterns and best practices.
+  </Card>
+</CardGroup> 
+
+---
+title: "Deep Code Research with AI"
+sidebarTitle: "Code Research Agent"
+icon: "magnifying-glass"
+iconType: "solid"
+---
+
+This guide demonstrates how to build an intelligent code research tool that can analyze and explain codebases using Codegen's and LangChain. The tool combines semantic code search, dependency analysis, and natural language understanding to help developers quickly understand new codebases.
+
+<Info>View the full code on [GitHub](https://github.com/codegen-sh/codegen-sdk/tree/develop/codegen-examples/examples/deep_code_research)</Info>
+
+<Tip>This example works with any public GitHub repository - just provide the repo name in the format owner/repo</Tip>
+
+## Overview
+
+The process involves three main components:
+
+1. A CLI interface for interacting with the research agent
+2. A set of code analysis tools powered by Codegen
+3. An LLM-powered agent that combines the tools to answer questions
+
+Let's walk through building each component.
+
+## Step 1: Setting Up the Research Tools
+
+First, let's import the necessary components and set up our research tools:
+
+```python
+from codegen import Codebase
+from codegen.extensions.langchain.agent import create_agent_with_tools
+from codegen.extensions.langchain.tools import (
+    ListDirectoryTool,
+    RevealSymbolTool,
+    SearchTool,
+    SemanticSearchTool,
+    ViewFileTool,
+)
+from langchain_core.messages import SystemMessage
+```
+
+We'll create a function to initialize our codebase with a nice progress indicator:
+
+```python
+def initialize_codebase(repo_name: str) -> Optional[Codebase]:
+    """Initialize a codebase with a spinner showing progress."""
+    with console.status("") as status:
+        try:
+            status.update(f"[bold blue]Cloning {repo_name}...[/bold blue]")
+            codebase = Codebase.from_repo(repo_name)
+            status.update("[bold green]✓ Repository cloned successfully![/bold green]")
+            return codebase
+        except Exception as e:
+            console.print(f"[bold red]Error initializing codebase:[/bold red] {e}")
+            return None
+```
+
+Then we'll set up our research tools:
+
+```python
+# Create research tools
+tools = [
+    ViewFileTool(codebase),      # View file contents
+    ListDirectoryTool(codebase),  # Explore directory structure
+    SearchTool(codebase),        # Text-based search
+    SemanticSearchTool(codebase), # Natural language search
+    RevealSymbolTool(codebase),  # Analyze symbol relationships
+]
+```
+
+Each tool provides specific capabilities:
+- `ViewFileTool`: Read and understand file contents
+- `ListDirectoryTool`: Explore the codebase structure
+- `SearchTool`: Find specific code patterns
+- `SemanticSearchTool`: Search using natural language
+- `RevealSymbolTool`: Analyze dependencies and usages
+
+## Step 2: Creating the Research Agent
+
+Next, we'll create an agent that can use these tools intelligently. We'll give it a detailed prompt about its role:
+
+```python
+RESEARCH_AGENT_PROMPT = """You are a code research expert. Your goal is to help users understand codebases by:
+1. Finding relevant code through semantic and text search
+2. Analyzing symbol relationships and dependencies
+3. Exploring directory structures
+4. Reading and explaining code
+
+Always explain your findings in detail and provide context about how different parts of the code relate to each other.
+When analyzing code, consider:
+- The purpose and functionality of each component
+- How different parts interact
+- Key patterns and design decisions
+- Potential areas for improvement
+
+Break down complex concepts into understandable pieces and use examples when helpful."""
+
+# Initialize the agent
+agent = create_agent_with_tools(
+    codebase=codebase,
+    tools=tools,
+    chat_history=[SystemMessage(content=RESEARCH_AGENT_PROMPT)],
+    verbose=True
+)
+```
+
+## Step 3: Building the CLI Interface
+
+Finally, we'll create a user-friendly CLI interface using rich-click:
+
+```python
+import rich_click as click
+from rich.console import Console
+from rich.markdown import Markdown
+
+@click.group()
+def cli():
+    """🔍 Codegen Code Research CLI"""
+    pass
+
+@cli.command()
+@click.argument("repo_name", required=False)
+@click.option("--query", "-q", default=None, help="Initial research query.")
+def research(repo_name: Optional[str] = None, query: Optional[str] = None):
+    """Start a code research session."""
+    # Initialize codebase
+    codebase = initialize_codebase(repo_name)
+    
+    # Create and run the agent
+    agent = create_research_agent(codebase)
+    
+    # Main research loop
+    while True:
+        if not query:
+            query = Prompt.ask("[bold cyan]Research query[/bold cyan]")
+            
+        result = agent.invoke(
+            {"input": query},
+            config={"configurable": {"thread_id": 1}}
+        )
+        console.print(Markdown(result["messages"][-1].content))
+        
+        query = None  # Clear for next iteration
+```
+
+## Using the Research Tool
+
+You can use the tool in several ways:
+
+1. Interactive mode (will prompt for repo):
+```bash
+python run.py research
+```
+
+2. Specify a repository:
+```bash
+python run.py research "fastapi/fastapi"
+```
+
+3. Start with an initial query:
+```bash
+python run.py research "fastapi/fastapi" -q "Explain the main components"
+```
+
+Example research queries:
+- "Explain the main components and their relationships"
+- "Find all usages of the FastAPI class"
+- "Show me the dependency graph for the routing module"
+- "What design patterns are used in this codebase?"
+
+<Tip>
+  The agent maintains conversation history, so you can ask follow-up questions
+  and build on previous findings.
+</Tip>
+
+## Advanced Usage
+
+### Custom Research Tools
+
+You can extend the agent with custom tools for specific analysis needs:
+
+```python
+from langchain.tools import BaseTool
+from pydantic import BaseModel, Field
+
+class CustomAnalysisTool(BaseTool):
+    """Custom tool for specialized code analysis."""
+    name = "custom_analysis"
+    description = "Performs specialized code analysis"
+    
+    def _run(self, query: str) -> str:
+        # Custom analysis logic
+        return results
+
+# Add to tools list
+tools.append(CustomAnalysisTool())
+```
+
+### Customizing the Agent
+
+You can modify the agent's behavior by adjusting its prompt:
+
+```python
+CUSTOM_PROMPT = """You are a specialized code reviewer focused on:
+1. Security best practices
+2. Performance optimization
+3. Code maintainability
+...
+"""
+
+agent = create_agent_with_tools(
+    codebase=codebase,
+    tools=tools,
+    chat_history=[SystemMessage(content=CUSTOM_PROMPT)],
+)
+```
+
+
+---
 title: "Mining Training Data for LLMs"
 sidebarTitle: "Mining Data"
 description: "Learn how to generate training data for large language models using Codegen"
@@ -6804,7 +7275,7 @@ iconType: "solid"
 
 This guide demonstrates how to use Codegen to generate high-quality training data for large language models (LLMs) by extracting function implementations along with their dependencies and usages. This approach is similar to [word2vec](https://www.tensorflow.org/text/tutorials/word2vec) or [node2vec](https://snap.stanford.edu/node2vec/) - given the context of a function, learn to predict the function's implementation.
 
-<Info>View the full code in our [examples repository](https://github.com/codegen-sh/codegen-examples/tree/7b978091c3153b687c32928fe10f05425e22f6a5/examples/generate_training_data)</Info>
+<Info>View the full code in our [examples repository](https://github.com/codegen-sh/codegen-sdk/tree/develop/codegen-examples/examples/generate_training_data)</Info>
 
 <Tip>This example works with both Python and Typescript repositories without modification</Tip>
 
@@ -7043,7 +7514,7 @@ from codegen import Codebase
 # Initialize codebase
 codebase = Codebase("path/to/posthog/")
 
-# Create a directed graph for representing call relationships
+# Create a directed graph for representing call relationships 
 G = nx.DiGraph()
 
 # Configuration flags
@@ -7065,7 +7536,7 @@ We'll create a function that will recursively traverse the call trace of a funct
 ```python
 def create_downstream_call_trace(src_func: Function, depth: int = 0):
     """Creates call graph by recursively traversing function calls
-
+    
     Args:
         src_func (Function): Starting function for call graph
         depth (int): Current recursion depth
@@ -7073,7 +7544,7 @@ def create_downstream_call_trace(src_func: Function, depth: int = 0):
     # Prevent infinite recursion
     if MAX_DEPTH <= depth:
         return
-
+        
     # External modules are not functions
     if isinstance(src_func, ExternalModule):
         return
@@ -7083,12 +7554,12 @@ def create_downstream_call_trace(src_func: Function, depth: int = 0):
         # Skip self-recursive calls
         if call.name == src_func.name:
             continue
-
+            
         # Get called function definition
         func = call.function_definition
         if not func:
             continue
-
+            
         # Apply configured filters
         if isinstance(func, ExternalModule) and IGNORE_EXTERNAL_MODULE_CALLS:
             continue
@@ -7102,7 +7573,7 @@ def create_downstream_call_trace(src_func: Function, depth: int = 0):
             func_name = f"{func.parent_class.name}.{func.name}" if func.is_method else func.name
 
         # Add node and edge with metadata
-        G.add_node(func, name=func_name,
+        G.add_node(func, name=func_name, 
                   color=COLOR_PALETTE.get(func.__class__.__name__))
         G.add_edge(src_func, func, **generate_edge_meta(call))
 
@@ -7117,10 +7588,10 @@ We can enrich our edges with metadata about the function calls:
 ```python
 def generate_edge_meta(call: FunctionCall) -> dict:
     """Generate metadata for call graph edges
-
+    
     Args:
         call (FunctionCall): Function call information
-
+        
     Returns:
         dict: Edge metadata including name and location
     """
@@ -7139,8 +7610,8 @@ Finally, we can visualize our call graph starting from a specific function:
 target_class = codebase.get_class('SharingConfigurationViewSet')
 target_method = target_class.get_method('patch')
 
-# Add root node
-G.add_node(target_method,
+# Add root node 
+G.add_node(target_method, 
            name=f"{target_class.name}.{target_method.name}",
            color=COLOR_PALETTE["StartFunction"])
 
@@ -7190,7 +7661,7 @@ The core function for building our dependency graph:
 ```python
 def create_dependencies_visualization(symbol: Symbol, depth: int = 0):
     """Creates visualization of symbol dependencies
-
+    
     Args:
         symbol (Symbol): Starting symbol to analyze
         depth (int): Current recursion depth
@@ -7198,11 +7669,11 @@ def create_dependencies_visualization(symbol: Symbol, depth: int = 0):
     # Prevent excessive recursion
     if depth >= MAX_DEPTH:
         return
-
+    
     # Process each dependency
     for dep in symbol.dependencies:
         dep_symbol = None
-
+        
         # Handle different dependency types
         if isinstance(dep, Symbol):
             # Direct symbol reference
@@ -7213,13 +7684,13 @@ def create_dependencies_visualization(symbol: Symbol, depth: int = 0):
 
         if dep_symbol:
             # Add node with appropriate styling
-            G.add_node(dep_symbol,
-                      color=COLOR_PALETTE.get(dep_symbol.__class__.__name__,
+            G.add_node(dep_symbol, 
+                      color=COLOR_PALETTE.get(dep_symbol.__class__.__name__, 
                                             "#f694ff"))
-
+            
             # Add dependency relationship
             G.add_edge(symbol, dep_symbol)
-
+            
             # Recurse unless it's a class (avoid complexity)
             if not isinstance(dep_symbol, PyClass):
                 create_dependencies_visualization(dep_symbol, depth + 1)
@@ -7231,7 +7702,7 @@ Finally, we can visualize our dependency graph starting from a specific symbol:
 # Get target symbol
 target_func = codebase.get_function("get_query_runner")
 
-# Add root node
+# Add root node 
 G.add_node(target_func, color=COLOR_PALETTE["StartFunction"])
 
 # Generate dependency graph
@@ -7274,16 +7745,16 @@ HTTP_METHODS = ["get", "put", "patch", "post", "head", "delete"]
 
 def generate_edge_meta(usage: Usage) -> dict:
     """Generate metadata for graph edges
-
+    
     Args:
         usage (Usage): Usage relationship information
-
+        
     Returns:
         dict: Edge metadata including name and location
     """
     return {
         "name": usage.match.source,
-        "file_path": usage.match.filepath,
+        "file_path": usage.match.filepath, 
         "start_point": usage.match.start_point,
         "end_point": usage.match.end_point,
         "symbol_name": usage.match.__class__.__name__
@@ -7291,10 +7762,10 @@ def generate_edge_meta(usage: Usage) -> dict:
 
 def is_http_method(symbol: PySymbol) -> bool:
     """Check if a symbol is an HTTP endpoint method
-
+    
     Args:
         symbol (PySymbol): Symbol to check
-
+        
     Returns:
         bool: True if symbol is an HTTP method
     """
@@ -7308,7 +7779,7 @@ The main function for creating our blast radius visualization:
 ```python
 def create_blast_radius_visualization(symbol: PySymbol, depth: int = 0):
     """Create visualization of symbol usage relationships
-
+    
     Args:
         symbol (PySymbol): Starting symbol to analyze
         depth (int): Current recursion depth
@@ -7316,11 +7787,11 @@ def create_blast_radius_visualization(symbol: PySymbol, depth: int = 0):
     # Prevent excessive recursion
     if depth >= MAX_DEPTH:
         return
-
+    
     # Process each usage of the symbol
     for usage in symbol.usages:
         usage_symbol = usage.usage_symbol
-
+        
         # Determine node color based on type
         if is_http_method(usage_symbol):
             color = COLOR_PALETTE.get("HTTP_METHOD")
@@ -7330,7 +7801,7 @@ def create_blast_radius_visualization(symbol: PySymbol, depth: int = 0):
         # Add node and edge to graph
         G.add_node(usage_symbol, color=color)
         G.add_edge(symbol, usage_symbol, **generate_edge_meta(usage))
-
+        
         # Recursively process usage symbol
         create_blast_radius_visualization(usage_symbol, depth + 1)
 ```
@@ -7481,7 +7952,7 @@ for call in old_api.call_sites:
         f"data={call.get_arg_by_parameter_name('input').value}",
         f"timeout={call.get_arg_by_parameter_name('wait').value}"
     ]
-
+    
     # Replace the old call with the new API
     call.replace(f"new_process_data({', '.join(args)})")
 ```
@@ -7495,10 +7966,10 @@ When updating chained method calls, like database queries or builder patterns:
 for execute_call in codebase.function_calls:
     if execute_call.name != "execute":
         continue
-
+        
     # Get the full chain
     chain = execute_call.call_chain
-
+    
     # Example: Add .timeout() before .execute()
     if "timeout" not in {call.name for call in chain}:
         execute_call.insert_before("timeout(30)")
@@ -7517,45 +7988,45 @@ Here's a comprehensive example:
 ```python
 def migrate_api_v1_to_v2(codebase):
     old_api = codebase.get_function("create_user_v1")
-
+    
     # Document all existing call patterns
     call_patterns = {}
     for call in old_api.call_sites:
         args = [arg.source for arg in call.args]
         pattern = ", ".join(args)
         call_patterns[pattern] = call_patterns.get(pattern, 0) + 1
-
+    
     print("Found call patterns:")
     for pattern, count in call_patterns.items():
         print(f"  {pattern}: {count} occurrences")
-
+    
     # Create new API version
     new_api = old_api.copy()
     new_api.rename("create_user_v2")
-
+    
     # Update parameter types
     new_api.get_parameter("email").type = "EmailStr"
     new_api.get_parameter("role").type = "UserRole"
-
+    
     # Add new required parameters
     new_api.add_parameter("tenant_id: UUID")
-
+    
     # Update all call sites
     for call in old_api.call_sites:
         # Get current arguments
         email_arg = call.get_arg_by_parameter_name("email")
         role_arg = call.get_arg_by_parameter_name("role")
-
+        
         # Build new argument list with type conversions
         new_args = [
             f"email=EmailStr({email_arg.value})",
             f"role=UserRole({role_arg.value})",
             "tenant_id=get_current_tenant_id()"
         ]
-
+        
         # Replace old call with new version
         call.replace(f"create_user_v2({', '.join(new_args)})")
-
+    
     # Add deprecation notice to old version
     old_api.add_decorator('@deprecated("Use create_user_v2 instead")')
 
@@ -7577,10 +8048,10 @@ migrate_api_v1_to_v2(codebase)
    ```python
    # First update parameter names
    param.rename("new_name")
-
+   
    # Then update types
    param.type = "new_type"
-
+   
    # Finally update call sites
    for call in api.call_sites:
        # ... update calls
@@ -7590,7 +8061,7 @@ migrate_api_v1_to_v2(codebase)
    ```python
    # Add new parameter with default
    api.add_parameter("new_param: str = None")
-
+   
    # Later make it required
    api.get_parameter("new_param").remove_default()
    ```
@@ -7605,7 +8076,7 @@ migrate_api_v1_to_v2(codebase)
 
 <Note>
 Remember to test thoroughly after making bulk changes to APIs. While Codegen ensures syntactic correctness, you'll want to verify the semantic correctness of the changes.
-</Note>
+</Note> 
 
 ---
 title: "Organizing Your Codebase"
@@ -7867,6 +8338,282 @@ By following these guidelines, you can effectively move symbols around your code
 
 
 ---
+title: "Converting Promise Chains to Async/Await"
+sidebarTitle: "Promise to Async/Await"
+icon: "code-merge"
+iconType: "solid"
+---
+
+Modern JavaScript/TypeScript codebases often need to migrate from Promise-based code to the more readable async/await syntax. Codegen provides powerful tools to automate this conversion while preserving business logic and handling complex scenarios.
+
+<Info>
+You can find the complete example code in our [examples repository](https://github.com/codegen-sh/codegen-sdk/blob/develop/codegen-examples/examples/promises_to_async_await/promises_to_async_await.ipynb).
+</Info>
+
+
+## Finding Promise Chains
+
+Codegen offers multiple ways to locate Promise chains in your codebase:
+- In files
+- In functions
+- Part of a function call chain
+
+### Promise Chains in a File
+
+Find all Promise chains in a file:
+
+```python
+ts_file = codebase.get_file("api_client.ts")
+promise_chains = ts_file.promise_chains
+
+print(f"Found {len(promise_chains)} Promise chains")
+```
+
+### Promise Chains in a Function
+
+Find Promise chains within a specific function:
+
+```python
+ts_func = codebase.get_function("getUserData")
+chains = ts_func.promise_chains
+
+for chain in chains:
+    print(f"Found chain starting with: {chain.name}")
+```
+
+### Promise Chain starting from a Function Call
+
+Find Promise chains starting from a specific function call:
+
+```python
+# Assuming the function call is part of a promise chain
+fetch_call = codebase.get_function("fetchUserData").function_calls[2]
+chain = fetch_call.promise_chain
+```
+
+
+## Converting Promise Chains
+
+### In-Place Conversion
+
+Convert Promise chains directly in your codebase:
+
+```python
+# Find and convert all Promise chains in a file
+for chain in typescript_file.promise_chains:
+    chain.convert_to_async_await()
+```
+
+### Handle Business Logic Without In-Place Edit
+
+Generate the transformed code without inplace edit by returning the new code as a string. This is useful when you want to add additional business logic to the overall conversion.
+
+```python
+async_await_code = chain.convert_to_async_await(inplace_edit=False)
+print("Converted code:", async_await_code)
+
+promise_statement = chain.parent_statement
+new_code = promise_statement.edit(
+    f"""
+    {async_await_code}
+
+    // handle additional business logic here
+    """
+)
+```
+
+
+## Supported Promise Chain Patterns
+
+- Basic `promise.then()` statements of any length
+- Catch `promise.then().catch()` statements of any length
+- Finally `promise.then().catch().finally()` statements of any length
+- Desctructure `promise.then((var1, var2))` statements -> `let [var1, var2] = await statement;`
+- Implicit returns -> `return promise.then(() => console.log("hello"))`
+- Top level variable assignments -> `let assigned_var = promise.then()`
+- Top level variable assignments -> `let assigned_var = promise.then()`
+- Ambiguous/conditional return blocks
+
+<Info>
+A list of all the covered cases can be found in the [example notebook](codegen-examples/examples/promises_to_async_await/promise_to_async_await.ipynb).
+</Info>
+
+
+## Examples
+### 1. Basic Promise Chains
+
+```typescript
+// Before
+function getValue(): Promise<number> {
+    return Promise.resolve(10)
+        .then(value => value * 2);
+}
+```
+
+***Applying the conversion...***
+```python
+promise_chain = codebase.get_function("getValue").promise_chains[0]
+promise_chain.convert_to_async_await()
+codebase.commit()
+```
+
+```typescript
+// After
+async function getValue(): Promise<number> {
+    let value = await Promise.resolve(10);
+    return value * 2;
+}
+```
+
+### 2. Error Handling with Catch/Finally
+
+```typescript
+// Before
+function processData(): Promise<void> {
+    return fetchData()
+        .then(data => processData(data))
+        .catch(error => {
+            console.error("Error:", error);
+            throw error;
+        })
+        .finally(() => {
+            cleanup();
+        });
+}
+```
+
+***Applying the conversion...***
+```python
+promise_chain = codebase.get_function("processData").promise_chains[0]
+promise_chain.convert_to_async_await()
+codebase.commit()
+```
+
+```typescript
+// After
+async function processData(): Promise<void> {
+    try {
+        let data = await fetchData();
+        return processData(data);
+    } catch (error) {
+        console.error("Error:", error);
+        throw error;
+    } finally {
+        cleanup();
+    }
+}
+```
+
+### 3. Promise.all with Destructuring
+
+```typescript
+// Before
+function getAllUserInfo(userId: number) {
+    return Promise.all([
+        fetchUserData(userId),
+        fetchUserPosts(userId)
+    ]).then(([user, posts]) => {
+        return { user, posts };
+    });
+}
+```
+
+***Applying the conversion...***
+```python
+promise_chain = codebase.get_function("getAllUserInfo").promise_chains[0]
+promise_chain.convert_to_async_await()
+codebase.commit()
+```
+
+
+```typescript
+// After
+async function getAllUserInfo(userId: number) {
+    const [user, posts] = await Promise.all([
+        fetchUserData(userId),
+        fetchUserPosts(userId)
+    ]);
+    return { user, posts };
+}
+```
+
+
+### 4. Handling Ambiguous Returns Using Anonymous functions
+
+
+For `then` blocks that have more than one return statement, Codegen will add an anonymous function to handle the ambiguous return to guarantee a deterministic conversion.
+
+```typescript
+// Before
+function create(opts: any): Promise<any> {
+	let qResponse = request(opts);
+	qResponse = qResponse.then(function success(response) {
+		if (response.statusCode < 200 || response.statusCode >= 300) {
+			throw new Error(JSON.stringify(response));
+		}
+		if (typeof response.body === "string") {
+			return JSON.parse(response.body);
+		}
+		return response.body;
+	});
+
+	return qResponse;
+}
+
+```
+
+***Applying the conversion...***
+```python
+promise_chain = codebase.get_function("create").promise_chains[0]
+promise_chain.convert_to_async_await()
+codebase.commit()
+```
+```typescript
+// After
+async function create(opts): Promise<any> {
+	let qResponse = request(opts);
+	let response = await qResponse;
+	qResponse = (async (response) => {
+		if (response.statusCode < 200 || response.statusCode >= 300) {
+			throw new Error(JSON.stringify(response));
+		}
+		if (typeof response.body === "string") {
+			return JSON.parse(response.body);
+		}
+		return response.body;
+	})(response);
+
+	return qResponse;
+}
+```
+
+
+
+## Handling Top-Level Assignment Variables
+
+When converting Promise chains that involve top-level assignment variables, you can specify the variable name of your choice or pick the default which is the original variable assignment name.
+
+```python
+# Convert with custom variable names for clarity
+chain.convert_to_async_await(
+    assignment_variable_name="operationResult",
+)
+```
+
+
+## Next Steps
+
+
+Converting Promise chains to async/await improves code readability and maintainability. Codegen's tools make this migration process automated and reliable, handling complex cases while preserving business logic.
+Here are some next steps to ensure a successful migration:
+
+1. Ensure to run `npx prettier --write .` after the migration to fix indentation + linting
+2. **Incremental Migration**: Convert one module at a time
+3. **Handle Additional Business Logic**: Use `.promise_statement.edit()` to modify the entire chain and handle external business logic
+4. If the specific conversion case is not covered, open an issue on the [Codegen](https://github.com/codegen-sh/codegen-sdk) repository or try to right your own transformation logic using the codegen-sdk
+
+
+---
 title: "Improving Code Modularity"
 sidebarTitle: "Modularity"
 icon: "diagram-project"
@@ -7893,16 +8640,16 @@ from collections import defaultdict
 # Create a graph of file dependencies
 def create_dependency_graph():
     G = nx.DiGraph()
-
+    
     for file in codebase.files:
         # Add node for this file
         G.add_node(file.filepath)
-
+        
         # Add edges for each import
         for imp in file.imports:
             if imp.from_file:  # Skip external imports
                 G.add_edge(file.filepath, imp.from_file.filepath)
-
+    
     return G
 
 # Create and analyze the graph
@@ -7931,18 +8678,18 @@ def break_circular_dependency(cycle):
     # Get the first two files in the cycle
     file1 = codebase.get_file(cycle[0])
     file2 = codebase.get_file(cycle[1])
-
+    
     # Create a shared module for common code
     shared_dir = "shared"
     if not codebase.has_directory(shared_dir):
         codebase.create_directory(shared_dir)
-
+    
     # Find symbols used by both files
     shared_symbols = []
     for symbol in file1.symbols:
         if any(usage.file == file2 for usage in symbol.usages):
             shared_symbols.append(symbol)
-
+    
     # Move shared symbols to a new file
     if shared_symbols:
         shared_file = codebase.create_file(f"{shared_dir}/shared_types.py")
@@ -7964,7 +8711,7 @@ def organize_file_imports(file):
     std_lib_imports = []
     third_party_imports = []
     local_imports = []
-
+    
     for imp in file.imports:
         if imp.is_standard_library:
             std_lib_imports.append(imp)
@@ -7972,26 +8719,26 @@ def organize_file_imports(file):
             third_party_imports.append(imp)
         else:
             local_imports.append(imp)
-
+    
     # Sort each group
     for group in [std_lib_imports, third_party_imports, local_imports]:
         group.sort(key=lambda x: x.module_name)
-
+    
     # Remove all existing imports
     for imp in file.imports:
         imp.remove()
-
+    
     # Add imports back in organized groups
     if std_lib_imports:
         for imp in std_lib_imports:
             file.add_import_from_import_string(imp.source)
         file.insert_after_imports("")  # Add newline
-
+        
     if third_party_imports:
         for imp in third_party_imports:
             file.add_import_from_import_string(imp.source)
         file.insert_after_imports("")  # Add newline
-
+        
     if local_imports:
         for imp in local_imports:
             file.add_import_from_import_string(imp.source)
@@ -8010,22 +8757,22 @@ from collections import defaultdict
 
 def analyze_module_coupling():
     coupling_scores = defaultdict(int)
-
+    
     for file in codebase.files:
         # Count unique files imported from
         imported_files = {imp.from_file for imp in file.imports if imp.from_file}
         coupling_scores[file.filepath] = len(imported_files)
-
+        
         # Count files that import this file
-        importing_files = {usage.file for symbol in file.symbols
+        importing_files = {usage.file for symbol in file.symbols 
                          for usage in symbol.usages if usage.file != file}
         coupling_scores[file.filepath] += len(importing_files)
-
+    
     # Sort by coupling score
-    sorted_files = sorted(coupling_scores.items(),
-                         key=lambda x: x[1],
+    sorted_files = sorted(coupling_scores.items(), 
+                         key=lambda x: x[1], 
                          reverse=True)
-
+    
     print("\n🔍 Module Coupling Analysis:")
     print("\nMost coupled files:")
     for filepath, score in sorted_files[:5]:
@@ -8043,9 +8790,9 @@ def extract_shared_code(file, min_usages=3):
     # Find symbols used by multiple files
     for symbol in file.symbols:
         # Get unique files using this symbol
-        using_files = {usage.file for usage in symbol.usages
+        using_files = {usage.file for usage in symbol.usages 
                       if usage.file != file}
-
+        
         if len(using_files) >= min_usages:
             # Create appropriate shared module
             module_name = determine_shared_module(symbol)
@@ -8053,7 +8800,7 @@ def extract_shared_code(file, min_usages=3):
                 shared_file = codebase.create_file(f"shared/{module_name}.py")
             else:
                 shared_file = codebase.get_file(f"shared/{module_name}.py")
-
+            
             # Move symbol to shared module
             symbol.move_to_file(shared_file, strategy="update_all_imports")
 
@@ -8107,7 +8854,7 @@ if feature_flag_class:
     # Initialize usage count for all attributes
     for attr in feature_flag_class.attributes:
         feature_flag_usage[attr.name] = 0
-
+    
     # Get all usages of the FeatureFlag class
     for usage in feature_flag_class.usages:
         usage_source = usage.usage_symbol.source if hasattr(usage, 'usage_symbol') else str(usage)
@@ -8852,7 +9599,7 @@ Let's break down how this works:
         if export.is_reexport() and export.is_default_export():
             print(f"  🔄 Converting default export '{export.name}'")
     ```
-
+    
     The code identifies default exports by checking:
     1. If it's a re-export (`is_reexport()`)
     2. If it's a default export (`is_default_export()`)
@@ -8960,7 +9707,7 @@ for file in codebase.files:
 
     print(f"✨ Fixed exports in {target_file.filepath}")
 
-```
+``` 
 
 ---
 title: "Creating Documentation"
@@ -9049,11 +9796,11 @@ for directory in codebase.directories:
     # Skip test, sql and alembic directories
     if any(x in directory.path.lower() for x in ['test', 'sql', 'alembic']):
         continue
-
+        
     # Get undecorated functions
     funcs = [f for f in directory.functions if not f.is_decorated]
     total = len(funcs)
-
+    
     # Only analyze dirs with >10 functions
     if total > 10:
         documented = sum(1 for f in funcs if f.docstring)
@@ -9068,12 +9815,12 @@ for directory in codebase.directories:
 if dir_stats:
     lowest_dir = min(dir_stats.items(), key=lambda x: x[1]['coverage'])
     path, stats = lowest_dir
-
+    
     print(f"📉 Lowest coverage directory: '{path}'")
     print(f"  • Total functions: {stats['total']}")
     print(f"  • Documented: {stats['documented']}")
     print(f"  • Coverage: {stats['coverage']:.1f}%")
-
+    
     # Print all directory stats for comparison
     print("\n📊 All directory coverage rates:")
     for path, stats in sorted(dir_stats.items(), key=lambda x: x[1]['coverage']):
@@ -9512,7 +10259,7 @@ iconType: "solid"
 Migrating from [unittest](https://docs.python.org/3/library/unittest.html) to [pytest](https://docs.pytest.org/) involves converting test classes and assertions to pytest's more modern and concise style. This guide will walk you through using Codegen to automate this migration.
 
 <Info>
-You can find the complete example code in our [examples repository](https://github.com/codegen-sh/codegen-examples/tree/7b978091c3153b687c32928fe10f05425e22f6a5/examples/unittest_to_pytest).
+You can find the complete example code in our [examples repository](https://github.com/codegen-sh/codegen-sdk/tree/develop/codegen-examples/examples/unittest_to_pytest).
 </Info>
 
 ## Overview
@@ -9724,7 +10471,7 @@ iconType: "solid"
 Migrating from [SQLAlchemy](https://www.sqlalchemy.org/) 1.4 to 2.0 involves several API changes to support the new 2.0-style query interface. This guide will walk you through using Codegen to automate this migration, handling query syntax, session usage, and ORM patterns.
 
 <Info>
-You can find the complete example code in our [examples repository](https://github.com/codegen-sh/codegen-examples/tree/7b978091c3153b687c32928fe10f05425e22f6a5/examples/sqlalchemy_1.4_to_2.0).
+You can find the complete example code in our [examples repository](https://github.com/codegen-sh/codegen-sdk/tree/develop/codegen-examples/examples/sqlalchemy_1.4_to_2.0).
 </Info>
 
 ## Overview
@@ -9861,12 +10608,12 @@ iconType: "solid"
 </Frame>
 
 
-Import loops occur when two or more Python modules depend on each other, creating a circular dependency. While some import cycles can be harmless, others can lead to runtime errors and make code harder to maintain.
+Import loops occur when two or more Python modules depend on each other, creating a circular dependency. While some import cycles can be harmless, others can lead to runtime errors and make code harder to maintain. 
 
 In this tutorial, we'll explore how to identify and fix problematic import cycles using Codegen.
 
 <Info>
-You can find the complete example code in our [examples repository](https://github.com/codegen-sh/codegen-examples/tree/main/examples/removing_import_loops_in_pytorch).
+You can find the complete example code in our [examples repository](https://github.com/codegen-sh/codegen-sdk/tree/develop/codegen-examples/examples/removing_import_loops_in_pytorch).
 </Info>
 
 ## Overview
@@ -10129,7 +10876,7 @@ iconType: "solid"
 Migrating from Python 2 to Python 3 involves several syntax and API changes. This guide will walk you through using Codegen to automate this migration, handling print statements, string handling, iterators, and more.
 
 <Info>
-You can find the complete example code in our [examples repository](https://github.com/codegen-sh/codegen-examples/tree/7b978091c3153b687c32928fe10f05425e22f6a5/examples/python2_to_python3).
+You can find the complete example code in our [examples repository](https://github.com/codegen-sh/codegen-sdk/tree/develop/codegen-examples/examples/python2_to_python3).
 </Info>
 
 ## Overview
@@ -10342,8 +11089,8 @@ class MyIterator:
 You can run the complete migration using our example script:
 
 ```bash
-git clone https://github.com/codegen-sh/codegen-examples.git
-cd codegen-examples/python2_to_python3
+git clone https://github.com/codegen-sh/codegen-sdk.git
+cd codegen-examples/examples/python2_to_python3
 python run.py
 ```
 
@@ -10385,7 +11132,7 @@ iconType: "solid"
 
 Migrating from [Flask](https://flask.palletsprojects.com/) to [FastAPI](https://fastapi.tiangolo.com/) involves several key changes to your codebase. This guide will walk you through using Codegen to automate this migration, handling imports, route decorators, static files, and template rendering.
 
-You can find the complete example code in our [examples repository](https://github.com/codegen-sh/codegen-examples/tree/7b978091c3153b687c32928fe10f05425e22f6a5/examples/flask_to_fastapi_migration)
+You can find the complete example code in our [examples repository](https://github.com/codegen-sh/codegen-sdk/tree/develop/codegen-examples/examples/flask_to_fastapi_migration)
 
 ## Overview
 
@@ -10561,8 +11308,8 @@ def list_users(request: Request):
 You can run the complete migration using our example script:
 
 ```bash
-git clone https://github.com/codegen-sh/codegen-examples.git
-cd codegen-examples/flask_to_fastapi_migration
+git clone https://github.com/codegen-sh/codegen-sdk.git
+cd codegen-examples/examples/flask_to_fastapi_migration
 python run.py
 ```
 
@@ -10758,7 +11505,7 @@ Match (s: Func )-[r: CALLS]-> (e:Func) RETURN s, e LIMIT 10
 
 ```cypher
 Match path = (:(Method|Func)) -[:CALLS*5..10]-> (:(Method|Func))
-Return path
+Return path 
 LIMIT 20
 ```
 

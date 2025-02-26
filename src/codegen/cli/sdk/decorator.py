@@ -15,11 +15,13 @@ class DecoratedFunction:
         self,
         name: str,
         *,
+        subdirectories: list[str] | None = None,
         webhook_config: dict | None = None,
         lint_mode: bool = False,
         lint_user_whitelist: Sequence[str] | None = None,
     ):
         self.name = name
+        self.subdirectories = subdirectories
         self.func: Callable | None = None
         self.params_type = None
         self.webhook_config = webhook_config
@@ -42,7 +44,7 @@ class DecoratedFunction:
         return wrapper
 
 
-def function(name: str) -> DecoratedFunction:
+def function(name: str, subdirectories: list[str] | None = None) -> DecoratedFunction:
     """Decorator for codegen functions.
 
     Args:
@@ -54,7 +56,7 @@ def function(name: str) -> DecoratedFunction:
             pass
 
     """
-    return DecoratedFunction(name)
+    return DecoratedFunction(name=name, subdirectories=subdirectories)
 
 
 def webhook(

@@ -16,6 +16,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GHA_TOKEN }}
 
       - name: Setup backend
         uses: ./.github/actions/setup-environment
@@ -23,15 +24,17 @@ jobs:
       - name: Generate API reference
         run: uv run python src/codegen/gscli/cli.py generate docs
 
+      - name: Generate System Prompt
+        run: uv run python src/codegen/gscli/cli.py generate system-prompt
+
       - name: Commit changes
         run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add docs/
+          git config --local user.email ${{ secrets.DOCS_USER_EMAIL }}
+          git config --local user.name ${{ secrets.DOCS_USER_NAME }}
+          git add docs/ src/codegen/sdk/system-prompt.txt
           git diff --staged --quiet || git commit -m "docs: updated API reference"
 
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
-          github_token: ${{ secrets.GHA_TOKEN }}
           branch: ${{ github.ref }}
