@@ -16,7 +16,7 @@ from codegen.runner.models.apis import (
 )
 from codegen.runner.models.codemod import Codemod, CodemodRunResult
 from codegen.runner.sandbox.runner import SandboxRunner
-from codegen.shared.logging.get_logger import get_colored_logger
+from codegen.shared.logging.get_logger import get_logger
 
 # Configure logging at module level
 logging.basicConfig(
@@ -24,7 +24,7 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     force=True,
 )
-logger = get_colored_logger(__name__)
+logger = get_logger(__name__)
 
 server_info: ServerInfo
 runner: SandboxRunner

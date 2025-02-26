@@ -3,7 +3,7 @@ import logging
 import colorlog
 
 
-def get_colored_logger(name: str) -> logging.Logger:
+def get_logger(name: str) -> logging.Logger:
     formatter = colorlog.ColoredFormatter(
         "%(white)s%(asctime)s - %(name)s - %(log_color)s%(levelname)s%(reset)s%(white)s - %(message_log_color)s%(message)s",
         log_colors={
@@ -26,9 +26,9 @@ def get_colored_logger(name: str) -> logging.Logger:
     logger = logging.getLogger(name)
     if logger.hasHandlers():
         for h in logger.handlers:
-            h.setFormatter(formatter)
-    else:
-        handler = colorlog.StreamHandler()
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
+            logger.removeHandler(h)
+
+    handler = colorlog.StreamHandler()
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
     return logger
