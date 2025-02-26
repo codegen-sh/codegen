@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from codegen.sdk.core.node_id_factory import NodeId
     from codegen.sdk.core.statements.import_statement import ImportStatement
     from codegen.sdk.python.file import PyFile
+    from src.codegen.sdk.core.file import SourceFile
 
 import logging
 
@@ -185,7 +186,7 @@ class PyImport(Import["PyFile"]):
     @reader
     def _file_by_custom_resolve_paths(self, resolve_paths: list[str], filepath: str) -> SourceFile | None:
         """Check if a certain file import can be found within a set sys.path
-        
+
         Returns either None or the SourceFile.
         """
         for resolve_path in resolve_paths:

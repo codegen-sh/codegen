@@ -1,4 +1,3 @@
-import sys
 from typing import TYPE_CHECKING
 
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
@@ -290,7 +289,7 @@ def func():
         # =====[ Imports can be found with sys.path set and active ]=====
         codebase.ctx.config.py_resolve_syspath = True
         src_import_resolution = src_import.resolve_import()
-        assert src_import_resolution 
+        assert src_import_resolution
         assert src_import_resolution.from_file is src_file
         assert src_import_resolution.imports_file is True
 
@@ -331,7 +330,7 @@ def func():
         # =====[ Imports can be found with custom resolve path set ]=====
         codebase.ctx.config.import_resolution_paths = ["a"]
         src_import_resolution = src_import.resolve_import()
-        assert src_import_resolution 
+        assert src_import_resolution
         assert src_import_resolution.from_file is src_file
         assert src_import_resolution.imports_file is True
 
@@ -339,7 +338,7 @@ def func():
         src_import = consumer_file.imports[1]
         codebase.ctx.config.import_resolution_paths = ["a/b"]
         src_import_resolution = src_import.resolve_import()
-        assert src_import_resolution 
+        assert src_import_resolution
         assert src_import_resolution.from_file is src_file
         assert src_import_resolution.imports_file is True
 
@@ -379,13 +378,13 @@ def func():
         monkeypatch.syspath_prepend("a")
         src_import: Import = consumer_file.imports[0]
         src_import_resolution = src_import.resolve_import()
-        assert src_import_resolution 
+        assert src_import_resolution
         assert src_import_resolution.from_file.file_path == "a/c/src.py"
 
         # =====[ Imports can be found with custom resolve over sys.path ]=====
         codebase.ctx.config.import_resolution_paths = ["a/b"]
         src_import_resolution = src_import.resolve_import()
-        assert src_import_resolution 
+        assert src_import_resolution
         assert src_import_resolution.from_file is src_file
         assert src_import_resolution.imports_file is True
 
@@ -424,20 +423,20 @@ def func():
         assert len(consumer_file.imports) == 1
         src_import: Import = consumer_file.imports[0]
         src_import_resolution = src_import.resolve_import()
-        assert src_import_resolution 
+        assert src_import_resolution
         assert src_import_resolution.from_file is src_file
 
         # =====[ Sys.path overrite has precedence ]=====
         monkeypatch.syspath_prepend("b")
         src_import_resolution = src_import.resolve_import()
-        assert src_import_resolution 
+        assert src_import_resolution
         assert src_import_resolution.from_file is not src_file
         assert src_import_resolution.from_file is src_file_overrite
 
         # =====[ Custom overrite has precedence ]=====
         codebase.ctx.config.import_resolution_paths = ["b"]
         src_import_resolution = src_import.resolve_import()
-        assert src_import_resolution 
+        assert src_import_resolution
         assert src_import_resolution.from_file is not src_file
         assert src_import_resolution.from_file is src_file_overrite
 
