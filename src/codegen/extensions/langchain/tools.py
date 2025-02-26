@@ -16,6 +16,7 @@ from codegen.extensions.tools.linear.linear import (
     linear_search_issues_tool,
 )
 from codegen.extensions.tools.link_annotation import add_links_to_message
+from codegen.extensions.tools.relace_edit import relace_edit
 from codegen.extensions.tools.replacement_edit import replacement_edit
 from codegen.extensions.tools.reveal_symbol import reveal_symbol
 from codegen.extensions.tools.search import search
@@ -37,6 +38,7 @@ from ..tools import (
     view_file,
     view_pr,
 )
+from ..tools.relace_edit_prompts import RELACE_EDIT_PROMPT
 from ..tools.semantic_edit_prompts import FILE_EDIT_PROMPT
 
 
@@ -109,23 +111,30 @@ class ListDirectoryTool(BaseTool):
 class SearchInput(BaseModel):
     """Input for searching the codebase."""
 
-    query: str = Field(..., description="The search query, passed into python's re.match()")
+    query: str = Field(
+        ...,
+        description="The search query to find in the codebase. When ripgrep is available, this will be passed as a ripgrep pattern. For regex searches, set use_regex=True. Ripgrep is the preferred method.",
+    )
     target_directories: Optional[list[str]] = Field(default=None, description="Optional list of directories to search in")
+    file_extensions: Optional[list[str]] = Field(default=None, description="Optional list of file extensions to search (e.g. ['.py', '.ts'])")
+    page: int = Field(default=1, description="Page number to return (1-based, default: 1)")
+    files_per_page: int = Field(default=10, description="Number of files to return per page (default: 10)")
+    use_regex: bool = Field(default=False, description="Whether to treat query as a regex pattern (default: False)")
 
 
 class SearchTool(BaseTool):
     """Tool for searching the codebase."""
 
     name: ClassVar[str] = "search"
-    description: ClassVar[str] = "Search the codebase using text search"
+    description: ClassVar[str] = "Search the codebase using text search or regex pattern matching"
     args_schema: ClassVar[type[BaseModel]] = SearchInput
     codebase: Codebase = Field(exclude=True)
 
     def __init__(self, codebase: Codebase) -> None:
         super().__init__(codebase=codebase)
 
-    def _run(self, query: str, target_directories: Optional[list[str]] = None) -> str:
-        result = search(self.codebase, query, target_directories)
+    def _run(self, query: str, target_directories: Optional[list[str]] = None, file_extensions: Optional[list[str]] = None, page: int = 1, files_per_page: int = 10, use_regex: bool = False) -> str:
+        result = search(self.codebase, query, target_directories=target_directories, file_extensions=file_extensions, page=page, files_per_page=files_per_page, use_regex=use_regex)
         return result.render()
 
 
@@ -255,6 +264,7 @@ class RevealSymbolTool(BaseTool):
         return result.render()
 
 
+# Note: a large file is over 300 lines. Please specify a range larger than the edit you want to make.
 _SEMANTIC_EDIT_BRIEF = """Tool for file editing via an LLM delegate. Describe the changes you want to make and an expert will apply them to the file.
 
 Specify the changes you want to make in the edit_content field, with helpful comments, like so:
@@ -728,9 +738,10 @@ def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
         RevealSymbolTool(codebase),
         RunBashCommandTool(),  # Note: This tool doesn't need the codebase
         SearchTool(codebase),
-        SemanticEditTool(codebase),
+        # SemanticEditTool(codebase),
         SemanticSearchTool(codebase),
         ViewFileTool(codebase),
+        RelaceEditTool(codebase),
         # Github
         GithubCreatePRTool(codebase),
         GithubCreatePRCommentTool(codebase),
@@ -786,4 +797,48 @@ class ReplacementEditTool(BaseTool):
             end=end,
             count=count,
         )
+        return result.render()
+
+
+# Brief description for the Relace Edit tool
+_RELACE_EDIT_BRIEF = """Tool for file editing using the Relace Instant Apply API.
+This high-speed code generation engine optimizes for real-time performance at 2000 tokens/second.
+
+Provide an edit snippet that describes the changes you want to make, with helpful comments to indicate unchanged sections, like so:
+```
+// ... keep existing imports ...
+
+// Add new function
+function calculateDiscount(price, discountPercent) {
+  return price * (discountPercent / 100);
+}
+
+// ... keep existing code ...
+```
+
+The API will merge your edit snippet with the existing code to produce the final result.
+The API key will be automatically retrieved from the RELACE_API environment variable.
+"""
+
+
+class RelaceEditInput(BaseModel):
+    """Input for Relace editing."""
+
+    filepath: str = Field(..., description="Path of the file relative to workspace root")
+    edit_snippet: str = Field(..., description=RELACE_EDIT_PROMPT)
+
+
+class RelaceEditTool(BaseTool):
+    """Tool for editing files using the Relace Instant Apply API."""
+
+    name: ClassVar[str] = "relace_edit"
+    description: ClassVar[str] = _RELACE_EDIT_BRIEF
+    args_schema: ClassVar[type[BaseModel]] = RelaceEditInput
+    codebase: Codebase = Field(exclude=True)
+
+    def __init__(self, codebase: Codebase) -> None:
+        super().__init__(codebase=codebase)
+
+    def _run(self, filepath: str, edit_snippet: str) -> str:
+        result = relace_edit(self.codebase, filepath, edit_snippet)
         return result.render()

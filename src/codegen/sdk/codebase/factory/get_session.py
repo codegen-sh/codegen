@@ -5,7 +5,7 @@ from contextlib import AbstractContextManager, contextmanager
 from typing import Literal, overload
 
 from codegen.configs.models.codebase import CodebaseConfig
-from codegen.configs.models.secrets import DefaultSecrets, SecretsConfig
+from codegen.configs.models.secrets import SecretsConfig
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.sdk.codebase.codebase_context import CodebaseContext
 from codegen.sdk.codebase.config import ProjectConfig, SessionOptions, TestFlags
@@ -27,7 +27,7 @@ def get_codebase_session(
     verify_output: bool = True,
     config: CodebaseConfig = TestFlags,
     session_options: SessionOptions = SessionOptions(),
-    secrets: SecretsConfig = DefaultSecrets,
+    secrets: SecretsConfig | None = None,
 ) -> AbstractContextManager[PyCodebaseType]: ...
 
 
@@ -42,7 +42,7 @@ def get_codebase_session(
     verify_output: bool = True,
     config: CodebaseConfig = TestFlags,
     session_options: SessionOptions = SessionOptions(),
-    secrets: SecretsConfig = DefaultSecrets,
+    secrets: SecretsConfig | None = None,
 ) -> AbstractContextManager[PyCodebaseType]: ...
 
 
@@ -57,7 +57,7 @@ def get_codebase_session(
     verify_output: bool = True,
     config: CodebaseConfig = TestFlags,
     session_options: SessionOptions = SessionOptions(),
-    secrets: SecretsConfig = DefaultSecrets,
+    secrets: SecretsConfig | None = None,
 ) -> AbstractContextManager[TSCodebaseType]: ...
 
 
@@ -72,7 +72,7 @@ def get_codebase_session(
     verify_output: bool = True,
     config: CodebaseConfig = TestFlags,
     session_options: SessionOptions = SessionOptions(),
-    secrets: SecretsConfig = DefaultSecrets,
+    secrets: SecretsConfig | None = None,
 ) -> Generator[Codebase, None, None]:
     """Gives you a Codebase operating on the files you provided as a dict"""
     codebase = CodebaseFactory.get_codebase_from_files(repo_path=str(tmpdir), files=files, config=config, secrets=secrets, programming_language=programming_language)

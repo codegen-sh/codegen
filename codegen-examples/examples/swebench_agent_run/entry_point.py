@@ -6,7 +6,7 @@ from codegen.sdk.core.codebase import Codebase
 
 image = (
     modal.Image.debian_slim(python_version="3.13")
-    .apt_install("git")
+    .apt_install(["git", "ripgrep"])
     .pip_install("fastapi[standard]")
     .copy_local_dir("../../../", "/root/codegen", ignore=[".venv", "**/.venv", "tests", "**/tests"])
     .run_commands("pip install -e /root/codegen")

@@ -17,7 +17,7 @@ from git.remote import PushInfoList
 from github.IssueComment import IssueComment
 from github.PullRequest import PullRequest
 
-from codegen.configs.models.secrets import DefaultSecrets
+from codegen.configs.models.secrets import SecretsConfig
 from codegen.git.clients.git_repo_client import GitRepoClient
 from codegen.git.configs.constants import CODEGEN_BOT_EMAIL, CODEGEN_BOT_NAME
 from codegen.git.repo_operator.local_git_repo import LocalGitRepo
@@ -52,13 +52,13 @@ class RepoOperator:
         self,
         repo_config: RepoConfig,
         access_token: str | None = None,
-        bot_commit: bool = True,
+        bot_commit: bool = False,
         setup_option: SetupOption | None = None,
         shallow: bool | None = None,
     ) -> None:
         assert repo_config is not None
         self.repo_config = repo_config
-        self.access_token = access_token or DefaultSecrets.github_token
+        self.access_token = access_token or SecretsConfig().github_token
         self.base_dir = repo_config.base_dir
         self.bot_commit = bot_commit
 
@@ -571,7 +571,11 @@ class RepoOperator:
     def get_filepaths_for_repo(self, ignore_list):
         # Get list of files to iterate over based on gitignore setting
         if self.repo_config.respect_gitignore:
-            filepaths = self.git_cli.git.ls_files().split("\n")
+            # ls-file flags:
+            # -c: show cached files
+            # -o: show other / untracked files
+            # --exclude-standard: exclude standard gitignore rules
+            filepaths = self.git_cli.git.ls_files("-co", "--exclude-standard").split("\n")
         else:
             filepaths = glob.glob("**", root_dir=self.repo_path, recursive=True, include_hidden=True)
             # Filter filepaths by ignore list.
@@ -839,7 +843,7 @@ class RepoOperator:
             url (str): Git URL of the repository
             access_token (str | None): Optional GitHub API key for operations that need GitHub access
         """
-        access_token = access_token or DefaultSecrets.github_token
+        access_token = access_token or SecretsConfig().github_token
         if access_token:
             url = add_access_token_to_url(url=url, token=access_token)
 

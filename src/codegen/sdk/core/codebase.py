@@ -22,8 +22,8 @@ from openai import OpenAI
 from rich.console import Console
 from typing_extensions import TypeVar, deprecated
 
-from codegen.configs.models.codebase import CodebaseConfig, DefaultCodebaseConfig
-from codegen.configs.models.secrets import DefaultSecrets, SecretsConfig
+from codegen.configs.models.codebase import CodebaseConfig
+from codegen.configs.models.secrets import SecretsConfig
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.enums import CheckoutResult
 from codegen.git.utils.pr_review import CodegenPR
@@ -130,8 +130,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         *,
         language: None = None,
         projects: list[ProjectConfig] | ProjectConfig,
-        config: CodebaseConfig = DefaultCodebaseConfig,
-        secrets: SecretsConfig = DefaultSecrets,
+        config: CodebaseConfig | None = None,
+        secrets: SecretsConfig | None = None,
         io: IO | None = None,
         progress: Progress | None = None,
     ) -> None: ...
@@ -143,8 +143,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         *,
         language: Literal["python", "typescript"] | ProgrammingLanguage | None = None,
         projects: None = None,
-        config: CodebaseConfig = DefaultCodebaseConfig,
-        secrets: SecretsConfig = DefaultSecrets,
+        config: CodebaseConfig | None = None,
+        secrets: SecretsConfig | None = None,
         io: IO | None = None,
         progress: Progress | None = None,
     ) -> None: ...
@@ -155,8 +155,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         *,
         language: Literal["python", "typescript"] | ProgrammingLanguage | None = None,
         projects: list[ProjectConfig] | ProjectConfig | None = None,
-        config: CodebaseConfig = DefaultCodebaseConfig,
-        secrets: SecretsConfig = DefaultSecrets,
+        config: CodebaseConfig | None = None,
+        secrets: SecretsConfig | None = None,
         io: IO | None = None,
         progress: Progress | None = None,
     ) -> None:
@@ -522,37 +522,24 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         Raises:
             ValueError: If file not found and optional=False.
         """
-
-        def get_file_from_path(path: Path) -> File | None:
-            try:
-                return File.from_content(path, self.ctx.io.read_text(path), self.ctx, sync=False)
-            except UnicodeDecodeError:
-                # Handle when file is a binary file
-                return File.from_content(path, self.ctx.io.read_bytes(path), self.ctx, sync=False, binary=True)
-
         # Try to get the file from the graph first
         file = self.ctx.get_file(filepath, ignore_case=ignore_case)
         if file is not None:
             return file
+        # If the file is not in the graph, check the filesystem
         absolute_path = self.ctx.to_absolute(filepath)
-        if absolute_path.suffix in self.ctx.extensions and not self.ctx.io.file_exists(absolute_path):
-            return None
         if self.ctx.io.file_exists(absolute_path):
-            return get_file_from_path(absolute_path)
-        elif ignore_case:
-            parent = absolute_path.parent
-            if parent == Path(self.ctx.repo_path):
-                for file in self.ctx.to_absolute(self.ctx.repo_path).iterdir():
-                    if str(absolute_path).lower() == str(file).lower():
-                        return get_file_from_path(file)
-            else:
-                dir = self.ctx.get_directory(parent, ignore_case=ignore_case)
-                if dir is None:
-                    return None
-                for file in dir.path.iterdir():
-                    if str(absolute_path).lower() == str(file).lower():
-                        return get_file_from_path(file)
-        elif not optional:
+            return self.ctx._get_raw_file_from_path(absolute_path)
+        # If the file is not in the graph, check the filesystem
+        if absolute_path.parent.exists():
+            for file in absolute_path.parent.iterdir():
+                if ignore_case and str(absolute_path).lower() == str(file).lower():
+                    return self.ctx._get_raw_file_from_path(file)
+                elif not ignore_case and str(absolute_path) == str(file):
+                    return self.ctx._get_raw_file_from_path(file)
+
+        # If we get here, the file is not found
+        if not optional:
             msg = f"File {filepath} not found in codebase. Use optional=True to return None instead."
             raise ValueError(msg)
         return None
@@ -1257,8 +1244,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         tmp_dir: str | None = "/tmp/codegen",
         commit: str | None = None,
         language: Literal["python", "typescript"] | ProgrammingLanguage | None = None,
-        config: CodebaseConfig = DefaultCodebaseConfig,
-        secrets: SecretsConfig = DefaultSecrets,
+        config: CodebaseConfig | None = None,
+        secrets: SecretsConfig | None = None,
     ) -> "Codebase":
         """Fetches a codebase from GitHub and returns a Codebase instance.
 
@@ -1268,8 +1255,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             commit (Optional[str]): The specific commit hash to clone. Defaults to HEAD
             shallow (bool): Whether to do a shallow clone. Defaults to True
             language (Literal["python", "typescript"] | ProgrammingLanguage | None): The programming language of the repo. Defaults to None.
-            config (CodebaseConfig): Configuration for the codebase. Defaults to pre-defined defaults.
-            secrets (SecretsConfig): Configuration for the secrets. Defaults to empty values.
+            config (CodebaseConfig): Configuration for the codebase. Defaults to pre-defined defaults if None.
+            secrets (SecretsConfig): Configuration for the secrets. Defaults to empty values if None.
 
         Returns:
             Codebase: A Codebase instance initialized with the cloned repository
@@ -1295,10 +1282,10 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             # Use RepoOperator to fetch the repository
             logger.info("Cloning repository...")
             if commit is None:
-                repo_operator = RepoOperator.create_from_repo(repo_path=repo_path, url=repo_url, access_token=secrets.github_token)
+                repo_operator = RepoOperator.create_from_repo(repo_path=repo_path, url=repo_url)
             else:
                 # Ensure the operator can handle remote operations
-                repo_operator = RepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url, access_token=secrets.github_token)
+                repo_operator = RepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url)
             logger.info("Clone completed successfully")
 
             # Initialize and return codebase with proper context
