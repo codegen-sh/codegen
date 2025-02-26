@@ -1,10 +1,9 @@
 import logging
-import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from codegen.configs.models.repository import RepositoryConfig
+from codegen.git.configs.constants import CODEGEN_BOT_EMAIL, CODEGEN_BOT_NAME
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.runner.enums.warmup_state import WarmupState
 from codegen.runner.models.apis import (
@@ -15,7 +14,6 @@ from codegen.runner.models.apis import (
 )
 from codegen.runner.models.codemod import Codemod, CodemodRunResult
 from codegen.runner.sandbox.runner import SandboxRunner
-from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 # Configure logging at module level
 logging.basicConfig(
@@ -35,21 +33,22 @@ async def lifespan(server: FastAPI):
     global runner
 
     try:
-        default_repo_config = RepositoryConfig()
-        repo_name = default_repo_config.full_name or default_repo_config.name
-        server_info = ServerInfo(repo_name=repo_name)
-        logger.info(f"Starting up sandbox fastapi server for repo_name={repo_name}")
-        repo_config = RepoConfig(
-            name=default_repo_config.name,
-            full_name=default_repo_config.full_name,
-            base_dir=os.path.dirname(default_repo_config.path),
-            language=ProgrammingLanguage(default_repo_config.language.upper()),
-        )
+        repo_config = RepoConfig.from_envs()
+        server_info = ServerInfo(repo_name=repo_config.full_name or repo_config.name)
+
+        # Set the bot email and username
+        logger.info(f"Configuring git user config to {CODEGEN_BOT_EMAIL} and {CODEGEN_BOT_NAME}")
         runner = SandboxRunner(repo_config=repo_config)
+        runner.op.git_cli.git.config("user.email", CODEGEN_BOT_EMAIL)
+        runner.op.git_cli.git.config("user.name", CODEGEN_BOT_NAME)
+
+        # Parse the codebase
+        logger.info(f"Starting up sandbox fastapi server for repo_name={repo_config.name}")
         server_info.warmup_state = WarmupState.PENDING
         await runner.warmup()
         server_info.synced_commit = runner.commit.hexsha
         server_info.warmup_state = WarmupState.COMPLETED
+
     except Exception:
         logger.exception("Failed to build graph during warmup")
         server_info.warmup_state = WarmupState.FAILED

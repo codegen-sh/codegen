@@ -17,6 +17,11 @@ class DockerClient(Client):
             raise Exception(msg)
         super().__init__(container.host, container.port)
 
+    def run(self, codemod_source: str, commit: bool | None = None) -> CodemodRunResult:
+        req = RunFunctionRequest(function_name="unnamed", codemod_source=codemod_source, commit=commit)
+        response = self.post(RUN_FUNCTION_ENDPOINT, req.model_dump())
+        return CodemodRunResult.model_validate(response.json())
+
     def run_function(self, function: DecoratedFunction, commit: bool) -> CodemodRunResult:
         req = RunFunctionRequest(function_name=function.name, codemod_source=function.source, commit=commit)
         response = self.post(RUN_FUNCTION_ENDPOINT, req.model_dump())

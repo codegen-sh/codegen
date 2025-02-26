@@ -57,7 +57,7 @@ class CodebaseClient(Client):
         """Wait for the server to start by polling the health endpoint"""
         start_time = time.time()
         while (time.time() - start_time) < timeout:
-            if self.is_running(raise_on_error=False):
+            if self.is_running():
                 return
             time.sleep(interval)
         msg = "Server failed to start within timeout period"
