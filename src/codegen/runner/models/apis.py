@@ -9,9 +9,9 @@ SANDBOX_SERVER_PORT = 4000
 EPHEMERAL_SANDBOX_SERVER_PORT = 4001
 
 # APIs
-SIGNAL_SHUTDOWN_ENDPOINT = "/signal_shutdown"
 DIFF_ENDPOINT = "/diff"
 BRANCH_ENDPOINT = "/branch"
+RUN_FUNCTION_ENDPOINT = "/run"
 
 # Ephemeral sandbox apis
 RUN_ON_STRING_ENDPOINT = "/run_on_string"
@@ -19,22 +19,8 @@ RUN_ON_STRING_ENDPOINT = "/run_on_string"
 
 class ServerInfo(BaseModel):
     repo_name: str | None = None
-    is_running_codemod: bool = False
-    is_shutting_down: bool = False
+    synced_commit: str | None = None
     warmup_state: WarmupState = WarmupState.PENDING
-
-
-class UtilizationMetrics(BaseModel):
-    timestamp: str
-    memory_rss_gb: float
-    memory_vms_gb: float
-    cpu_percent: float
-    threads_count: int
-    open_files_count: int
-
-
-class SignalShutdownResponse(BaseModel):
-    is_ready_to_shutdown: bool
 
 
 class GetDiffRequest(BaseModel):
@@ -69,3 +55,9 @@ class GetRunOnStringRequest(BaseModel):
 
 class GetRunOnStringResult(BaseModel):
     result: CodemodRunResult
+
+
+class RunFunctionRequest(BaseModel):
+    codemod_source: str
+    function_name: str
+    commit: bool = False

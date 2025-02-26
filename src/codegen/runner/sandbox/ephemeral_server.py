@@ -40,7 +40,6 @@ def health() -> ServerInfo:
 
 @app.post(RUN_ON_STRING_ENDPOINT)
 async def run_on_string(request: GetRunOnStringRequest) -> GetRunOnStringResult:
-    server_info.is_running_codemod = True
     logger.info(f"====[ run_on_string ]====\n> Codemod source: {request.codemod_source}\n> Input: {request.files}\n> Language: {request.language}\n")
     language = ProgrammingLanguage(request.language.upper())
     with get_codebase_session(tmpdir=tempfile.mkdtemp(), files=request.files, programming_language=language) as codebase:

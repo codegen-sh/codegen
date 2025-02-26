@@ -1,5 +1,4 @@
 version = 1
-revision = 1
 requires-python = ">=3.12, <3.14"
 resolution-markers = [
     "python_full_version >= '3.12.4'",
@@ -543,6 +542,7 @@ dependencies = [
     { name = "astor" },
     { name = "click" },
     { name = "codeowners" },
+    { name = "colorlog" },
     { name = "dataclasses-json" },
     { name = "datamodel-code-generator" },
     { name = "dicttoxml" },
@@ -667,6 +667,7 @@ requires-dist = [
     { name = "attrs", marker = "extra == 'lsp'", specifier = ">=25.1.0" },
     { name = "click", specifier = ">=8.1.7" },
     { name = "codeowners", specifier = ">=0.6.0,<1.0.0" },
+    { name = "colorlog", specifier = ">=6.9.0" },
     { name = "dataclasses-json", specifier = ">=0.6.4,<1.0.0" },
     { name = "datamodel-code-generator", specifier = ">=0.26.5" },
     { name = "dicttoxml", specifier = ">=1.7.16,<2.0.0" },
@@ -739,7 +740,6 @@ requires-dist = [
     { name = "wrapt", specifier = ">=1.16.0,<2.0.0" },
     { name = "xmltodict", specifier = ">=0.13.0,<1.0.0" },
 ]
-provides-extras = ["lsp", "types"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -798,6 +798,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/d8/53/6f443c9a4a8358a93a6792e2acffb9d9d5cb0a5cfd8802644b7b1c9a02e4/colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44", size = 27697 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d1/d6/3965ed04c63042e047cb6a3e6ed1a63a35087b6a609aa3a15ed8ac56c221/colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6", size = 25335 },
+]
+
+[[package]]
+name = "colorlog"
+version = "6.9.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d3/7a/359f4d5df2353f26172b3cc39ea32daa39af8de522205f512f458923e677/colorlog-6.9.0.tar.gz", hash = "sha256:bfba54a1b93b94f54e1f4fe48395725a3d92fd2a4af702f6bd70946bdc0c6ac2", size = 16624 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e3/51/9b208e85196941db2f0654ad0357ca6388ab3ed67efdbfc799f35d1f83aa/colorlog-6.9.0-py3-none-any.whl", hash = "sha256:5906e71acd67cb07a71e779c47c4bcb45fb8c2993eebe9e5adcd6a6f1b283eff", size = 11424 },
 ]
 
 [[package]]

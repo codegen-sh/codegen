@@ -8,18 +8,21 @@ from codegen.configs.models.repository import RepositoryConfig
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.runner.enums.warmup_state import WarmupState
 from codegen.runner.models.apis import (
-    BRANCH_ENDPOINT,
-    DIFF_ENDPOINT,
-    CreateBranchRequest,
-    CreateBranchResponse,
+    RUN_FUNCTION_ENDPOINT,
     GetDiffRequest,
-    GetDiffResponse,
+    RunFunctionRequest,
     ServerInfo,
 )
-from codegen.runner.sandbox.middlewares import CodemodRunMiddleware
+from codegen.runner.models.codemod import Codemod, CodemodRunResult
 from codegen.runner.sandbox.runner import SandboxRunner
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 
+# Configure logging at module level
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    force=True,
+)
 logger = logging.getLogger(__name__)
 
 server_info: ServerInfo
@@ -51,22 +54,12 @@ async def lifespan(server: FastAPI):
         logger.exception("Failed to build graph during warmup")
         server_info.warmup_state = WarmupState.FAILED
 
-    logger.info("Sandbox fastapi server is ready to accept requests")
+    logger.info("Local daemon is ready to accept requests!")
     yield
-    logger.info("Shutting down sandbox fastapi server")
+    logger.info("Shutting down local daemon server")
 
 
 app = FastAPI(lifespan=lifespan)
-app.add_middleware(
-    CodemodRunMiddleware[GetDiffRequest, GetDiffResponse],
-    path=DIFF_ENDPOINT,
-    runner_fn=lambda: runner,
-)
-app.add_middleware(
-    CodemodRunMiddleware[CreateBranchRequest, CreateBranchResponse],
-    path=BRANCH_ENDPOINT,
-    runner_fn=lambda: runner,
-)
 
 
 @app.get("/")
@@ -74,11 +67,14 @@ def health() -> ServerInfo:
     return server_info
 
 
-@app.post(DIFF_ENDPOINT)
-async def get_diff(request: GetDiffRequest) -> GetDiffResponse:
-    return await runner.get_diff(request=request)
+@app.post(RUN_FUNCTION_ENDPOINT)
+async def run(request: RunFunctionRequest) -> CodemodRunResult:
+    # TODO: Sync graph to whatever changes are in the repo currently
 
-
-@app.post(BRANCH_ENDPOINT)
-async def create_branch(request: CreateBranchRequest) -> CreateBranchResponse:
-    return await runner.create_branch(request=request)
+    # Run the request
+    diff_req = GetDiffRequest(codemod=Codemod(user_code=request.codemod_source))
+    diff_response = await runner.get_diff(request=diff_req)
+    if request.commit:
+        commit_sha = runner.codebase.git_commit(f"[Codegen] {request.function_name}")
+        logger.info(f"Committed changes to {commit_sha.hexsha}")
+    return diff_response.result

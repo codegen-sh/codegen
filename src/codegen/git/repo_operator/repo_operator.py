@@ -113,16 +113,20 @@ class RepoOperator:
         return os.path.join(self.viz_path, "graph.json")
 
     def _set_bot_email(self, git_cli: GitCLI) -> None:
+        logging.info(f"****** Setting bot email to {CODEGEN_BOT_EMAIL} ******")
         with git_cli.config_writer("repository") as writer:
             if not writer.has_section("user"):
                 writer.add_section("user")
             writer.set("user", "email", CODEGEN_BOT_EMAIL)
+            logging.info(f"****** [DONE] Setting bot email to {CODEGEN_BOT_EMAIL} ******")
 
     def _set_bot_username(self, git_cli: GitCLI) -> None:
+        logging.info(f"****** Setting bot USERNAME to {CODEGEN_BOT_NAME} ******")
         with git_cli.config_writer("repository") as writer:
             if not writer.has_section("user"):
                 writer.add_section("user")
             writer.set("user", "name", CODEGEN_BOT_NAME)
+            logging.info(f"****** [DONE] Setting bot USERNAME to {CODEGEN_BOT_NAME} ******")
 
     def _unset_bot_email(self, git_cli: GitCLI) -> None:
         with git_cli.config_writer("repository") as writer:
@@ -136,6 +140,7 @@ class RepoOperator:
 
     @cached_property
     def git_cli(self) -> GitCLI:
+        logger.info("**** Initializing git_cli!!!*****")
         git_cli = GitCLI(self.repo_path)
         username = None
         user_level = None

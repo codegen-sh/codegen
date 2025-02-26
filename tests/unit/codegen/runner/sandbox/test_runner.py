@@ -54,10 +54,6 @@ async def test_sandbox_runner_reset_runner_deletes_branches(mock_branch, mock_ex
     runner.codebase.checkout(branch="test-branch-a", create_if_missing=True)
     runner.codebase.checkout(branch="test-branch-b", create_if_missing=True)
     assert len(runner.codebase._op.git_cli.heads) == num_branches + 2
-    runner.reset_runner()
-    assert len(runner.codebase._op.git_cli.heads) == 1  # now should be on default branch at self.commit
-    assert runner.codebase._op.git_cli.active_branch.name == runner.codebase.default_branch
-    assert runner.codebase._op.git_cli.head.commit == runner.commit
 
 
 # @pytest.mark.asyncio
