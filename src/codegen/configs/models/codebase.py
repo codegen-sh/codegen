@@ -15,8 +15,11 @@ class CodebaseConfig(BaseConfig):
     full_range_index: bool = False
     ignore_process_errors: bool = True
     disable_graph: bool = False
+    disable_file_parse: bool = False
     generics: bool = True
+    import_resolution_paths: list[str] = Field(default_factory=lambda: [])
     import_resolution_overrides: dict[str, str] = Field(default_factory=lambda: {})
+    py_resolve_syspath: bool = False
     ts_dependency_manager: bool = False
     ts_language_engine: bool = False
     v8_ts_engine: bool = False

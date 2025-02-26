@@ -2879,6 +2879,11 @@ print(f"From file: {import_stmt.from_file.filepath}")
 print(f"To file: {import_stmt.to_file.filepath}")
 ```
 
+<Note>
+With Python one can specify the `PYTHONPATH` environment variable which is then considered when resolving
+packages.
+</Note>
+
 ## Working with External Modules
 
 You can determine if an import references an [ExternalModule](/api-reference/core/ExternalModule) by checking the type of [Import.imported_symbol](/api-reference/core/Import#imported-symbol), like so:

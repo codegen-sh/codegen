@@ -11,7 +11,7 @@ import {HorizontalDivider} from '/snippets/HorizontalDivider.mdx';
 import {GithubLinkNote} from '/snippets/GithubLinkNote.mdx';
 import {Attribute} from '/snippets/Attribute.mdx';
 
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/file.py#L36-L448" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/file.py#L37-L463" />
 
 ### Inherits from
 [Exportable](/api-reference/core/Exportable), [TSHasBlock](/api-reference/typescript/TSHasBlock), [SourceFile](/api-reference/core/SourceFile), [Usable](/api-reference/core/Usable), [HasBlock](/api-reference/core/HasBlock), [File](/api-reference/core/File), [Importable](/api-reference/core/Importable), [Expression](/api-reference/core/Expression), [Editable](/api-reference/core/Editable), [HasName](/api-reference/core/HasName)
@@ -182,6 +182,10 @@ import {Attribute} from '/snippets/Attribute.mdx';
 <HorizontalDivider light={true} />
 <Attribute type={ <span></span> } description="The programming language of the file. Set to ProgrammingLanguage.TYPESCRIPT." />
 
+### <span className="text-primary">promise_chains</span>
+<HorizontalDivider light={true} />
+<Attribute type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">list[TSPromiseChain]</code> } description="Returns all promise chains in the file." />
+
 ### <span className="text-primary">resolved_value</span>
 <HorizontalDivider light={true} />
 <Attribute type={ <><a href="/api-reference/core/Expression" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Expression</a> <span>| list[</span> <a href="/api-reference/core/Expression" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Expression</a> <span>]</span></> } description="Returns the resolved type of an Expression." />
@@ -238,7 +242,7 @@ Adds a decorator to a function or method.
 
 ### <span className="text-primary">add_export_to_symbol</span>
 Adds an export keyword to a symbol in a TypeScript file.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/file.py#L215-L228" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/file.py#L216-L229" />
 
 <ParameterWrapper>
 <Parameter
@@ -255,7 +259,7 @@ Adds an export keyword to a symbol in a TypeScript file.
 
 ### <span className="text-primary">add_import_from_import_string</span>
 Adds import to the file from a string representation of an import statement.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L976-L1000" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L982-L1006" />
 
 <ParameterWrapper>
 <Parameter
@@ -272,7 +276,7 @@ Adds import to the file from a string representation of an import statement.
 
 ### <span className="text-primary">add_symbol</span>
 Adds `symbol` to the file.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L1023-L1054" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L1029-L1060" />
 
 <ParameterWrapper>
 <Parameter
@@ -295,7 +299,7 @@ Adds `symbol` to the file.
 
 ### <span className="text-primary">add_symbol_from_source</span>
 Adds a symbol to a file from a string representation.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L1003-L1020" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L1009-L1026" />
 
 <ParameterWrapper>
 <Parameter
@@ -312,7 +316,7 @@ Adds a symbol to a file from a string representation.
 
 ### <span className="text-primary">add_symbol_import</span>
 Adds an import to a file for a given symbol.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L946-L973" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L952-L979" />
 
 <ParameterWrapper>
 <Parameter
@@ -378,7 +382,7 @@ Returns a list of symbols that this symbol depends on.
 
 ### <span className="text-primary">edit</span>
 Replace the source of this file with new_src.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L335-L362" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L330-L357" />
 
 <ParameterWrapper>
 <Parameter
@@ -436,7 +440,7 @@ Find and return matching nodes or substrings within an Editable instance.
 
 ### <span className="text-primary">find_by_byte_range</span>
 Finds all editable objects that overlap with the given byte range in the file.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L1150-L1162" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L1156-L1168" />
 
 <ParameterWrapper>
 <Parameter
@@ -484,7 +488,7 @@ Adds a visual flag comment to the end of this Editable's source text.
 
 ### <span className="text-primary">get_class</span>
 Returns a specific Class by full name. Returns None if not found.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L810-L823" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L816-L829" />
 
 <ParameterWrapper>
 <Parameter
@@ -518,7 +522,7 @@ Returns a specific JSX element from within this symbol's JSX elements.
 
 ### <span className="text-primary">get_config</span>
 Returns the nearest tsconfig.json applicable to this file.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/file.py#L204-L212" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/file.py#L205-L213" />
 
 
 <Return return_type={ <><a href="/api-reference/typescript/TSConfig" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSConfig</a> <span>| None</span></> } description="The TypeScript configuration object if found, None otherwise."/>
@@ -526,7 +530,7 @@ Returns the nearest tsconfig.json applicable to this file.
 
 ### <span className="text-primary">get_export</span>
 Returns an export object with the specified name from the file.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/file.py#L108-L119" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/file.py#L109-L120" />
 
 <ParameterWrapper>
 <Parameter
@@ -543,7 +547,7 @@ Returns an export object with the specified name from the file.
 
 ### <span className="text-primary">get_export_statement_for_path</span>
 Gets the first export of specified type that contains the given path in single or double quotes.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/file.py#L335-L357" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/file.py#L336-L358" />
 
 <ParameterWrapper>
 <Parameter
@@ -566,7 +570,7 @@ Gets the first export of specified type that contains the given path in single o
 
 ### <span className="text-primary">get_extensions</span>
 Returns a list of file extensions that this class can parse.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/file.py#L175-L183" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/file.py#L176-L184" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">list[str]</code> } description="A list of file extensions including '.tsx', '.ts', '.jsx', and '.js'."/>
@@ -574,7 +578,7 @@ Returns a list of file extensions that this class can parse.
 
 ### <span className="text-primary">get_function</span>
 Returns a specific Function by name.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L839-L850" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L845-L856" />
 
 <ParameterWrapper>
 <Parameter
@@ -591,7 +595,7 @@ Returns a specific Function by name.
 
 ### <span className="text-primary">get_global_var</span>
 Returns a specific global var by name. Returns None if not found.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L785-L794" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L791-L800" />
 
 <ParameterWrapper>
 <Parameter
@@ -608,7 +612,7 @@ Returns a specific global var by name. Returns None if not found.
 
 ### <span className="text-primary">get_import</span>
 Returns the import with matching alias. Returns None if not found.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L696-L705" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L702-L711" />
 
 <ParameterWrapper>
 <Parameter
@@ -625,7 +629,7 @@ Returns the import with matching alias. Returns None if not found.
 
 ### <span className="text-primary">get_import_string</span>
 Generates and returns an import statement for the file.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/file.py#L374-L390" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/file.py#L375-L391" />
 
 <ParameterWrapper>
 <Parameter
@@ -660,7 +664,7 @@ Generates and returns an import statement for the file.
 
 ### <span className="text-primary">get_interface</span>
 Retrieves a specific interface from the file by its name.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/file.py#L137-L146" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/file.py#L138-L147" />
 
 <ParameterWrapper>
 <Parameter
@@ -685,7 +689,7 @@ Returns the name node of the object.
 
 ### <span className="text-primary">get_namespace</span>
 Returns a specific namespace by name from the file's namespaces.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/file.py#L439-L448" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/file.py#L440-L449" />
 
 <ParameterWrapper>
 <Parameter
@@ -702,7 +706,7 @@ Returns a specific namespace by name from the file's namespaces.
 
 ### <span className="text-primary">get_symbol</span>
 Gets a symbol by its name from the file.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L734-L749" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L740-L755" />
 
 <ParameterWrapper>
 <Parameter
@@ -719,7 +723,7 @@ Gets a symbol by its name from the file.
 
 ### <span className="text-primary">get_type</span>
 Returns a specific Type by name from the file's types.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/file.py#L161-L172" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/file.py#L162-L173" />
 
 <ParameterWrapper>
 <Parameter
@@ -759,7 +763,7 @@ Returns Editables for all TreeSitter nodes corresponding to instances of variabl
 
 ### <span className="text-primary">has_export_statement_for_path</span>
 Checks if the file has exports of specified type that contains the given path in single or double quotes.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/file.py#L311-L328" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/file.py#L312-L329" />
 
 <ParameterWrapper>
 <Parameter
@@ -782,7 +786,7 @@ Checks if the file has exports of specified type that contains the given path in
 
 ### <span className="text-primary">has_import</span>
 Returns True if the file has an import with the given alias.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L681-L693" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L687-L699" />
 
 <ParameterWrapper>
 <Parameter
@@ -905,7 +909,7 @@ Reduces an editable to the following condition
 
 ### <span className="text-primary">remove</span>
 Removes the file from the file system and graph.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L244-L256" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L239-L251" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
@@ -913,7 +917,7 @@ Removes the file from the file system and graph.
 
 ### <span className="text-primary">remove_unused_exports</span>
 Removes unused exports from the file.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/file.py#L243-L297" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/file.py#L244-L298" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
@@ -944,7 +948,7 @@ Renames a symbol and updates all its references in the codebase.
 
 ### <span className="text-primary">replace</span>
 Replace occurrences of text in the file.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L365-L399" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L360-L394" />
 
 <ParameterWrapper>
 <Parameter
@@ -1072,7 +1076,7 @@ Sets the name of a code element.
 
 ### <span className="text-primary">symbol_can_be_added</span>
 Determines if a TypeScript symbol can be added to this file based on its type and JSX compatibility.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/file.py#L185-L201" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/file.py#L186-L202" />
 
 <ParameterWrapper>
 <Parameter
@@ -1106,7 +1110,7 @@ Returns a list of symbols that use or import the exportable object.
 
 ### <span className="text-primary">symbols</span>
 Returns all Symbols in the file, sorted by position in the file.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L708-L722" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L714-L728" />
 
 
 <Return return_type={ <><span>list[</span> <a href="/api-reference/typescript/TSSymbol" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSSymbol</a> <span>|</span> <a href="/api-reference/typescript/TSClass" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSClass</a> <span>|</span> <a href="/api-reference/typescript/TSFunction" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSFunction</a> <span>|</span> <a href="/api-reference/typescript/TSAssignment" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSAssignment</a> <span>|</span> <a href="/api-reference/typescript/TSInterface" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSInterface</a> <span>]</span></> } description="A list of all top-level symbols in the file, sorted by their position in the file. Symbols can be one of the following types: - Symbol: Base symbol class - TClass: Class definition - TFunction: Function definition - TGlobalVar: Global variable assignment - TInterface: Interface definition"/>
@@ -1114,7 +1118,7 @@ Returns all Symbols in the file, sorted by position in the file.
 
 ### <span className="text-primary">update_filepath</span>
 Updates the file path of the current file and all associated imports.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/file.py#L410-L436" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/typescript/file.py#L411-L437" />
 
 <ParameterWrapper>
 <Parameter

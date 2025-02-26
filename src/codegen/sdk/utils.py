@@ -1,6 +1,7 @@
 import os
 import re
 import shutil
+import statistics
 from collections.abc import Iterable
 from contextlib import contextmanager
 from xml.dom.minidom import parseString
@@ -245,3 +246,59 @@ def truncate_line(input: str, max_chars: int) -> str:
     if len(input) > max_chars:
         return input[:max_chars] + f"...(truncated from {len(input)} characters)."
     return input
+
+
+def is_minified_js(content):
+    """Analyzes a string to determine if it contains minified JavaScript code.
+
+    Args:
+        content: String containing JavaScript code to analyze
+
+    Returns:
+        bool: True if the content appears to be minified JavaScript, False otherwise
+    """
+    try:
+        # Skip empty content
+        if not content.strip():
+            return False
+
+        # Characteristics of minified JS files
+        lines = content.split("\n")
+
+        # 1. Check for average line length (minified files have very long lines)
+        line_lengths = [len(line) for line in lines if line.strip()]
+        if not line_lengths:  # Handle empty content case
+            return False
+
+        avg_line_length = statistics.mean(line_lengths)
+
+        # 2. Check for semicolon-to-newline ratio (minified often has ; instead of newlines)
+        semicolons = content.count(";")
+        newlines = len(lines) - 1
+        semicolon_ratio = semicolons / max(newlines, 1)  # Avoid division by zero
+
+        # 3. Check whitespace ratio (minified has low whitespace)
+        whitespace_chars = len(re.findall(r"[\s]", content))
+        total_chars = len(content)
+        whitespace_ratio = whitespace_chars / total_chars if total_chars else 0
+
+        # 4. Check for common minification patterns
+        has_common_patterns = bool(re.search(r"[\w\)]\{[\w:]+\}", content))  # Condensed object notation
+
+        # 5. Check for short variable names (common in minified code)
+        variable_names = re.findall(r"var\s+(\w+)", content)
+        avg_var_length = statistics.mean([len(name) for name in variable_names]) if variable_names else 0
+
+        # Decision logic - tuned threshold values
+        is_minified = (
+            (avg_line_length > 250)  # Very long average line length
+            and (semicolon_ratio > 0.8 or has_common_patterns)  # High semicolon ratio or minification patterns
+            and (whitespace_ratio < 0.08)  # Very low whitespace ratio
+            and (avg_var_length < 3 or not variable_names)  # Extremely short variable names or no vars
+        )
+
+        return is_minified
+
+    except Exception as e:
+        print(f"Error analyzing content: {e}")
+        return False
