@@ -1,4 +1,5 @@
 version = 1
+revision = 1
 requires-python = ">=3.12, <3.14"
 resolution-markers = [
     "python_full_version >= '3.12.4'",
@@ -602,6 +603,7 @@ dependencies = [
     { name = "tree-sitter-typescript" },
     { name = "typing-extensions" },
     { name = "unidiff" },
+    { name = "urllib3" },
     { name = "uvicorn", extra = ["standard"] },
     { name = "watchfiles" },
     { name = "wrapt" },
@@ -731,11 +733,13 @@ requires-dist = [
     { name = "types-toml", marker = "extra == 'types'", specifier = ">=0.10.8.20240310" },
     { name = "typing-extensions", specifier = ">=4.12.2" },
     { name = "unidiff", specifier = ">=0.7.5" },
+    { name = "urllib3", specifier = ">=2.0.0" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.30.0" },
     { name = "watchfiles", specifier = ">=1.0.0,<1.1.0" },
     { name = "wrapt", specifier = ">=1.16.0,<2.0.0" },
     { name = "xmltodict", specifier = ">=0.13.0,<1.0.0" },
 ]
+provides-extras = ["lsp", "types"]
 
 [package.metadata.requires-dev]
 dev = [

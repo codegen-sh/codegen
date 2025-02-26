@@ -35,8 +35,7 @@ Please do not include specific details about pull requests or commits, only summ
     - `bullet_points`: A list of bullet points
     - `description`: A one sentence description of the release
 
-## Example Outputs
-```
+## Example Output
 {
     "bullet_points": [
         "Add new feature X",
@@ -45,11 +44,11 @@ Please do not include specific details about pull requests or commits, only summ
     ],
     "description": "adds a new feature, fixes a bug, and improves performance."
 }
-```
 
 ## Things to exclude
 - Removed development package publishing to AWS
 - Updated various dependencies and pre-commit hooks
+- Do not wrap the output in ```json ```. The output should be a json object that can be parsed with json.loads()
 
 ## Poor Release Descriptions
 - "This release includes platform support updates, file handling improvements, and module resolution adjustments."
@@ -91,6 +90,10 @@ def generate_release_summary(client: OpenAI, release: Release) -> str:
         max_tokens=1000,
         messages=[
             {
+                "role": "system",
+                "content": SYSTEM_PROMPT,
+            },
+            {
                 "role": "user",
                 "content": f"""
 Here is some context on the release:
@@ -99,10 +102,11 @@ Here is some context on the release:
 
 Please write a high level summary of the changes in 1 to 5 bullet points.
 """,
-            }
+            },
         ],
     )
-    return response.choices[0].message.content
+
+    return json.loads(response.choices[0].message.content)
 
 
 def generate_changelog(client: OpenAI, latest_existing_version: str | None = None):

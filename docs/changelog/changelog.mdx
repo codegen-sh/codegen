@@ -4,6 +4,519 @@ icon: "clock"
 iconType: "solid"
 ---
 
+<Update label="v0.33.0" description="February 24, 2025">
+### [Introduces CodegenApp and enhances codegen capabilities.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.33.0)
+- Introduce CodegenApp feature
+- Add local codegen server daemon
+- Implement minified file detection using heuristics
+</Update>
+
+
+<Update label="v0.32.2" description="February 22, 2025">
+### [Improves compatibility with updated dependency.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.32.2)
+- Update dependency for better compatibility
+</Update>
+
+
+<Update label="v0.32.1" description="February 21, 2025">
+### [Restores default setting for RepoOperator.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.32.1)
+- Restore default setting for RepoOperator to bot_commit=False
+</Update>
+
+
+<Update label="v0.32.0" description="February 21, 2025">
+### [Langgraph migration and improved dependency instructions.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.32.0)
+- Improved dependency installation instructions
+- Migrated to Langgraph with Multi-LLM Config
+- Ignored compiled and minified JavaScript files
+</Update>
+
+
+<Update label="v0.31.1" description="February 21, 2025">
+### [Fixes GitHub token environment variable key issue.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.31.1)
+- Remove secrets_ prefix from GitHub token environment variable key
+</Update>
+
+
+<Update label="v0.31.0" description="February 21, 2025">
+### [Completes tool upgrades](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.31.0)
+- Implement final set of upgrades for tools
+</Update>
+
+
+<Update label="v0.30.1" description="February 21, 2025">
+### [GitHub action updated and PyGitHub dependency fixed.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.30.1)
+- Update GitHub action setup to version 5.3
+- Fix dependency issue with PyGitHub update to version 2.6.1
+</Update>
+
+
+<Update label="v0.30.0" description="February 20, 2025">
+### [Implements tooling fixes.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.30.0)
+- Implement tooling fixes
+</Update>
+
+
+<Update label="v0.29.0" description="February 20, 2025">
+### [introduces benchmarking harness and refactors configuration.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.29.0)
+- Introduce a benchmarking harness for SWE
+- Refactor configuration into a dedicated module
+</Update>
+
+
+<Update label="v0.28.1" description="February 20, 2025">
+### [Improves security by removing secrets prefix.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.28.1)
+- Remove secrets prefix and global .env file.
+</Update>
+
+
+<Update label="v0.28.0" description="February 20, 2025">
+### [Enhances the codebase agent with additional tools.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.28.0)
+- Add extra tools to the codebase agent
+</Update>
+
+
+<Update label="v0.27.0" description="February 20, 2025">
+### [Improved configuration management and documentation.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.27.0)
+- Simplify configuration by using a .env file with autoload
+- Enhance code agent documentation
+- Add example of using codegen SDK to build integration bots
+</Update>
+
+
+<Update label="v0.26.3" description="February 20, 2025">
+### [Enhance opt out filter handling.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.26.3)
+- Introduce should_handle callback for opt out filters
+</Update>
+
+
+<Update label="v0.26.2" description="February 20, 2025">
+### [Fixes UnicodeDecodeError and enhances file import controls.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.26.2)
+- Fix UnicodeDecodeError when instantiating codebase from repo
+- Add node_modules to global file ignore list
+- Ensure files are not imported directly outside specified folder
+</Update>
+
+
+<Update label="v0.26.1" description="February 20, 2025">
+### [Token requirement relaxed and unpacking feature removed.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.26.1)
+- Relax GitHub token requirement on initialization
+- Remove unpacking assignment feature
+</Update>
+
+
+<Update label="v0.26.0" description="February 19, 2025">
+### [introduces paginated view file tool.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.26.0)
+- Introduce paginated view file tool
+</Update>
+
+
+<Update label="v0.25.2" description="February 19, 2025">
+### [Fixes semantic edit tool issues.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.25.2)
+- Fix semantic edit tool issues
+</Update>
+
+
+<Update label="v0.25.1" description="February 19, 2025">
+### [Improves tool output rendering.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.25.1)
+- Improve tool output rendering
+</Update>
+
+
+<Update label="v0.25.0" description="February 19, 2025">
+### [Adds top-level code agent and unicode parsing fix.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.25.0)
+- Introduce top-level code agent feature
+- Fix unicode filename parsing in codebase
+</Update>
+
+
+<Update label="v0.24.1" description="February 19, 2025">
+### [Fixes filesystem corruption and improves tool observations.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.24.1)
+- Upgrade tool observation dataclasses
+- Fix local filesystem corruption in `get_codebase_session`
+- Re-enable and fix `verify_output` logic
+</Update>
+
+
+<Update label="v0.24.0" description="February 19, 2025">
+### [Introduces new RunCodemodTool feature.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.24.0)
+- Introduce RunCodemodTool feature
+</Update>
+
+
+<Update label="v0.23.0" description="February 19, 2025">
+### [Adds replace tool and supports basic file operations.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.23.0)
+- Add codebase language replace tool
+- Allow basic file operations for non-supported languages
+</Update>
+
+
+<Update label="v0.22.4" description="February 19, 2025">
+### [resolves issues by removing MultiAIProvider.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.22.4)
+- Remove MultiAIProvider to resolve associated issues
+</Update>
+
+
+<Update label="v0.22.3" description="February 19, 2025">
+### [Introduces a linear webhook example.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.22.3)
+- Add linear webhook example
+</Update>
+
+
+<Update label="v0.22.2" description="February 19, 2025">
+### [Enhancements and bug fixes for semantic editing.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.22.2)
+- Unified operators for consistent behavior
+- Improved import handling for File/Symbol Index
+- Enhanced semantic edit functionality with line-specific control
+- Bug fix: Display line numbers in semantic edit
+- Updated agent documentation
+</Update>
+
+
+<Update label="v0.22.1" description="February 18, 2025">
+### [Fixes async bug by removing unnecessary reset call.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.22.1)
+- Fix async bug by removing codebase reset call
+</Update>
+
+
+<Update label="v0.22.0" description="February 18, 2025">
+### [introduces new client feature and language detection.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.22.0)
+- Add server client vs. codebase client feature
+- Implement git-based codebase language detection
+</Update>
+
+
+<Update label="v0.21.2" description="February 18, 2025">
+### [Enhances promise handling and updates documentation.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.21.2)
+- Implemented TSPromise class for better promise handling
+- Fixed default types setting
+- Updated external links and documentation
+</Update>
+
+
+<Update label="v0.21.1" description="February 18, 2025">
+### [Adds initial server and fixes codebase parsing.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.21.1)
+- Add initial server with run and codebase initialization
+- Fix non-blocking codebase parsing issue
+</Update>
+
+
+<Update label="v0.21.0" description="February 17, 2025">
+### [Refactor of vector index](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.21.0)
+- Refactor vector index for improved functionality
+</Update>
+
+
+<Update label="v0.20.2" description="February 17, 2025">
+### [Update OpenAI dependency.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.20.2)
+- Update OpenAI dependency to v1.63.2
+</Update>
+
+
+<Update label="v0.20.1" description="February 17, 2025">
+### [Dependency updates for sentry-sdk and openai.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.20.1)
+- Update sentry-sdk dependency to v2.22.0
+- Update openai dependency to v1.63.1
+</Update>
+
+
+<Update label="v0.20.0" description="February 16, 2025">
+### [Introduces a new agent CLI.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.20.0)
+- Introduce new agent CLI
+</Update>
+
+
+<Update label="v0.19.1" description="February 16, 2025">
+### [Bug fix for GitHub type handling.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.19.1)
+- Bug fix for GitHub type handling
+</Update>
+
+
+<Update label="v0.19.0" description="February 16, 2025">
+### [Enable GitHub webhooks and fix tutorial links.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.19.0)
+- Enable GitHub webhooks for better integration
+- Fix links to examples in tutorials
+- Apply agent documentation hotfixes
+</Update>
+
+
+<Update label="v0.18.0" description="February 15, 2025">
+### [Introduces Slack webhook handler and improves documentation.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.18.0)
+- Add Slack webhook handler feature
+- Improve documentation for research agent
+</Update>
+
+
+<Update label="v0.17.2" description="February 15, 2025">
+### [Bug fix and new Codebase Analytics Dashboard tutorial](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.17.2)
+- Fixes deep code research bug
+- Adds Codebase Analytics Dashboard tutorial
+</Update>
+
+
+<Update label="v0.17.1" description="February 15, 2025">
+### [Bug fix with pygithub dependency update.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.17.1)
+- Update dependency pygithub to v2.6.0 for improved stability
+</Update>
+
+
+<Update label="v0.17.0" description="February 14, 2025">
+### [Introduces BashCommandTool and improves tool arrangement.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.17.0)
+- Introduce BashCommandTool feature
+- Improve tools arrangement
+</Update>
+
+
+<Update label="v0.16.0" description="February 14, 2025">
+### [Introduces search_linear and create_linear tools.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.16.0)
+- Introduce search_linear tool
+- Introduce create_linear tool
+</Update>
+
+
+<Update label="v0.15.0" description="February 14, 2025">
+### [Adds linear tools and improves import resolution.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.15.0)
+- Add linear tools feature
+- Fix documentation initialization issue
+- Improve import wildcard resolution
+</Update>
+
+
+<Update label="v0.14.5" description="February 13, 2025">
+### [Enhanced ergonomic web hook registration](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.14.5)
+- Enhanced web hook registration for improved ergonomics
+</Update>
+
+
+<Update label="v0.14.4" description="February 13, 2025">
+### [Adds .json directories support and fixes a bug.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.14.4)
+- Support for directories with .json files
+- Fix unauthenticated create bug
+- Documentation improvements
+</Update>
+
+
+<Update label="v0.14.3" description="February 13, 2025">
+### [Fixes branch creation issue in create-pr tool.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.14.3)
+- Fix bug in branch creation for the create-pr tool
+</Update>
+
+
+<Update label="v0.14.2" description="February 13, 2025">
+### [fixes an import bug.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.14.2)
+- Fix import bug
+</Update>
+
+
+<Update label="v0.14.1" description="February 13, 2025">
+### [LSP is now an optional dependency.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.14.1)
+- Make LSP an optional dependency
+</Update>
+
+
+<Update label="v0.14.0" description="February 13, 2025">
+### [Add LSP and term migration for codegen functionality.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.14.0)
+- Add code generation language server protocol
+- Migrate terminology from 'programming_language' to 'language'
+- Improve and update documentation
+</Update>
+
+
+<Update label="v0.13.1" description="February 13, 2025">
+### [improves link annotation and config commands.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.13.1)
+- Support for directories in link annotation
+- Add --global flag support in config commands
+- Enhance repository operator with GitHub property
+</Update>
+
+
+<Update label="v0.13.0" description="February 13, 2025">
+### [Adds link highlighting and LSP progress reporting.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.13.0)
+- Add message highlighting for links
+- Implement LSP progress reporting
+</Update>
+
+
+<Update label="v0.12.3" description="February 13, 2025">
+### [Removes cache warm-up for improved performance.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.12.3)
+- Removed cache warm-up
+</Update>
+
+
+<Update label="v0.12.2" description="February 12, 2025">
+### [Fixes tool arrangement issues.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.12.2)
+- Fix tool arrangement issues
+</Update>
+
+
+<Update label="v0.12.1" description="February 12, 2025">
+### [Fixes list directory tool bugs](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.12.1)
+- Fix list directory tool bugs
+</Update>
+
+
+<Update label="v0.12.0" description="February 12, 2025">
+### [Session validation enhancement.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.12.0)
+- Session validation added on creation and retrieval
+</Update>
+
+
+<Update label="v0.11.4" description="February 12, 2025">
+### [Fixes PR tool checkout issue.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.11.4)
+- Fix PR tool checkout issue on custom branches
+</Update>
+
+
+<Update label="v0.11.3" description="February 12, 2025">
+### [Fixes tool handling and improves directory tests.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.11.3)
+- Fix tools handling when files are not found
+- Improve directory tests
+</Update>
+
+
+<Update label="v0.11.2" description="February 12, 2025">
+### [Fixes and enhancements for PR process and GitHub token usage.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.11.2)
+- Fix CodebaseGraph rename issue
+- Enhance GitHub token usage
+- Improve pull request creation process
+</Update>
+
+
+<Update label="v0.11.1" description="February 12, 2025">
+### [Adds Neo4j extension and fixes config tests.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.11.1)
+- Add Neo4j extension for codebase graph export
+- Fix config tests
+- Refactor and break up config models
+</Update>
+
+
+<Update label="v0.11.0" description="February 12, 2025">
+### [Global session management and decoupled auth.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.11.0)
+- Implement global session management
+- Decouple authentication module
+</Update>
+
+
+<Update label="v0.10.4" description="February 12, 2025">
+### [add documentation indexing instructions.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.10.4)
+- Add documentation indexing instructions
+</Update>
+
+
+<Update label="v0.10.3" description="February 12, 2025">
+### [Fixes init command and adds create PR tool.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.10.3)
+- Fix issue with init command
+- Add create PR tool for contributors
+</Update>
+
+
+<Update label="v0.10.2" description="February 12, 2025">
+### [Fixes import path and adds MCP examples.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.10.2)
+- Fixed import path issue
+- Added additional MCP examples
+</Update>
+
+
+<Update label="v0.10.1" description="February 11, 2025">
+### [Fixes a tool issue and enhances code maintainability.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.10.1)
+- Fix issue with view_file tool content
+- Deduplicate codebase for improved maintainability
+</Update>
+
+
+<Update label="v0.10.0" description="February 11, 2025">
+### [Support for reading local git repo config.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.10.0)
+- Read repository configuration from local git instance
+</Update>
+
+
+<Update label="v0.9.2" description="February 11, 2025">
+### [fixes a function call issue.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.9.2)
+- Fix function call issue
+</Update>
+
+
+<Update label="v0.9.1" description="February 11, 2025">
+### [Enhancements to agent implementation.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.9.1)
+- Improve agent implementation
+</Update>
+
+
+<Update label="v0.9.0" description="February 11, 2025">
+### [Introducing Codegen-lsp v0 with additional test coverage.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.9.0)
+- Introduce Codegen-lsp v0 feature
+- Add tests for codebase.create_pr
+</Update>
+
+
+<Update label="v0.8.0" description="February 11, 2025">
+### [Introduces codeowners interface and enhances codegen.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.8.0)
+- Update code generation command
+- Introduce new codeowners interface
+- Add new examples and improve documentation
+- Support for creating pull requests
+</Update>
+
+
+<Update label="v0.6.4" description="February 11, 2025">
+### [Fixes Slack bot action release-tag input issue.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.6.4)
+- Fix issue with Slack bot action regarding release-tag input
+</Update>
+
+
+<Update label="v0.6.3" description="February 11, 2025">
+### [Fixes git tagging and adds a Slack bot example.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.6.3)
+- Fix git tagging method for improved accuracy
+- Add Slack bot example
+</Update>
+
+
+<Update label="v0.6.2" description="February 10, 2025">
+### [Structural refactor, clearer naming, and new permissions](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.6.2)
+- Add content write permission
+- Refactor file IO for better structure
+- Rename `CodebaseGraph` to `CodebaseContext` for clarity
+- Unified dependency management
+</Update>
+
+
+<Update label="v0.6.1" description="February 10, 2025">
+### [Introduces VectorIndex and supports x86_64 mac.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.6.1)
+- Add VectorIndex extension and new MCP server feature.
+- Update Plotly requirement and integrate Plotly.js 3.0.0.
+- Fix various bugs and improve parsing tests.
+- Enhance documentation with new tutorials and examples.
+- Support added for x86_64 mac architecture.
+</Update>
+
+
+<Update label="v0.5.30" description="February 07, 2025">
+### [Changes default URLs and removes access token.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.5.30)
+- Change default URLs
+- Remove access token from local repo operator
+</Update>
+
+
+<Update label="v0.5.29" description="February 06, 2025">
+### [Fixes the GithubClient constructor.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.5.29)
+- Fix GithubClient constructor
+</Update>
+
+
+<Update label="v0.5.28" description="February 06, 2025">
+### [Fixes performance issues by disabling uv cache.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.5.28)
+- Disable uv cache to resolve performance issues
+</Update>
+
+
+<Update label="v0.5.27" description="February 06, 2025">
+### [Enhancements and bug fixes including asyncify fix.](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.5.27)
+- Fix asyncify return type bug
+- Add foundations for PR bot static analysis
+- Generate changelog
+- Remove default og:image setting
+</Update>
+
 <Update label="v0.5.26" description="February 06, 2025">
 ### [Simplified Slack notifications](https://github.com/codegen-sh/codegen-sdk/releases/tag/v0.5.26)
 - Simplified Slack notifications by removing description field
