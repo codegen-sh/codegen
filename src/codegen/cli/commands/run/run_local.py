@@ -26,6 +26,7 @@ def run_local(
     session: CodegenSession,
     function: DecoratedFunction,
     diff_preview: int | None = None,
+    path: Path | None = None,
 ) -> None:
     """Run a function locally against the codebase.
 
@@ -35,10 +36,10 @@ def run_local(
         diff_preview: Number of lines of diff to preview (None for all)
     """
     # Parse codebase and run
-    repo_root = session.repo_path
+    codebase_path = f"{session.repo_path}/{path}" if path else session.repo_path
 
-    with Status(f"[bold]Parsing codebase at {repo_root} ...", spinner="dots") as status:
-        codebase = parse_codebase(repo_root)
+    with Status(f"[bold]Parsing codebase at {codebase_path} ...", spinner="dots") as status:
+        codebase = parse_codebase(codebase_path)
         status.update("[bold green]✓ Parsed codebase")
 
         status.update("[bold]Running codemod...")
