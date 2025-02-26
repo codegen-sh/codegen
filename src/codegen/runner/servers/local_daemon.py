@@ -14,6 +14,7 @@ from codegen.runner.models.apis import (
 )
 from codegen.runner.models.codemod import Codemod, CodemodRunResult
 from codegen.runner.sandbox.runner import SandboxRunner
+from codegen.shared.logging.get_logger import get_colored_logger
 
 # Configure logging at module level
 logging.basicConfig(
@@ -21,7 +22,7 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     force=True,
 )
-logger = logging.getLogger(__name__)
+logger = get_colored_logger(__name__)
 
 server_info: ServerInfo
 runner: SandboxRunner
@@ -43,7 +44,7 @@ async def lifespan(server: FastAPI):
         runner.op.git_cli.git.config("user.name", CODEGEN_BOT_NAME)
 
         # Parse the codebase
-        logger.info(f"Starting up sandbox fastapi server for repo_name={repo_config.name}")
+        logger.info(f"Starting up fastapi server for repo_name={repo_config.name}")
         server_info.warmup_state = WarmupState.PENDING
         await runner.warmup()
         server_info.synced_commit = runner.commit.hexsha

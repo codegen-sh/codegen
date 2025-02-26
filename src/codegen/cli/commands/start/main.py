@@ -108,7 +108,7 @@ def _run_docker_container(repo_config: RepoConfig, port: int, detached: bool) ->
     entry_point = f"uv run --frozen uvicorn codegen.runner.servers.local_daemon:app --host {_default_host} --port {port}"
     port_args = ["-p", f"{port}:{port}"]
     detached_args = ["-d"] if detached else []
-    run_cmd = ["docker", "run", *detached_args, *port_args, *name_args, *mount_args, *envvars_args, CODEGEN_RUNNER_IMAGE, entry_point]
+    run_cmd = ["docker", "run", "--rm", *detached_args, *port_args, *name_args, *mount_args, *envvars_args, CODEGEN_RUNNER_IMAGE, entry_point]
 
     rich.print(f"run_cmd: {str.join(' ', run_cmd)}")
     subprocess.run(run_cmd, check=True)

@@ -145,31 +145,25 @@ class RepoOperator:
         for level in levels:
             with git_cli.config_reader(level) as reader:
                 if reader.has_option("user", "name") and not username:
-                    username = reader.get("user", "name")
-                    user_level = level
+                    username = username or reader.get("user", "name")
+                    user_level = user_level or level
                 if reader.has_option("user", "email") and not email:
-                    email = reader.get("user", "email")
-                    email_level = level
-        if self.bot_commit:
-            self._set_bot_email(git_cli)
-            self._set_bot_username(git_cli)
-        else:
-            # we need a username and email to commit, so if they're not set, set them to the bot's
-            # Case 1: username is not set: set it to the bot's
-            if not username:
-                self._set_bot_username(git_cli)
-            # Case 2: username is set to the bot's at the repo level, but something else is set at the user level: unset it
-            elif username != CODEGEN_BOT_NAME and user_level != "repository":
-                self._unset_bot_username(git_cli)
-            #  3: Caseusername is only set at the repo level: do nothing
-            else:
-                pass  # no-op to make the logic clearer
-            # Repeat for email
-            if not email:
-                self._set_bot_email(git_cli)
+                    email = email or reader.get("user", "email")
+                    email_level = email_level or level
 
-            elif email != CODEGEN_BOT_EMAIL and email_level != "repository":
+        # We need a username and email to commit, so if they're not set, set them to the bot's
+        if not username or self.bot_commit:
+            self._set_bot_username(git_cli)
+        if not email or self.bot_commit:
+            self._set_bot_email(git_cli)
+
+        # If user config is set at a level above the repo level: unset it
+        if not self.bot_commit:
+            if username and username != CODEGEN_BOT_NAME and user_level != "repository":
+                self._unset_bot_username(git_cli)
+            if email and email != CODEGEN_BOT_EMAIL and email_level != "repository":
                 self._unset_bot_email(git_cli)
+
         return git_cli
 
     @property
