@@ -111,23 +111,30 @@ class ListDirectoryTool(BaseTool):
 class SearchInput(BaseModel):
     """Input for searching the codebase."""
 
-    query: str = Field(..., description="The search query, passed into python's re.match()")
+    query: str = Field(
+        ...,
+        description="The search query to find in the codebase. When ripgrep is available, this will be passed as a ripgrep pattern. For regex searches, set use_regex=True. Ripgrep is the preferred method.",
+    )
     target_directories: Optional[list[str]] = Field(default=None, description="Optional list of directories to search in")
+    file_extensions: Optional[list[str]] = Field(default=None, description="Optional list of file extensions to search (e.g. ['.py', '.ts'])")
+    page: int = Field(default=1, description="Page number to return (1-based, default: 1)")
+    files_per_page: int = Field(default=10, description="Number of files to return per page (default: 10)")
+    use_regex: bool = Field(default=False, description="Whether to treat query as a regex pattern (default: False)")
 
 
 class SearchTool(BaseTool):
     """Tool for searching the codebase."""
 
     name: ClassVar[str] = "search"
-    description: ClassVar[str] = "Search the codebase using text search"
+    description: ClassVar[str] = "Search the codebase using text search or regex pattern matching"
     args_schema: ClassVar[type[BaseModel]] = SearchInput
     codebase: Codebase = Field(exclude=True)
 
     def __init__(self, codebase: Codebase) -> None:
         super().__init__(codebase=codebase)
 
-    def _run(self, query: str, target_directories: Optional[list[str]] = None) -> str:
-        result = search(self.codebase, query, target_directories)
+    def _run(self, query: str, target_directories: Optional[list[str]] = None, file_extensions: Optional[list[str]] = None, page: int = 1, files_per_page: int = 10, use_regex: bool = False) -> str:
+        result = search(self.codebase, query, target_directories=target_directories, file_extensions=file_extensions, page=page, files_per_page=files_per_page, use_regex=use_regex)
         return result.render()
 
 

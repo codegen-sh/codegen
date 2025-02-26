@@ -17,10 +17,16 @@ def list_command():
         table.add_column("Name", style="cyan")
         table.add_column("Type", style="magenta")
         table.add_column("Path", style="dim")
+        table.add_column("Subdirectories", style="dim")
 
         for func in functions:
             func_type = "Webhook" if func.lint_mode else "Function"
-            table.add_row(func.name, func_type, str(func.filepath.relative_to(Path.cwd())) if func.filepath else "<unknown>")
+            table.add_row(
+                func.name,
+                func_type,
+                str(func.filepath.relative_to(Path.cwd())) if func.filepath else "<unknown>",
+                ", ".join(func.subdirectories) if func.subdirectories else "",
+            )
 
         rich.print(table)
         rich.print("\nRun a function with:")

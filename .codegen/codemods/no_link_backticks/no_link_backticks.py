@@ -2,7 +2,7 @@ import codegen
 from codegen import Codebase
 
 
-@codegen.function("no-link-backticks")
+@codegen.function(name="no-link-backticks", subdirectories=["test/unit"])
 def run(codebase: Codebase):
     import re
 
@@ -12,6 +12,7 @@ def run(codebase: Codebase):
     # Iterate over all .mdx files in the codebase
     for file in codebase.files(extensions=["mdx"]):
         if file.extension == ".mdx":
+            print(f"Processing {file.path}")
             new_content = file.content
 
             # Find all markdown links with backticks in link text
