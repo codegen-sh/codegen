@@ -197,3 +197,57 @@ class PyFile(SourceFile[PyImport, PyFunction, PyClass, PyAssignment, Interface[P
                         ret[file.name] = file
             return ret
         return super().valid_import_names
+
+    @noapidoc
+    def get_node_from_wildcard_chain(self, symbol_name: str) -> PySymbol | None:
+        """Recursively searches for a symbol through wildcard import chains.
+
+        Attempts to find a symbol by name in the current file, and if not found, recursively searches
+        through any wildcard imports (from x import *) to find the symbol in imported modules.
+
+        Args:
+            symbol_name (str): The name of the symbol to search for.
+
+        Returns:
+            PySymbol | None: The found symbol if it exists in this file or any of its wildcard
+                imports, None otherwise.
+        """
+        node = None
+        if node := self.get_node_by_name(symbol_name):
+            return node
+
+        if wildcard_imports := {imp for imp in self.imports if imp.is_wildcard_import()}:
+            for wildcard_import in wildcard_imports:
+                if imp_resolution := wildcard_import.resolve_import():
+                    node = imp_resolution.from_file.get_node_from_wildcard_chain(symbol_name=symbol_name)
+
+        return node
+
+    @noapidoc
+    def get_node_wildcard_resolves_for(self, symbol_name: str) -> PyImport | PySymbol | None:
+        """Finds the wildcard import that resolves a given symbol name.
+
+        Searches for a symbol by name, first in the current file, then through wildcard imports.
+        Unlike get_node_from_wildcard_chain, this returns the wildcard import that contains
+        the symbol rather than the symbol itself.
+
+        Args:
+            symbol_name (str): The name of the symbol to search for.
+
+        Returns:
+            PyImport | PySymbol | None:
+                - PySymbol if the symbol is found directly in this file
+                - PyImport if the symbol is found through a wildcard import
+                - None if the symbol cannot be found
+        """
+        node = None
+        if node := self.get_node_by_name(symbol_name):
+            return node
+
+        if wildcard_imports := {imp for imp in self.imports if imp.is_wildcard_import()}:
+            for wildcard_import in wildcard_imports:
+                if imp_resolution := wildcard_import.resolve_import():
+                    if imp_resolution.from_file.get_node_from_wildcard_chain(symbol_name=symbol_name):
+                        node = wildcard_import
+
+        return node
