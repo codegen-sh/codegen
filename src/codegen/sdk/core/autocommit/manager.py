@@ -1,4 +1,3 @@
-
 from codegen.shared.logging.get_logger import get_logger
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -24,7 +23,6 @@ if TYPE_CHECKING:
     from codegen.sdk.core.import_resolution import Import
     from codegen.sdk.core.symbol import Symbol
 
-import logging
 
 logger = get_logger(__name__)
 

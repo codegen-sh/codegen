@@ -1,8 +1,8 @@
-
-from codegen.shared.logging.get_logger import get_logger
 import logging
 
 import click
+
+from codegen.shared.logging.get_logger import get_logger
 
 logger = get_logger(__name__)
 

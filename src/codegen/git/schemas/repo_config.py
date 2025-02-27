@@ -1,6 +1,3 @@
-
-from codegen.shared.logging.get_logger import get_logger
-import logging
 import os.path
 from pathlib import Path
 
@@ -9,6 +6,7 @@ from pydantic import BaseModel
 from codegen.configs.models.repository import RepositoryConfig
 from codegen.git.schemas.enums import RepoVisibility
 from codegen.shared.enums.programming_language import ProgrammingLanguage
+from codegen.shared.logging.get_logger import get_logger
 
 logger = get_logger(__name__)
 

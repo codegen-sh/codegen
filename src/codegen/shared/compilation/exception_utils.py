@@ -1,7 +1,6 @@
+from types import FrameType, TracebackType
 
 from codegen.shared.logging.get_logger import get_logger
-import logging
-from types import FrameType, TracebackType
 
 logger = get_logger(__name__)
 

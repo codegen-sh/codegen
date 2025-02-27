@@ -1,5 +1,3 @@
-
-from codegen.shared.logging.get_logger import get_logger
 import time
 from collections.abc import Callable
 from pathlib import Path
@@ -16,11 +14,11 @@ from codegen.sdk.codebase.transactions import (
     TransactionPriority,
 )
 from codegen.shared.exceptions.control_flow import MaxPreviewTimeExceeded, MaxTransactionsExceeded
+from codegen.shared.logging.get_logger import get_logger
 
 if TYPE_CHECKING:
     from codegen.sdk.core.file import File
 
-import logging
 
 logger = get_logger(__name__)
 

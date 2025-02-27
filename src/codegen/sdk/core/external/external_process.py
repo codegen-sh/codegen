@@ -1,10 +1,9 @@
-
-from codegen.shared.logging.get_logger import get_logger
-import logging
 import os
 import threading
 import time
 from abc import ABC, abstractmethod
+
+from codegen.shared.logging.get_logger import get_logger
 
 logger = get_logger(__name__)
 

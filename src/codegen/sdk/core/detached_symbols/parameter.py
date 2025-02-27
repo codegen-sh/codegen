@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-
-from codegen.shared.logging.get_logger import get_logger
 from abc import abstractmethod
 from typing import TYPE_CHECKING, Generic, Self, TypeVar, override
 
@@ -18,6 +16,7 @@ from codegen.sdk.extensions.autocommit import commiter
 from codegen.sdk.extensions.resolution import UsageKind
 from codegen.sdk.utils import find_first_descendant
 from codegen.shared.decorators.docs import apidoc, noapidoc
+from codegen.shared.logging.get_logger import get_logger
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -31,7 +30,6 @@ if TYPE_CHECKING:
     from codegen.sdk.core.interfaces.importable import Importable
     from codegen.sdk.core.symbol_groups.collection import Collection
 
-import logging
 
 logger = get_logger(__name__)
 

@@ -1,5 +1,3 @@
-
-from codegen.shared.logging.get_logger import get_logger
 import logging
 from typing import Any, Callable, TypeVar
 
@@ -7,6 +5,7 @@ from pydantic import BaseModel
 
 from codegen.extensions.events.interface import EventHandlerManagerProtocol
 from codegen.extensions.linear.types import LinearEvent
+from codegen.shared.logging.get_logger import get_logger
 
 logger = get_logger(__name__)
 logger.setLevel(logging.DEBUG)

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-
-from codegen.shared.logging.get_logger import get_logger
 from collections import deque
 from typing import TYPE_CHECKING, Self
 
@@ -10,6 +8,7 @@ from codegen.sdk.core.statements.assignment_statement import AssignmentStatement
 from codegen.sdk.extensions.autocommit import reader
 from codegen.sdk.typescript.assignment import TSAssignment
 from codegen.shared.decorators.docs import noapidoc, ts_apidoc
+from codegen.shared.logging.get_logger import get_logger
 
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
@@ -19,7 +18,6 @@ if TYPE_CHECKING:
     from codegen.sdk.typescript.detached_symbols.code_block import TSCodeBlock
     from codegen.sdk.typescript.interfaces.has_block import TSHasBlock
 
-import logging
 
 logger = get_logger(__name__)
 

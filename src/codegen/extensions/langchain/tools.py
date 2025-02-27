@@ -113,7 +113,8 @@ class SearchInput(BaseModel):
 
     query: str = Field(
         ...,
-        description="The search query to find in the codebase. When ripgrep is available, this will be passed as a ripgrep pattern. For regex searches, set use_regex=True. Ripgrep is the preferred method.",
+        description="The search query to find in the codebase. When ripgrep is available, this will be passed as a ripgrep pattern. "
+        "For regex searches, set use_regex=True. Ripgrep is the preferred method.",
     )
     target_directories: Optional[list[str]] = Field(default=None, description="Optional list of directories to search in")
     file_extensions: Optional[list[str]] = Field(default=None, description="Optional list of file extensions to search (e.g. ['.py', '.ts'])")

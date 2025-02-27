@@ -1,10 +1,7 @@
 """Codebase - main interface for Codemods to interact with the codebase"""
 
-
-from codegen.shared.logging.get_logger import get_logger
 import codecs
 import json
-import logging
 import os
 import re
 import tempfile
@@ -86,6 +83,7 @@ from codegen.sdk.typescript.type_alias import TSTypeAlias
 from codegen.shared.decorators.docs import apidoc, noapidoc, py_noapidoc
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 from codegen.shared.exceptions.control_flow import MaxAIRequestsError
+from codegen.shared.logging.get_logger import get_logger
 from codegen.shared.performance.stopwatch_utils import stopwatch
 from codegen.visualizations.visualization_manager import VisualizationManager
 

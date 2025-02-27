@@ -1,7 +1,4 @@
-
-from codegen.shared.logging.get_logger import get_logger
 import linecache
-import logging
 import sys
 import traceback
 from collections.abc import Callable
@@ -12,6 +9,7 @@ from codegen.shared.compilation.exception_utils import get_local_frame, get_offs
 from codegen.shared.compilation.function_compilation import safe_compile_function_string
 from codegen.shared.compilation.function_construction import create_function_str_from_codeblock, get_imports_string
 from codegen.shared.exceptions.control_flow import StopCodemodException
+from codegen.shared.logging.get_logger import get_logger
 
 logger = get_logger(__name__)
 

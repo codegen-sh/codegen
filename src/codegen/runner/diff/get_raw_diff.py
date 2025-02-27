@@ -1,12 +1,10 @@
-
-from codegen.shared.logging.get_logger import get_logger
 import io
-import logging
 
 from unidiff import LINE_TYPE_CONTEXT, Hunk, PatchedFile, PatchSet
 from unidiff.patch import Line
 
 from codegen.sdk.core.codebase import Codebase
+from codegen.shared.logging.get_logger import get_logger
 
 logger = get_logger(__name__)
 

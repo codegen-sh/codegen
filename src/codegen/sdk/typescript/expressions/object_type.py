@@ -1,5 +1,3 @@
-
-from codegen.shared.logging.get_logger import get_logger
 from typing import TYPE_CHECKING, Generic, Self, TypeVar
 
 from tree_sitter import Node as TSNode
@@ -12,11 +10,11 @@ from codegen.sdk.core.interfaces.importable import Importable
 from codegen.sdk.core.node_id_factory import NodeId
 from codegen.sdk.typescript.symbol_groups.dict import TSDict, TSPair
 from codegen.shared.decorators.docs import ts_apidoc
+from codegen.shared.logging.get_logger import get_logger
 
 if TYPE_CHECKING:
     from codegen.sdk.codebase.codebase_context import CodebaseContext
 
-import logging
 
 logger = get_logger(__name__)
 

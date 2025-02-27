@@ -1,13 +1,10 @@
 """Client used to abstract the weird stdin/stdout communication we have with the sandbox"""
 
-
-from codegen.shared.logging.get_logger import get_logger
-import logging
-
 import requests
 from fastapi import params
 
 from codegen.runner.models.apis import ServerInfo
+from codegen.shared.logging.get_logger import get_logger
 
 logger = get_logger(__name__)
 

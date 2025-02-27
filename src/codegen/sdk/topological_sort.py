@@ -1,9 +1,7 @@
-
-from codegen.shared.logging.get_logger import get_logger
-import logging
-
 import rustworkx as nx
 from rustworkx import DAGHasCycle, PyDiGraph
+
+from codegen.shared.logging.get_logger import get_logger
 
 logger = get_logger(__name__)
 

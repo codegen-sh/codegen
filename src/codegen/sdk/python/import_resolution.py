@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-
-from codegen.shared.logging.get_logger import get_logger
 import os
 import sys
 from typing import TYPE_CHECKING
@@ -11,6 +9,7 @@ from codegen.sdk.core.expressions import Name
 from codegen.sdk.core.import_resolution import ExternalImportResolver, Import, ImportResolution
 from codegen.sdk.enums import ImportType, NodeType
 from codegen.shared.decorators.docs import noapidoc, py_apidoc
+from codegen.shared.logging.get_logger import get_logger
 
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
@@ -23,7 +22,6 @@ if TYPE_CHECKING:
     from codegen.sdk.python.file import PyFile
     from src.codegen.sdk.core.file import SourceFile
 
-import logging
 
 logger = get_logger(__name__)
 

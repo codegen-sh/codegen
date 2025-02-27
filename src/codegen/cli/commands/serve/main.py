@@ -1,5 +1,3 @@
-
-from codegen.shared.logging.get_logger import get_logger
 import importlib.util
 import logging
 import socket
@@ -15,6 +13,7 @@ from rich.logging import RichHandler
 from rich.panel import Panel
 
 from codegen.extensions.events.codegen_app import CodegenApp
+from codegen.shared.logging.get_logger import get_logger
 
 logger = get_logger(__name__)
 

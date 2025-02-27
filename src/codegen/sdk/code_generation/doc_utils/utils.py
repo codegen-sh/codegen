@@ -1,6 +1,3 @@
-
-from codegen.shared.logging.get_logger import get_logger
-import logging
 import re
 import textwrap
 
@@ -13,6 +10,7 @@ from codegen.sdk.core.interfaces.callable import Callable
 from codegen.sdk.core.symbol import Symbol
 from codegen.sdk.python.statements.attribute import PyAttribute
 from codegen.shared.enums.programming_language import ProgrammingLanguage
+from codegen.shared.logging.get_logger import get_logger
 
 logger = get_logger(__name__)
 

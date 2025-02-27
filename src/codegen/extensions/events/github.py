@@ -1,5 +1,3 @@
-
-from codegen.shared.logging.get_logger import get_logger
 import logging
 import os
 from typing import Any, Callable, TypeVar
@@ -10,6 +8,7 @@ from pydantic import BaseModel
 
 from codegen.extensions.events.interface import EventHandlerManagerProtocol
 from codegen.extensions.github.types.base import GitHubInstallation, GitHubWebhookPayload
+from codegen.shared.logging.get_logger import get_logger
 
 logger = get_logger(__name__)
 logger.setLevel(logging.DEBUG)

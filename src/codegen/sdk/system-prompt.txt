@@ -29,7 +29,7 @@ codebase.commit()
 
 
 <Note>
-Codegen handles complex refactors while maintaining correctness, enabling a broad set of advanced code manipulation programs. 
+Codegen handles complex refactors while maintaining correctness, enabling a broad set of advanced code manipulation programs.
 </Note>
 
 <Tip>Codegen works with both Python and Typescript/JSX codebases. Learn more about language support [here](/building-with-codegen/language-support).</Tip>
@@ -492,7 +492,7 @@ Let's walk through a minimal example of using Codegen in a project:
    ```bash
    codegen init
    ```
-   
+
    This creates a `.codegen/` directory with:
    ```bash
    .codegen/
@@ -560,7 +560,7 @@ Let's walk through a minimal example of using Codegen in a project:
 
 <Note>
 For more help, join our [community Slack](/introduction/community) or check the [FAQ](/introduction/faq).
-</Note> 
+</Note>
 
 ---
 title: "Using Codegen in Your IDE"
@@ -589,7 +589,7 @@ Codegen creates a custom Python environment in `.codegen/.venv`. Configure your 
        ```bash
        .codegen/.venv/bin/python
        ```
-    
+
     Alternatively, create a `.vscode/settings.json`:
         ```json
         {
@@ -611,7 +611,7 @@ Codegen creates a custom Python environment in `.codegen/.venv`. Configure your 
        .codegen/.venv/bin/python
        ```
   </Accordion>
-  
+
 </AccordionGroup>
 
 
@@ -1156,8 +1156,8 @@ iconType: "solid"
     </Tip>
   </Accordion>
   <Accordion title="Can I use Codegen with my existing tools?" icon="screwdriver-wrench">
-    Yes - [by design](/introduction/guiding-principles#python-first-composability). 
-    
+    Yes - [by design](/introduction/guiding-principles#python-first-composability).
+
     Codegen works like any other python package. It works alongside your IDE, version control system, and other development tools.
   </Accordion>
   <Accordion
@@ -2113,7 +2113,7 @@ if not isinstance(mdx_file, SourceFile):
 ```
 
 <Note>
-  Currently, the codebase object can only parse source code files of one language at a time. This means that if you want to work with both Python and TypeScript files, you will need to create two separate codebase objects. 
+  Currently, the codebase object can only parse source code files of one language at a time. This means that if you want to work with both Python and TypeScript files, you will need to create two separate codebase objects.
 </Note>
 
 ## Accessing Code
@@ -2933,7 +2933,7 @@ for module, imports in module_imports.items():
 
 <Note>
 Always check if imports resolve to external modules before modification to avoid breaking third-party package imports.
-</Note> 
+</Note>
 
 ## Import Statements vs Imports
 
@@ -3135,7 +3135,7 @@ for exp in file.exports:
         # Get original and current symbols
         current = exp.exported_symbol
         original = exp.resolved_symbol
-        
+
         print(f"Re-exporting {original.name} from {exp.from_file.filepath}")
         print(f"Through: {' -> '.join(e.file.filepath for e in exp.export_chain)}")
 ```
@@ -3185,7 +3185,7 @@ for from_file, exports in file_exports.items():
 
 <Note>
 When managing exports, consider the impact on your module's public API. Not all symbols that can be exported should be exported.
-</Note> 
+</Note>
 
 ---
 title: "Inheritable Behaviors"
@@ -3675,9 +3675,9 @@ If `A` depends on `B`, then `B` is used by `A`. This relationship is tracked in 
 
 flowchart LR
     B(BaseClass)
-    
-    
-    
+
+
+
     A(MyClass)
     B ---| used by |A
     A ---|depends on |B
@@ -3846,7 +3846,7 @@ class A:
     def method_a(self): pass
 
 class B(A):
-    def method_b(self): 
+    def method_b(self):
         self.method_a()
 
 class C(B):
@@ -4736,7 +4736,7 @@ for attr in class_def.attributes:
     # Each attribute has an assignment property
     attr_type = attr.assignment.type  # -> TypeAnnotation
     print(f"{attr.name}: {attr_type.source}")  # e.g. "x: int"
-    
+
     # Set attribute type
     attr.assignment.set_type("int")
 
@@ -4753,7 +4753,7 @@ Union types ([UnionType](/api-reference/core/UnionType)) can be manipulated as c
 
 ```python
 # Get union type
-union_type = function.return_type  # -> A | B 
+union_type = function.return_type  # -> A | B
 print(union_type.symbols)  # ["A", "B"]
 
 # Add/remove options
@@ -5604,13 +5604,13 @@ Here's an example of using flags during code analysis:
 
 ```python
 def analyze_codebase(codebase):
-    for function in codebase.functions:            
+    for function in codebase.functions:
         # Check documentation
         if not function.docstring:
             function.flag(
                 message="Missing docstring",
             )
-            
+
         # Check error handling
         if function.is_async and not function.has_try_catch:
             function.flag(
@@ -6320,7 +6320,7 @@ Explore our tutorials to learn how to use Codegen for various code transformatio
   >
     Update API calls, handle breaking changes, and manage bulk updates across your codebase.
   </Card>
-  <Card 
+  <Card
     title="SQLAlchemy 1.4 to 2.0"
     icon="layer-group"
     href="/tutorials/sqlalchemy-1.4-to-2.0"
@@ -6334,9 +6334,9 @@ Explore our tutorials to learn how to use Codegen for various code transformatio
   >
     Convert Flask applications to FastAPI, updating routes and dependencies.
   </Card>
-  <Card 
-    title="Python 2 to 3" 
-    icon="snake" 
+  <Card
+    title="Python 2 to 3"
+    icon="snake"
     href="/tutorials/python2-to-python3"
   >
     Migrate Python 2 code to Python 3, updating syntax and modernizing APIs.
@@ -6353,9 +6353,9 @@ Explore our tutorials to learn how to use Codegen for various code transformatio
   >
     Restructure files, enforce naming conventions, and improve project layout.
   </Card>
-  <Card 
-    title="Improve Modularity" 
-    icon="cubes" 
+  <Card
+    title="Improve Modularity"
+    icon="cubes"
     href="/tutorials/modularity"
   >
     Split large files, extract shared logic, and manage dependencies.
@@ -6453,7 +6453,7 @@ The agent has access to powerful code viewing and manipulation tools powered by 
 - `CreateFileTool`: Create new files
 - `DeleteFileTool`: Delete files
 - `RenameFileTool`: Rename files
-- `EditFileTool`: Edit files 
+- `EditFileTool`: Edit files
 
 
 
@@ -6960,7 +6960,7 @@ Be explicit about the changes, produce a short summary, and point out possible i
 Focus on facts and technical details, using code snippets where helpful.
 """
     result = agent.run(prompt)
-    
+
     # Clean up the temporary comment
     comment.delete()
 ```
@@ -7046,7 +7046,7 @@ While this example demonstrates a basic PR review bot, you can extend it to:
   >
     Understand code review patterns and best practices.
   </Card>
-</CardGroup> 
+</CardGroup>
 
 ---
 title: "Deep Code Research with AI"
@@ -7174,21 +7174,21 @@ def research(repo_name: Optional[str] = None, query: Optional[str] = None):
     """Start a code research session."""
     # Initialize codebase
     codebase = initialize_codebase(repo_name)
-    
+
     # Create and run the agent
     agent = create_research_agent(codebase)
-    
+
     # Main research loop
     while True:
         if not query:
             query = Prompt.ask("[bold cyan]Research query[/bold cyan]")
-            
+
         result = agent.invoke(
             {"input": query},
             config={"configurable": {"thread_id": 1}}
         )
         console.print(Markdown(result["messages"][-1].content))
-        
+
         query = None  # Clear for next iteration
 ```
 
@@ -7236,7 +7236,7 @@ class CustomAnalysisTool(BaseTool):
     """Custom tool for specialized code analysis."""
     name = "custom_analysis"
     description = "Performs specialized code analysis"
-    
+
     def _run(self, query: str) -> str:
         # Custom analysis logic
         return results
@@ -7514,7 +7514,7 @@ from codegen import Codebase
 # Initialize codebase
 codebase = Codebase("path/to/posthog/")
 
-# Create a directed graph for representing call relationships 
+# Create a directed graph for representing call relationships
 G = nx.DiGraph()
 
 # Configuration flags
@@ -7536,7 +7536,7 @@ We'll create a function that will recursively traverse the call trace of a funct
 ```python
 def create_downstream_call_trace(src_func: Function, depth: int = 0):
     """Creates call graph by recursively traversing function calls
-    
+
     Args:
         src_func (Function): Starting function for call graph
         depth (int): Current recursion depth
@@ -7544,7 +7544,7 @@ def create_downstream_call_trace(src_func: Function, depth: int = 0):
     # Prevent infinite recursion
     if MAX_DEPTH <= depth:
         return
-        
+
     # External modules are not functions
     if isinstance(src_func, ExternalModule):
         return
@@ -7554,12 +7554,12 @@ def create_downstream_call_trace(src_func: Function, depth: int = 0):
         # Skip self-recursive calls
         if call.name == src_func.name:
             continue
-            
+
         # Get called function definition
         func = call.function_definition
         if not func:
             continue
-            
+
         # Apply configured filters
         if isinstance(func, ExternalModule) and IGNORE_EXTERNAL_MODULE_CALLS:
             continue
@@ -7573,7 +7573,7 @@ def create_downstream_call_trace(src_func: Function, depth: int = 0):
             func_name = f"{func.parent_class.name}.{func.name}" if func.is_method else func.name
 
         # Add node and edge with metadata
-        G.add_node(func, name=func_name, 
+        G.add_node(func, name=func_name,
                   color=COLOR_PALETTE.get(func.__class__.__name__))
         G.add_edge(src_func, func, **generate_edge_meta(call))
 
@@ -7588,10 +7588,10 @@ We can enrich our edges with metadata about the function calls:
 ```python
 def generate_edge_meta(call: FunctionCall) -> dict:
     """Generate metadata for call graph edges
-    
+
     Args:
         call (FunctionCall): Function call information
-        
+
     Returns:
         dict: Edge metadata including name and location
     """
@@ -7610,8 +7610,8 @@ Finally, we can visualize our call graph starting from a specific function:
 target_class = codebase.get_class('SharingConfigurationViewSet')
 target_method = target_class.get_method('patch')
 
-# Add root node 
-G.add_node(target_method, 
+# Add root node
+G.add_node(target_method,
            name=f"{target_class.name}.{target_method.name}",
            color=COLOR_PALETTE["StartFunction"])
 
@@ -7661,7 +7661,7 @@ The core function for building our dependency graph:
 ```python
 def create_dependencies_visualization(symbol: Symbol, depth: int = 0):
     """Creates visualization of symbol dependencies
-    
+
     Args:
         symbol (Symbol): Starting symbol to analyze
         depth (int): Current recursion depth
@@ -7669,11 +7669,11 @@ def create_dependencies_visualization(symbol: Symbol, depth: int = 0):
     # Prevent excessive recursion
     if depth >= MAX_DEPTH:
         return
-    
+
     # Process each dependency
     for dep in symbol.dependencies:
         dep_symbol = None
-        
+
         # Handle different dependency types
         if isinstance(dep, Symbol):
             # Direct symbol reference
@@ -7684,13 +7684,13 @@ def create_dependencies_visualization(symbol: Symbol, depth: int = 0):
 
         if dep_symbol:
             # Add node with appropriate styling
-            G.add_node(dep_symbol, 
-                      color=COLOR_PALETTE.get(dep_symbol.__class__.__name__, 
+            G.add_node(dep_symbol,
+                      color=COLOR_PALETTE.get(dep_symbol.__class__.__name__,
                                             "#f694ff"))
-            
+
             # Add dependency relationship
             G.add_edge(symbol, dep_symbol)
-            
+
             # Recurse unless it's a class (avoid complexity)
             if not isinstance(dep_symbol, PyClass):
                 create_dependencies_visualization(dep_symbol, depth + 1)
@@ -7702,7 +7702,7 @@ Finally, we can visualize our dependency graph starting from a specific symbol:
 # Get target symbol
 target_func = codebase.get_function("get_query_runner")
 
-# Add root node 
+# Add root node
 G.add_node(target_func, color=COLOR_PALETTE["StartFunction"])
 
 # Generate dependency graph
@@ -7745,16 +7745,16 @@ HTTP_METHODS = ["get", "put", "patch", "post", "head", "delete"]
 
 def generate_edge_meta(usage: Usage) -> dict:
     """Generate metadata for graph edges
-    
+
     Args:
         usage (Usage): Usage relationship information
-        
+
     Returns:
         dict: Edge metadata including name and location
     """
     return {
         "name": usage.match.source,
-        "file_path": usage.match.filepath, 
+        "file_path": usage.match.filepath,
         "start_point": usage.match.start_point,
         "end_point": usage.match.end_point,
         "symbol_name": usage.match.__class__.__name__
@@ -7762,10 +7762,10 @@ def generate_edge_meta(usage: Usage) -> dict:
 
 def is_http_method(symbol: PySymbol) -> bool:
     """Check if a symbol is an HTTP endpoint method
-    
+
     Args:
         symbol (PySymbol): Symbol to check
-        
+
     Returns:
         bool: True if symbol is an HTTP method
     """
@@ -7779,7 +7779,7 @@ The main function for creating our blast radius visualization:
 ```python
 def create_blast_radius_visualization(symbol: PySymbol, depth: int = 0):
     """Create visualization of symbol usage relationships
-    
+
     Args:
         symbol (PySymbol): Starting symbol to analyze
         depth (int): Current recursion depth
@@ -7787,11 +7787,11 @@ def create_blast_radius_visualization(symbol: PySymbol, depth: int = 0):
     # Prevent excessive recursion
     if depth >= MAX_DEPTH:
         return
-    
+
     # Process each usage of the symbol
     for usage in symbol.usages:
         usage_symbol = usage.usage_symbol
-        
+
         # Determine node color based on type
         if is_http_method(usage_symbol):
             color = COLOR_PALETTE.get("HTTP_METHOD")
@@ -7801,7 +7801,7 @@ def create_blast_radius_visualization(symbol: PySymbol, depth: int = 0):
         # Add node and edge to graph
         G.add_node(usage_symbol, color=color)
         G.add_edge(symbol, usage_symbol, **generate_edge_meta(usage))
-        
+
         # Recursively process usage symbol
         create_blast_radius_visualization(usage_symbol, depth + 1)
 ```
@@ -7952,7 +7952,7 @@ for call in old_api.call_sites:
         f"data={call.get_arg_by_parameter_name('input').value}",
         f"timeout={call.get_arg_by_parameter_name('wait').value}"
     ]
-    
+
     # Replace the old call with the new API
     call.replace(f"new_process_data({', '.join(args)})")
 ```
@@ -7966,10 +7966,10 @@ When updating chained method calls, like database queries or builder patterns:
 for execute_call in codebase.function_calls:
     if execute_call.name != "execute":
         continue
-        
+
     # Get the full chain
     chain = execute_call.call_chain
-    
+
     # Example: Add .timeout() before .execute()
     if "timeout" not in {call.name for call in chain}:
         execute_call.insert_before("timeout(30)")
@@ -7988,45 +7988,45 @@ Here's a comprehensive example:
 ```python
 def migrate_api_v1_to_v2(codebase):
     old_api = codebase.get_function("create_user_v1")
-    
+
     # Document all existing call patterns
     call_patterns = {}
     for call in old_api.call_sites:
         args = [arg.source for arg in call.args]
         pattern = ", ".join(args)
         call_patterns[pattern] = call_patterns.get(pattern, 0) + 1
-    
+
     print("Found call patterns:")
     for pattern, count in call_patterns.items():
         print(f"  {pattern}: {count} occurrences")
-    
+
     # Create new API version
     new_api = old_api.copy()
     new_api.rename("create_user_v2")
-    
+
     # Update parameter types
     new_api.get_parameter("email").type = "EmailStr"
     new_api.get_parameter("role").type = "UserRole"
-    
+
     # Add new required parameters
     new_api.add_parameter("tenant_id: UUID")
-    
+
     # Update all call sites
     for call in old_api.call_sites:
         # Get current arguments
         email_arg = call.get_arg_by_parameter_name("email")
         role_arg = call.get_arg_by_parameter_name("role")
-        
+
         # Build new argument list with type conversions
         new_args = [
             f"email=EmailStr({email_arg.value})",
             f"role=UserRole({role_arg.value})",
             "tenant_id=get_current_tenant_id()"
         ]
-        
+
         # Replace old call with new version
         call.replace(f"create_user_v2({', '.join(new_args)})")
-    
+
     # Add deprecation notice to old version
     old_api.add_decorator('@deprecated("Use create_user_v2 instead")')
 
@@ -8048,10 +8048,10 @@ migrate_api_v1_to_v2(codebase)
    ```python
    # First update parameter names
    param.rename("new_name")
-   
+
    # Then update types
    param.type = "new_type"
-   
+
    # Finally update call sites
    for call in api.call_sites:
        # ... update calls
@@ -8061,7 +8061,7 @@ migrate_api_v1_to_v2(codebase)
    ```python
    # Add new parameter with default
    api.add_parameter("new_param: str = None")
-   
+
    # Later make it required
    api.get_parameter("new_param").remove_default()
    ```
@@ -8076,7 +8076,7 @@ migrate_api_v1_to_v2(codebase)
 
 <Note>
 Remember to test thoroughly after making bulk changes to APIs. While Codegen ensures syntactic correctness, you'll want to verify the semantic correctness of the changes.
-</Note> 
+</Note>
 
 ---
 title: "Organizing Your Codebase"
@@ -8640,16 +8640,16 @@ from collections import defaultdict
 # Create a graph of file dependencies
 def create_dependency_graph():
     G = nx.DiGraph()
-    
+
     for file in codebase.files:
         # Add node for this file
         G.add_node(file.filepath)
-        
+
         # Add edges for each import
         for imp in file.imports:
             if imp.from_file:  # Skip external imports
                 G.add_edge(file.filepath, imp.from_file.filepath)
-    
+
     return G
 
 # Create and analyze the graph
@@ -8678,18 +8678,18 @@ def break_circular_dependency(cycle):
     # Get the first two files in the cycle
     file1 = codebase.get_file(cycle[0])
     file2 = codebase.get_file(cycle[1])
-    
+
     # Create a shared module for common code
     shared_dir = "shared"
     if not codebase.has_directory(shared_dir):
         codebase.create_directory(shared_dir)
-    
+
     # Find symbols used by both files
     shared_symbols = []
     for symbol in file1.symbols:
         if any(usage.file == file2 for usage in symbol.usages):
             shared_symbols.append(symbol)
-    
+
     # Move shared symbols to a new file
     if shared_symbols:
         shared_file = codebase.create_file(f"{shared_dir}/shared_types.py")
@@ -8711,7 +8711,7 @@ def organize_file_imports(file):
     std_lib_imports = []
     third_party_imports = []
     local_imports = []
-    
+
     for imp in file.imports:
         if imp.is_standard_library:
             std_lib_imports.append(imp)
@@ -8719,26 +8719,26 @@ def organize_file_imports(file):
             third_party_imports.append(imp)
         else:
             local_imports.append(imp)
-    
+
     # Sort each group
     for group in [std_lib_imports, third_party_imports, local_imports]:
         group.sort(key=lambda x: x.module_name)
-    
+
     # Remove all existing imports
     for imp in file.imports:
         imp.remove()
-    
+
     # Add imports back in organized groups
     if std_lib_imports:
         for imp in std_lib_imports:
             file.add_import_from_import_string(imp.source)
         file.insert_after_imports("")  # Add newline
-        
+
     if third_party_imports:
         for imp in third_party_imports:
             file.add_import_from_import_string(imp.source)
         file.insert_after_imports("")  # Add newline
-        
+
     if local_imports:
         for imp in local_imports:
             file.add_import_from_import_string(imp.source)
@@ -8757,22 +8757,22 @@ from collections import defaultdict
 
 def analyze_module_coupling():
     coupling_scores = defaultdict(int)
-    
+
     for file in codebase.files:
         # Count unique files imported from
         imported_files = {imp.from_file for imp in file.imports if imp.from_file}
         coupling_scores[file.filepath] = len(imported_files)
-        
+
         # Count files that import this file
-        importing_files = {usage.file for symbol in file.symbols 
+        importing_files = {usage.file for symbol in file.symbols
                          for usage in symbol.usages if usage.file != file}
         coupling_scores[file.filepath] += len(importing_files)
-    
+
     # Sort by coupling score
-    sorted_files = sorted(coupling_scores.items(), 
-                         key=lambda x: x[1], 
+    sorted_files = sorted(coupling_scores.items(),
+                         key=lambda x: x[1],
                          reverse=True)
-    
+
     print("\n🔍 Module Coupling Analysis:")
     print("\nMost coupled files:")
     for filepath, score in sorted_files[:5]:
@@ -8790,9 +8790,9 @@ def extract_shared_code(file, min_usages=3):
     # Find symbols used by multiple files
     for symbol in file.symbols:
         # Get unique files using this symbol
-        using_files = {usage.file for usage in symbol.usages 
+        using_files = {usage.file for usage in symbol.usages
                       if usage.file != file}
-        
+
         if len(using_files) >= min_usages:
             # Create appropriate shared module
             module_name = determine_shared_module(symbol)
@@ -8800,7 +8800,7 @@ def extract_shared_code(file, min_usages=3):
                 shared_file = codebase.create_file(f"shared/{module_name}.py")
             else:
                 shared_file = codebase.get_file(f"shared/{module_name}.py")
-            
+
             # Move symbol to shared module
             symbol.move_to_file(shared_file, strategy="update_all_imports")
 
@@ -8854,7 +8854,7 @@ if feature_flag_class:
     # Initialize usage count for all attributes
     for attr in feature_flag_class.attributes:
         feature_flag_usage[attr.name] = 0
-    
+
     # Get all usages of the FeatureFlag class
     for usage in feature_flag_class.usages:
         usage_source = usage.usage_symbol.source if hasattr(usage, 'usage_symbol') else str(usage)
@@ -9599,7 +9599,7 @@ Let's break down how this works:
         if export.is_reexport() and export.is_default_export():
             print(f"  🔄 Converting default export '{export.name}'")
     ```
-    
+
     The code identifies default exports by checking:
     1. If it's a re-export (`is_reexport()`)
     2. If it's a default export (`is_default_export()`)
@@ -9707,7 +9707,7 @@ for file in codebase.files:
 
     print(f"✨ Fixed exports in {target_file.filepath}")
 
-``` 
+```
 
 ---
 title: "Creating Documentation"
@@ -9796,11 +9796,11 @@ for directory in codebase.directories:
     # Skip test, sql and alembic directories
     if any(x in directory.path.lower() for x in ['test', 'sql', 'alembic']):
         continue
-        
+
     # Get undecorated functions
     funcs = [f for f in directory.functions if not f.is_decorated]
     total = len(funcs)
-    
+
     # Only analyze dirs with >10 functions
     if total > 10:
         documented = sum(1 for f in funcs if f.docstring)
@@ -9815,12 +9815,12 @@ for directory in codebase.directories:
 if dir_stats:
     lowest_dir = min(dir_stats.items(), key=lambda x: x[1]['coverage'])
     path, stats = lowest_dir
-    
+
     print(f"📉 Lowest coverage directory: '{path}'")
     print(f"  • Total functions: {stats['total']}")
     print(f"  • Documented: {stats['documented']}")
     print(f"  • Coverage: {stats['coverage']:.1f}%")
-    
+
     # Print all directory stats for comparison
     print("\n📊 All directory coverage rates:")
     for path, stats in sorted(dir_stats.items(), key=lambda x: x[1]['coverage']):
@@ -10608,7 +10608,7 @@ iconType: "solid"
 </Frame>
 
 
-Import loops occur when two or more Python modules depend on each other, creating a circular dependency. While some import cycles can be harmless, others can lead to runtime errors and make code harder to maintain. 
+Import loops occur when two or more Python modules depend on each other, creating a circular dependency. While some import cycles can be harmless, others can lead to runtime errors and make code harder to maintain.
 
 In this tutorial, we'll explore how to identify and fix problematic import cycles using Codegen.
 
@@ -11505,7 +11505,7 @@ Match (s: Func )-[r: CALLS]-> (e:Func) RETURN s, e LIMIT 10
 
 ```cypher
 Match path = (:(Method|Func)) -[:CALLS*5..10]-> (:(Method|Func))
-Return path 
+Return path
 LIMIT 20
 ```
 

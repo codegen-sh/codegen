@@ -1,6 +1,3 @@
-
-from codegen.shared.logging.get_logger import get_logger
-import logging
 import os
 from collections.abc import Iterator
 from pathlib import Path
@@ -22,6 +19,7 @@ from codegen.sdk.core.utils.cache_utils import cached_generator
 from codegen.sdk.enums import NodeType
 from codegen.sdk.extensions.sort import sort_editables
 from codegen.shared.decorators.docs import apidoc, noapidoc
+from codegen.shared.logging.get_logger import get_logger
 
 logger = get_logger(__name__)
 

@@ -1,6 +1,3 @@
-
-from codegen.shared.logging.get_logger import get_logger
-import logging
 from importlib.metadata import version
 from typing import Any
 
@@ -8,6 +5,7 @@ from pydantic import BaseModel
 from pydantic.fields import Field
 
 from codegen.git.models.pull_request_context import PullRequestContext
+from codegen.shared.logging.get_logger import get_logger
 
 logger = get_logger(__name__)
 

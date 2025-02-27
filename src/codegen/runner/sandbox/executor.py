@@ -1,6 +1,3 @@
-
-from codegen.shared.logging.get_logger import get_logger
-import logging
 from collections.abc import Callable
 from datetime import UTC, datetime
 
@@ -18,6 +15,7 @@ from codegen.sdk.codebase.flagging.code_flag import CodeFlag
 from codegen.sdk.codebase.flagging.group import Group
 from codegen.sdk.codebase.flagging.groupers.utils import get_grouper_by_group_by
 from codegen.shared.exceptions.control_flow import StopCodemodException
+from codegen.shared.logging.get_logger import get_logger
 from codegen.shared.performance.stopwatch_utils import stopwatch
 from codegen.visualizations.viz_utils import get_graph_json
 

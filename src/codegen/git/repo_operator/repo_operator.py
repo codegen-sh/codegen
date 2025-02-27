@@ -1,9 +1,6 @@
-
-from codegen.shared.logging.get_logger import get_logger
 import codecs
 import fnmatch
 import glob
-import logging
 import os
 from collections.abc import Generator
 from datetime import UTC, datetime
@@ -30,6 +27,7 @@ from codegen.git.utils.clone_url import add_access_token_to_url, get_authenticat
 from codegen.git.utils.codeowner_utils import create_codeowners_parser_for_repo
 from codegen.git.utils.file_utils import create_files
 from codegen.git.utils.remote_progress import CustomRemoteProgress
+from codegen.shared.logging.get_logger import get_logger
 from codegen.shared.performance.stopwatch_utils import stopwatch
 from codegen.shared.performance.time_utils import humanize_duration
 

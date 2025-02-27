@@ -1,12 +1,10 @@
-
-from codegen.shared.logging.get_logger import get_logger
 import linecache
-import logging
 import sys
 import traceback
 from collections.abc import Callable
 
 from codegen.shared.exceptions.compilation import InvalidUserCodeException
+from codegen.shared.logging.get_logger import get_logger
 
 logger = get_logger(__name__)
 

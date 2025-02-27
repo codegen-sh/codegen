@@ -1,6 +1,3 @@
-
-from codegen.shared.logging.get_logger import get_logger
-import logging
 import traceback
 from http import HTTPStatus  # Add this import
 from typing import Callable, TypeVar
@@ -12,6 +9,7 @@ from starlette.responses import JSONResponse, Response
 
 from codegen.runner.sandbox.runner import SandboxRunner
 from codegen.shared.exceptions.compilation import UserCodeException
+from codegen.shared.logging.get_logger import get_logger
 from codegen.shared.performance.stopwatch_utils import stopwatch
 
 logger = get_logger(__name__)

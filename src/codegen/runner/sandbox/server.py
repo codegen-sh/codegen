@@ -1,6 +1,3 @@
-
-from codegen.shared.logging.get_logger import get_logger
-import logging
 import os
 from contextlib import asynccontextmanager
 
@@ -21,6 +18,7 @@ from codegen.runner.models.apis import (
 from codegen.runner.sandbox.middlewares import CodemodRunMiddleware
 from codegen.runner.sandbox.runner import SandboxRunner
 from codegen.shared.enums.programming_language import ProgrammingLanguage
+from codegen.shared.logging.get_logger import get_logger
 
 logger = get_logger(__name__)
 

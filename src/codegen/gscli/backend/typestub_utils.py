@@ -1,13 +1,12 @@
-
-from codegen.shared.logging.get_logger import get_logger
 import ast
-import logging
 import os
 import re
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 
 import astor
+
+from codegen.shared.logging.get_logger import get_logger
 
 logger = get_logger(__name__)
 

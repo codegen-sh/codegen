@@ -1,12 +1,10 @@
-
-from codegen.shared.logging.get_logger import get_logger
-import logging
 import subprocess
 import time
 from functools import wraps
 
 import sentry_sdk
 
+from codegen.shared.logging.get_logger import get_logger
 from codegen.shared.performance.time_utils import humanize_duration
 
 logger = get_logger(__name__)

@@ -1,9 +1,7 @@
-
-from codegen.shared.logging.get_logger import get_logger
-import logging
 import re
 
 from codegen.shared.compilation.function_imports import get_generated_imports
+from codegen.shared.logging.get_logger import get_logger
 
 logger = get_logger(__name__)
 

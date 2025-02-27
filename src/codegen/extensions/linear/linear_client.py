@@ -1,6 +1,3 @@
-
-from codegen.shared.logging.get_logger import get_logger
-import logging
 import os
 from typing import Optional
 
@@ -9,6 +6,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from codegen.extensions.linear.types import LinearComment, LinearIssue, LinearTeam, LinearUser
+from codegen.shared.logging.get_logger import get_logger
 
 logger = get_logger(__name__)
 

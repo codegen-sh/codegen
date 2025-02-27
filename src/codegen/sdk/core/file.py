@@ -1,6 +1,3 @@
-
-from codegen.shared.logging.get_logger import get_logger
-import logging
 import os
 import re
 import resource
@@ -38,6 +35,7 @@ from codegen.sdk.tree_sitter_parser import get_parser_by_filepath_or_extension, 
 from codegen.sdk.typescript.function import TSFunction
 from codegen.sdk.utils import is_minified_js
 from codegen.shared.decorators.docs import apidoc, noapidoc
+from codegen.shared.logging.get_logger import get_logger
 from codegen.visualizations.enums import VizNode
 
 if TYPE_CHECKING:
