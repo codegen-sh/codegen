@@ -1,6 +1,6 @@
 import logging
-from contextlib import asynccontextmanager
 import os
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
@@ -83,6 +83,6 @@ async def run(request: RunFunctionRequest) -> CodemodRunResult:
         # if the only changed file is the function that was requested, do not commit
         if len(changed_files) == 1 and os.path.splitext(os.path.basename(changed_files[0])) == request.function_name:
             logger.info(f"Skipping commit because only changes to {request.function_name} were made")
-        elif (commit_sha := runner.codebase.git_commit(f"[Codegen] {request.function_name}")):
+        elif commit_sha := runner.codebase.git_commit(f"[Codegen] {request.function_name}"):
             logger.info(f"Committed changes to {commit_sha.hexsha}")
     return diff_response.result
