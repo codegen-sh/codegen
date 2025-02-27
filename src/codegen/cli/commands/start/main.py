@@ -33,16 +33,15 @@ def start_command(port: int | None, detached: bool = False, skip_build: bool = F
             container.remove()
         else:
             return _handle_existing_container(repo_config, container, force)
-
-    codegen_version = version("codegen")
-    rich.print(f"[bold green]Codegen version:[/bold green] {codegen_version}")
-    codegen_root = Path(__file__).parent.parent.parent.parent.parent.parent
+    
     if port is None:
         port = get_free_port()
 
     try:
         if not skip_build:
-            _build_docker_image(codegen_root)
+            codegen_root = Path(__file__).parent.parent.parent.parent.parent.parent
+            codegen_version = version("codegen")
+            _build_docker_image(codegen_root=codegen_root, codegen_version=codegen_version)
         _run_docker_container(repo_config, port, detached)
         rich.print(Panel(f"[green]Server started successfully![/green]\nAccess the server at: [bold]http://{_default_host}:{port}[/bold]", box=ROUNDED, title="Codegen Server"))
         # TODO: memory snapshot here
@@ -51,7 +50,7 @@ def start_command(port: int | None, detached: bool = False, skip_build: bool = F
         raise click.Abort()
 
 
-def _handle_existing_container(repo_config: RepoConfig, container: DockerContainer, force: bool) -> None:
+def _handle_existing_container(repo_config: RepoConfig, container: DockerContainer) -> None:
     if container.is_running():
         rich.print(
             Panel(
@@ -70,32 +69,46 @@ def _handle_existing_container(repo_config: RepoConfig, container: DockerContain
     click.Abort()
 
 
-def _build_docker_image(codegen_root: Path) -> None:
-    platform = _get_platform()
-    dockerfile_path = Path(__file__).parent / "Dockerfile-runner"
+def _build_docker_image(codegen_root: Path, codegen_version: str) -> None:
+    build_type = _get_build_type(codegen_version)
     build_cmd = [
         "docker",
         "buildx",
         "build",
         "--platform",
-        platform,
+        _get_platform(),
         "-f",
-        str(dockerfile_path),
+        str(Path(__file__).parent / "Dockerfile"),
         "-t",
         "codegen-runner",
+        "--build-arg",
+        f"CODEGEN_VERSION={codegen_version}",
+        "--build-arg",
+        f"BUILD_TYPE={build_type}",
         "--load",
-        str(codegen_root),
     ]
+
+    # Only add the context path if we're doing a local build
+    if build_type == "dev":
+        build_cmd.append(str(codegen_root))
+    else:
+        build_cmd.append(".")  # Minimal context when installing from PyPI
+
     rich.print(
         Panel(
             f"{str.join(' ', build_cmd)}",
             box=ROUNDED,
-            title="Running Build Command",
+            title=f"Running Build Command ({build_type})",
             style="blue",
             padding=(1, 1),
         )
     )
     subprocess.run(build_cmd, check=True)
+
+
+def _get_build_type(version: str) -> str:
+    """Get the build type based on the version string."""
+    return "dev" if "dev" in version or "+" in version else "release"
 
 
 def _get_platform() -> str:
