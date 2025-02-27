@@ -1,12 +1,12 @@
 import io
-import logging
 
 from unidiff import LINE_TYPE_CONTEXT, Hunk, PatchedFile, PatchSet
 from unidiff.patch import Line
 
 from codegen.sdk.core.codebase import Codebase
+from codegen.shared.logging.get_logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def append_flag(file: PatchedFile, append_at: int, line_no: int, codebase: Codebase) -> None:

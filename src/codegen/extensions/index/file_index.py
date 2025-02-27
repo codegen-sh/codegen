@@ -1,6 +1,5 @@
 """File-level semantic code search index."""
 
-import logging
 import pickle
 from pathlib import Path
 
@@ -12,8 +11,9 @@ from tqdm import tqdm
 from codegen.extensions.index.code_index import CodeIndex
 from codegen.sdk.core.codebase import Codebase
 from codegen.sdk.core.file import File
+from codegen.shared.logging.get_logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class FileIndex(CodeIndex):

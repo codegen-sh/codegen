@@ -1,12 +1,12 @@
-import logging
 from collections import Counter
 from pathlib import Path
 from typing import Literal
 
 from codegen.git.utils.file_utils import split_git_path
 from codegen.shared.enums.programming_language import ProgrammingLanguage
+from codegen.shared.logging.get_logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Minimum ratio of files that must match the dominant language
 MIN_LANGUAGE_RATIO = 0.1

@@ -1,9 +1,9 @@
-import logging
 import re
 
 from codegen.shared.compilation.function_imports import get_generated_imports
+from codegen.shared.logging.get_logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def create_function_str_from_codeblock(codeblock: str, func_name: str) -> str:

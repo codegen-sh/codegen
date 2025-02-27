@@ -1,16 +1,16 @@
-import logging
 from typing import Any, Optional
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 
 from codegen.sdk.core.codebase import Codebase
+from codegen.shared.logging.get_logger import get_logger
 
 from .github import GitHub
 from .linear import Linear
 from .slack import Slack
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class CodegenApp:

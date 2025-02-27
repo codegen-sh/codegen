@@ -1,12 +1,11 @@
-import logging
-
 import modal  # deptry: ignore
 
 from codegen.extensions.events.github import GitHub
 from codegen.extensions.events.linear import Linear
 from codegen.extensions.events.slack import Slack
+from codegen.shared.logging.get_logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class CodegenApp(modal.App):

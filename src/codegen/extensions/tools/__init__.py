@@ -16,6 +16,7 @@ from .linear import (
 )
 from .list_directory import list_directory
 from .move_symbol import move_symbol
+from .reflection import perform_reflection
 from .rename_file import rename_file
 from .replacement_edit import replacement_edit
 from .reveal_symbol import reveal_symbol
@@ -43,6 +44,8 @@ __all__ = [
     "list_directory",
     # Symbol operations
     "move_symbol",
+    # Reflection
+    "perform_reflection",
     "rename_file",
     "replacement_edit",
     "reveal_symbol",

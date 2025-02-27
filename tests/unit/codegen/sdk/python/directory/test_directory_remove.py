@@ -23,7 +23,7 @@ def c():
         assert codebase.get_file("dir/subdir/file3.py") is not None
         assert codebase.get_directory("dir") is not None
         assert codebase.get_directory("dir/subdir") is not None
-        assert {f.filepath for f in codebase.get_directory("dir").files} == {"dir/file1.py", "dir/file2.py", "dir/subdir/file3.py"}
+        assert {f.filepath for f in codebase.get_directory("dir").files(recursive=True)} == {"dir/file1.py", "dir/file2.py", "dir/subdir/file3.py"}
         assert {d.dirpath for d in codebase.directories} == {"", "dir", "dir/subdir"}
         codebase.get_directory("dir").remove()
         codebase.commit()

@@ -1,4 +1,3 @@
-import logging
 from typing import Any, Optional
 
 from lsprotocol import types
@@ -16,8 +15,9 @@ from codegen.sdk.core.codebase import Codebase
 from codegen.sdk.core.file import File, SourceFile
 from codegen.sdk.core.interfaces.editable import Editable
 from codegen.sdk.core.symbol import Symbol
+from codegen.shared.logging.get_logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class CodegenLanguageServer(LanguageServer):
