@@ -848,28 +848,16 @@ class RelaceEditTool(BaseTool):
 
 class ReflectionInput(BaseModel):
     """Input for agent reflection."""
-    
-    context_summary: str = Field(
-        ..., 
-        description="Summary of the current context and problem being solved"
-    )
-    findings_so_far: str = Field(
-        ..., 
-        description="Key information and insights gathered so far"
-    )
-    current_challenges: str = Field(
-        default="",
-        description="Current obstacles or questions that need to be addressed"
-    )
-    reflection_focus: Optional[str] = Field(
-        default=None,
-        description="Optional specific aspect to focus reflection on (e.g., 'architecture', 'performance', 'next steps')"
-    )
+
+    context_summary: str = Field(..., description="Summary of the current context and problem being solved")
+    findings_so_far: str = Field(..., description="Key information and insights gathered so far")
+    current_challenges: str = Field(default="", description="Current obstacles or questions that need to be addressed")
+    reflection_focus: Optional[str] = Field(default=None, description="Optional specific aspect to focus reflection on (e.g., 'architecture', 'performance', 'next steps')")
 
 
 class ReflectionTool(BaseTool):
     """Tool for agent self-reflection and planning."""
-    
+
     name: ClassVar[str] = "reflect"
     description: ClassVar[str] = """
     Reflect on current understanding and plan next steps.
@@ -878,10 +866,10 @@ class ReflectionTool(BaseTool):
     """
     args_schema: ClassVar[type[BaseModel]] = ReflectionInput
     codebase: Codebase = Field(exclude=True)
-    
+
     def __init__(self, codebase: Codebase) -> None:
         super().__init__(codebase=codebase)
-    
+
     def _run(
         self,
         context_summary: str,
@@ -889,12 +877,6 @@ class ReflectionTool(BaseTool):
         current_challenges: str = "",
         reflection_focus: Optional[str] = None,
     ) -> str:
-        result = perform_reflection(
-            context_summary=context_summary,
-            findings_so_far=findings_so_far,
-            current_challenges=current_challenges,
-            reflection_focus=reflection_focus,
-            codebase=self.codebase
-        )
-        
+        result = perform_reflection(context_summary=context_summary, findings_so_far=findings_so_far, current_challenges=current_challenges, reflection_focus=reflection_focus, codebase=self.codebase)
+
         return result.render()

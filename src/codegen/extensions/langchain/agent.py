@@ -15,6 +15,7 @@ from .tools import (
     DeleteFileTool,
     ListDirectoryTool,
     MoveSymbolTool,
+    ReflectionTool,
     RelaceEditTool,
     RenameFileTool,
     ReplacementEditTool,
@@ -22,7 +23,6 @@ from .tools import (
     SearchTool,
     # SemanticEditTool,
     ViewFileTool,
-    ReflectionTool,
 )
 
 if TYPE_CHECKING:

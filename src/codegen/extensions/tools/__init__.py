@@ -44,6 +44,8 @@ __all__ = [
     "list_directory",
     # Symbol operations
     "move_symbol",
+    # Reflection
+    "perform_reflection",
     "rename_file",
     "replacement_edit",
     "reveal_symbol",
@@ -55,6 +57,4 @@ __all__ = [
     "semantic_search",
     "view_file",
     "view_pr",
-    # Reflection
-    "perform_reflection",
 ]
