@@ -2,6 +2,8 @@ from collections.abc import Callable, Sequence
 from functools import wraps
 from typing import Literal, ParamSpec, TypeVar, get_type_hints
 
+from codegen.shared.enums.programming_language import ProgrammingLanguage
+
 P = ParamSpec("P")
 T = TypeVar("T")
 WebhookType = Literal["pr", "push", "issue", "release"]
@@ -16,12 +18,14 @@ class DecoratedFunction:
         name: str,
         *,
         subdirectories: list[str] | None = None,
+        language: ProgrammingLanguage | None = None,
         webhook_config: dict | None = None,
         lint_mode: bool = False,
         lint_user_whitelist: Sequence[str] | None = None,
     ):
         self.name = name
         self.subdirectories = subdirectories
+        self.language = language
         self.func: Callable | None = None
         self.params_type = None
         self.webhook_config = webhook_config
@@ -44,7 +48,7 @@ class DecoratedFunction:
         return wrapper
 
 
-def function(name: str, subdirectories: list[str] | None = None) -> DecoratedFunction:
+def function(name: str, subdirectories: list[str] | None = None, language: ProgrammingLanguage | None = None) -> DecoratedFunction:
     """Decorator for codegen functions.
 
     Args:
@@ -56,7 +60,7 @@ def function(name: str, subdirectories: list[str] | None = None) -> DecoratedFun
             pass
 
     """
-    return DecoratedFunction(name=name, subdirectories=subdirectories)
+    return DecoratedFunction(name=name, subdirectories=subdirectories, language=language)
 
 
 def webhook(
