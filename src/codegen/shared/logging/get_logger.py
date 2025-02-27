@@ -3,7 +3,10 @@ import logging
 import colorlog
 
 
-def get_logger(name: str) -> logging.Logger:
+def get_logger(name: str, level: int = logging.INFO) -> logging.Logger:
+    # Force configure the root logger with a NullHandler to prevent duplicate logs
+    logging.basicConfig(handlers=[logging.NullHandler()], force=True)
+
     formatter = colorlog.ColoredFormatter(
         "%(white)s%(asctime)s - %(name)s - %(log_color)s%(levelname)s%(reset)s%(white)s - %(message_log_color)s%(message)s",
         log_colors={
@@ -31,4 +34,8 @@ def get_logger(name: str) -> logging.Logger:
     handler = colorlog.StreamHandler()
     handler.setFormatter(formatter)
     logger.addHandler(handler)
+    # Ensure the logger propagates to the root logger
+    logger.propagate = False
+    # Set the level on the logger itself
+    logger.setLevel(level)
     return logger
