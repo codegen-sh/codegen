@@ -78,6 +78,6 @@ async def run(request: RunFunctionRequest) -> CodemodRunResult:
     diff_req = GetDiffRequest(codemod=Codemod(user_code=request.codemod_source))
     diff_response = await runner.get_diff(request=diff_req)
     if request.commit:
-        commit_sha = runner.codebase.git_commit(f"[Codegen] {request.function_name}")
-        logger.info(f"Committed changes to {commit_sha.hexsha}")
+        if commit_sha := runner.codebase.git_commit(f"[Codegen] {request.function_name}"):
+            logger.info(f"Committed changes to {commit_sha.hexsha}")
     return diff_response.result
