@@ -32,7 +32,7 @@ def start_command(port: int | None, detached: bool = False, skip_build: bool = F
             rich.print(f"[yellow]Removing existing runner {repo_config.name} to force restart[/yellow]")
             container.remove()
         else:
-            return _handle_existing_container(repo_config, container, force)
+            return _handle_existing_container(repo_config, container)
 
     if port is None:
         port = get_free_port()
