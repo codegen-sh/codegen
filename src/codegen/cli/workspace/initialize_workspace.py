@@ -117,6 +117,9 @@ def modify_gitignore(codegen_folder: Path):
         "# Keep codemods",
         "!codemods/",
         "!codemods/**",
+        "",
+        "# Explicitly ignore pycache in excluded codemod directory",
+        "codemods/**/__pycache__/",
     ]
 
     # Write or update .gitignore
