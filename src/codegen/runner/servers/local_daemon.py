@@ -81,7 +81,7 @@ async def run(request: RunFunctionRequest) -> CodemodRunResult:
     if request.commit:
         changed_files = runner.op.get_modified_files(runner.commit)
         # if the only changed file is the function that was requested, do not commit
-        if len(changed_files) == 1 and os.path.splitext(os.path.basename(changed_files[0])) == request.function_name:
+        if len(changed_files) == 1 and os.path.basename(changed_files[0]) == request.function_name.replace("-", "_"):
             logger.info(f"Skipping commit because only changes to {request.function_name} were made")
         elif commit_sha := runner.codebase.git_commit(f"[Codegen] {request.function_name}"):
             logger.info(f"Committed changes to {commit_sha.hexsha}")
