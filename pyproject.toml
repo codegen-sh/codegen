@@ -240,6 +240,7 @@ DEP002 = [
   "pip",
   "python-levenshtein",
   "pytest-snapshot",
+  "langgraph-prebuilt",
 ]
 DEP003 = "sqlalchemy"
 DEP004 = "pytest"
