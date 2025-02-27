@@ -86,6 +86,12 @@ Before commiting to do any modifications, double check your work with the Reflec
 you can also use that tool to check your work after you think you are done.
 if you ever get stuck using other tools, use the Reflection tool to re asses your situation.
 after every file edit, use the Reflection tool to check your work and sanity check yourself.
+after editing a file you need to double check your work and use the ViewFiles tool to make sure you didn't break anything and that your edits are indeed correct.
+
+You should follow the advices of the Reflection tool when ever they seem reasonable.
+
+Also DO NOT ADD OR EDIT ANY TESTS!
+
 """
     message += problem_statement
 
