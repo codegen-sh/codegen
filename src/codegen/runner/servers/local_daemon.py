@@ -79,10 +79,21 @@ async def run(request: RunFunctionRequest) -> CodemodRunResult:
     diff_req = GetDiffRequest(codemod=Codemod(user_code=request.codemod_source))
     diff_response = await runner.get_diff(request=diff_req)
     if request.commit:
-        changed_files = runner.op.get_modified_files(runner.commit)
-        # if the only changed file is the function that was requested, do not commit
-        if len(changed_files) == 1 and os.path.basename(changed_files[0]) == request.function_name.replace("-", "_"):
+        if _should_skip_commit(request.function_name):
             logger.info(f"Skipping commit because only changes to {request.function_name} were made")
         elif commit_sha := runner.codebase.git_commit(f"[Codegen] {request.function_name}"):
             logger.info(f"Committed changes to {commit_sha.hexsha}")
     return diff_response.result
+
+
+def _should_skip_commit(function_name: str) -> bool:
+    changed_files = runner.op.get_modified_files(runner.commit)
+    if len(changed_files) != 1:
+        return False
+
+    file_path = changed_files[0]
+    if not file_path.startswith(".codegen/codemods/"):
+        return False
+
+    changed_file_name = os.path.splitext(os.path.basename(file_path))[0]
+    return changed_file_name == function_name.replace("-", "_")
