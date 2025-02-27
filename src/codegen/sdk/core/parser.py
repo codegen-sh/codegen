@@ -136,7 +136,7 @@ class Parser(Generic[Expression]):
             # =====[ Type Alias Declarations ]=====
             elif child.type == "type_alias_declaration":
                 if import_node := find_import_node(child):
-                    statements.append(TSImportStatement(import_node, file_node_id, ctx, parent, len(statements)))
+                    statements.append(TSImportStatement(child, file_node_id, ctx, parent, len(statements), source_node=import_node))
                 else:
                     statements.append(SymbolStatement(child, file_node_id, ctx, parent, len(statements)))
 
@@ -169,7 +169,7 @@ class Parser(Generic[Expression]):
                 if function_node := find_first_function_descendant(child):
                     statements.append(SymbolStatement(child, file_node_id, ctx, parent, len(statements), function_node))
                 elif import_node := find_import_node(child):
-                    statements.append(TSImportStatement(import_node, file_node_id, ctx, parent, len(statements)))
+                    statements.append(TSImportStatement(child, file_node_id, ctx, parent, len(statements), source_node=import_node))
                 else:
                     statements.append(
                         TSAssignmentStatement.from_assignment(
@@ -180,7 +180,7 @@ class Parser(Generic[Expression]):
                 statements.append(TSAttribute(child, file_node_id, ctx, parent, pos=len(statements)))
             elif child.type == "expression_statement":
                 if import_node := find_import_node(child):
-                    statements.append(TSImportStatement(import_node, file_node_id, ctx, parent, pos=len(statements)))
+                    statements.append(TSImportStatement(child, file_node_id, ctx, parent, pos=len(statements), source_node=import_node))
                     continue
 
                 for var in child.named_children:
