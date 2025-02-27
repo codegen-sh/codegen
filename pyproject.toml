@@ -64,6 +64,7 @@ dependencies = [
   "langchain_core",
   "langchain_openai",
   "langgraph",
+  "langgraph-prebuilt",
   "numpy>=2.2.2",
   "mcp[cli]",
   "neo4j",
