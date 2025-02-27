@@ -1,3 +1,5 @@
+import pytest
+
 from codegen.git.utils.language import determine_project_language
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
 from codegen.shared.enums.programming_language import ProgrammingLanguage
@@ -43,14 +45,17 @@ def test_determine_language_package_json(tmpdir) -> None:
         assert determine_project_language(tmpdir, strategy="most_common") == ProgrammingLanguage.OTHER
 
 
-def test_determine_language_mixed(tmpdir) -> None:
+@pytest.mark.parametrize(
+    "strategy, expected_language",
+    [
+        ("package_json", ProgrammingLanguage.PYTHON),  # Check for package.json -> False, therefore return PYTHON
+        ("git_most_common", ProgrammingLanguage.PYTHON),  # Check for git_most_common -> PYTHON
+        ("most_common", ProgrammingLanguage.PYTHON),  # Check for most_common -> PYTHON
+    ],
+)
+def test_determine_language_mixed(tmpdir, strategy, expected_language) -> None:
     with get_codebase_session(tmpdir=tmpdir, files={"file1.py": "", "file2.ts": "", "file3.txt": ""}, programming_language=ProgrammingLanguage.PYTHON) as codebase:
-        # Check for package.json -> False, therefore return PYTHON
-        assert determine_project_language(tmpdir, strategy="package_json") == ProgrammingLanguage.PYTHON
-        # Check for git_most_common -> PYTHON
-        assert determine_project_language(tmpdir, strategy="git_most_common") == ProgrammingLanguage.PYTHON
-        # Check for most_common -> PYTHON
-        assert determine_project_language(tmpdir, strategy="most_common") == ProgrammingLanguage.PYTHON
+        assert determine_project_language(tmpdir, strategy=strategy) == expected_language
 
 
 def test_determine_language_threshold(tmpdir) -> None:
