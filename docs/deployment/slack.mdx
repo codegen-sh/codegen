@@ -1,0 +1,208 @@
+---
+title: "Slack Integration"
+sidebarTitle: "Slack"
+icon: "slack"
+iconType: "brands"
+---
+
+The Slack integration enables your app to respond to messages and events in Slack workspaces.
+
+# Available Events
+
+## Message Events
+
+```python
+# Bot mentioned in channel
+@app.slack.event("app_mention")
+def handle_mention(client, event):
+    """Respond when the bot is mentioned"""
+    message = event["text"]
+    channel = event["channel"]
+    thread_ts = event["ts"]  # For replying in thread
+    
+    client.chat_postMessage(
+        channel=channel,
+        thread_ts=thread_ts,
+        text=f"Processing request: {message}"
+    )
+
+# Direct message to bot
+@app.slack.event("message")
+def handle_dm(client, event):
+    """Handle direct messages"""
+    if "client_msg_id" not in event:
+        return  # Skip bot messages
+        
+    text = event["text"]
+    channel = event["channel"]
+    # Process message...
+```
+
+# Message Structure
+
+Slack messages contain rich text elements that can be parsed:
+
+```python
+from codegen.extensions.events.slack import RichTextElement, Block
+
+# Example message structure
+event = {
+    "user": str,        # User ID who sent message
+    "text": str,        # Raw message text
+    "ts": str,          # Timestamp (use as thread_ts)
+    "channel": str,     # Channel ID
+    "blocks": [         # Rich text blocks
+        {
+            "type": "rich_text",
+            "block_id": str,
+            "elements": [
+                {
+                    "type": "rich_text_section",
+                    "elements": [
+                        {
+                            "type": str,  # "text" or "user"
+                            "text": str,  # If type is "text"
+                            "user_id": str # If type is "user"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
+```
+
+# Client Methods
+
+The Slack client provides methods for interacting with channels:
+
+```python
+# Post message
+client.chat_postMessage(
+    channel="channel-id",
+    text="Hello world!",
+    thread_ts="1234567890.123456"  # Optional: reply in thread
+)
+
+# Add reaction
+client.reactions_add(
+    name="thumbsup",
+    channel="channel-id",
+    timestamp="1234567890.123456"
+)
+
+# Upload file
+client.files_upload(
+    channels="channel-id",
+    file="path/to/file.txt",
+    initial_comment="Here's the file"
+)
+```
+
+# Authentication
+
+Set up your Slack app credentials in your environment:
+
+```bash
+SLACK_BOT_TOKEN="xoxb-..."
+SLACK_SIGNING_SECRET="..."
+```
+
+# Example: Code Review Assistant
+
+Here's an example of a Slack bot that helps with code reviews:
+
+```python
+from codegen.extensions.events.app import CodegenApp
+from codegen import CodeAgent, Codebase
+
+app = CodegenApp(name="code-review-bot")
+
+@app.slack.event("app_mention")
+def handle_code_review(client, event):
+    try:
+        # Parse the request
+        text = event["text"]
+        if "review PR" not in text.lower():
+            return
+            
+        # Extract PR URL using regex
+        import re
+        pr_url = re.search(r'https://github.com/[\w-]+/[\w-]+/pull/\d+', text)
+        if not pr_url:
+            client.chat_postMessage(
+                channel=event["channel"],
+                thread_ts=event["ts"],
+                text="Please provide a valid PR URL"
+            )
+            return
+            
+        # Get repo and PR number
+        pr_url = pr_url.group(0)
+        repo = re.search(r'github.com/([\w-]+/[\w-]+)/', pr_url).group(1)
+        pr_num = int(re.search(r'/pull/(\d+)', pr_url).group(1))
+        
+        # Review the PR
+        codebase = Codebase.from_repo(repo)
+        agent = CodeAgent(codebase)
+        
+        client.chat_postMessage(
+            channel=event["channel"],
+            thread_ts=event["ts"],
+            text="🔍 Analyzing PR..."
+        )
+        
+        review = agent.run(f"Review PR #{pr_num}")
+        
+        # Post review
+        client.chat_postMessage(
+            channel=event["channel"],
+            thread_ts=event["ts"],
+            text=f"## Code Review\n\n{review}"
+        )
+        
+    except Exception as e:
+        client.chat_postMessage(
+            channel=event["channel"],
+            thread_ts=event["ts"],
+            text=f"❌ Error: {str(e)}"
+        )
+```
+
+This bot:
+1. Listens for mentions containing "review PR"
+2. Extracts the PR URL
+3. Uses CodeAgent to analyze the PR
+4. Posts the review in the thread
+
+# Best Practices
+
+1. **Threading**: Use threads to keep conversations organized
+2. **Error Handling**: Always catch and report errors
+3. **Message Parsing**: Handle different message formats
+4. **Rate Limiting**: Respect Slack API limits
+5. **User Experience**: Provide status updates for long operations
+
+# Message Formatting
+
+Slack supports various text formatting options:
+
+```python
+# Code blocks
+client.chat_postMessage(
+    channel="channel-id",
+    text="```python\ndef hello(): pass\n```"
+)
+
+# Rich formatting
+client.chat_postMessage(
+    channel="channel-id",
+    text="*bold* _italic_ ~strike~ `code`"
+)
+
+# Links
+client.chat_postMessage(
+    channel="channel-id",
+    text="<https://example.com|Click here>"
+)
+``` 

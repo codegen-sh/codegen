@@ -79,6 +79,16 @@
 			]
 		},
 		{
+			"group": "Integrations",
+			"pages": [
+				"deployment/overview",
+				"deployment/codegen-app",
+				"deployment/github",
+				"deployment/linear",
+				"deployment/slack"
+			]
+		},
+		{
 			"group": "Tutorials",
 			"pages": [
 				"tutorials/at-a-glance",

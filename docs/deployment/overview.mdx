@@ -1,0 +1,120 @@
+---
+title: "Deployment Overview"
+sidebarTitle: "Overview"
+icon: "cloud"
+iconType: "solid"
+---
+
+Codegen enables you to build and deploy code-aware applications that integrate with your development workflow. Using the `CodegenApp` class, you can create services that respond to events from GitHub, Linear, and Slack - analyzing and manipulating code in response to real-world development activities.
+
+# Getting Started
+
+## Setting Up the App
+
+First, create a `CodegenApp` instance:
+
+```python
+from codegen.extensions.events.app import CodegenApp
+
+app = CodegenApp(name="pr-review-bot")
+```
+
+## Basic Event Handler
+
+Here's a simple example of a GitHub PR review bot:
+
+```python
+@app.github.event("pull_request:opened")
+def handle_pr_opened(event: dict, codebase):
+    """Handle new pull request events"""
+    pr_title = event["pull_request"]["title"]
+    
+    # Create an agent to analyze the PR
+    agent = CodeAgent(codebase)
+    review = agent.run(f"Review PR: {pr_title}")
+    
+    # Post results to Slack
+    app.slack.client.chat_postMessage(
+        channel="your-channel-id",
+        text=f"PR Review: {review}"
+    )
+```
+
+# Environment Setup
+
+Before deploying, set up your environment variables:
+
+```bash
+# Required for deployment
+MODAL_API_KEY="..."
+
+# LLM Access
+ANTHROPIC_API_KEY="..."
+
+# Platform Access (as needed)
+CODEGEN_SECRETS__GITHUB_TOKEN="..."
+LINEAR_ACCESS_TOKEN="..."
+SLACK_BOT_TOKEN="..."
+```
+
+# Available Platforms
+
+Codegen supports event handling for:
+
+- **GitHub**: PR events, issue comments, code pushes
+- **Linear**: Issue creation, updates, comments
+- **Slack**: Message events, app mentions, commands
+
+See the platform-specific guides for detailed setup:
+- [GitHub Integration](./github)
+- [Linear Integration](./linear)
+- [Slack Integration](./slack)
+
+# Deployment with Modal
+
+Codegen uses [Modal](https://modal.com) for deployment. Modal provides:
+- Serverless execution
+- Automatic scaling
+- Environment management
+- Webhook endpoints
+
+# Best Practices
+
+## Error Handling
+
+Always wrap your event handler logic in try/except blocks:
+
+```python
+@app.github.event("pull_request:opened")
+def handle_pr(event: dict, codebase):
+    try:
+        # Your handler logic
+        agent = CodeAgent(codebase)
+        result = agent.run("...")
+        return {"status": "success", "result": result}
+    except Exception as e:
+        logger.error(f"Error handling PR: {e}")
+        return {"status": "error", "message": str(e)}
+```
+
+## Logging
+
+Use the built-in logger for debugging and monitoring:
+
+```python
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+@app.github.event("push")
+def handle_push(event: dict):
+    logger.info(f"Received push event: {event['ref']}")
+    # Handler logic...
+```
+
+# Next Steps
+
+- Set up [GitHub Integration](./github) for code review automation
+- Configure [Linear Integration](./linear) for issue management
+- Enable [Slack Integration](./slack) for chat interactions

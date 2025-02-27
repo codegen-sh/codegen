@@ -1,0 +1,198 @@
+---
+title: "GitHub Integration"
+sidebarTitle: "GitHub"
+icon: "github"
+iconType: "brands"
+---
+
+The GitHub integration allows your app to respond to repository events through the GitHub Apps webhook system.
+
+# Available Events
+
+## Pull Request Events
+
+```python
+# New PR opened
+@app.github.event("pull_request:opened")
+def handle_pr_opened(event: dict):
+    pr = event["pull_request"]
+    author = event["sender"]["login"]
+    title = pr["title"]
+    # Handle new PR...
+
+# PR updated with new commits
+@app.github.event("pull_request:synchronize")
+def handle_pr_sync(event: dict):
+    pr = event["pull_request"]
+    commits = pr["commits"]
+    # Handle PR update...
+
+# PR closed/merged
+@app.github.event("pull_request:closed")
+def handle_pr_closed(event: dict):
+    pr = event["pull_request"]
+    was_merged = pr["merged"]
+    # Handle PR closure...
+```
+
+## Issue Events
+
+```python
+# New issue created
+@app.github.event("issues:opened")
+def handle_issue(event: dict):
+    issue = event["issue"]
+    title = issue["title"]
+    body = issue["body"]
+    # Handle new issue...
+
+# Comment on issue/PR
+@app.github.event("issue_comment:created")
+def handle_comment(event: dict):
+    comment = event["comment"]
+    issue = event["issue"]
+    author = comment["user"]["login"]
+    # Handle comment...
+```
+
+## Push Events
+
+```python
+@app.github.event("push")
+def handle_push(event: dict):
+    ref = event["ref"]  # e.g. "refs/heads/main"
+    commits = event["commits"]
+    repository = event["repository"]
+    # Handle push...
+```
+
+## Repository Events
+
+```python
+# Repository created
+@app.github.event("repository:created")
+def handle_repo_created(event: dict):
+    repo = event["repository"]
+    name = repo["full_name"]
+    # Handle new repo...
+
+# Branch or tag created
+@app.github.event("create")
+def handle_create(event: dict):
+    ref_type = event["ref_type"]  # "branch" or "tag"
+    ref = event["ref"]  # Name of branch/tag
+    # Handle creation...
+```
+
+# Event Payloads
+
+GitHub events provide rich payloads with detailed information. Common payload structures include:
+
+## Repository Object
+```python
+repository = event["repository"]
+{
+    "id": int,
+    "node_id": str,
+    "name": str,
+    "full_name": str,
+    "private": bool,
+    # ... additional fields
+}
+```
+
+## User Object
+```python
+user = event["sender"]
+{
+    "login": str,
+    "id": int,
+    "node_id": str,
+    "avatar_url": str,
+    "type": str,
+    "site_admin": bool
+}
+```
+
+## Pull Request Object
+```python
+pr = event["pull_request"]
+{
+    "id": int,
+    "number": int,
+    "state": str,
+    "title": str,
+    "body": str,
+    "user": dict,  # User object
+    "commits": int,
+    "additions": int,
+    "deletions": int,
+    "changed_files": int,
+    "merged": bool,
+    # ... additional fields
+}
+```
+
+# Authentication
+
+GitHub events are authenticated using webhook secrets. Set up your environment:
+
+```bash
+CODEGEN_SECRETS__GITHUB_TOKEN="..."  # GitHub App token
+```
+
+# Example: PR Review Bot
+
+Here's a complete example of a PR review bot:
+
+```python
+from codegen.extensions.events.app import CodegenApp
+from codegen import CodeAgent, Codebase
+
+app = CodegenApp(name="pr-review-bot")
+
+@app.github.event("pull_request:opened")
+def handle_new_pr(event: dict):
+    try:
+        # Get PR details
+        pr = event["pull_request"]
+        repo = event["repository"]
+        
+        # Clone and analyze repo
+        codebase = Codebase.from_repo(repo["full_name"])
+        agent = CodeAgent(codebase)
+        
+        # Review the PR
+        review = agent.run(
+            f"Review PR: {pr['title']}\n\n{pr['body']}",
+            context={
+                "diff_url": pr["diff_url"],
+                "changed_files": pr["changed_files"],
+                "additions": pr["additions"],
+                "deletions": pr["deletions"]
+            }
+        )
+        
+        # Post review as comment
+        app.github.client.create_pr_comment(
+            pr["number"],
+            f"## AI Review\n\n{review}"
+        )
+        
+    except Exception as e:
+        logger.error(f"Error reviewing PR: {e}")
+```
+
+This bot:
+1. Listens for new PRs
+2. Clones the repository
+3. Uses CodeAgent to analyze changes
+4. Posts an AI-generated review as a comment
+
+# Best Practices
+
+1. **Rate Limiting**: GitHub has API rate limits - add delays between calls
+2. **Error Handling**: Always wrap handlers in try/except
+3. **Validation**: Verify webhook signatures
+4. **Permissions**: Request minimum required GitHub App permissions
+5. **Large Repos**: Handle timeouts for large repository operations 

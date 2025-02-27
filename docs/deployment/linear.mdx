@@ -1,0 +1,182 @@
+---
+title: "Linear Integration"
+sidebarTitle: "Linear"
+icon: "list-check"
+iconType: "solid"
+---
+
+The Linear integration allows your app to respond to issue tracking events and automate workflows in Linear.
+
+# Available Events
+
+## Issue Events
+
+```python
+# New issue created
+@app.linear.event("Issue:create")
+def handle_new_issue(event: dict):
+    """Handle new issue creation"""
+    issue = event["data"]
+    title = issue["title"]
+    description = issue["description"]
+    # Handle new issue...
+
+# Issue updated
+@app.linear.event("Issue:update")
+def handle_issue_update(event: dict):
+    """Handle issue updates"""
+    issue = event["data"]
+    updated_fields = event["updatedFrom"]
+    # Handle update...
+
+# Issue comment added
+@app.linear.event("Comment:create")
+def handle_comment(event: dict):
+    """Handle new comments"""
+    comment = event["data"]
+    issue_id = comment["issueId"]
+    body = comment["body"]
+    # Handle comment...
+```
+
+# Event Validation
+
+Linear events include a signing secret for validation. The Linear manager automatically validates incoming webhooks using this secret.
+
+```python
+@app.linear.event("Issue:create", should_handle=lambda event: event["data"]["teamId"] == "TEAM_ID")
+def handle_team_issue(event: dict):
+    """Only handle issues from specific team"""
+    issue = event["data"]
+    # Process issue...
+```
+
+# Client Methods
+
+The Linear client provides methods for interacting with issues:
+
+```python
+# Create issue
+app.linear.client.create_issue(
+    team_id="TEAM_ID",
+    title="Bug: Something broke",
+    description="Details about the bug",
+    state_id="BACKLOG_STATE_ID"  # Optional
+)
+
+# Comment on issue
+app.linear.client.comment_on_issue(
+    issue_id="ISSUE_ID",
+    body="Analysis of the bug..."
+)
+
+# Get issue details
+issue = app.linear.client.get_issue("ISSUE_ID")
+
+# Search issues
+issues = app.linear.client.search_issues("bug in:title")
+```
+
+# Authentication
+
+Set up your Linear credentials in your environment:
+
+```bash
+LINEAR_ACCESS_TOKEN="..."
+LINEAR_TEAM_ID="..."
+LINEAR_SIGNING_SECRET="..."
+```
+
+# Example: Code Analysis Bot
+
+Here's an example of a bot that analyzes code related to Linear issues:
+
+```python
+from codegen.extensions.events.app import CodegenApp
+from codegen import CodeAgent, Codebase
+
+app = CodegenApp(name="linear-code-bot")
+
+@app.linear.event("Issue:create")
+def analyze_code_for_issue(event: dict):
+    try:
+        issue = event["data"]
+        
+        # Only analyze issues with code references
+        if not any(word in issue["description"].lower() 
+                  for word in ["function", "class", "method", "bug"]):
+            return
+            
+        # Get the codebase
+        codebase = Codebase.from_repo("your-org/your-repo")
+        agent = CodeAgent(codebase)
+        
+        # Analyze the code
+        analysis = agent.run(
+            f"Analyze code related to: {issue['title']}\n\n{issue['description']}",
+            context={
+                "issue_id": issue["id"],
+                "team_id": issue["teamId"]
+            }
+        )
+        
+        # Add analysis as comment
+        app.linear.client.comment_on_issue(
+            issue_id=issue["id"],
+            body=f"## Code Analysis\n\n{analysis}"
+        )
+        
+    except Exception as e:
+        logger.error(f"Error analyzing issue: {e}")
+        app.linear.client.comment_on_issue(
+            issue_id=issue["id"],
+            body=f"❌ Error during analysis: {str(e)}"
+        )
+```
+
+This bot:
+1. Listens for new Linear issues
+2. Checks if they need code analysis
+3. Uses CodeAgent to analyze relevant code
+4. Posts the analysis as a comment
+
+# Webhook Management
+
+The Linear manager automatically handles webhook lifecycle:
+
+```python
+# Webhooks are registered when the app starts
+app.linear.subscribe_all_handlers()
+
+# And cleaned up when the app stops
+app.linear.unsubscribe_all_handlers()
+```
+
+# Best Practices
+
+1. **Event Filtering**: Use `should_handle` to filter events
+2. **Error Handling**: Always catch and report errors
+3. **Team Scoping**: Scope handlers to specific teams
+4. **State Management**: Track issue state changes
+5. **Automation Limits**: Be mindful of automation frequency
+
+# Issue States
+
+Linear issues follow a workflow with different states:
+
+```python
+# Common issue states
+STATES = {
+    "backlog": "Needs triage",
+    "todo": "Ready for work",
+    "in_progress": "Being worked on",
+    "done": "Completed",
+    "canceled": "Won't fix"
+}
+
+# Update issue state
+app.linear.client.update_issue(
+    issue_id="ISSUE_ID",
+    state_id="STATE_ID"
+)
+``` 

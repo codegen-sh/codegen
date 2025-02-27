@@ -1,0 +1,161 @@
+---
+title: "CodegenApp"
+sidebarTitle: "CodegenApp"
+icon: "cube"
+iconType: "solid"
+---
+
+The `CodegenApp` class is the core deployment class in Codegen, built on top of Modal's serverless infrastructure. It provides event handling capabilities for GitHub, Linear, and Slack through dedicated managers.
+
+# Class Overview
+
+```python
+from codegen.extensions.events.app import CodegenApp
+
+class CodegenApp(modal.App):
+    linear: Linear
+    slack: Slack
+    github: GitHub
+```
+
+The class inherits from `modal.App` and initializes three event managers:
+- `linear`: Handles Linear issue tracking events
+- `slack`: Manages Slack messaging events
+- `github`: Processes GitHub repository events
+
+# Event Managers
+
+## GitHub Manager
+
+The GitHub manager handles repository events like PR creations, pushes, and comments:
+
+```python
+@app.github.event("pull_request:opened")
+def handle_pr(event: dict):
+    """Event handler receives the raw GitHub webhook payload"""
+    pr_title = event["pull_request"]["title"]
+    # Handle PR...
+```
+
+## Linear Manager
+
+The Linear manager processes issue tracking events:
+
+```python
+@app.linear.event("Issue:create")
+def handle_issue(event: dict):
+    """Event handler receives Linear webhook data"""
+    issue_title = event["data"]["title"]
+    # Handle issue...
+```
+
+## Slack Manager
+
+The Slack manager handles chat events and commands:
+
+```python
+@app.slack.event("app_mention")
+def handle_mention(client, event):
+    """Event handler receives Slack event and client"""
+    message = event["text"]
+    # Handle message...
+```
+
+# Initialization
+
+Create a CodegenApp instance by providing a name:
+
+```python
+app = CodegenApp(name="my-code-app")
+```
+
+The app automatically initializes the event managers and sets up webhook endpoints through Modal.
+
+# Event Handler Registration
+
+Each platform manager provides an `event()` decorator for registering handlers:
+
+```python
+# GitHub handler
+@app.github.event("pull_request:opened")
+def handle_github(event): ...
+
+# Linear handler
+@app.linear.event("Issue:create")
+def handle_linear(event): ...
+
+# Slack handler
+@app.slack.event("message")
+def handle_slack(client, event): ...
+```
+
+The decorators:
+1. Register the function as a handler for the specified event
+2. Create a Modal endpoint for webhook delivery
+3. Handle authentication and payload validation
+
+# Webhook Management
+
+The app automatically manages webhooks for each platform:
+
+- **GitHub**: Receives repository events through GitHub App webhooks
+- **Linear**: Manages webhook subscriptions for issue events
+- **Slack**: Handles Slack App event subscriptions
+
+Each manager validates incoming webhooks using platform-specific secrets and signatures.
+
+# Environment Configuration
+
+The app requires various environment variables for platform access:
+
+```bash
+# Modal deployment
+MODAL_API_KEY="..."
+
+# Platform access
+CODEGEN_SECRETS__GITHUB_TOKEN="..."
+LINEAR_ACCESS_TOKEN="..."
+LINEAR_TEAM_ID="..."
+LINEAR_SIGNING_SECRET="..."
+SLACK_BOT_TOKEN="..."
+```
+
+# Example: Multi-Platform Integration
+
+Here's an example showing how CodegenApp can coordinate between platforms:
+
+```python
+from codegen.extensions.events.app import CodegenApp
+
+app = CodegenApp(name="code-review-bot")
+
+@app.github.event("pull_request:opened")
+def handle_pr_opened(event: dict):
+    """Create Linear issue for new PRs"""
+    pr = event["pull_request"]
+    
+    # Create Linear issue
+    issue = app.linear.client.create_issue(
+        title=f"Review PR: {pr['title']}",
+        description=pr['html_url']
+    )
+    
+    # Notify in Slack
+    app.slack.client.chat_postMessage(
+        channel="code-reviews",
+        text=f"New PR needs review: {pr['html_url']}\nLinear issue: {issue.url}"
+    )
+```
+
+This example:
+1. Listens for new GitHub PRs
+2. Creates a Linear tracking issue
+3. Notifies the team in Slack
+
+# Best Practices
+
+1. **Error Handling**: Use try/except in handlers
+2. **Logging**: Enable logging for debugging
+3. **Authentication**: Keep platform tokens secure
+4. **Validation**: Verify webhook payloads
+5. **Testing**: Test handlers with sample payloads 
