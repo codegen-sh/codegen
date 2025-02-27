@@ -54,7 +54,16 @@ def test_determine_language_package_json(tmpdir) -> None:
     ],
 )
 def test_determine_language_mixed(tmpdir, strategy, expected_language) -> None:
-    with get_codebase_session(tmpdir=tmpdir, files={"file1.py": "", "file2.ts": "", "file3.txt": ""}, programming_language=ProgrammingLanguage.PYTHON) as codebase:
+    with get_codebase_session(
+        tmpdir=tmpdir,
+        files={
+            "py_file1.py": "",
+            "py_file2.py": "",  # 2 python files
+            "ts_file1.ts": "",  # 1 typescript file
+            "txt_file1.txt": "",  # 1 text file
+        },
+        programming_language=ProgrammingLanguage.PYTHON,
+    ) as codebase:
         assert determine_project_language(tmpdir, strategy=strategy) == expected_language
 
 
