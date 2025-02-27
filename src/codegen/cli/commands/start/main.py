@@ -72,6 +72,7 @@ def _handle_existing_container(repo_config: RepoConfig, container: DockerContain
 
 def _build_docker_image(codegen_root: Path) -> None:
     platform = _get_platform()
+    dockerfile_path = Path(__file__).parent / "Dockerfile-runner"
     build_cmd = [
         "docker",
         "buildx",
@@ -79,7 +80,7 @@ def _build_docker_image(codegen_root: Path) -> None:
         "--platform",
         platform,
         "-f",
-        str(codegen_root / "Dockerfile-runner"),
+        str(dockerfile_path),
         "-t",
         "codegen-runner",
         "--load",
