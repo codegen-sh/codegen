@@ -22,7 +22,7 @@
         ],
         "file_path": "path/to/file1.py",
         "symbol_name": "PyFunction",
-        "id": 17
+        "id": 18
       },
       {
         "name": "MyClass.get",
@@ -157,7 +157,7 @@
         ],
         "file_path": "path/to/file.py",
         "symbol_name": "PyClass",
-        "source": 17,
+        "source": 18,
         "target": "range=<Range start_point=(5, 11), end_point=(5, 25), start_byte=96, end_byte=110> filepath='path/to/file1.py'"
       },
       {
@@ -177,7 +177,7 @@
         ],
         "file_path": "path/to/file.py",
         "symbol_name": "PyClass",
-        "source": 17,
+        "source": 18,
         "target": "range=<Range start_point=(6, 11), end_point=(6, 26), start_byte=139, end_byte=154> filepath='path/to/file1.py'"
       },
       {
@@ -197,7 +197,7 @@
         ],
         "file_path": "path/to/file.py",
         "symbol_name": "PyClass",
-        "source": 17,
+        "source": 18,
         "target": "range=<Range start_point=(7, 11), end_point=(7, 27), start_byte=184, end_byte=200> filepath='path/to/file1.py'"
       },
       {
@@ -217,7 +217,7 @@
         ],
         "file_path": "path/to/file.py",
         "symbol_name": "PyClass",
-        "source": 17,
+        "source": 18,
         "target": "range=<Range start_point=(8, 11), end_point=(8, 28), start_byte=231, end_byte=248> filepath='path/to/file1.py'"
       },
       {
