@@ -57,7 +57,7 @@ class CodebaseClient(Client):
         """Wait for the server to start by polling the health endpoint"""
         start_time = time.time()
         while (time.time() - start_time) < timeout:
-            if self.healthcheck(raise_on_error=False):
+            if self.is_running():
                 return
             time.sleep(interval)
         msg = "Server failed to start within timeout period"
@@ -80,4 +80,4 @@ if __name__ == "__main__":
     test_config = RepoConfig.from_repo_path("/Users/caroljung/git/codegen/codegen-agi")
     test_config.full_name = "codegen-sh/codegen-agi"
     client = CodebaseClient(test_config)
-    print(client.healthcheck())
+    print(client.is_running())

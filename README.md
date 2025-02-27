@@ -79,6 +79,16 @@ See [Getting Started](https://docs.codegen.com/introduction/getting-started) for
 from codegen import Codebase
 ```
 
+## Troubleshooting
+
+Having issues? Here are some common problems and their solutions:
+
+- **I'm hitting an UV error related to `[[ packages ]]`**: This means you're likely using an outdated version of UV. Try updating to the latest version with: `uv self update`.
+- **I'm hitting an error about `No module named 'codegen.sdk.extensions.utils'`**: The compiled cython extensions are out of sync. Update them with `uv sync --reinstall-package codegen`.
+- **I'm hitting a `RecursionError: maximum recursion depth exceeded` error while parsing my codebase**: If you are using python 3.12, try upgrading to 3.13. If you are already on 3.13, try upping the recursion limit with `sys.setrecursionlimit(10000)`.
+
+If you run into additional issues not listed here, please [join our slack community](https://community.codegen.com) and we'll help you out!
+
 ## Resources
 
 - [Docs](https://docs.codegen.com)

@@ -1,4 +1,5 @@
 import docker
+from docker.errors import NotFound
 
 from codegen.cli.commands.start.docker_container import DockerContainer
 
@@ -15,19 +16,14 @@ class DockerFleet:
     def load(cls) -> "DockerFleet":
         try:
             client = docker.from_env()
-            containers = client.containers.list(all=True, filters={"ancestor": CODEGEN_RUNNER_IMAGE})
-            codegen_containers = []
-            for container in containers:
+            filters = {"ancestor": CODEGEN_RUNNER_IMAGE}
+            containers = []
+            for container in client.containers.list(all=True, filters=filters):
                 if container.attrs["Config"]["Image"] == CODEGEN_RUNNER_IMAGE:
-                    if container.status == "running":
-                        host_config = next(iter(container.ports.values()))[0]
-                        codegen_container = DockerContainer(client=client, host=host_config["HostIp"], port=host_config["HostPort"], name=container.name)
-                    else:
-                        codegen_container = DockerContainer(client=client, name=container.name)
-                    codegen_containers.append(codegen_container)
+                    containers.append(DockerContainer(client=client, container=container))
 
-            return cls(containers=codegen_containers)
-        except docker.errors.NotFound:
+            return cls(containers=containers)
+        except NotFound:
             return cls(containers=[])
 
     @property
