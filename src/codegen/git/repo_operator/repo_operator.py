@@ -446,6 +446,12 @@ class RepoOperator:
                 logger.exception(f"Error with Git operations: {e}")
                 raise
 
+    def get_modified_files(self, ref: str | GitCommit) -> list[str]:
+        """Returns a list of modified files in the repo"""
+        self.git_cli.git.add(A=True)
+        diff = self.git_cli.git.diff(ref, "--name-only")
+        return diff.splitlines()
+
     def get_diffs(self, ref: str | GitCommit, reverse: bool = True) -> list[Diff]:
         """Gets all staged diffs"""
         self.git_cli.git.add(A=True)
