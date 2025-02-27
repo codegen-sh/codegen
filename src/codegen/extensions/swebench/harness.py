@@ -79,7 +79,13 @@ You are working with an old version of the repo!
 Filenames, directory names, file contents, etc may be different than what you're used to.
 
 Propose changes to update the repo to fix the problem below.
+*** IMPORTANT: *** DO NOT MODIFY ANY TESTS!
+*** IMPORTANT: *** DO NOT ADD ANY TESTS!
 
+Before commiting to do any modifications, double check your work with the Reflection tool.
+you can also use that tool to check your work after you think you are done.
+if you ever get stuck using other tools, use the Reflection tool to re asses your situation.
+after every file edit, use the Reflection tool to check your work and sanity check yourself.
 """
     message += problem_statement
 
