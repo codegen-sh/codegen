@@ -33,7 +33,7 @@ def start_command(port: int | None, detached: bool = False, skip_build: bool = F
             container.remove()
         else:
             return _handle_existing_container(repo_config, container, force)
-    
+
     if port is None:
         port = get_free_port()
 
