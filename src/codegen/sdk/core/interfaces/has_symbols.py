@@ -1,3 +1,5 @@
+
+from codegen.shared.logging.get_logger import get_logger
 import logging
 from collections.abc import Iterator
 from itertools import chain
@@ -21,7 +23,7 @@ if TYPE_CHECKING:
     from codegen.sdk.typescript.statements.import_statement import TSImportStatement
     from codegen.sdk.typescript.symbol import TSSymbol
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 TFile = TypeVar("TFile", bound="SourceFile")

@@ -1,3 +1,5 @@
+
+from codegen.shared.logging.get_logger import get_logger
 import logging
 
 from codeowners import CodeOwners
@@ -6,7 +8,7 @@ from github.PullRequest import PullRequest
 from codegen.git.clients.git_repo_client import GitRepoClient
 from codegen.git.configs.constants import CODEOWNERS_FILEPATHS
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def get_filepath_owners(codeowners: CodeOwners, filepath: str) -> set[str]:

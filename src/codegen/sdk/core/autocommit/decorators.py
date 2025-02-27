@@ -1,3 +1,5 @@
+
+from codegen.shared.logging.get_logger import get_logger
 import functools
 from collections.abc import Callable
 from typing import TYPE_CHECKING, ParamSpec, TypeVar, Union, overload
@@ -13,7 +15,7 @@ if TYPE_CHECKING:
 
 import logging
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 P = ParamSpec("P")
 T = TypeVar("T")
 

@@ -1,3 +1,5 @@
+
+from codegen.shared.logging.get_logger import get_logger
 import logging
 import sys
 
@@ -13,7 +15,7 @@ from codegen.sdk.codebase.factory.codebase_factory import CodebaseType
 from codegen.sdk.core.codebase import Codebase
 from codegen.shared.compilation.string_to_code import create_execute_function_from_codeblock
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class SandboxRunner:

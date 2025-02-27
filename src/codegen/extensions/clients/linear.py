@@ -1,10 +1,12 @@
+
+from codegen.shared.logging.get_logger import get_logger
 import json
 import logging
 
 import requests
 from pydantic import BaseModel
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 # --- TYPES

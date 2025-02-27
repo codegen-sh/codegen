@@ -1,3 +1,5 @@
+
+from codegen.shared.logging.get_logger import get_logger
 import logging
 from typing import TYPE_CHECKING, Generic, Self, TypeVar, Union
 
@@ -22,7 +24,7 @@ if TYPE_CHECKING:
 
 Parent = TypeVar("Parent", bound="Editable")
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @apidoc

@@ -1,3 +1,5 @@
+
+from codegen.shared.logging.get_logger import get_logger
 from typing import TYPE_CHECKING, Generic, Self, TypeVar
 
 from tree_sitter import Node as TSNode
@@ -11,7 +13,7 @@ if TYPE_CHECKING:
     from codegen.sdk.python.expressions.type import PyType
 import logging
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 Parent = TypeVar("Parent")

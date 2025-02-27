@@ -1,3 +1,5 @@
+
+from codegen.shared.logging.get_logger import get_logger
 import logging
 import subprocess
 import time
@@ -7,7 +9,7 @@ import sentry_sdk
 
 from codegen.shared.performance.time_utils import humanize_duration
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def stopwatch(func):

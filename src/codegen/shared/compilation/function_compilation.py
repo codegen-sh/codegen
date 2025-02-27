@@ -1,3 +1,5 @@
+
+from codegen.shared.logging.get_logger import get_logger
 import linecache
 import logging
 import sys
@@ -6,7 +8,7 @@ from collections.abc import Callable
 
 from codegen.shared.exceptions.compilation import InvalidUserCodeException
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def get_compilation_error_context(filename: str, line_number: int, window_size: int = 2):

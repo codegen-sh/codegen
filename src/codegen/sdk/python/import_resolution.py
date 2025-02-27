@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+
+from codegen.shared.logging.get_logger import get_logger
 import os
 import sys
 from typing import TYPE_CHECKING
@@ -23,7 +25,7 @@ if TYPE_CHECKING:
 
 import logging
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @py_apidoc

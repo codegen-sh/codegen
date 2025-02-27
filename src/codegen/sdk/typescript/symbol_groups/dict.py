@@ -1,3 +1,5 @@
+
+from codegen.shared.logging.get_logger import get_logger
 import logging
 from typing import TYPE_CHECKING, Self, TypeVar, override
 
@@ -19,7 +21,7 @@ if TYPE_CHECKING:
 Parent = TypeVar("Parent", bound="Editable")
 TExpression = TypeVar("TExpression", bound=Expression)
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @ts_apidoc

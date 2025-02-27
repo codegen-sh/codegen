@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+
+from codegen.shared.logging.get_logger import get_logger
 import logging
 import re
 from typing import TYPE_CHECKING, override
@@ -27,7 +29,7 @@ if TYPE_CHECKING:
     from codegen.sdk.core.node_id_factory import NodeId
     from codegen.sdk.core.symbol import Symbol
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @py_apidoc

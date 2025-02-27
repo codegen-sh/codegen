@@ -1,5 +1,7 @@
 """Codebase - main interface for Codemods to interact with the codebase"""
 
+
+from codegen.shared.logging.get_logger import get_logger
 import codecs
 import json
 import logging
@@ -87,7 +89,7 @@ from codegen.shared.exceptions.control_flow import MaxAIRequestsError
 from codegen.shared.performance.stopwatch_utils import stopwatch
 from codegen.visualizations.visualization_manager import VisualizationManager
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 MAX_LINES = 10000  # Maximum number of lines of text allowed to be logged
 
 

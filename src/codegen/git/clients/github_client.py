@@ -1,3 +1,5 @@
+
+from codegen.shared.logging.get_logger import get_logger
 import logging
 
 from github import Consts
@@ -6,7 +8,7 @@ from github.MainClass import Github
 from github.Organization import Organization
 from github.Repository import Repository
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class GithubClient:

@@ -1,3 +1,5 @@
+
+from codegen.shared.logging.get_logger import get_logger
 import logging
 import os
 import re
@@ -44,7 +46,7 @@ if TYPE_CHECKING:
     from codegen.sdk.core.function import Function
     from codegen.sdk.core.interface import Interface
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @apidoc

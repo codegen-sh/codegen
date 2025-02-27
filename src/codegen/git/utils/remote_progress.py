@@ -1,3 +1,5 @@
+
+from codegen.shared.logging.get_logger import get_logger
 import logging
 import time
 
@@ -5,7 +7,7 @@ from git import RemoteProgress
 
 from codegen.git.schemas.enums import FetchResult
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class CustomRemoteProgress(RemoteProgress):

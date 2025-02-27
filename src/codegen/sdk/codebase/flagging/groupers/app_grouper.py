@@ -1,3 +1,5 @@
+
+from codegen.shared.logging.get_logger import get_logger
 import logging
 
 from codegen.git.repo_operator.repo_operator import RepoOperator
@@ -6,7 +8,7 @@ from codegen.sdk.codebase.flagging.group import Group
 from codegen.sdk.codebase.flagging.groupers.base_grouper import BaseGrouper
 from codegen.sdk.codebase.flagging.groupers.enums import GroupBy
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class AppGrouper(BaseGrouper):

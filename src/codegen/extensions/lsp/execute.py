@@ -1,3 +1,5 @@
+
+from codegen.shared.logging.get_logger import get_logger
 import logging
 from typing import TYPE_CHECKING, Any, Callable
 
@@ -9,7 +11,7 @@ from codegen.extensions.lsp.codemods.base import CodeAction
 if TYPE_CHECKING:
     from codegen.extensions.lsp.server import CodegenLanguageServer
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def process_args(args: Any) -> tuple[str, Range]:

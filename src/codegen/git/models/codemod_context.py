@@ -1,3 +1,5 @@
+
+from codegen.shared.logging.get_logger import get_logger
 import logging
 from importlib.metadata import version
 from typing import Any
@@ -7,7 +9,7 @@ from pydantic.fields import Field
 
 from codegen.git.models.pull_request_context import PullRequestContext
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class CodemodContext(BaseModel):

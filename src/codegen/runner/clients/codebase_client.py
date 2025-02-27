@@ -1,5 +1,7 @@
 """Client used to abstract the weird stdin/stdout communication we have with the sandbox"""
 
+
+from codegen.shared.logging.get_logger import get_logger
 import logging
 import os
 import subprocess
@@ -15,7 +17,7 @@ EPHEMERAL_SERVER_PATH = "codegen.runner.sandbox.ephemeral_server:app"
 RUNNER_SERVER_PATH = "codegen.runner.sandbox.server:app"
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class CodebaseClient(Client):

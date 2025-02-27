@@ -1,3 +1,5 @@
+
+from codegen.shared.logging.get_logger import get_logger
 import json
 import logging
 from dataclasses import dataclass
@@ -12,7 +14,7 @@ from semantic_release.cli.config import GlobalCommandLineOptions
 
 import codegen
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 SYSTEM_PROMPT = """
 ## Role

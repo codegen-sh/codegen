@@ -1,3 +1,5 @@
+
+from codegen.shared.logging.get_logger import get_logger
 import logging
 
 from lsprotocol import types
@@ -14,7 +16,7 @@ from codegen.sdk.core.file import SourceFile
 
 version = getattr(codegen, "__version__", "v0.1")
 server = CodegenLanguageServer("codegen", version, protocol_cls=CodegenLanguageServerProtocol)
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @server.feature(types.TEXT_DOCUMENT_DID_OPEN)

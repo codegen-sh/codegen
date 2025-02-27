@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+
+from codegen.shared.logging.get_logger import get_logger
 from typing import TYPE_CHECKING, Generic, TypeVar
 
 from codegen.sdk.core.autocommit import reader, writer
@@ -16,7 +18,7 @@ if TYPE_CHECKING:
 
 import logging
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 Parent = TypeVar("Parent", bound="TSCodeBlock")

@@ -1,4 +1,6 @@
 # TODO: move out of graph sitter, useful for other projects
+
+from codegen.shared.logging.get_logger import get_logger
 import importlib
 import logging
 from pathlib import Path
@@ -13,7 +15,7 @@ from codegen.sdk.core.codebase import Codebase, CodebaseType
 from codegen.shared.decorators.docs import DocumentedObject, apidoc_objects, no_apidoc_objects, py_apidoc_objects, ts_apidoc_objects
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def get_graphsitter_repo_path() -> str:

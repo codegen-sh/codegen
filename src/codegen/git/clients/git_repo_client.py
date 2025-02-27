@@ -1,3 +1,5 @@
+
+from codegen.shared.logging.get_logger import get_logger
 import logging
 import time
 from datetime import datetime
@@ -20,7 +22,7 @@ from codegen.git.clients.github_client import GithubClient
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.git.utils.format import format_comparison
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class GitRepoClient:

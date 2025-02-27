@@ -1,3 +1,5 @@
+
+from codegen.shared.logging.get_logger import get_logger
 import logging
 import os
 
@@ -8,7 +10,7 @@ from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.sdk.core.interfaces.editable import Editable
 from codegen.visualizations.viz_utils import graph_to_json
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class VisualizationManager:

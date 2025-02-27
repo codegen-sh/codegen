@@ -1,3 +1,5 @@
+
+from codegen.shared.logging.get_logger import get_logger
 import logging
 
 from codegen.git.repo_operator.repo_operator import RepoOperator
@@ -7,7 +9,7 @@ from codegen.sdk.codebase.flagging.groupers.base_grouper import BaseGrouper
 from codegen.sdk.codebase.flagging.groupers.enums import GroupBy
 from codegen.shared.string.csv_utils import comma_separated_to_list, list_to_comma_separated
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 DEFAULT_CHUNK_SIZE = 5
 

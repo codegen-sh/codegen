@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+
+from codegen.shared.logging.get_logger import get_logger
 from collections import deque
 from typing import TYPE_CHECKING, Self
 
@@ -19,7 +21,7 @@ if TYPE_CHECKING:
 
 import logging
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @ts_apidoc

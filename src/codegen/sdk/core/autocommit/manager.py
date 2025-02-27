@@ -1,3 +1,5 @@
+
+from codegen.shared.logging.get_logger import get_logger
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -24,7 +26,7 @@ if TYPE_CHECKING:
 
 import logging
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @dataclass

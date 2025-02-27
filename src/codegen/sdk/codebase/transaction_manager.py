@@ -1,3 +1,5 @@
+
+from codegen.shared.logging.get_logger import get_logger
 import time
 from collections.abc import Callable
 from pathlib import Path
@@ -20,7 +22,7 @@ if TYPE_CHECKING:
 
 import logging
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class TransactionError(Exception):

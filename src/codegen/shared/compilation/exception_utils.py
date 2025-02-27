@@ -1,7 +1,9 @@
+
+from codegen.shared.logging.get_logger import get_logger
 import logging
 from types import FrameType, TracebackType
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def get_offset_traceback(tb_lines: list[str], line_offset: int = 0, filenameFilter: str = "<string>") -> str:

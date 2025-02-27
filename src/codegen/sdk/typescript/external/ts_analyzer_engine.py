@@ -1,3 +1,5 @@
+
+from codegen.shared.logging.get_logger import get_logger
 import json
 import logging
 import os
@@ -20,7 +22,7 @@ if TYPE_CHECKING:
     from codegen.sdk.core.interfaces.editable import Editable
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class TypescriptEngine(LanguageEngine):

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+
+from codegen.shared.logging.get_logger import get_logger
 from abc import abstractmethod
 from typing import TYPE_CHECKING, Generic, Self, TypeVar, override
 
@@ -31,7 +33,7 @@ if TYPE_CHECKING:
 
 import logging
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 TType = TypeVar("TType", bound="Type")
 Parent = TypeVar("Parent", bound="Collection[Parameter, Function]")

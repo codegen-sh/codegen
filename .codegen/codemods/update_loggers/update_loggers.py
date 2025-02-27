@@ -12,7 +12,7 @@ def run(codebase: PyCodebaseType) -> None:
         if file.get_import("logging") is None:
             continue
 
-        if logger := file.get_global_var("logger") and logger.value.source == "logging.getLogger(__name__)":
+        if (logger := file.get_global_var("logger")) and logger.value.source == "logging.getLogger(__name__)":
             print(f"Updating logger in {file.filepath}")
             logger.set_value("get_logger(__name__)")
             file.add_import_from_import_string("\nfrom codegen.shared.logging.get_logger import get_logger")

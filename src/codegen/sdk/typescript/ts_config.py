@@ -1,3 +1,5 @@
+
+from codegen.shared.logging.get_logger import get_logger
 import logging
 import os
 from functools import cache
@@ -14,7 +16,7 @@ if TYPE_CHECKING:
     from codegen.sdk.typescript.config_parser import TSConfigParser
     from codegen.sdk.typescript.file import TSFile
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @ts_apidoc

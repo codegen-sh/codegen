@@ -1,3 +1,5 @@
+
+from codegen.shared.logging.get_logger import get_logger
 import codecs
 import fnmatch
 import glob
@@ -31,7 +33,7 @@ from codegen.git.utils.remote_progress import CustomRemoteProgress
 from codegen.shared.performance.stopwatch_utils import stopwatch
 from codegen.shared.performance.time_utils import humanize_duration
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class RepoOperator:

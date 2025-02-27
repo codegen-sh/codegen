@@ -1,3 +1,5 @@
+
+from codegen.shared.logging.get_logger import get_logger
 import logging
 import os
 from collections.abc import Iterator
@@ -21,7 +23,7 @@ from codegen.sdk.enums import NodeType
 from codegen.sdk.extensions.sort import sort_editables
 from codegen.shared.decorators.docs import apidoc, noapidoc
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 if TYPE_CHECKING:

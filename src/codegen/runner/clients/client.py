@@ -1,5 +1,7 @@
 """Client used to abstract the weird stdin/stdout communication we have with the sandbox"""
 
+
+from codegen.shared.logging.get_logger import get_logger
 import logging
 
 import requests
@@ -7,7 +9,7 @@ from fastapi import params
 
 from codegen.runner.models.apis import ServerInfo
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 DEFAULT_SERVER_PORT = 4002
 
