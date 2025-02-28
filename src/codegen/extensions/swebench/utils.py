@@ -65,7 +65,7 @@ def load_predictions(paths):
 
 
 def get_swe_bench_examples(
-    dataset: Literal["lite", "full", "verified"] = "lite",
+    dataset: SWEBenchDataset = SWEBenchDataset.LITE,
     split: Literal["train", "dev", "test"] = "test",
     offset: int = 0,
     length: int = 100,
@@ -85,12 +85,9 @@ def get_swe_bench_examples(
         List of SweBenchExample objects
     """
     # Convert string dataset name to enum
-    dataset_map = {"lite": SWEBenchDataset.LITE, "full": SWEBenchDataset.FULL, "verified": SWEBenchDataset.VERIFIED}
-    dataset_enum = dataset_map[dataset.lower()]
 
     # Load the dataset with caching enabled
-    dataset_name = dataset_enum.value
-    swe_bench_dataset = load_dataset(dataset_name, download_mode="reuse_dataset_if_exists")
+    swe_bench_dataset = load_dataset(dataset.value, download_mode="reuse_dataset_if_exists")
 
     # Get the requested split
     split_data = swe_bench_dataset[split]
