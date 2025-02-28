@@ -9,7 +9,7 @@ dependencies = [
   "modal>=0.73.72",
   "fastapi-restful[all]>=0.6.0",
   "classy-fastapi>=0.6.1",
-  "codegen@git+https://github.com/codegen-sh/codegen-sdk.git@f398107d31bbd53fc77bc9c5f8763d2dc8fcae5b",
+  "codegen==0.42.1",
 ]
 license = { file = "LICENSE" }
 classifiers = [

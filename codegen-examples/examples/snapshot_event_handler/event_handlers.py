@@ -22,18 +22,13 @@ codegen_events_app = modal.App("codegen-events-router")
 
 SNAPSHOT_DICT_ID = "codegen-events-codebase-snapshots"
 
-
-REPO_URL = "https://github.com/codegen-sh/codegen-sdk.git"
-COMMIT_ID = "f398107d31bbd53fc77bc9c5f8763d2dc8fcae5b"
-
 # Create the base image with dependencies
 base_image = (
     modal.Image.debian_slim(python_version="3.13")
     .apt_install("git")
     .pip_install(
         # =====[ Codegen ]=====
-        # "codegen",
-        f"git+{REPO_URL}@{COMMIT_ID}",
+        "codegen==0.42.1",
         # =====[ Rest ]=====
         "openai>=1.1.0",
         "fastapi[standard]",
