@@ -1,0 +1,76 @@
+---
+title: "Installing with WSL"
+sidebarTitle: "Installing with WSL"
+iconType: "solid"
+---
+
+Although Codegen is not natively supported on Windows, we do provide a guide for installing Codegen through WSL.
+
+<Tip>
+**Windows Subsystem for Linux (WSL)** is a feature of Windows that allows you to run a Linux environment on your Windows machine. Learn more about WSL [here](https://learn.microsoft.com/en-us/windows/wsl/about).
+</Tip>
+
+## Getting Started
+
+This tutorial assumes you have a working WSL installation. If you don't have WSL installed, follow the [official Microsoft docs](https://learn.microsoft.com/en-us/windows/wsl/install). There are also plenty of guides and videos online. We also assume you have a basic understanding of the Linux command line. For this guide, we are also assuming an Ubuntu distribution.
+
+## WSL1 vs WSL2
+
+When installing WSL, you have two options: **WSL1 and WSL2**.
+
+WSL2 is generally recommended for better performance and compatibility, **but if you primarily use Windows for development, WSL1 may be a better fit**.
+
+<Note>
+**WSL1 and WSL2 handle filesystems differently with important implications for each.**
+
+- WSL1 runs on the **Windows filesystem** and directly interacts with the underlying NTFS filesystem. Therefore, it has much better performance for file operations on Windows files. However, it lacks full compatibility with Linux features like system calls and certain file permissions.
+
+- WSL2 runs on a **virtualized ext4 Linux filesystem**, with a full Linux kernel inside a lightweight VM. As such, WSL2 can only interact with files within the Linux filesystem by default. The Windows filesystem is mounted as a virtual disk through `/mnt/c`, but there is **significant overhead** to interacting with Windows files. (Sometimes up to 10x to 50x slower!)
+
+You can read more about the differences between WSL1 and WSL2 [here](https://learn.microsoft.com/en-us/windows/wsl/compare-versions).
+</Note>
+
+## Installing Codegen
+
+Initial Codegen installation should be the same as the Linux instructions from the [installation guide](https://docs.codegen.com/introduction/installation).
+
+## Using Codegen with files from WSL
+
+Codegen should work the same way as it does on Linux.
+
+## Using Codegen with files from Windows
+
+Both WSL1 and WSL2 can interact with Windows files through the `/mnt/c` directory. For example, if you have a file at `C:\Users\username\Documents\file.txt`, you can access it at `/mnt/c/Users/username/Documents/file.txt`. Therefore, you can parse any repo by cd'ing into the repo in `/mnt/c` and using Codegen as intended.
+
+<Warning>
+There is a significant performance overhead to interacting with Windows files from WSL2.
+</Warning>
+
+## Integration with VSCode / Cursor / Windsurf / Other IDEs
+
+If you are using VSCode or any VSCode forks like Cursor or Windsurf, you can use the [WSL extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-wsl) to interact and develop with a Linux environment from Windows. This will have the best performance and compatibility with running Codegen on Windows.
+
+![](https://code.visualstudio.com/assets/docs/remote/wsl/architecture-wsl.png)
+
+To use WSL with VSCode:
+- Start VSCode
+- Press `F1`, select **WSL: Connect to WSL** for the default distro or **WSL: Connect to WSL using Distro** for a specific distro.
+- Use the File menu to open your folder.
+
+You can read more about Developing in WSL [here](https://code.visualstudio.com/docs/remote/wsl).
+
+<Tip>
+If you plan on using Codegen's MCP (Model Context Protocol) or LSP (Language Server Protocol) features, running VSCode through WSL is highly recommended.
+</Tip>
+
+## Troubleshooting
+
+- **I have trouble connecting to MCP or LSP from VSCode**: Windows and WSL run on two different network environments. WSL does come with a compatibility layer called [NAT (Network Address Translation)](https://learn.microsoft.com/en-us/windows/wsl/networking#default-networking-mode-nat) as a translation layer between the two environments, but it can sometimes cause issues. On machines running Windows 11 22H2 and higher, try switching to [Mirrored mode networking](https://learn.microsoft.com/en-us/windows/wsl/networking#mirrored-mode-networking) to see if that fixes the issue.
+- **WSL takes up too much memory after running Codegen**: This is a known issue with WSL. Memory does not get properly released after running a memory-intensive process like Codegen. Try killing the WSL process using `wsl --shutdown` to free up memory. ([GitHub Issue for WSL](https://github.com/microsoft/WSL/issues/4166))
+- **WSL hangs and pins the CPU at 100% when I try to run Codegen**: This could be because of WSL running out of memory. Try killing the WSL process using `wsl --shutdown` and then try running Codegen again. If that doesn't work, try [downloading more RAM](https://downloadmoreram.com/).
+
+For any additional issues, see the [troubleshooting guide](/introduction/installation#troubleshooting).
+
+<Note>
+For more help, join our [community Slack](/introduction/community) or check the [FAQ](/introduction/faq).
+</Note>

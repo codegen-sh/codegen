@@ -49,7 +49,7 @@ We support
 - macOS and Linux
   - macOS is supported
   - Linux is supported on x86_64 and aarch64 with glibc 2.34+
-  - Windows is not supported
+  - Windows is supported via WSL. See [here](https://docs.codegen.com/building-with-codegen/codegen-with-wsl) for more details.
 - Python, Typescript, Javascript and React codebases
 
 ```
