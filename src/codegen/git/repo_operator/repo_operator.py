@@ -834,7 +834,7 @@ class RepoOperator:
             access_token (str | None): Optional GitHub API key for operations that need GitHub access
         """
         op = cls(repo_config=RepoConfig.from_repo_path(repo_path, full_name=full_name), bot_commit=False, access_token=access_token)
-        
+
         op.discard_changes()
         if op.get_active_branch_or_commit() != commit:
             op.create_remote("origin", url)

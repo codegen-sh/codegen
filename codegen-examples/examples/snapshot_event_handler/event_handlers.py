@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 
 from codegen.extensions.github.types.pull_request import PullRequestLabeledEvent
+
 load_dotenv(".env")
 
 import modal
@@ -40,10 +41,9 @@ base_image = (
         "fastapi[standard]",
         "slack_sdk",
         "fastapi_utils[all]",
-        "classy-fastapi>=0.6.1"
+        "classy-fastapi>=0.6.1",
     )
-
-)   
+)
 
 
 event_handlers_app = modal.App("codegen-event-handlers")
@@ -51,11 +51,11 @@ event_handlers_app = modal.App("codegen-event-handlers")
 
 @event_handlers_app.cls(image=base_image, secrets=[modal.Secret.from_dotenv(".env")], enable_memory_snapshot=True, container_idle_timeout=300)
 class CustomEventHandlersAPI(CodebaseEventsApp):
-    commit: str = modal.parameter(default="79114f67ccfe8700416cd541d1c7c43659a95342") 
+    commit: str = modal.parameter(default="79114f67ccfe8700416cd541d1c7c43659a95342")
     repo_org: str = modal.parameter(default="codegen-sh")
     repo_name: str = modal.parameter(default="Kevin-s-Adventure-Game")
     snapshot_index_id: str = SNAPSHOT_DICT_ID
-    
+
     def setup_handlers(self, cg: CodegenApp):
         @cg.slack.event("app_mention")
         async def handle_mention(event: SlackEvent):
@@ -76,7 +76,6 @@ class CustomEventHandlersAPI(CodebaseEventsApp):
 
             return {"message": "Mentioned", "received_text": event.text, "response": response}
 
-
         @cg.github.event("pull_request:labeled")
         def handle_pr(event: PullRequestLabeledEvent):
             logger.info("PR labeled")
@@ -90,7 +89,6 @@ class CustomEventHandlersAPI(CodebaseEventsApp):
             logger.info("> Checking out commit")
             codebase.checkout(commit=event.pull_request.head.sha)
 
-
             logger.info("> Running PR Lints")
             # LINT CODEMOD
             lint_for_dev_import_violations(codebase, event)
@@ -98,10 +96,7 @@ class CustomEventHandlersAPI(CodebaseEventsApp):
             # REVIEW CODEMOD
             review_with_codegen_agent(codebase, event)
 
-            
-
             return {"message": "PR event handled", "num_files": len(codebase.files), "num_functions": len(codebase.functions)}
-
 
         @cg.linear.event("Issue")
         def handle_issue(event: LinearEvent):
@@ -110,17 +105,14 @@ class CustomEventHandlersAPI(CodebaseEventsApp):
             return {"message": "Linear Issue event", "num_files": len(codebase.files), "num_functions": len(codebase.functions)}
 
 
-
-@codegen_events_app.cls(image=base_image, secrets=[modal.Secret.from_dotenv('.env')])
+@codegen_events_app.cls(image=base_image, secrets=[modal.Secret.from_dotenv(".env")])
 class WebhookEventRouterAPI(EventRouterMixin, Routable):
-
     snapshot_index_id: str = SNAPSHOT_DICT_ID
-    
 
     def get_event_handler_cls(self):
         modal_cls = modal.Cls.from_name(app_name="Events", name="CustomEventHandlersAPI")
         return modal_cls
-    
+
     @post("/{org}/{repo}/{provider}/events")
     async def handle_event(self, org: str, repo: str, provider: Literal["slack", "github", "linear"], request: Request):
         # Define the route for the webhook url sink, it will need to indicate the repo repo org, and the provider
@@ -133,14 +125,14 @@ class WebhookEventRouterAPI(EventRouterMixin, Routable):
         route_view = WebhookEventRouterAPI()
         event_api.include_router(route_view.router)
         return event_api
-    
 
-# Setup a cron job to trigger updates to the codebase snapshots. 
+
+# Setup a cron job to trigger updates to the codebase snapshots.
 @codegen_events_app.function(schedule=modal.Cron("*/10 * * * *"), image=base_image, secrets=[modal.Secret.from_dotenv(".env")])
 def refresh_repository_snapshots():
     WebhookEventRouterAPI().refresh_repository_snapshots(snapshot_index_id=SNAPSHOT_DICT_ID)
 
 
-app = modal.App("Events", secrets=[modal.Secret.from_dotenv('.env')])
+app = modal.App("Events", secrets=[modal.Secret.from_dotenv(".env")])
 app.include(event_handlers_app)
 app.include(codegen_events_app)

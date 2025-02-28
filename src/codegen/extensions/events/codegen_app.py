@@ -15,6 +15,7 @@ from .slack import Slack
 
 logger = get_logger(__name__)
 
+
 class CodegenApp:
     """A FastAPI-based application for handling various code-related events."""
 
@@ -38,10 +39,8 @@ class CodegenApp:
         # Initialize codebase cache
         self.codebase: Codebase | None = None
 
-
         # Register routes
         self._setup_routes()
-
 
     def parse_repo(self) -> None:
         # Parse initial repos if provided
@@ -57,10 +56,7 @@ class CodegenApp:
         try:
             logger.info(f"[CODEBASE] Parsing repository: {repo_name}")
             config = CodebaseConfig(sync_enabled=True)
-            secrets = SecretsConfig(
-                github_token=os.environ.get("GITHUB_ACCESS_TOKEN"),
-                linear_api_key=os.environ.get("LINEAR_ACCESS_TOKEN")
-            )
+            secrets = SecretsConfig(github_token=os.environ.get("GITHUB_ACCESS_TOKEN"), linear_api_key=os.environ.get("LINEAR_ACCESS_TOKEN"))
             self.codebase = Codebase.from_repo(repo_full_name=repo_name, tmp_dir=self.tmp_dir, commit=commit, config=config, secrets=secrets)
             logger.info(f"[CODEBASE] Successfully parsed and cached: {repo_name}")
         except Exception as e:
@@ -80,7 +76,7 @@ class CodegenApp:
             KeyError: If the repository hasn't been parsed
         """
         if not self.codebase:
-            msg = f"Repository has not been parsed"
+            msg = "Repository has not been parsed"
             raise KeyError(msg)
         return self.codebase
 
@@ -111,10 +107,10 @@ class CodegenApp:
 
         handler = provider_map[provider]
         return await handler.handle(payload)
-    
+
     async def root(self):
-            """Render the main page."""
-            return """
+        """Render the main page."""
+        return """
             <!DOCTYPE html>
             <html>
                 <head>
@@ -142,17 +138,17 @@ class CodegenApp:
                 </body>
             </html>
             """
-        
+
     async def handle_slack_event(self, request: Request):
-            """Handle incoming Slack events."""
-            payload = await request.json()
-            return await self.slack.handle(payload)
+        """Handle incoming Slack events."""
+        payload = await request.json()
+        return await self.slack.handle(payload)
 
     async def handle_github_event(self, request: Request):
         """Handle incoming GitHub events."""
         payload = await request.json()
         return await self.github.handle(payload, request)
-    
+
     async def handle_linear_event(self, request: Request):
         """Handle incoming Linear events."""
         payload = await request.json()
@@ -176,8 +172,6 @@ class CodegenApp:
         @self.app.post("/{org}/{repo}/linear/events")
         async def handle_linear_event(request: Request):
             return await self.handle_linear_event(request)
-        
-
 
     def run(self, host: str = "0.0.0.0", port: int = 8000, **kwargs):
         """Run the FastAPI application."""
