@@ -257,26 +257,44 @@ Adds an export keyword to a symbol in a TypeScript file.
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
 
 
-### <span className="text-primary">add_import_from_import_string</span>
-Adds import to the file from a string representation of an import statement.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L977-L1001" />
+### <span className="text-primary">add_import</span>
+Adds an import to the file.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L947-L995" />
 
 <ParameterWrapper>
 <Parameter
-    name="import_string"
-    type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">str</code> }
-    description="The string representation of the import statement to add."
+    name="imp"
+    type={ <><a href="/api-reference/typescript/TSSymbol" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSSymbol</a> <span>| str</span></> }
+    description="Either a Symbol to import or a string representation of an import statement."
     defaultValue=""
+/>
+<Parameter
+    name="alias"
+    type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">str | None</code> }
+    description="Optional alias for the imported symbol. Only used when imp is a Symbol. Defaults to None."
+    defaultValue="None"
+/>
+<Parameter
+    name="import_type"
+    type={ <><a href="/api-reference/core/ImportType" style={ {fontWeight: "inherit", fontSize: "inherit"} }>ImportType</a></> }
+    description="The type of import to use. Only used when imp is a Symbol. Defaults to ImportType.UNKNOWN."
+    defaultValue="ImportType.UNKNOWN"
+/>
+<Parameter
+    name="is_type_import"
+    type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">bool</code> }
+    description="Whether this is a type-only import. Only used when imp is a Symbol. Defaults to False."
+    defaultValue="False"
 />
 </ParameterWrapper>
 
 
-<Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
+<Return return_type={ <><a href="/api-reference/typescript/TSImport" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSImport</a> <span>| None</span></> } description="The existing import for the symbol if found, otherwise None."/>
 
 
 ### <span className="text-primary">add_symbol</span>
 Adds `symbol` to the file.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L1024-L1055" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L1018-L1049" />
 
 <ParameterWrapper>
 <Parameter
@@ -299,7 +317,7 @@ Adds `symbol` to the file.
 
 ### <span className="text-primary">add_symbol_from_source</span>
 Adds a symbol to a file from a string representation.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L1004-L1021" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L998-L1015" />
 
 <ParameterWrapper>
 <Parameter
@@ -312,41 +330,6 @@ Adds a symbol to a file from a string representation.
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description="The symbol is added directly to the file's content."/>
-
-
-### <span className="text-primary">add_symbol_import</span>
-Adds an import to a file for a given symbol.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L947-L974" />
-
-<ParameterWrapper>
-<Parameter
-    name="symbol"
-    type={ <><a href="/api-reference/typescript/TSSymbol" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSSymbol</a></> }
-    description="The symbol to import."
-    defaultValue=""
-/>
-<Parameter
-    name="alias"
-    type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">str | None</code> }
-    description="Optional alias for the imported symbol. Defaults to None."
-    defaultValue="None"
-/>
-<Parameter
-    name="import_type"
-    type={ <><a href="/api-reference/core/ImportType" style={ {fontWeight: "inherit", fontSize: "inherit"} }>ImportType</a></> }
-    description="The type of import to use. Defaults to ImportType.UNKNOWN."
-    defaultValue="ImportType.UNKNOWN"
-/>
-<Parameter
-    name="is_type_import"
-    type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">bool</code> }
-    description="Whether this is a type-only import. Defaults to False."
-    defaultValue="False"
-/>
-</ParameterWrapper>
-
-
-<Return return_type={ <><a href="/api-reference/typescript/TSImport" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSImport</a> <span>| None</span></> } description="The existing import for the symbol or None if it was added."/>
 
 
 ### <span className="text-primary">ancestors</span>
@@ -440,7 +423,7 @@ Find and return matching nodes or substrings within an Editable instance.
 
 ### <span className="text-primary">find_by_byte_range</span>
 Finds all editable objects that overlap with the given byte range in the file.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L1151-L1163" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L1145-L1157" />
 
 <ParameterWrapper>
 <Parameter

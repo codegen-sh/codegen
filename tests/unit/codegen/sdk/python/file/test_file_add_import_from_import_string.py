@@ -14,7 +14,7 @@ def foo():
     with get_codebase_session(tmpdir=tmpdir, files={"test.py": content}) as codebase:
         file = codebase.get_file("test.py")
 
-        file.add_import_from_import_string("from sqlalchemy.orm import Session")
+        file.add_import("from sqlalchemy.orm import Session")
 
     file_lines = file.content.split("\n")
     assert "from __future__ import annotations" in file_lines[1]
@@ -33,7 +33,7 @@ def foo():
     with get_codebase_session(tmpdir=tmpdir, files={"test.py": content}) as codebase:
         file = codebase.get_file("test.py")
 
-        file.add_import_from_import_string("from sqlalchemy.orm import Session")
+        file.add_import("from sqlalchemy.orm import Session")
 
     file_lines = file.content.split("\n")
     assert "from __future__ import annotations" in file_lines[1]
@@ -53,7 +53,7 @@ def foo():
     with get_codebase_session(tmpdir=tmpdir, files={"test.py": content}) as codebase:
         file = codebase.get_file("test.py")
 
-        file.add_import_from_import_string("from sqlalchemy.orm import Session")
+        file.add_import("from sqlalchemy.orm import Session")
 
     file_lines = file.content.split("\n")
     assert "from __future__ import annotations" in file_lines[1]
@@ -72,7 +72,7 @@ def foo():
     with get_codebase_session(tmpdir=tmpdir, files={"test.py": content}) as codebase:
         file = codebase.get_file("test.py")
 
-        file.add_import_from_import_string("from __future__ import division")
+        file.add_import("from __future__ import division")
 
     file_lines = file.content.split("\n")
     assert "from __future__ import division" in file_lines[1]
@@ -88,7 +88,7 @@ def foo():
     with get_codebase_session(tmpdir=tmpdir, files={"test.py": content}) as codebase:
         file = codebase.get_file("test.py")
 
-        file.add_import_from_import_string("from sqlalchemy.orm import Session")
+        file.add_import("from sqlalchemy.orm import Session")
 
     file_lines = file.content.split("\n")
     assert "from sqlalchemy.orm import Session" in file_lines[0]
@@ -108,7 +108,7 @@ def foo():
     with get_codebase_session(tmpdir=tmpdir, files={"test.py": content}) as codebase:
         file = codebase.get_file("test.py")
 
-        file.add_import_from_import_string("from sqlalchemy.orm import Session")
+        file.add_import("from sqlalchemy.orm import Session")
 
     file_lines = file.content.split("\n")
     assert "from sqlalchemy.orm import Session" in file_lines
@@ -126,7 +126,7 @@ def foo():
     with get_codebase_session(tmpdir=tmpdir, files={"test.py": content.strip()}, sync_graph=sync) as codebase:
         file = codebase.get_file("test.py")
 
-        file.add_import_from_import_string("import antigravity")
+        file.add_import("import antigravity")
         file.remove()
     if sync:
         assert not codebase.get_file(file.filepath, optional=True)

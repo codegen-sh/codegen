@@ -72,9 +72,8 @@ class RepoOperator:
             os.makedirs(self.repo_path, exist_ok=True)
             GitCLI.init(self.repo_path)
             self._local_git_repo = LocalGitRepo(repo_path=repo_config.repo_path)
-
-            if repo_config.full_name is None:
-                repo_config.full_name = self._local_git_repo.full_name
+            if self.repo_config.full_name is None:
+                self.repo_config.full_name = self._local_git_repo.full_name
 
     ####################################################################################################################
     # PROPERTIES
@@ -458,12 +457,18 @@ class RepoOperator:
         return [diff for diff in self.git_cli.index.diff(ref, R=reverse)]
 
     @stopwatch
-    def stage_and_commit_all_changes(self, message: str, verify: bool = False) -> bool:
+    def stage_and_commit_all_changes(self, message: str, verify: bool = False, exclude_paths: list[str] | None = None) -> bool:
         """TODO: rename to stage_and_commit_changes
         Stage all changes and commit them with the given message.
         Returns True if a commit was made and False otherwise.
         """
         self.git_cli.git.add(A=True)
+        # Unstage the excluded paths
+        for path in exclude_paths or []:
+            try:
+                self.git_cli.git.reset("HEAD", "--", path)
+            except GitCommandError as e:
+                logger.warning(f"Failed to exclude path {path}: {e}")
         return self.commit_changes(message, verify)
 
     def commit_changes(self, message: str, verify: bool = False) -> bool:
@@ -819,7 +824,7 @@ class RepoOperator:
         return op
 
     @classmethod
-    def create_from_commit(cls, repo_path: str, commit: str, url: str, access_token: str | None = None) -> Self:
+    def create_from_commit(cls, repo_path: str, commit: str, url: str, access_token: str | None = None, full_name: str | None = None) -> Self:
         """Do a shallow checkout of a particular commit to get a repository from a given remote URL.
 
         Args:
@@ -828,7 +833,8 @@ class RepoOperator:
             url (str): Git URL of the repository
             access_token (str | None): Optional GitHub API key for operations that need GitHub access
         """
-        op = cls(repo_config=RepoConfig.from_repo_path(repo_path), bot_commit=False, access_token=access_token)
+        op = cls(repo_config=RepoConfig.from_repo_path(repo_path, full_name=full_name), bot_commit=False, access_token=access_token)
+
         op.discard_changes()
         if op.get_active_branch_or_commit() != commit:
             op.create_remote("origin", url)

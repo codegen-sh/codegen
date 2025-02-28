@@ -116,17 +116,17 @@ def organize_file_imports(file):
     # Add imports back in organized groups
     if std_lib_imports:
         for imp in std_lib_imports:
-            file.add_import_from_import_string(imp.source)
+            file.add_import(imp.source)
         file.insert_after_imports("")  # Add newline
         
     if third_party_imports:
         for imp in third_party_imports:
-            file.add_import_from_import_string(imp.source)
+            file.add_import(imp.source)
         file.insert_after_imports("")  # Add newline
         
     if local_imports:
         for imp in local_imports:
-            file.add_import_from_import_string(imp.source)
+            file.add_import(imp.source)
 
 # Organize imports in all files
 for file in codebase.files:

@@ -11,7 +11,7 @@ import {HorizontalDivider} from '/snippets/HorizontalDivider.mdx';
 import {GithubLinkNote} from '/snippets/GithubLinkNote.mdx';
 import {Attribute} from '/snippets/Attribute.mdx';
 
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/python/file.py#L28-L246" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/python/file.py#L29-L276" />
 
 ### Inherits from
 [PyHasBlock](/api-reference/python/PyHasBlock), [SourceFile](/api-reference/core/SourceFile), [HasBlock](/api-reference/core/HasBlock), [Usable](/api-reference/core/Usable), [File](/api-reference/core/File), [Expression](/api-reference/core/Expression), [Importable](/api-reference/core/Importable), [Editable](/api-reference/core/Editable), [HasName](/api-reference/core/HasName)
@@ -188,26 +188,44 @@ Adds a decorator to a function or method.
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">bool</code> } description="True if the decorator was added, False if skipped."/>
 
 
-### <span className="text-primary">add_import_from_import_string</span>
-Adds an import statement to the file from a string representation.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/python/file.py#L149-L169" />
+### <span className="text-primary">add_import</span>
+Adds an import to the file.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/python/file.py#L150-L199" />
 
 <ParameterWrapper>
 <Parameter
-    name="import_string"
-    type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">str</code> }
-    description="The string representation of the import statement to add (e.g., 'from module import symbol')."
+    name="imp"
+    type={ <><a href="/api-reference/python/PySymbol" style={ {fontWeight: "inherit", fontSize: "inherit"} }>PySymbol</a> <span>| str</span></> }
+    description="Either a Symbol to import or a string representation of an import statement."
     defaultValue=""
+/>
+<Parameter
+    name="alias"
+    type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">str | None</code> }
+    description="Optional alias for the imported symbol. Only used when imp is a Symbol. Defaults to None."
+    defaultValue="None"
+/>
+<Parameter
+    name="import_type"
+    type={ <><a href="/api-reference/core/ImportType" style={ {fontWeight: "inherit", fontSize: "inherit"} }>ImportType</a></> }
+    description="The type of import to use. Only used when imp is a Symbol. Defaults to ImportType.UNKNOWN."
+    defaultValue="ImportType.UNKNOWN"
+/>
+<Parameter
+    name="is_type_import"
+    type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">bool</code> }
+    description="Whether this is a type-only import. Only used when imp is a Symbol. Defaults to False."
+    defaultValue="False"
 />
 </ParameterWrapper>
 
 
-<Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description="This function modifies the file in place."/>
+<Return return_type={ <><a href="/api-reference/python/PyImport" style={ {fontWeight: "inherit", fontSize: "inherit"} }>PyImport</a> <span>| None</span></> } description="The existing import for the symbol if found, otherwise None."/>
 
 
 ### <span className="text-primary">add_symbol</span>
 Adds `symbol` to the file.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L1024-L1055" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L1018-L1049" />
 
 <ParameterWrapper>
 <Parameter
@@ -230,7 +248,7 @@ Adds `symbol` to the file.
 
 ### <span className="text-primary">add_symbol_from_source</span>
 Adds a symbol to a file from a string representation.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L1004-L1021" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L998-L1015" />
 
 <ParameterWrapper>
 <Parameter
@@ -243,41 +261,6 @@ Adds a symbol to a file from a string representation.
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description="The symbol is added directly to the file's content."/>
-
-
-### <span className="text-primary">add_symbol_import</span>
-Adds an import to a file for a given symbol.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L947-L974" />
-
-<ParameterWrapper>
-<Parameter
-    name="symbol"
-    type={ <><a href="/api-reference/python/PySymbol" style={ {fontWeight: "inherit", fontSize: "inherit"} }>PySymbol</a></> }
-    description="The symbol to import."
-    defaultValue=""
-/>
-<Parameter
-    name="alias"
-    type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">str | None</code> }
-    description="Optional alias for the imported symbol. Defaults to None."
-    defaultValue="None"
-/>
-<Parameter
-    name="import_type"
-    type={ <><a href="/api-reference/core/ImportType" style={ {fontWeight: "inherit", fontSize: "inherit"} }>ImportType</a></> }
-    description="The type of import to use. Defaults to ImportType.UNKNOWN."
-    defaultValue="ImportType.UNKNOWN"
-/>
-<Parameter
-    name="is_type_import"
-    type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">bool</code> }
-    description="Whether this is a type-only import. Defaults to False."
-    defaultValue="False"
-/>
-</ParameterWrapper>
-
-
-<Return return_type={ <><a href="/api-reference/python/PyImport" style={ {fontWeight: "inherit", fontSize: "inherit"} }>PyImport</a> <span>| None</span></> } description="The existing import for the symbol or None if it was added."/>
 
 
 ### <span className="text-primary">ancestors</span>
@@ -371,7 +354,7 @@ Find and return matching nodes or substrings within an Editable instance.
 
 ### <span className="text-primary">find_by_byte_range</span>
 Finds all editable objects that overlap with the given byte range in the file.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L1151-L1163" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/file.py#L1145-L1157" />
 
 <ParameterWrapper>
 <Parameter
@@ -436,7 +419,7 @@ Returns a specific Class by full name. Returns None if not found.
 
 ### <span className="text-primary">get_extensions</span>
 Returns the file extensions associated with Python files.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/python/file.py#L38-L46" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/python/file.py#L39-L47" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">list[str]</code> } description="A list containing '.py' as the only Python file extension."/>
@@ -495,7 +478,7 @@ Returns the import with matching alias. Returns None if not found.
 
 ### <span className="text-primary">get_import_insert_index</span>
 Determines the index position where a new import statement should be inserted in a Python file.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/python/file.py#L116-L142" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/python/file.py#L117-L143" />
 
 <ParameterWrapper>
 <Parameter
@@ -512,7 +495,7 @@ Determines the index position where a new import statement should be inserted in
 
 ### <span className="text-primary">get_import_string</span>
 Generates an import string for a symbol.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/python/file.py#L85-L113" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/python/file.py#L86-L114" />
 
 <ParameterWrapper>
 <Parameter
@@ -879,7 +862,7 @@ Sets the name of a code element.
 
 ### <span className="text-primary">symbol_can_be_added</span>
 Checks if a Python symbol can be added to this Python source file.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/python/file.py#L48-L59" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/python/file.py#L49-L60" />
 
 <ParameterWrapper>
 <Parameter

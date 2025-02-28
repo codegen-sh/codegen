@@ -1,6 +1,6 @@
 from codegen import Codebase, ProgrammingLanguage
 from typing import List, Dict, Any
-from codegen.sdk.codebase.config import CodebaseConfig
+from codegen.configs.models.codebase import CodebaseConfig
 from data import LinearLabels, LinearIssueUpdateEvent
 import os
 import logging

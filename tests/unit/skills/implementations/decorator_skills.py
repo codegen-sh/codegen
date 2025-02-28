@@ -54,7 +54,7 @@ class AddDecoratorToFunction(Skill, ABC):
             # if the file does not have the decorator symbol and the decorator symbol is not in the same file
             if not file.has_import(decorator_symbol.name) and decorator_symbol.file != file:
                 # import the decorator symbol
-                file.add_symbol_import(decorator_symbol)
+                file.add_import(decorator_symbol)
 
             # iterate through each function in the file
             for function in file.functions:

@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from codegen.sdk.core.autocommit import reader, writer
 from codegen.sdk.core.file import SourceFile
 from codegen.sdk.core.interface import Interface
+from codegen.sdk.core.symbol import Symbol
 from codegen.sdk.enums import ImportType
 from codegen.sdk.extensions.utils import cached_property
 from codegen.sdk.python import PyAssignment
@@ -20,7 +21,7 @@ from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 if TYPE_CHECKING:
     from codegen.sdk.codebase.codebase_context import CodebaseContext
-    from codegen.sdk.core.import_resolution import WildcardImport
+    from codegen.sdk.core.import_resolution import Import, WildcardImport
     from codegen.sdk.python.symbol import PySymbol
 
 
@@ -119,7 +120,7 @@ class PyFile(SourceFile[PyImport, PyFunction, PyClass, PyAssignment, Interface[P
         The function determines the optimal position for inserting a new import statement, following Python's import ordering conventions.
         Future imports are placed at the top of the file, followed by all other imports.
 
-        Args:
+        Args:z
             import_string (str): The import statement to be inserted.
 
         Returns:
@@ -146,27 +147,56 @@ class PyFile(SourceFile[PyImport, PyFunction, PyClass, PyAssignment, Interface[P
     ####################################################################################################################
 
     @writer
-    def add_import_from_import_string(self, import_string: str) -> None:
-        """Adds an import statement to the file from a string representation.
+    def add_import(self, imp: Symbol | str, *, alias: str | None = None, import_type: ImportType = ImportType.UNKNOWN, is_type_import: bool = False) -> Import | None:
+        """Adds an import to the file.
 
-        This method adds a new import statement to the file, handling placement based on existing imports.
-        Future imports are placed at the top of the file, followed by regular imports.
+        This method adds an import statement to the file. It can handle both string imports and symbol imports.
+        If the import already exists in the file, or is pending to be added, it won't be added again.
+        Future imports are placed at the top, followed by regular imports.
 
         Args:
-            import_string (str): The string representation of the import statement to add (e.g., 'from module import symbol').
+            imp (Symbol | str): Either a Symbol to import or a string representation of an import statement.
+            alias (str | None): Optional alias for the imported symbol. Only used when imp is a Symbol. Defaults to None.
+            import_type (ImportType): The type of import to use. Only used when imp is a Symbol. Defaults to ImportType.UNKNOWN.
+            is_type_import (bool): Whether this is a type-only import. Only used when imp is a Symbol. Defaults to False.
 
         Returns:
-            None: This function modifies the file in place.
+            Import | None: The existing import for the symbol if found, otherwise None.
         """
+        # Handle Symbol imports
+        if isinstance(imp, Symbol):
+            imports = self.imports
+            match = next((x for x in imports if x.imported_symbol == imp), None)
+            if match:
+                return match
+
+            # Convert symbol to import string
+            import_string = imp.get_import_string(alias, import_type=import_type, is_type_import=is_type_import)
+        else:
+            # Handle string imports
+            import_string = str(imp)
+
+        # Check for duplicate imports
+        if any(import_string.strip() in str(imp.source) for imp in self.imports):
+            return None
+        if import_string.strip() in self._pending_imports:
+            return None
+
+        # Add to pending imports
+        self._pending_imports.add(import_string.strip())
+        self.transaction_manager.pending_undos.add(lambda: self._pending_imports.clear())
+
+        # Insert at correct location
         if self.imports:
             import_insert_index = self.get_import_insert_index(import_string) or 0
             if import_insert_index < len(self.imports):
                 self.imports[import_insert_index].insert_before(import_string, priority=1)
             else:
-                # If import_insert_index is out of bounds, do insert after the last import
                 self.imports[-1].insert_after(import_string, priority=1)
         else:
             self.insert_before(import_string, priority=1)
+
+        return None
 
     @noapidoc
     def remove_unused_exports(self) -> None:

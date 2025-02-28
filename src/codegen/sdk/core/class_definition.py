@@ -378,9 +378,9 @@ class Class(Inherits[TType], HasBlock[TCodeBlock, TDecorator], Callable[TParamet
             file = self.file
             for d in deps:
                 if isinstance(d, Import):
-                    file.add_symbol_import(d.imported_symbol)
+                    file.add_import(d.imported_symbol)
                 elif isinstance(d, Symbol):
-                    file.add_symbol_import(d)
+                    file.add_import(d)
 
     @property
     @noapidoc

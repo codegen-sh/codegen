@@ -1,9 +1,9 @@
 import logging
-import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from codegen.configs.models.codebase import DefaultCodebaseConfig
 from codegen.git.configs.constants import CODEGEN_BOT_EMAIL, CODEGEN_BOT_NAME
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.enums import SetupOption
@@ -47,11 +47,12 @@ async def lifespan(server: FastAPI):
         runner.op.git_cli.git.config("user.email", CODEGEN_BOT_EMAIL)
         runner.op.git_cli.git.config("user.name", CODEGEN_BOT_NAME)
 
-        # Parse the codebase
+        # Parse the codebase with sync enabled
         logger.info(f"Starting up fastapi server for repo_name={repo_config.name}")
         server_info.warmup_state = WarmupState.PENDING
-        await runner.warmup()
-        server_info.synced_commit = runner.commit.hexsha
+        codebase_config = DefaultCodebaseConfig.model_copy(update={"sync_enabled": True})
+        await runner.warmup(codebase_config=codebase_config)
+        server_info.synced_commit = runner.op.head_commit.hexsha
         server_info.warmup_state = WarmupState.COMPLETED
 
     except Exception:
@@ -73,27 +74,24 @@ def health() -> ServerInfo:
 
 @app.post(RUN_FUNCTION_ENDPOINT)
 async def run(request: RunFunctionRequest) -> CodemodRunResult:
-    # TODO: Sync graph to whatever changes are in the repo currently
-
-    # Run the request
+    _save_uncommitted_changes_and_sync()
     diff_req = GetDiffRequest(codemod=Codemod(user_code=request.codemod_source))
     diff_response = await runner.get_diff(request=diff_req)
     if request.commit:
-        if _should_skip_commit(request.function_name):
-            logger.info(f"Skipping commit because only changes to {request.function_name} were made")
-        elif commit_sha := runner.codebase.git_commit(f"[Codegen] {request.function_name}"):
+        if commit_sha := runner.codebase.git_commit(f"[Codegen] {request.function_name}", exclude_paths=[".codegen/*"]):
             logger.info(f"Committed changes to {commit_sha.hexsha}")
     return diff_response.result
 
 
-def _should_skip_commit(function_name: str) -> bool:
-    changed_files = runner.op.get_modified_files(runner.commit)
-    if len(changed_files) != 1:
-        return False
+def _save_uncommitted_changes_and_sync() -> None:
+    if commit := runner.codebase.git_commit("[Codegen] Save uncommitted changes", exclude_paths=[".codegen/*"]):
+        logger.info(f"Saved uncommitted changes to {commit.hexsha}")
 
-    file_path = changed_files[0]
-    if not file_path.startswith(".codegen/codemods/"):
-        return False
+    cur_commit = runner.op.head_commit
+    if cur_commit != runner.codebase.ctx.synced_commit:
+        logger.info(f"Syncing codebase to head commit: {cur_commit.hexsha}")
+        runner.codebase.sync_to_commit(target_commit=cur_commit)
+    else:
+        logger.info("Codebase is already synced to head commit")
 
-    changed_file_name = os.path.splitext(os.path.basename(file_path))[0]
-    return changed_file_name == function_name.replace("-", "_")
+    server_info.synced_commit = cur_commit.hexsha

@@ -25,6 +25,6 @@ def test_file_add_symbol_import_updates_source(tmpdir) -> None:
         file1 = codebase.get_file(FILE1_FILENAME)
         file2 = codebase.get_file(FILE2_FILENAME)
 
-        file2.add_symbol_import(file1.get_symbol("foo"))
+        file2.add_import(file1.get_symbol("foo"))
 
     assert "import { foo } from 'file1';" in file2.content

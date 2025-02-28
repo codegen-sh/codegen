@@ -51,7 +51,7 @@ def ensure_and_import(file):
     """Ensure the file has the necessary and_ import."""
     if not any("and_" in imp.name for imp in file.imports):
         print(f"File {file.filepath} does not import and_. Adding import.")
-        file.add_import_from_import_string("from sqlalchemy import and_")
+        file.add_import("from sqlalchemy import and_")
 
 
 def clone_repo(repo_url: str, repo_path: Path) -> None:

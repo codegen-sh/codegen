@@ -104,8 +104,6 @@ def find_import_node(node: TSNode) -> TSNode | None:
 
     # we only parse imports inside expressions and variable declarations
 
-    # import_nodes = [_node for _node in find_all_descendants(node, ["call_expression", "statement_block"], nested=False) if _node.type == "call_expression"]
-
     if member_expression := find_first_descendant(node, ["member_expression"]):
         # there may be multiple call expressions (for cases such as import(a).then(module => module).then(module => module)
         descendants = find_all_descendants(member_expression, ["call_expression"], stop_at_first="statement_block")

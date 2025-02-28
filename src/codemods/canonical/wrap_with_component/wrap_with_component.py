@@ -48,4 +48,4 @@ class WrapWithComponentCodemod(Codemod, Skill):
                             element.edit(f"<Alert>{element.source}</Alert>")
 
                             # Add an import for the Alert component
-                            file.add_symbol_import(alert)
+                            file.add_import(alert)

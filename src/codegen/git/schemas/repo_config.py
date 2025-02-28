@@ -36,10 +36,10 @@ class RepoConfig(BaseModel):
         )
 
     @classmethod
-    def from_repo_path(cls, repo_path: str) -> "RepoConfig":
+    def from_repo_path(cls, repo_path: str, full_name: str | None = None) -> "RepoConfig":
         name = os.path.basename(repo_path)
         base_dir = os.path.dirname(repo_path)
-        return cls(name=name, base_dir=base_dir)
+        return cls(name=name, base_dir=base_dir, full_name=full_name)
 
     @property
     def repo_path(self) -> Path:
