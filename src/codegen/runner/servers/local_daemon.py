@@ -91,7 +91,7 @@ def _save_uncommitted_changes_and_sync() -> None:
     cur_commit = runner.op.head_commit
     if cur_commit != runner.codebase.ctx.synced_commit:
         logger.info(f"Syncing codebase to head commit: {cur_commit.hexsha}")
-        runner.codebase.sync_to_commit(commit=cur_commit)
+        runner.codebase.sync_to_commit(target_commit=cur_commit)
     else:
         logger.info("Codebase is already synced to head commit")
 
