@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from codegen.configs.models.codebase import DefaultCodebaseConfig
 from codegen.git.configs.constants import CODEGEN_BOT_EMAIL, CODEGEN_BOT_NAME
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.enums import SetupOption
@@ -46,10 +47,11 @@ async def lifespan(server: FastAPI):
         runner.op.git_cli.git.config("user.email", CODEGEN_BOT_EMAIL)
         runner.op.git_cli.git.config("user.name", CODEGEN_BOT_NAME)
 
-        # Parse the codebase
+        # Parse the codebase with sync enabled
         logger.info(f"Starting up fastapi server for repo_name={repo_config.name}")
         server_info.warmup_state = WarmupState.PENDING
-        await runner.warmup()
+        codebase_config = DefaultCodebaseConfig.model_copy(update={"sync_enabled": True})
+        await runner.warmup(codebase_config=codebase_config)
         server_info.synced_commit = runner.op.head_commit.hexsha
         server_info.warmup_state = WarmupState.COMPLETED
 
