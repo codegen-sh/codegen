@@ -51,7 +51,7 @@ async def lifespan(server: FastAPI):
         logger.info(f"Starting up fastapi server for repo_name={repo_config.name}")
         server_info.warmup_state = WarmupState.PENDING
         await runner.warmup()
-        server_info.synced_commit = runner.commit.hexsha
+        server_info.synced_commit = runner.op.head_commit.hexsha
         server_info.warmup_state = WarmupState.COMPLETED
 
     except Exception:
@@ -73,9 +73,7 @@ def health() -> ServerInfo:
 
 @app.post(RUN_FUNCTION_ENDPOINT)
 async def run(request: RunFunctionRequest) -> CodemodRunResult:
-    # TODO: Sync graph to whatever changes are in the repo currently
-
-    # Run the request
+    _save_uncommitted_changes_and_sync()
     diff_req = GetDiffRequest(codemod=Codemod(user_code=request.codemod_source))
     diff_response = await runner.get_diff(request=diff_req)
     if request.commit:
@@ -86,8 +84,22 @@ async def run(request: RunFunctionRequest) -> CodemodRunResult:
     return diff_response.result
 
 
+def _save_uncommitted_changes_and_sync() -> None:
+    if commit := runner.codebase.git_commit("[Codegen] Save uncommitted changes"):
+        logger.info(f"Saved uncommitted changes to {commit.hexsha}")
+
+    cur_commit = runner.op.head_commit
+    if cur_commit != runner.codebase.ctx.synced_commit:
+        logger.info(f"Syncing codebase to head commit: {cur_commit.hexsha}")
+        runner.codebase.sync_to_commit(commit=cur_commit)
+    else:
+        logger.info("Codebase is already synced to head commit")
+
+    server_info.synced_commit = cur_commit.hexsha
+
+
 def _should_skip_commit(function_name: str) -> bool:
-    changed_files = runner.op.get_modified_files(runner.commit)
+    changed_files = runner.op.get_modified_files(runner.codebase.ctx.synced_commit)
     if len(changed_files) != 1:
         return False
 
