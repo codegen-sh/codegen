@@ -45,7 +45,7 @@ Write code that transforms code. Codegen combines the parsing power of [Tree-sit
 
 We support
 
-- Running Codegen in Python 3.12 – 3.13 (recommended: Python 3.13)
+- Running Codegen in Python 3.12 - 3.13 (recommended: Python 3.13+)
 - macOS and Linux
   - macOS is supported
   - Linux is supported on x86_64 and aarch64 with glibc 2.34+
@@ -57,7 +57,7 @@ We support
 uv pip install codegen
 
 # Install global CLI
-uv tool install codegen
+uv tool install codegen --python 3.13
 
 # Create a codemod for a given repo
 cd path/to/repo
