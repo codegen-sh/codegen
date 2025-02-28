@@ -19,7 +19,7 @@ runs:
       - name: Upload coverage reports to Codecov
         if: (success() || failure()) # always upload coverage reports even if the tests fail
         continue-on-error: true
-        uses: codecov/codecov-action@v5.3.1
+        uses: codecov/codecov-action@v5.4.0
         with:
           token: ${{ inputs.codecov_token }}
           files: coverage.xml

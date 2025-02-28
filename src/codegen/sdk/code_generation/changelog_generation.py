@@ -1,5 +1,4 @@
 import json
-import logging
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -11,8 +10,9 @@ from semantic_release.cli.cli_context import CliContextObj
 from semantic_release.cli.config import GlobalCommandLineOptions
 
 import codegen
+from codegen.shared.logging.get_logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 SYSTEM_PROMPT = """
 ## Role

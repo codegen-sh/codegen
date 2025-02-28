@@ -1,4 +1,3 @@
-import logging
 from collections.abc import Iterable, Iterator
 from typing import Callable, Generic, Literal
 
@@ -18,8 +17,9 @@ from codegen.sdk.core.interfaces.has_symbols import (
 )
 from codegen.sdk.core.utils.cache_utils import cached_generator
 from codegen.shared.decorators.docs import apidoc, noapidoc
+from codegen.shared.logging.get_logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @apidoc

@@ -1,4 +1,3 @@
-import logging
 import sys
 
 from git import Commit as GitCommit
@@ -12,8 +11,9 @@ from codegen.sdk.codebase.config import ProjectConfig, SessionOptions
 from codegen.sdk.codebase.factory.codebase_factory import CodebaseType
 from codegen.sdk.core.codebase import Codebase
 from codegen.shared.compilation.string_to_code import create_execute_function_from_codeblock
+from codegen.shared.logging.get_logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class SandboxRunner:
@@ -28,9 +28,9 @@ class SandboxRunner:
     codebase: CodebaseType
     executor: SandboxExecutor
 
-    def __init__(self, repo_config: RepoConfig) -> None:
+    def __init__(self, repo_config: RepoConfig, op: RepoOperator | None = None) -> None:
         self.repo = repo_config
-        self.op = RepoOperator(repo_config=self.repo, setup_option=SetupOption.PULL_OR_CLONE, bot_commit=True)
+        self.op = op or RepoOperator(repo_config=self.repo, setup_option=SetupOption.PULL_OR_CLONE, bot_commit=True)
         self.commit = self.op.git_cli.head.commit
 
     async def warmup(self) -> None:

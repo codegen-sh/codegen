@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 import re
 import shutil
@@ -16,8 +15,9 @@ from codegen.sdk.code_generation.changelog_generation import generate_changelog
 from codegen.sdk.code_generation.codegen_sdk_codebase import get_codegen_sdk_codebase
 from codegen.sdk.code_generation.doc_utils.generate_docs_json import generate_docs_json
 from codegen.sdk.code_generation.mdx_docs_generation import render_mdx_page_for_class
+from codegen.shared.logging.get_logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 AUTO_GENERATED_COMMENT = "THE CODE BELOW IS AUTO GENERATED. UPDATE THE SNIPPET BY UPDATING THE SKILL"
 CODE_SNIPPETS_REGEX = r"(?:```python\n(?:(?!```)[\s\S])*?\n```|<CodeGroup>(?:(?!</CodeGroup>)[\s\S])*?</CodeGroup>)"

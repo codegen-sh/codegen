@@ -5,6 +5,8 @@ import importlib.util
 from dataclasses import dataclass
 from pathlib import Path
 
+from codegen.shared.enums.programming_language import ProgrammingLanguage
+
 
 @dataclass
 class DecoratedFunction:
@@ -15,6 +17,7 @@ class DecoratedFunction:
     lint_mode: bool
     lint_user_whitelist: list[str]
     subdirectories: list[str] | None = None
+    language: ProgrammingLanguage | None = None
     filepath: Path | None = None
     parameters: list[tuple[str, str | None]] = dataclasses.field(default_factory=list)
     arguments_type_schema: dict | None = None
@@ -96,6 +99,14 @@ class CodegenFunctionVisitor(ast.NodeVisitor):
             return ast.literal_eval(keywords["subdirectories"])
         if len(node.args) > 1:
             return ast.literal_eval(node.args[1])
+        return None
+
+    def get_language(self, node: ast.Call) -> ProgrammingLanguage | None:
+        keywords = {k.arg: k.value for k in node.keywords}
+        if "language" in keywords:
+            return ProgrammingLanguage(keywords["language"].attr)
+        if len(node.args) > 2:
+            return ast.literal_eval(node.args[2])
         return None
 
     def get_function_body(self, node: ast.FunctionDef) -> str:
@@ -202,10 +213,6 @@ class CodegenFunctionVisitor(ast.NodeVisitor):
                     (isinstance(decorator.func, ast.Attribute) and isinstance(decorator.func.value, ast.Attribute) and self._has_codegen_root(decorator.func.value))
                 )
             ):
-                # Get the function name from the decorator argument
-                func_name = self.get_function_name(decorator)
-                subdirectories = self.get_subdirectories(decorator)
-
                 # Get additional metadata for webhook
                 lint_mode = decorator.func.attr == "webhook"
                 lint_user_whitelist = []
@@ -214,17 +221,15 @@ class CodegenFunctionVisitor(ast.NodeVisitor):
                         if keyword.arg == "users" and isinstance(keyword.value, ast.List):
                             lint_user_whitelist = [ast.literal_eval(elt).lstrip("@") for elt in keyword.value.elts]
 
-                # Get just the function body, unindented
-                body_source = self.get_function_body(node)
-                parameters = self.get_function_parameters(node)
                 self.functions.append(
                     DecoratedFunction(
-                        name=func_name,
-                        subdirectories=subdirectories,
-                        source=body_source,
+                        name=self.get_function_name(decorator),
+                        subdirectories=self.get_subdirectories(decorator),
+                        language=self.get_language(decorator),
+                        source=self.get_function_body(node),
                         lint_mode=lint_mode,
                         lint_user_whitelist=lint_user_whitelist,
-                        parameters=parameters,
+                        parameters=self.get_function_parameters(node),
                     )
                 )
 

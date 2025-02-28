@@ -46,7 +46,7 @@ def run_daemon(session: CodegenSession, function, diff_preview: int | None = Non
                     limited_diff = "\n".join(diff_lines[:diff_preview])
 
                     if truncated:
-                        limited_diff += "\n\n...\n\n[yellow]diff truncated to {diff_preview} lines, view the full change set on your local file system after using run with `--apply-local`[/yellow]"
+                        limited_diff += f"\n\n...\n\n[yellow]diff truncated to {diff_preview} lines[/yellow]"
 
                     panel = Panel(limited_diff, title="[bold]Diff Preview[/bold]", border_style="blue", padding=(1, 2), expand=False)
                     rich.print(panel)

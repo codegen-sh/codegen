@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 class CodeAgent:
     """Agent for interacting with a codebase."""
 
-    def __init__(self, codebase: "Codebase", model_provider: str = "anthropic", model_name: str = "claude-3-5-sonnet-latest", memory: bool = True, tools: Optional[list[BaseTool]] = None, **kwargs):
+    def __init__(self, codebase: "Codebase", model_provider: str = "anthropic", model_name: str = "claude-3-7-sonnet-latest", memory: bool = True, tools: Optional[list[BaseTool]] = None, **kwargs):
         """Initialize a CodeAgent.
 
         Args:
@@ -49,7 +49,7 @@ class CodeAgent:
         input = {"messages": [("user", prompt)]}
 
         # we stream the steps instead of invoke because it allows us to access intermediate nodes
-        stream = self.agent.stream(input, config={"configurable": {"thread_id": thread_id}}, stream_mode="values")
+        stream = self.agent.stream(input, config={"configurable": {"thread_id": thread_id}, "recursion_limit": 100}, stream_mode="values")
 
         for s in stream:
             message = s["messages"][-1]

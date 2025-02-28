@@ -1,8 +1,7 @@
-import logging
-
 from codegen.sdk.codebase.factory.codebase_factory import CodebaseType
+from codegen.shared.logging.get_logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class SandboxRepo:

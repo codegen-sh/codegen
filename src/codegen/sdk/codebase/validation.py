@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import functools
-import logging
 import socket
 from collections import Counter, defaultdict
 from enum import StrEnum
@@ -11,8 +10,9 @@ from tabulate import tabulate
 
 from codegen.sdk.enums import NodeType
 from codegen.sdk.utils import truncate_line
+from codegen.shared.logging.get_logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 if TYPE_CHECKING:
     from rustworkx import PyDiGraph

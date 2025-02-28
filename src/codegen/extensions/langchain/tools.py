@@ -16,6 +16,7 @@ from codegen.extensions.tools.linear.linear import (
     linear_search_issues_tool,
 )
 from codegen.extensions.tools.link_annotation import add_links_to_message
+from codegen.extensions.tools.reflection import perform_reflection
 from codegen.extensions.tools.relace_edit import relace_edit
 from codegen.extensions.tools.replacement_edit import replacement_edit
 from codegen.extensions.tools.reveal_symbol import reveal_symbol
@@ -113,7 +114,8 @@ class SearchInput(BaseModel):
 
     query: str = Field(
         ...,
-        description="The search query to find in the codebase. When ripgrep is available, this will be passed as a ripgrep pattern. For regex searches, set use_regex=True. Ripgrep is the preferred method.",
+        description="The search query to find in the codebase. When ripgrep is available, this will be passed as a ripgrep pattern. "
+        "For regex searches, set use_regex=True. Ripgrep is the preferred method.",
     )
     target_directories: Optional[list[str]] = Field(default=None, description="Optional list of directories to search in")
     file_extensions: Optional[list[str]] = Field(default=None, description="Optional list of file extensions to search (e.g. ['.py', '.ts'])")
@@ -742,6 +744,7 @@ def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
         SemanticSearchTool(codebase),
         ViewFileTool(codebase),
         RelaceEditTool(codebase),
+        ReflectionTool(codebase),
         # Github
         GithubCreatePRTool(codebase),
         GithubCreatePRCommentTool(codebase),
@@ -841,4 +844,40 @@ class RelaceEditTool(BaseTool):
 
     def _run(self, filepath: str, edit_snippet: str) -> str:
         result = relace_edit(self.codebase, filepath, edit_snippet)
+        return result.render()
+
+
+class ReflectionInput(BaseModel):
+    """Input for agent reflection."""
+
+    context_summary: str = Field(..., description="Summary of the current context and problem being solved")
+    findings_so_far: str = Field(..., description="Key information and insights gathered so far")
+    current_challenges: str = Field(default="", description="Current obstacles or questions that need to be addressed")
+    reflection_focus: Optional[str] = Field(default=None, description="Optional specific aspect to focus reflection on (e.g., 'architecture', 'performance', 'next steps')")
+
+
+class ReflectionTool(BaseTool):
+    """Tool for agent self-reflection and planning."""
+
+    name: ClassVar[str] = "reflect"
+    description: ClassVar[str] = """
+    Reflect on current understanding and plan next steps.
+    This tool helps organize thoughts, identify knowledge gaps, and create a strategic plan.
+    Use this when you need to consolidate information or when facing complex decisions.
+    """
+    args_schema: ClassVar[type[BaseModel]] = ReflectionInput
+    codebase: Codebase = Field(exclude=True)
+
+    def __init__(self, codebase: Codebase) -> None:
+        super().__init__(codebase=codebase)
+
+    def _run(
+        self,
+        context_summary: str,
+        findings_so_far: str,
+        current_challenges: str = "",
+        reflection_focus: Optional[str] = None,
+    ) -> str:
+        result = perform_reflection(context_summary=context_summary, findings_so_far=findings_so_far, current_challenges=current_challenges, reflection_focus=reflection_focus, codebase=self.codebase)
+
         return result.render()

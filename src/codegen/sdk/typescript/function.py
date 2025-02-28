@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from functools import cached_property
 from typing import TYPE_CHECKING
 
@@ -17,6 +16,7 @@ from codegen.sdk.typescript.placeholder.placeholder_return_type import TSReturnT
 from codegen.sdk.typescript.symbol import TSSymbol
 from codegen.sdk.utils import find_all_descendants
 from codegen.shared.decorators.docs import noapidoc, ts_apidoc
+from codegen.shared.logging.get_logger import get_logger
 
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
     from codegen.sdk.typescript.detached_symbols.code_block import TSCodeBlock
     from codegen.sdk.typescript.detached_symbols.promise_chain import TSPromiseChain
 _VALID_TYPE_NAMES = {function_type.value for function_type in TSFunctionTypeNames}
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @ts_apidoc

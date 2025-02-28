@@ -1,4 +1,3 @@
-import logging
 from typing import TYPE_CHECKING, Self, TypeVar, override
 
 from tree_sitter import Node as TSNode
@@ -12,6 +11,7 @@ from codegen.sdk.core.node_id_factory import NodeId
 from codegen.sdk.core.symbol_groups.dict import Dict, Pair
 from codegen.sdk.extensions.autocommit import reader
 from codegen.shared.decorators.docs import apidoc, noapidoc, ts_apidoc
+from codegen.shared.logging.get_logger import get_logger
 
 if TYPE_CHECKING:
     from codegen.sdk.codebase.codebase_context import CodebaseContext
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 Parent = TypeVar("Parent", bound="Editable")
 TExpression = TypeVar("TExpression", bound=Expression)
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @ts_apidoc
