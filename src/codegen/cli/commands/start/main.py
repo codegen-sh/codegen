@@ -132,6 +132,7 @@ def _run_docker_container(repo_config: RepoConfig, port: int, detached: bool) ->
         "REPOSITORY_PATH": container_repo_path,
         "GITHUB_TOKEN": SecretsConfig().github_token,
         "PYTHONUNBUFFERED": "1",  # Ensure Python output is unbuffered
+        "CODEBASE_SYNC_ENABLED": "True",
     }
     envvars_args = [arg for k, v in envvars.items() for arg in ("--env", f"{k}={v}")]
     mount_args = ["-v", f"{repo_config.repo_path}:{container_repo_path}"]

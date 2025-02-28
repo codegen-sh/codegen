@@ -1,5 +1,4 @@
 import logging
-import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -77,15 +76,13 @@ async def run(request: RunFunctionRequest) -> CodemodRunResult:
     diff_req = GetDiffRequest(codemod=Codemod(user_code=request.codemod_source))
     diff_response = await runner.get_diff(request=diff_req)
     if request.commit:
-        if _should_skip_commit(request.function_name):
-            logger.info(f"Skipping commit because only changes to {request.function_name} were made")
-        elif commit_sha := runner.codebase.git_commit(f"[Codegen] {request.function_name}"):
+        if commit_sha := runner.codebase.git_commit(f"[Codegen] {request.function_name}", exclude_paths=[".codegen/*"]):
             logger.info(f"Committed changes to {commit_sha.hexsha}")
     return diff_response.result
 
 
 def _save_uncommitted_changes_and_sync() -> None:
-    if commit := runner.codebase.git_commit("[Codegen] Save uncommitted changes"):
+    if commit := runner.codebase.git_commit("[Codegen] Save uncommitted changes", exclude_paths=[".codegen/*"]):
         logger.info(f"Saved uncommitted changes to {commit.hexsha}")
 
     cur_commit = runner.op.head_commit
@@ -96,16 +93,3 @@ def _save_uncommitted_changes_and_sync() -> None:
         logger.info("Codebase is already synced to head commit")
 
     server_info.synced_commit = cur_commit.hexsha
-
-
-def _should_skip_commit(function_name: str) -> bool:
-    changed_files = runner.op.get_modified_files(runner.codebase.ctx.synced_commit)
-    if len(changed_files) != 1:
-        return False
-
-    file_path = changed_files[0]
-    if not file_path.startswith(".codegen/codemods/"):
-        return False
-
-    changed_file_name = os.path.splitext(os.path.basename(file_path))[0]
-    return changed_file_name == function_name.replace("-", "_")

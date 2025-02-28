@@ -734,7 +734,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
     # State/Git
     ####################################################################################################################
 
-    def git_commit(self, message: str, *, verify: bool = False) -> GitCommit | None:
+    def git_commit(self, message: str, *, verify: bool = False, exclude_paths: list[str] | None = None) -> GitCommit | None:
         """Stages + commits all changes to the codebase and git.
 
         Args:
@@ -745,7 +745,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             GitCommit | None: The commit object if changes were committed, None otherwise.
         """
         self.ctx.commit_transactions(sync_graph=False)
-        if self._op.stage_and_commit_all_changes(message, verify):
+        if self._op.stage_and_commit_all_changes(message, verify, exclude_paths):
             logger.info(f"Commited repository to {self._op.head_commit} on {self._op.get_active_branch_or_commit()}")
             return self._op.head_commit
         else:
