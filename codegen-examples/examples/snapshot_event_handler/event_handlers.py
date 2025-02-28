@@ -1,6 +1,6 @@
 from typing import Literal
 from dotenv import load_dotenv
-from fastapi import Depends, FastAPI, Request
+from fastapi import FastAPI, Request
 
 from codegen.extensions.github.types.pull_request import PullRequestLabeledEvent
 load_dotenv(".env")
@@ -11,9 +11,8 @@ from codegen.agents.code_agent import CodeAgent
 from codegen.extensions.events.codegen_app import CodegenApp
 from codegen.extensions.linear.types import LinearEvent
 from codegen.extensions.slack.types import SlackEvent
-from codegen.git.clients.git_repo_client import GitRepoClient
-from codegen.git.schemas.repo_config import RepoConfig
-from lib import CodebaseEventsApp, EventRouterAPI
+
+from codegen.extensions.events.modal.base import CodebaseEventsApp, EventRouterMixin
 from pr_tasks import lint_for_dev_import_violations, review_with_codegen_agent
 from classy_fastapi import Routable, post
 
@@ -26,7 +25,7 @@ SNAPSHOT_DICT_ID = "codegen-events-codebase-snapshots"
 
 
 REPO_URL = "https://github.com/codegen-sh/codegen-sdk.git"
-COMMIT_ID = "5d8d18eac60ac926d312d1d205c584d9012d078f"
+COMMIT_ID = "f398107d31bbd53fc77bc9c5f8763d2dc8fcae5b"
 
 # Create the base image with dependencies
 base_image = (
@@ -55,7 +54,8 @@ class CustomEventHandlersAPI(CodebaseEventsApp):
     commit: str = modal.parameter(default="79114f67ccfe8700416cd541d1c7c43659a95342") 
     repo_org: str = modal.parameter(default="codegen-sh")
     repo_name: str = modal.parameter(default="Kevin-s-Adventure-Game")
-
+    snapshot_index_id: str = SNAPSHOT_DICT_ID
+    
     def setup_handlers(self, cg: CodegenApp):
         @cg.slack.event("app_mention")
         async def handle_mention(event: SlackEvent):
@@ -112,10 +112,10 @@ class CustomEventHandlersAPI(CodebaseEventsApp):
 
 
 @codegen_events_app.cls(image=base_image, secrets=[modal.Secret.from_dotenv('.env')])
-class WebhookEventRouterAPI(EventRouterAPI, Routable):
+class WebhookEventRouterAPI(EventRouterMixin, Routable):
 
-    def __init__(self):
-        super().__init__()
+    snapshot_index_id: str = SNAPSHOT_DICT_ID
+    
 
     def get_event_handler_cls(self):
         modal_cls = modal.Cls.from_name(app_name="Events", name="CustomEventHandlersAPI")
@@ -123,6 +123,7 @@ class WebhookEventRouterAPI(EventRouterAPI, Routable):
     
     @post("/{org}/{repo}/{provider}/events")
     async def handle_event(self, org: str, repo: str, provider: Literal["slack", "github", "linear"], request: Request):
+        # Define the route for the webhook url sink, it will need to indicate the repo repo org, and the provider
         return await super().handle_event(org, repo, provider, request)
 
     @modal.asgi_app()
@@ -134,11 +135,10 @@ class WebhookEventRouterAPI(EventRouterAPI, Routable):
         return event_api
     
 
+# Setup a cron job to trigger updates to the codebase snapshots. 
 @codegen_events_app.function(schedule=modal.Cron("*/10 * * * *"), image=base_image, secrets=[modal.Secret.from_dotenv(".env")])
 def refresh_repository_snapshots():
     WebhookEventRouterAPI().refresh_repository_snapshots(snapshot_index_id=SNAPSHOT_DICT_ID)
-
-
 
 
 app = modal.App("Events", secrets=[modal.Secret.from_dotenv('.env')])
