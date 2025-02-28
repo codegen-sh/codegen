@@ -30,5 +30,6 @@
   --dataset [lite|full|verified]  The dataset to use.
   --length INTEGER                The number of examples to process.
   --instance-id TEXT              The instance ID of the example to process.
+  --repo TEXT                     The repo to use.
   --help                          Show this message and exit.
   ```
