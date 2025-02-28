@@ -29,17 +29,35 @@ codebase.commit()
 
 
 <Note>
-Codegen handles complex refactors while maintaining correctness, enabling a broad set of advanced code manipulation programs. 
+Codegen handles complex refactors while maintaining correctness, enabling a broad set of advanced code manipulation programs.
 </Note>
 
 <Tip>Codegen works with both Python and Typescript/JSX codebases. Learn more about language support [here](/building-with-codegen/language-support).</Tip>
 
-## Installation
-<Warning>Codegen requires Python 3.13</Warning>
+## Quick Started
+
+<Note>
+Codegen requires Python 3.12 - 3.13 (recommended: Python 3.13+).
+</Note>
+
+### Using UV (Recommended)
+```bash
+uv tool install codegen --python 3.13
+```
+
+### Using Pipx
+
+<Warning>
+Pipx is not officially supported by Codegen, but it should still work.
+</Warning>
 
 ```bash
-pip install codegen
+pipx install codegen
 ```
+
+<Note>
+For further & more in depth installation instructions, see the [installation guide](/introduction/installation).
+</Note>
 
 ## What can I do with Codegen?
 
@@ -461,6 +479,14 @@ iconType: "solid"
 
 Install and set up Codegen in your development environment.
 
+#### We currently support:
+- Running Codegen in Python 3.12 - 3.13 (recommended: Python 3.13+)
+- macOS and Linux
+  - macOS is supported
+  - Linux is supported on x86_64 and aarch64 with glibc 2.34+
+  - Windows is not supported
+- Python, Typescript, Javascript and React codebases
+
 ## Prerequisites
 
 We recommend using [uv](https://github.com/astral-sh/uv) for installation. If you haven't installed `uv` yet:
@@ -471,7 +497,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 ## Installing Codegen
 
 ```bash
-uv tool install codegen
+uv tool install codegen --python 3.13
 ```
 
 
@@ -492,7 +518,7 @@ Let's walk through a minimal example of using Codegen in a project:
    ```bash
    codegen init
    ```
-   
+
    This creates a `.codegen/` directory with:
    ```bash
    .codegen/
@@ -523,6 +549,18 @@ Let's walk through a minimal example of using Codegen in a project:
    ```bash
    codegen reset
    ```
+
+## Troubleshooting
+
+Having issues? Here are some common problems and their solutions:
+
+- **I'm hitting an UV error related to `[[ packages ]]`**: This means you're likely using an outdated version of UV. Try updating to the latest version with: `uv self update`.
+- **I'm hitting an error about `No module named 'codegen.sdk.extensions.utils'`**: The compiled cython extensions are out of sync. Update them with `uv sync --reinstall-package codegen`.
+- **I'm hitting a `RecursionError: maximum recursion depth exceeded` error while parsing my codebase**: If you are using python 3.12, try upgrading to 3.13. If you are already on 3.13, try upping the recursion limit with `sys.setrecursionlimit(10000)`.
+
+<Note>
+For more help, join our [community Slack](/introduction/community) or check the [FAQ](/introduction/faq).
+</Note>
 
 ## Next Steps
 
@@ -558,9 +596,6 @@ Let's walk through a minimal example of using Codegen in a project:
 
 </CardGroup>
 
-<Note>
-For more help, join our [community Slack](/introduction/community) or check the [FAQ](/introduction/faq).
-</Note> 
 
 ---
 title: "Using Codegen in Your IDE"
