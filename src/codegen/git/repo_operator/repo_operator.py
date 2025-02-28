@@ -72,9 +72,7 @@ class RepoOperator:
             os.makedirs(self.repo_path, exist_ok=True)
             GitCLI.init(self.repo_path)
             self._local_git_repo = LocalGitRepo(repo_path=repo_config.repo_path)
-            logger.info(f"DEBUG: attempting to set repo full_name: {self._local_git_repo.full_name}")
             if self.repo_config.full_name is None:
-                logger.info(f"DEBUG: setting repo full_name: {self._local_git_repo.full_name}")
                 self.repo_config.full_name = self._local_git_repo.full_name
 
     ####################################################################################################################

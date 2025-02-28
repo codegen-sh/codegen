@@ -116,7 +116,6 @@ class GitHub(EventHandlerManagerProtocol):
                 else:
                     logger.info(f"[HANDLER] Handling event: {event_type}")
                     handler = self.registered_handlers[event_type]
-                    logger.info(f"[HANDLER event data: {event}")
                     return handler(event)
 
             # For actual webhooks, use the full payload

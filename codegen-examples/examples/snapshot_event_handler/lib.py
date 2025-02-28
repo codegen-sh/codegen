@@ -136,8 +136,6 @@ class CodebaseEventsApp:
 
     @modal.enter(snap=True)
     def load(self):
-        logger.info("Preparing codegen fastapi app")
-
         self.cg = self.get_codegen_app()
         self.cg.parse_repo()
         self.setup_handlers(self.cg)
@@ -148,7 +146,7 @@ class CodebaseEventsApp:
         snapshot_dict.put(f"{self.repo_org}/{self.repo_name}", self.commit)
     
     def setup_handlers(self, cg: CodegenApp):
-        pass
+        raise NotImplementedError("Subclasses must implement this method")
     
     @modal.method()
     async def proxy_event(self, route: str, payload: dict, headers: dict):

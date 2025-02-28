@@ -57,11 +57,9 @@ class CustomEventHandlersAPI(CodebaseEventsApp):
     repo_name: str = modal.parameter(default="Kevin-s-Adventure-Game")
 
     def setup_handlers(self, cg: CodegenApp):
-        logger.info(f'DEBUG during setup: {cg.get_codebase()._op.repo_config}')
         @cg.slack.event("app_mention")
         async def handle_mention(event: SlackEvent):
             logger.info("[APP_MENTION] Received cg_app_mention event")
-            logger.info(event)
 
             # Codebase
             logger.info("[CODEBASE] Initializing codebase")
@@ -85,7 +83,6 @@ class CustomEventHandlersAPI(CodebaseEventsApp):
             logger.info(f"PR head sha: {event.pull_request.head.sha}")
 
             codebase = cg.get_codebase()
-            logger.info(f'DEBUG before checkout: {codebase._op.repo_config}')
             logger.info(f"Codebase: {codebase.name} codebase.repo: {codebase.repo_path}")
 
             # =====[ Check out commit ]=====

@@ -1300,8 +1300,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             else:
                 # Ensure the operator can handle remote operations
                 access_token = secrets.github_token if secrets else None
-                repo_operator = RepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url, full_name=repo_full_name, access_token=secrets.github_token)
-                logger.info(f"DEBUG repo operator init from commit: {repo_operator.repo_config}")
+                repo_operator = RepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url, full_name=repo_full_name, access_token=access_token)
             logger.info("Clone completed successfully")
 
             # Initialize and return codebase with proper context
