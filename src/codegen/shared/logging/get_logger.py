@@ -35,7 +35,7 @@ def get_logger(name: str, level: int = logging.INFO) -> logging.Logger:
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     # Ensure the logger propagates to the root logger
-    logger.propagate = False
+    logger.propagate = True
     # Set the level on the logger itself
     logger.setLevel(level)
     return logger

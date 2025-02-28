@@ -458,12 +458,18 @@ class RepoOperator:
         return [diff for diff in self.git_cli.index.diff(ref, R=reverse)]
 
     @stopwatch
-    def stage_and_commit_all_changes(self, message: str, verify: bool = False) -> bool:
+    def stage_and_commit_all_changes(self, message: str, verify: bool = False, exclude_paths: list[str] | None = None) -> bool:
         """TODO: rename to stage_and_commit_changes
         Stage all changes and commit them with the given message.
         Returns True if a commit was made and False otherwise.
         """
         self.git_cli.git.add(A=True)
+        # Unstage the excluded paths
+        for path in exclude_paths or []:
+            try:
+                self.git_cli.git.reset("HEAD", "--", path)
+            except GitCommandError as e:
+                logger.warning(f"Failed to exclude path {path}: {e}")
         return self.commit_changes(message, verify)
 
     def commit_changes(self, message: str, verify: bool = False) -> bool:

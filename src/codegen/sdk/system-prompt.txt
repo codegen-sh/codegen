@@ -6960,7 +6960,6 @@ Be explicit about the changes, produce a short summary, and point out possible i
 Focus on facts and technical details, using code snippets where helpful.
 """
     result = agent.run(prompt)
-
     # Clean up the temporary comment
     comment.delete()
 ```

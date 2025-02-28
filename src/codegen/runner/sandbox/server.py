@@ -45,7 +45,7 @@ async def lifespan(server: FastAPI):
         runner = SandboxRunner(repo_config=repo_config)
         server_info.warmup_state = WarmupState.PENDING
         await runner.warmup()
-        server_info.synced_commit = runner.commit.hexsha
+        server_info.synced_commit = runner.op.git_cli.head.commit.hexsha
         server_info.warmup_state = WarmupState.COMPLETED
     except Exception:
         logger.exception("Failed to build graph during warmup")

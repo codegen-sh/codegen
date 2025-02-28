@@ -104,7 +104,7 @@ def set_command(key: str, value: str):
         return
 
     cur_value = config.get(key)
-    if cur_value is None or cur_value.lower() != value.lower():
+    if cur_value is None or str(cur_value).lower() != value.lower():
         try:
             config.set(key, value)
         except Exception as e:
