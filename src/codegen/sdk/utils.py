@@ -87,6 +87,43 @@ def find_first_function_descendant(node: TSNode) -> TSNode:
     return find_first_descendant(node=node, type_names=type_names, max_depth=2)
 
 
+def find_import_node(node: TSNode) -> TSNode | None:
+    """Get the import node from a node that may contain an import.
+    Returns None if the node does not contain an import.
+
+    Returns:
+        TSNode | None: The import_statement or call_expression node if it's an import, None otherwise
+    """
+    # Static imports
+    if node.type == "import_statement":
+        return node
+
+    # Dynamic imports and requires can be either:
+    # 1. Inside expression_statement -> call_expression
+    # 2. Direct call_expression
+
+    # we only parse imports inside expressions and variable declarations
+
+    if member_expression := find_first_descendant(node, ["member_expression"]):
+        # there may be multiple call expressions (for cases such as import(a).then(module => module).then(module => module)
+        descendants = find_all_descendants(member_expression, ["call_expression"], stop_at_first="statement_block")
+        if descendants:
+            import_node = descendants[-1]
+        else:
+            # this means this is NOT a dynamic import()
+            return None
+    else:
+        import_node = find_first_descendant(node, ["call_expression"])
+
+    # thus we only consider the deepest one
+    if import_node:
+        function = import_node.child_by_field_name("function")
+        if function and (function.type == "import" or (function.type == "identifier" and function.text.decode("utf-8") == "require")):
+            return import_node
+
+    return None
+
+
 def find_index(target: TSNode, siblings: list[TSNode]) -> int:
     """Returns the index of the target node in the list of siblings, or -1 if not found. Recursive implementation."""
     if target in siblings:

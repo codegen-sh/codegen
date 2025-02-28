@@ -135,7 +135,7 @@ import {Attribute} from '/snippets/Attribute.mdx';
 <HorizontalDivider />
 ### <span className="text-primary">ancestors</span>
 Find all ancestors of the node of the given type. Does not return itself
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1101-L1109" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1109-L1117" />
 
 
 <Return return_type={ <><span>list[</span> <a href="/api-reference/core/Editable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Editable</a> <span>]</span></> } description=""/>
@@ -419,7 +419,7 @@ Determines if the import is a module-level or wildcard import.
 
 ### <span className="text-primary">is_reexport</span>
 Returns true if the Import object is also an Export object.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/import_resolution.py#L554-L563" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/import_resolution.py#L546-L555" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">bool</code> } description="True if the import is re-exported, False otherwise."/>
@@ -457,6 +457,14 @@ Find the first ancestor of the node of the given type. Does not return itself
 <Return return_type={ <><a href="/api-reference/core/Editable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Editable</a> <span>| None</span></> } description=""/>
 
 
+### <span className="text-primary">parent_of_types</span>
+Find the first ancestor of the node of the given type. Does not return itself
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1100-L1106" />
+
+
+<Return return_type={ <><a href="/api-reference/core/Editable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Editable</a> <span>| None</span></> } description=""/>
+
+
 ### <span className="text-primary">reduce_condition</span>
 Reduces an editable to the following condition
 <GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1043-L1048" />
@@ -467,7 +475,7 @@ Reduces an editable to the following condition
 
 ### <span className="text-primary">remove</span>
 Remove this import from the import statement.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/import_resolution.py#L512-L532" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/import_resolution.py#L504-L524" />
 
 <ParameterWrapper>
 <Parameter
@@ -496,7 +504,7 @@ Remove this import from the import statement.
 
 ### <span className="text-primary">rename</span>
 Renames the import symbol and updates all its usages throughout the codebase.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/import_resolution.py#L487-L509" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/import_resolution.py#L479-L501" />
 
 <ParameterWrapper>
 <Parameter
@@ -589,7 +597,7 @@ Returns a list of all regex match of `regex_pattern`, similar to python's re.sea
 
 ### <span className="text-primary">set_import_module</span>
 Sets the module of an import.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/import_resolution.py#L446-L464" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/import_resolution.py#L438-L456" />
 
 <ParameterWrapper>
 <Parameter
@@ -606,7 +614,7 @@ Sets the module of an import.
 
 ### <span className="text-primary">set_import_symbol_alias</span>
 Sets alias or name of an import at the declaration level.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/import_resolution.py#L467-L485" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/import_resolution.py#L459-L477" />
 
 <ParameterWrapper>
 <Parameter

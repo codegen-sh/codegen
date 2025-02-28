@@ -1,10 +1,10 @@
-import logging
 from collections.abc import Iterator
 from itertools import chain
 from typing import TYPE_CHECKING, Generic, ParamSpec, TypeVar
 
 from codegen.sdk.core.utils.cache_utils import cached_generator
 from codegen.shared.decorators.docs import py_noapidoc
+from codegen.shared.logging.get_logger import get_logger
 
 if TYPE_CHECKING:
     from codegen.sdk.core.assignment import Assignment
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from codegen.sdk.typescript.statements.import_statement import TSImportStatement
     from codegen.sdk.typescript.symbol import TSSymbol
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 TFile = TypeVar("TFile", bound="SourceFile")

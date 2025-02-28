@@ -1,11 +1,12 @@
 """Client used to abstract the weird stdin/stdout communication we have with the sandbox"""
 
-import logging
-
 import requests
 from fastapi import params
 
-logger = logging.getLogger(__name__)
+from codegen.runner.models.apis import ServerInfo
+from codegen.shared.logging.get_logger import get_logger
+
+logger = get_logger(__name__)
 
 DEFAULT_SERVER_PORT = 4002
 
@@ -24,14 +25,21 @@ class Client:
         self.port = port
         self.base_url = f"http://{host}:{port}"
 
-    def healthcheck(self, raise_on_error: bool = True) -> bool:
+    def is_running(self) -> bool:
         try:
             self.get("/")
             return True
         except requests.exceptions.ConnectionError:
+            return False
+
+    def server_info(self, raise_on_error: bool = False) -> ServerInfo:
+        try:
+            response = self.get("/")
+            return ServerInfo.model_validate(response.json())
+        except requests.exceptions.ConnectionError:
             if raise_on_error:
                 raise
-            return False
+            return ServerInfo()
 
     def get(self, endpoint: str, data: dict | None = None) -> requests.Response:
         url = f"{self.base_url}{endpoint}"

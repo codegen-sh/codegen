@@ -1,5 +1,3 @@
-import logging
-
 from lsprotocol.types import Position
 
 from codegen.sdk.core.assignment import Assignment
@@ -9,8 +7,9 @@ from codegen.sdk.core.expressions.expression import Expression
 from codegen.sdk.core.expressions.name import Name
 from codegen.sdk.core.interfaces.editable import Editable
 from codegen.sdk.core.interfaces.has_name import HasName
+from codegen.shared.logging.get_logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def go_to_definition(node: Editable | None, uri: str, position: Position) -> Editable | None:

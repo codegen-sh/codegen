@@ -6,6 +6,7 @@ from codegen.sdk.core.autocommit import reader, writer
 from codegen.sdk.core.statements.if_block_statement import IfBlockStatement
 from codegen.sdk.core.statements.statement import StatementType
 from codegen.shared.decorators.docs import apidoc
+from codegen.shared.logging.get_logger import get_logger
 
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
@@ -14,9 +15,8 @@ if TYPE_CHECKING:
     from codegen.sdk.core.node_id_factory import NodeId
     from codegen.sdk.typescript.detached_symbols.code_block import TSCodeBlock
 
-import logging
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 Parent = TypeVar("Parent", bound="TSCodeBlock")

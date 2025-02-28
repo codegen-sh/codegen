@@ -1,6 +1,5 @@
 """Client used to abstract the weird stdin/stdout communication we have with the sandbox"""
 
-import logging
 import os
 import subprocess
 import time
@@ -9,13 +8,14 @@ from codegen.configs.models.secrets import SecretsConfig
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.runner.clients.client import Client
 from codegen.runner.models.apis import SANDBOX_SERVER_PORT
+from codegen.shared.logging.get_logger import get_logger
 
 DEFAULT_SERVER_PORT = 4002
 EPHEMERAL_SERVER_PATH = "codegen.runner.sandbox.ephemeral_server:app"
 RUNNER_SERVER_PATH = "codegen.runner.sandbox.server:app"
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class CodebaseClient(Client):
@@ -57,7 +57,7 @@ class CodebaseClient(Client):
         """Wait for the server to start by polling the health endpoint"""
         start_time = time.time()
         while (time.time() - start_time) < timeout:
-            if self.healthcheck(raise_on_error=False):
+            if self.is_running():
                 return
             time.sleep(interval)
         msg = "Server failed to start within timeout period"
@@ -80,4 +80,4 @@ if __name__ == "__main__":
     test_config = RepoConfig.from_repo_path("/Users/caroljung/git/codegen/codegen-agi")
     test_config.full_name = "codegen-sh/codegen-agi"
     client = CodebaseClient(test_config)
-    print(client.healthcheck())
+    print(client.is_running())

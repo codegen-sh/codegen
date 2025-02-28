@@ -7,6 +7,7 @@ from codegen.sdk.core.statements.assignment_statement import AssignmentStatement
 from codegen.sdk.extensions.utils import find_all_descendants
 from codegen.sdk.python.assignment import PyAssignment
 from codegen.shared.decorators.docs import py_apidoc
+from codegen.shared.logging.get_logger import get_logger
 
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
@@ -16,9 +17,8 @@ if TYPE_CHECKING:
     from codegen.sdk.python.detached_symbols.code_block import PyCodeBlock
     from codegen.sdk.python.interfaces.has_block import PyHasBlock
 
-import logging
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @py_apidoc

@@ -6,12 +6,12 @@ from codegen.sdk.core.expressions.generic_type import GenericType
 from codegen.sdk.core.symbol_groups.collection import Collection
 from codegen.sdk.python.expressions.named_type import PyNamedType
 from codegen.shared.decorators.docs import py_apidoc
+from codegen.shared.logging.get_logger import get_logger
 
 if TYPE_CHECKING:
     from codegen.sdk.python.expressions.type import PyType
-import logging
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 Parent = TypeVar("Parent")

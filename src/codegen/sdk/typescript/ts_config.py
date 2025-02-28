@@ -1,4 +1,3 @@
-import logging
 import os
 from functools import cache
 from pathlib import Path
@@ -9,12 +8,13 @@ import pyjson5
 from codegen.sdk.core.directory import Directory
 from codegen.sdk.core.file import File
 from codegen.shared.decorators.docs import ts_apidoc
+from codegen.shared.logging.get_logger import get_logger
 
 if TYPE_CHECKING:
     from codegen.sdk.typescript.config_parser import TSConfigParser
     from codegen.sdk.typescript.file import TSFile
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @ts_apidoc

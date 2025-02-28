@@ -31,6 +31,7 @@ from codegen.sdk.extensions.utils import uncache_all
 from codegen.sdk.typescript.external.ts_declassify.ts_declassify import TSDeclassify
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 from codegen.shared.exceptions.control_flow import StopCodemodException
+from codegen.shared.logging.get_logger import get_logger
 from codegen.shared.performance.stopwatch_utils import stopwatch, stopwatch_with_sentry
 
 if TYPE_CHECKING:
@@ -51,9 +52,7 @@ if TYPE_CHECKING:
     from codegen.sdk.core.node_id_factory import NodeId
     from codegen.sdk.core.parser import Parser
 
-import logging
-
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 # src/vs/platform/contextview/browser/contextMenuService.ts is ignored as there is a parsing error with tree-sitter
@@ -144,7 +143,8 @@ class CodebaseContext:
         from codegen.sdk.core.parser import Parser
 
         self.progress = progress or StubProgress()
-        self._graph = PyDiGraph()
+        self.__graph = PyDiGraph()
+        self.__graph_ready = False
         self.filepath_idx = {}
         self._ext_module_idx = {}
         self.generation = 0
@@ -189,7 +189,8 @@ class CodebaseContext:
             logger.warning("Some features may not work as expected. Advanced static analysis will be disabled but simple file IO will still work.")
 
         # Build the graph
-        self.build_graph(context.repo_operator)
+        if not self.config.exp_lazy_graph:
+            self.build_graph(context.repo_operator)
         try:
             self.synced_commit = context.repo_operator.head_commit
         except ValueError as e:
@@ -203,10 +204,22 @@ class CodebaseContext:
     def __repr__(self):
         return self.__class__.__name__
 
+    @property
+    def _graph(self) -> PyDiGraph[Importable, Edge]:
+        if not self.__graph_ready:
+            logger.info("Lazily Computing Graph")
+            self.build_graph(self.projects[0].repo_operator)
+        return self.__graph
+
+    @_graph.setter
+    def _graph(self, value: PyDiGraph[Importable, Edge]) -> None:
+        self.__graph = value
+
     @stopwatch_with_sentry(name="build_graph")
     @commiter
     def build_graph(self, repo_operator: RepoOperator) -> None:
         """Builds a codebase graph based on the current file state of the given repo operator"""
+        self.__graph_ready = True
         self._graph.clear()
 
         # =====[ Add all files to the graph in parallel ]=====

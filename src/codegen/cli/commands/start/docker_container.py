@@ -1,31 +1,74 @@
+from functools import cached_property
+
 import docker
+from docker import DockerClient
+from docker.errors import APIError, NotFound
+from docker.models.containers import Container
 
 
 class DockerContainer:
-    _client: docker.DockerClient
-    host: str | None
-    port: int | None
-    name: str
+    _client: DockerClient
+    _container: Container | None
 
-    def __init__(self, client: docker.DockerClient, name: str, port: int | None = None, host: str | None = None):
+    def __init__(self, client: DockerClient, container: Container) -> None:
         self._client = client
-        self.host = host
-        self.port = port
-        self.name = name
+        self._container = container
+
+    @classmethod
+    def get(cls, name: str) -> "DockerContainer | None":
+        try:
+            client = docker.from_env()
+            container = client.containers.get(name)
+            return cls(client=client, container=container)
+        except NotFound:
+            return None
+
+    @cached_property
+    def name(self) -> str:
+        return self._container.name
+
+    @cached_property
+    def host(self) -> str | None:
+        if not self.is_running():
+            return None
+
+        host_config = next(iter(self._container.ports.values()))[0]
+        return host_config["HostIp"]
+
+    @cached_property
+    def port(self) -> int | None:
+        if not self.is_running():
+            return None
+
+        host_config = next(iter(self._container.ports.values()))[0]
+        return host_config["HostPort"]
 
     def is_running(self) -> bool:
         try:
-            container = self._client.containers.get(self.name)
-            return container.status == "running"
-        except docker.errors.NotFound:
+            return self._container.status == "running"
+        except NotFound:
             return False
 
     def start(self) -> bool:
         try:
-            container = self._client.containers.get(self.name)
-            container.start()
+            self._container.start()
             return True
-        except (docker.errors.NotFound, docker.errors.APIError):
+        except (NotFound, APIError):
+            return False
+
+    def stop(self) -> bool:
+        try:
+            self._container.stop()
+            return True
+        except (NotFound, APIError):
+            return False
+
+    def remove(self) -> bool:
+        try:
+            self.stop()
+            self._container.remove()
+            return True
+        except (NotFound, APIError):
             return False
 
     def __str__(self) -> str:
