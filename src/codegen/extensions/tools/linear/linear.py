@@ -2,6 +2,7 @@
 
 from typing import ClassVar
 
+import requests
 from pydantic import Field
 
 from codegen.extensions.linear.linear_client import LinearClient
@@ -97,7 +98,32 @@ def linear_get_issue_tool(client: LinearClient, issue_id: str) -> LinearIssueObs
             issue_id=issue_id,
             issue_data=issue.dict(),
         )
+    except requests.exceptions.RequestException as e:
+        # Network-related errors
+        return LinearIssueObservation(
+            status="error",
+            error=f"Network error when fetching issue: {e!s}",
+            issue_id=issue_id,
+            issue_data={},
+        )
+    except ValueError as e:
+        # Input validation errors
+        return LinearIssueObservation(
+            status="error",
+            error=f"Invalid input: {e!s}",
+            issue_id=issue_id,
+            issue_data={},
+        )
+    except KeyError as e:
+        # Missing data in response
+        return LinearIssueObservation(
+            status="error",
+            error=f"Unexpected API response format: {e!s}",
+            issue_id=issue_id,
+            issue_data={},
+        )
     except Exception as e:
+        # Catch-all for other errors
         return LinearIssueObservation(
             status="error",
             error=f"Failed to get issue: {e!s}",
@@ -115,7 +141,32 @@ def linear_get_issue_comments_tool(client: LinearClient, issue_id: str) -> Linea
             issue_id=issue_id,
             comments=[comment.dict() for comment in comments],
         )
+    except requests.exceptions.RequestException as e:
+        # Network-related errors
+        return LinearCommentsObservation(
+            status="error",
+            error=f"Network error when fetching comments: {e!s}",
+            issue_id=issue_id,
+            comments=[],
+        )
+    except ValueError as e:
+        # Input validation errors
+        return LinearCommentsObservation(
+            status="error",
+            error=f"Invalid input: {e!s}",
+            issue_id=issue_id,
+            comments=[],
+        )
+    except KeyError as e:
+        # Missing data in response
+        return LinearCommentsObservation(
+            status="error",
+            error=f"Unexpected API response format: {e!s}",
+            issue_id=issue_id,
+            comments=[],
+        )
     except Exception as e:
+        # Catch-all for other errors
         return LinearCommentsObservation(
             status="error",
             error=f"Failed to get issue comments: {e!s}",
@@ -133,7 +184,32 @@ def linear_comment_on_issue_tool(client: LinearClient, issue_id: str, body: str)
             issue_id=issue_id,
             comment=comment,
         )
+    except requests.exceptions.RequestException as e:
+        # Network-related errors
+        return LinearCommentObservation(
+            status="error",
+            error=f"Network error when adding comment: {e!s}",
+            issue_id=issue_id,
+            comment={},
+        )
+    except ValueError as e:
+        # Input validation errors
+        return LinearCommentObservation(
+            status="error",
+            error=f"Invalid input: {e!s}",
+            issue_id=issue_id,
+            comment={},
+        )
+    except KeyError as e:
+        # Missing data in response
+        return LinearCommentObservation(
+            status="error",
+            error=f"Unexpected API response format: {e!s}",
+            issue_id=issue_id,
+            comment={},
+        )
     except Exception as e:
+        # Catch-all for other errors
         return LinearCommentObservation(
             status="error",
             error=f"Failed to comment on issue: {e!s}",
@@ -159,7 +235,35 @@ def linear_register_webhook_tool(
             team_id=team_id,
             response=response,
         )
+    except requests.exceptions.RequestException as e:
+        # Network-related errors
+        return LinearWebhookObservation(
+            status="error",
+            error=f"Network error when registering webhook: {e!s}",
+            webhook_url=webhook_url,
+            team_id=team_id,
+            response={},
+        )
+    except ValueError as e:
+        # Input validation errors
+        return LinearWebhookObservation(
+            status="error",
+            error=f"Invalid input: {e!s}",
+            webhook_url=webhook_url,
+            team_id=team_id,
+            response={},
+        )
+    except KeyError as e:
+        # Missing data in response
+        return LinearWebhookObservation(
+            status="error",
+            error=f"Unexpected API response format: {e!s}",
+            webhook_url=webhook_url,
+            team_id=team_id,
+            response={},
+        )
     except Exception as e:
+        # Catch-all for other errors
         return LinearWebhookObservation(
             status="error",
             error=f"Failed to register webhook: {e!s}",
@@ -178,7 +282,32 @@ def linear_search_issues_tool(client: LinearClient, query: str, limit: int = 10)
             query=query,
             issues=[issue.dict() for issue in issues],
         )
+    except requests.exceptions.RequestException as e:
+        # Network-related errors
+        return LinearSearchObservation(
+            status="error",
+            error=f"Network error when searching issues: {e!s}",
+            query=query,
+            issues=[],
+        )
+    except ValueError as e:
+        # Input validation errors
+        return LinearSearchObservation(
+            status="error",
+            error=f"Invalid input: {e!s}",
+            query=query,
+            issues=[],
+        )
+    except KeyError as e:
+        # Missing data in response
+        return LinearSearchObservation(
+            status="error",
+            error=f"Unexpected API response format: {e!s}",
+            query=query,
+            issues=[],
+        )
     except Exception as e:
+        # Catch-all for other errors
         return LinearSearchObservation(
             status="error",
             error=f"Failed to search issues: {e!s}",
@@ -197,7 +326,35 @@ def linear_create_issue_tool(client: LinearClient, title: str, description: str 
             team_id=team_id,
             issue_data=issue.dict(),
         )
+    except requests.exceptions.RequestException as e:
+        # Network-related errors
+        return LinearCreateIssueObservation(
+            status="error",
+            error=f"Network error when creating issue: {e!s}",
+            title=title,
+            team_id=team_id,
+            issue_data={},
+        )
+    except ValueError as e:
+        # Input validation errors
+        return LinearCreateIssueObservation(
+            status="error",
+            error=f"Invalid input: {e!s}",
+            title=title,
+            team_id=team_id,
+            issue_data={},
+        )
+    except KeyError as e:
+        # Missing data in response
+        return LinearCreateIssueObservation(
+            status="error",
+            error=f"Unexpected API response format: {e!s}",
+            title=title,
+            team_id=team_id,
+            issue_data={},
+        )
     except Exception as e:
+        # Catch-all for other errors
         return LinearCreateIssueObservation(
             status="error",
             error=f"Failed to create issue: {e!s}",
@@ -215,7 +372,29 @@ def linear_get_teams_tool(client: LinearClient) -> LinearTeamsObservation:
             status="success",
             teams=[team.dict() for team in teams],
         )
+    except requests.exceptions.RequestException as e:
+        # Network-related errors
+        return LinearTeamsObservation(
+            status="error",
+            error=f"Network error when fetching teams: {e!s}",
+            teams=[],
+        )
+    except ValueError as e:
+        # Input validation errors
+        return LinearTeamsObservation(
+            status="error",
+            error=f"Invalid input: {e!s}",
+            teams=[],
+        )
+    except KeyError as e:
+        # Missing data in response
+        return LinearTeamsObservation(
+            status="error",
+            error=f"Unexpected API response format: {e!s}",
+            teams=[],
+        )
     except Exception as e:
+        # Catch-all for other errors
         return LinearTeamsObservation(
             status="error",
             error=f"Failed to get teams: {e!s}",

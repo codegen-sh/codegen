@@ -56,4 +56,4 @@ class ChangeJSXElementName(Codemod, Skill):
                             element.set_name("PrivateRoutesContainer")
                             # Add the import if it doesn't exist
                             if not file.has_import("PrivateRoutesContainer"):
-                                file.add_symbol_import(PrivateRoutesContainer)
+                                file.add_import(PrivateRoutesContainer)

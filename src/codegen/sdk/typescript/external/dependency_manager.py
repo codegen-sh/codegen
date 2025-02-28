@@ -1,6 +1,5 @@
 import concurrent.futures
 import json
-import logging
 import os
 import shutil
 import subprocess
@@ -13,8 +12,9 @@ import requests
 
 from codegen.sdk.core.external.dependency_manager import DependencyManager
 from codegen.sdk.utils import shadow_files
+from codegen.shared.logging.get_logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class InstallerType(Enum):

@@ -5,6 +5,8 @@ import importlib.util
 from dataclasses import dataclass
 from pathlib import Path
 
+from codegen.shared.enums.programming_language import ProgrammingLanguage
+
 
 @dataclass
 class DecoratedFunction:
@@ -14,6 +16,8 @@ class DecoratedFunction:
     source: str
     lint_mode: bool
     lint_user_whitelist: list[str]
+    subdirectories: list[str] | None = None
+    language: ProgrammingLanguage | None = None
     filepath: Path | None = None
     parameters: list[tuple[str, str | None]] = dataclasses.field(default_factory=list)
     arguments_type_schema: dict | None = None
@@ -82,6 +86,28 @@ class DecoratedFunction:
 class CodegenFunctionVisitor(ast.NodeVisitor):
     def __init__(self):
         self.functions: list[DecoratedFunction] = []
+
+    def get_function_name(self, node: ast.Call) -> str:
+        keywords = {k.arg: k.value for k in node.keywords}
+        if "name" in keywords:
+            return ast.literal_eval(keywords["name"])
+        return ast.literal_eval(node.args[0])
+
+    def get_subdirectories(self, node: ast.Call) -> list[str] | None:
+        keywords = {k.arg: k.value for k in node.keywords}
+        if "subdirectories" in keywords:
+            return ast.literal_eval(keywords["subdirectories"])
+        if len(node.args) > 1:
+            return ast.literal_eval(node.args[1])
+        return None
+
+    def get_language(self, node: ast.Call) -> ProgrammingLanguage | None:
+        keywords = {k.arg: k.value for k in node.keywords}
+        if "language" in keywords:
+            return ProgrammingLanguage(keywords["language"].attr)
+        if len(node.args) > 2:
+            return ast.literal_eval(node.args[2])
+        return None
 
     def get_function_body(self, node: ast.FunctionDef) -> str:
         """Extract and unindent the function body."""
@@ -178,7 +204,7 @@ class CodegenFunctionVisitor(ast.NodeVisitor):
         for decorator in node.decorator_list:
             if (
                 isinstance(decorator, ast.Call)
-                and len(decorator.args) >= 1
+                and (len(decorator.args) > 0 or len(decorator.keywords) > 0)
                 and (
                     # Check if it's a direct codegen.X call
                     (isinstance(decorator.func, ast.Attribute) and isinstance(decorator.func.value, ast.Name) and decorator.func.value.id == "codegen")
@@ -187,9 +213,6 @@ class CodegenFunctionVisitor(ast.NodeVisitor):
                     (isinstance(decorator.func, ast.Attribute) and isinstance(decorator.func.value, ast.Attribute) and self._has_codegen_root(decorator.func.value))
                 )
             ):
-                # Get the function name from the decorator argument
-                func_name = ast.literal_eval(decorator.args[0])
-
                 # Get additional metadata for webhook
                 lint_mode = decorator.func.attr == "webhook"
                 lint_user_whitelist = []
@@ -198,10 +221,17 @@ class CodegenFunctionVisitor(ast.NodeVisitor):
                         if keyword.arg == "users" and isinstance(keyword.value, ast.List):
                             lint_user_whitelist = [ast.literal_eval(elt).lstrip("@") for elt in keyword.value.elts]
 
-                # Get just the function body, unindented
-                body_source = self.get_function_body(node)
-                parameters = self.get_function_parameters(node)
-                self.functions.append(DecoratedFunction(name=func_name, source=body_source, lint_mode=lint_mode, lint_user_whitelist=lint_user_whitelist, parameters=parameters))
+                self.functions.append(
+                    DecoratedFunction(
+                        name=self.get_function_name(decorator),
+                        subdirectories=self.get_subdirectories(decorator),
+                        language=self.get_language(decorator),
+                        source=self.get_function_body(node),
+                        lint_mode=lint_mode,
+                        lint_user_whitelist=lint_user_whitelist,
+                        parameters=self.get_function_parameters(node),
+                    )
+                )
 
     def _has_codegen_root(self, node):
         """Recursively check if an AST node chain starts with codegen."""

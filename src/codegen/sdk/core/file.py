@@ -1,4 +1,3 @@
-import logging
 import os
 import re
 import resource
@@ -34,7 +33,9 @@ from codegen.sdk.extensions.sort import sort_editables
 from codegen.sdk.topological_sort import pseudo_topological_sort
 from codegen.sdk.tree_sitter_parser import get_parser_by_filepath_or_extension, parse_file
 from codegen.sdk.typescript.function import TSFunction
+from codegen.sdk.utils import is_minified_js
 from codegen.shared.decorators.docs import apidoc, noapidoc
+from codegen.shared.logging.get_logger import get_logger
 from codegen.visualizations.enums import VizNode
 
 if TYPE_CHECKING:
@@ -43,9 +44,7 @@ if TYPE_CHECKING:
     from codegen.sdk.core.function import Function
     from codegen.sdk.core.interface import Interface
 
-logger = logging.getLogger(__name__)
-
-MINIFIED_FILE_THRESHOLD = 500
+logger = get_logger(__name__)
 
 
 @apidoc
@@ -65,7 +64,6 @@ class File(Editable[None]):
     file_path: str
     path: Path
     node_type: Literal[NodeType.FILE] = NodeType.FILE
-    _directory: Directory | None
     _pending_imports: set[str]
     _binary: bool = False
     _range_index: RangeIndex
@@ -80,7 +78,6 @@ class File(Editable[None]):
         self.path = self.ctx.to_absolute(filepath)
         self.file_path = str(self.ctx.to_relative(self.path))
         self.name = self.path.stem
-        self._directory = None
         self._binary = binary
 
     @property
@@ -178,11 +175,7 @@ class File(Editable[None]):
         Returns:
             Directory | None: The directory containing this file, or None if the file is not in any directory.
         """
-        return self._directory
-
-    @noapidoc
-    def _set_directory(self, directory: Directory | None) -> None:
-        self._directory = directory
+        return self.ctx.get_directory(self.path.parent)
 
     @property
     def is_binary(self) -> bool:
@@ -441,7 +434,6 @@ class SourceFile(
         super().__init__(filepath, ctx, ts_node=ts_node)
         self._nodes.clear()
         self.ctx.filepath_idx[self.file_path] = self.node_id
-        self._directory = None
         self._pending_imports = set()
         try:
             self.parse(ctx)
@@ -467,14 +459,9 @@ class SourceFile(
         self.code_block = self._parse_code_block(self.ts_node)
 
         self.code_block.parse()
-        self._parse_imports()
         # We need to clear the valid symbol/import names before we start resolving exports since these can be outdated.
         self.invalidate()
         sort_editables(self._nodes)
-
-    @abstractmethod
-    @commiter
-    def _parse_imports(self) -> None: ...
 
     @noapidoc
     @commiter
@@ -581,8 +568,8 @@ class SourceFile(
         path = ctx.to_absolute(filepath)
 
         # Sanity check to ensure file is not a minified file
-        if any(len(line) >= MINIFIED_FILE_THRESHOLD for line in content.split("\n")):
-            logger.info(f"File {filepath} is a minified file (Line length < {MINIFIED_FILE_THRESHOLD}). Skipping...", extra={"filepath": filepath})
+        if is_minified_js(content):
+            logger.info(f"File {filepath} is a minified file. Skipping...", extra={"filepath": filepath})
             return None
 
         ts_node = parse_file(path, content)
@@ -957,61 +944,55 @@ class SourceFile(
             imp.set_import_module(new_module_name)
 
     @writer
-    def add_symbol_import(
-        self,
-        symbol: Symbol,
-        alias: str | None = None,
-        import_type: ImportType = ImportType.UNKNOWN,
-        is_type_import: bool = False,
-    ) -> Import | None:
-        """Adds an import to a file for a given symbol.
+    def add_import(self, imp: Symbol | str, *, alias: str | None = None, import_type: ImportType = ImportType.UNKNOWN, is_type_import: bool = False) -> Import | None:
+        """Adds an import to the file.
 
-        This method adds an import statement to the file for a specified symbol. If an import for the
-        symbol already exists, it returns the existing import instead of creating a new one.
-
-        Args:
-            symbol (Symbol): The symbol to import.
-            alias (str | None): Optional alias for the imported symbol. Defaults to None.
-            import_type (ImportType): The type of import to use. Defaults to ImportType.UNKNOWN.
-            is_type_import (bool): Whether this is a type-only import. Defaults to False.
-
-        Returns:
-            Import | None: The existing import for the symbol or None if it was added.
-        """
-        imports = self.imports
-        match = next((x for x in imports if x.imported_symbol == symbol), None)
-        if match:
-            return match
-
-        import_string = symbol.get_import_string(alias, import_type=import_type, is_type_import=is_type_import)
-        self.add_import_from_import_string(import_string)
-
-    @writer(commit=False)
-    def add_import_from_import_string(self, import_string: str) -> None:
-        """Adds import to the file from a string representation of an import statement.
-
-        This method adds a new import statement to the file based on its string representation.
+        This method adds an import statement to the file. It can handle both string imports and symbol imports.
         If the import already exists in the file, or is pending to be added, it won't be added again.
         If there are existing imports, the new import will be added before the first import,
         otherwise it will be added at the beginning of the file.
 
         Args:
-            import_string (str): The string representation of the import statement to add.
+            imp (Symbol | str): Either a Symbol to import or a string representation of an import statement.
+            alias (str | None): Optional alias for the imported symbol. Only used when imp is a Symbol. Defaults to None.
+            import_type (ImportType): The type of import to use. Only used when imp is a Symbol. Defaults to ImportType.UNKNOWN.
+            is_type_import (bool): Whether this is a type-only import. Only used when imp is a Symbol. Defaults to False.
 
         Returns:
-            None
+            Import | None: The existing import for the symbol if found, otherwise None.
         """
-        if any(import_string.strip() in imp.source for imp in self.imports):
-            return
+        # Handle Symbol imports
+        if isinstance(imp, str):
+            # Handle string imports
+            import_string = imp
+            # Check for duplicate imports
+            if any(import_string.strip() in imp.source for imp in self.imports):
+                return None
+        else:
+            # Check for existing imports of this symbol
+            imports = self.imports
+            match = next((x for x in imports if x.imported_symbol == imp), None)
+            if match:
+                return match
+
+            # Convert symbol to import string
+            import_string = imp.get_import_string(alias, import_type=import_type, is_type_import=is_type_import)
+
         if import_string.strip() in self._pending_imports:
             # Don't add the import string if it will already be added by another symbol
-            return
+            return None
+
+        # Add to pending imports and setup undo
         self._pending_imports.add(import_string.strip())
         self.transaction_manager.pending_undos.add(lambda: self._pending_imports.clear())
+
+        # Insert the import at the appropriate location
         if self.imports:
             self.imports[0].insert_before(import_string, priority=1)
         else:
             self.insert_before(import_string, priority=1)
+
+        return None
 
     @writer
     def add_symbol_from_source(self, source: str) -> None:

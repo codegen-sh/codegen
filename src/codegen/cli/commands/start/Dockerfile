@@ -10,6 +10,7 @@ ENV NVM_DIR=/root/.nvm \
     PYTHONPATH="/usr/local/lib/python3.13/site-packages" \
     IS_SANDBOX=True \
     HATCH_BUILD_HOOKS_ENABLE=1
+
 # Update packages lists and install git and curl
 RUN apt-get update && apt-get install -y \
     git \
@@ -41,16 +42,22 @@ RUN node --version \
     && pnpm --version \
     && python --version
 
-# Install codegen from source instead of PyPI
-WORKDIR /codegen-sdk
-COPY . .
+# Add build argument for codegen version and build type
+ARG CODEGEN_VERSION
+ARG BUILD_TYPE="release"  # Can be "release" or "dev"
 
-# Install dependencies and build codegen with entry points
+# Install codegen based on BUILD_TYPE
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv venv && source .venv/bin/activate \
-    && uv sync --frozen --no-dev --all-extras \
-    && uv pip install --system -e . --no-deps \
-    && uv pip install --system .
+    --mount=type=bind,source=.,target=/codegen-sdk,rw \
+    if [ "$BUILD_TYPE" = "release" ]; then \
+        uv pip install --system codegen==${CODEGEN_VERSION}; \
+    else \
+        cd /codegen-sdk \
+        && uv venv && source .venv/bin/activate \
+        && uv sync --frozen --no-dev --all-extras \
+        && uv pip install --system -e . --no-deps \
+        && uv pip install --system .; \
+    fi
 
 RUN codegen --version
 

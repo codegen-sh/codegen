@@ -13,6 +13,7 @@ def find_all_descendants(
     type_names: Iterable[str] | str,
     max_depth: int | None = None,
     nested: bool = True,
+    stop_at_first: str | None = None,
 ) -> list[TSNode]: ...
 def find_line_start_and_end_nodes(node: TSNode) -> list[tuple[TSNode, TSNode]]:
     """Returns a list of tuples of the start and end nodes of each line in the node"""

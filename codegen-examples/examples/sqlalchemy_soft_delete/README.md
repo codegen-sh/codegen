@@ -58,7 +58,7 @@ The codemod processes your codebase in several steps:
    ```python
    def ensure_and_import(file):
        if not any("and_" in imp.name for imp in file.imports):
-           file.add_import_from_import_string("from sqlalchemy import and_")
+           file.add_import("from sqlalchemy import and_")
    ```
 
    - Automatically adds required SQLAlchemy imports (`and_`)

@@ -51,5 +51,5 @@ class UpdateOptionalTypeAnnotations(Codemod, Skill):
                             new_type = update_type_annotation(parameter.type)
                             if parameter.type != new_type:
                                 # Add the future annotations import
-                                file.add_import_from_import_string("from __future__ import annotations\n")
+                                file.add_import("from __future__ import annotations\n")
                                 parameter.type.edit(new_type)

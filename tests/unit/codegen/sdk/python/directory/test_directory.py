@@ -57,6 +57,7 @@ class C:
         assert directory.get_file("file1.py") is not None
         assert directory.get_file("file2.py") is not None
         assert directory.get_file("file3.py") is not None
+
         # Test ignore_case
         assert directory.get_file("FILE1.PY", ignore_case=True) is not None
         assert directory.get_file("file1.py", ignore_case=True) is not None
@@ -98,9 +99,12 @@ class B:
         directory = codebase.get_directory("dir")
         assert directory.name == "dir"
         assert directory.parent == codebase.get_directory("")
-        assert len(directory.files) == 2
+        assert len(directory.files) == 1
         assert len(directory.subdirectories) == 1
-        assert {f.filepath for f in directory.files} == {"dir/file1.py", "dir/subdir/file2.py"}
+        assert len(directory.files(recursive=True)) == 2
+        assert len(directory.tree) == 3
+        assert {f.filepath for f in directory.files} == {"dir/file1.py"}
+        assert {f.filepath for f in directory.files(recursive=True)} == {"dir/file1.py", "dir/subdir/file2.py"}
         assert directory.symbols == codebase.symbols
         assert directory.global_vars == codebase.global_vars
         assert directory.classes == codebase.classes
@@ -150,11 +154,28 @@ class B:
 
 def test_subdirectories_listing_odd_filetypes(tmpdir) -> None:
     # language=python
-    files = {"docs/sub/test_fil``e1.mdx": "", "docs/sub/file2.txt": "", "docs/test.py": "", "docs/py/test.py": "", "docs/json/test.json": "", "docs/rand/odd/1.py": "", "docs/rand/even/2.txt": ""}
-    expected_tree = {"docs/rand": ["odd", "even"], "docs/rand/odd": ["1.py"], "docs/rand/even": [], "docs/py": ["test.py"], "docs/json": [], "docs/sub": []}
+    files = {
+        "docs/test.py": "",
+        "docs/py/test.py": "",
+        "docs/json/test.json": "",
+        "docs/sub/test_file1.mdx": "",
+        "docs/sub/file2.txt": "",
+        "docs/rand/odd/1.py": "",
+        "docs/rand/even/2.txt": "",
+    }
+    expected_tree = {
+        "": {"docs"},
+        "docs": {"sub", "rand", "py", "json", "test.py"},
+        "docs/py": {"test.py"},
+        "docs/json": {"test.json"},
+        "docs/sub": {"test_file1.mdx", "file2.txt"},
+        "docs/rand": {"odd", "even"},
+        "docs/rand/odd": {"1.py"},
+        "docs/rand/even": {"2.txt"},
+    }
     with get_codebase_session(tmpdir=tmpdir, files=files) as codebase:
         docs = codebase.get_directory("docs")
-        subdirectories = docs.subdirectories
+        subdirectories = docs.subdirectories(recursive=True)
         for subdir in subdirectories:
             assert subdir.dirpath in expected_tree.keys()
-            assert list(subdir.items.keys()) == expected_tree[subdir.dirpath]
+            assert set(subdir.item_names) == expected_tree[subdir.dirpath]

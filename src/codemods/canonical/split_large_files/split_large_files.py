@@ -46,4 +46,4 @@ class SplitLargeFiles(Codemod, Skill):
                             # Move the symbol to the new file
                             symbol.move_to_file(new_file)
                             # Add a back edge to the original file
-                            file.add_symbol_import(symbol)
+                            file.add_import(symbol)

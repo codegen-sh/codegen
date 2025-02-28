@@ -13,8 +13,9 @@ from rich.logging import RichHandler
 from rich.panel import Panel
 
 from codegen.extensions.events.codegen_app import CodegenApp
+from codegen.shared.logging.get_logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def setup_logging(debug: bool):

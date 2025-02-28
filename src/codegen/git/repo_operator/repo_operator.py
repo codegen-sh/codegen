@@ -1,7 +1,6 @@
 import codecs
 import fnmatch
 import glob
-import logging
 import os
 from collections.abc import Generator
 from datetime import UTC, datetime
@@ -28,10 +27,11 @@ from codegen.git.utils.clone_url import add_access_token_to_url, get_authenticat
 from codegen.git.utils.codeowner_utils import create_codeowners_parser_for_repo
 from codegen.git.utils.file_utils import create_files
 from codegen.git.utils.remote_progress import CustomRemoteProgress
+from codegen.shared.logging.get_logger import get_logger
 from codegen.shared.performance.stopwatch_utils import stopwatch
 from codegen.shared.performance.time_utils import humanize_duration
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class RepoOperator:
@@ -144,31 +144,25 @@ class RepoOperator:
         for level in levels:
             with git_cli.config_reader(level) as reader:
                 if reader.has_option("user", "name") and not username:
-                    username = reader.get("user", "name")
-                    user_level = level
+                    username = username or reader.get("user", "name")
+                    user_level = user_level or level
                 if reader.has_option("user", "email") and not email:
-                    email = reader.get("user", "email")
-                    email_level = level
-        if self.bot_commit:
-            self._set_bot_email(git_cli)
-            self._set_bot_username(git_cli)
-        else:
-            # we need a username and email to commit, so if they're not set, set them to the bot's
-            # Case 1: username is not set: set it to the bot's
-            if not username:
-                self._set_bot_username(git_cli)
-            # Case 2: username is set to the bot's at the repo level, but something else is set at the user level: unset it
-            elif username != CODEGEN_BOT_NAME and user_level != "repository":
-                self._unset_bot_username(git_cli)
-            #  3: Caseusername is only set at the repo level: do nothing
-            else:
-                pass  # no-op to make the logic clearer
-            # Repeat for email
-            if not email:
-                self._set_bot_email(git_cli)
+                    email = email or reader.get("user", "email")
+                    email_level = email_level or level
 
-            elif email != CODEGEN_BOT_EMAIL and email_level != "repository":
+        # We need a username and email to commit, so if they're not set, set them to the bot's
+        if not username or self.bot_commit:
+            self._set_bot_username(git_cli)
+        if not email or self.bot_commit:
+            self._set_bot_email(git_cli)
+
+        # If user config is set at a level above the repo level: unset it
+        if not self.bot_commit:
+            if username and username != CODEGEN_BOT_NAME and user_level != "repository":
+                self._unset_bot_username(git_cli)
+            if email and email != CODEGEN_BOT_EMAIL and email_level != "repository":
                 self._unset_bot_email(git_cli)
+
         return git_cli
 
     @property
@@ -451,18 +445,30 @@ class RepoOperator:
                 logger.exception(f"Error with Git operations: {e}")
                 raise
 
+    def get_modified_files(self, ref: str | GitCommit) -> list[str]:
+        """Returns a list of modified files in the repo"""
+        self.git_cli.git.add(A=True)
+        diff = self.git_cli.git.diff(ref, "--name-only")
+        return diff.splitlines()
+
     def get_diffs(self, ref: str | GitCommit, reverse: bool = True) -> list[Diff]:
         """Gets all staged diffs"""
         self.git_cli.git.add(A=True)
         return [diff for diff in self.git_cli.index.diff(ref, R=reverse)]
 
     @stopwatch
-    def stage_and_commit_all_changes(self, message: str, verify: bool = False) -> bool:
+    def stage_and_commit_all_changes(self, message: str, verify: bool = False, exclude_paths: list[str] | None = None) -> bool:
         """TODO: rename to stage_and_commit_changes
         Stage all changes and commit them with the given message.
         Returns True if a commit was made and False otherwise.
         """
         self.git_cli.git.add(A=True)
+        # Unstage the excluded paths
+        for path in exclude_paths or []:
+            try:
+                self.git_cli.git.reset("HEAD", "--", path)
+            except GitCommandError as e:
+                logger.warning(f"Failed to exclude path {path}: {e}")
         return self.commit_changes(message, verify)
 
     def commit_changes(self, message: str, verify: bool = False) -> bool:
@@ -470,6 +476,8 @@ class RepoOperator:
         staged_changes = self.git_cli.git.diff("--staged")
         if staged_changes:
             commit_args = ["-m", message]
+            if self.bot_commit:
+                commit_args.append(f"--author='{CODEGEN_BOT_NAME} <{CODEGEN_BOT_EMAIL}>'")
             if not verify:
                 commit_args.append("--no-verify")
             self.git_cli.git.commit(*commit_args)
@@ -570,7 +578,11 @@ class RepoOperator:
     def get_filepaths_for_repo(self, ignore_list):
         # Get list of files to iterate over based on gitignore setting
         if self.repo_config.respect_gitignore:
-            filepaths = self.git_cli.git.ls_files().split("\n")
+            # ls-file flags:
+            # -c: show cached files
+            # -o: show other / untracked files
+            # --exclude-standard: exclude standard gitignore rules
+            filepaths = self.git_cli.git.ls_files("-co", "--exclude-standard").split("\n")
         else:
             filepaths = glob.glob("**", root_dir=self.repo_path, recursive=True, include_hidden=True)
             # Filter filepaths by ignore list.

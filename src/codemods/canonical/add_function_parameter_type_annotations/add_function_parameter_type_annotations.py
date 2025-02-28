@@ -48,4 +48,4 @@ class AddFunctionParameterTypeAnnotations(Codemod, Skill):
                     # Ensure the necessary import is present
                     file = function.file
                     if "SessionLocal" not in [imp.name for imp in file.imports]:
-                        file.add_import_from_import_string("from app.db import SessionLocal")
+                        file.add_import("from app.db import SessionLocal")

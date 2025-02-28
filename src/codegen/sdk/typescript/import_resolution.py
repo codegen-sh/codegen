@@ -451,7 +451,10 @@ class TSImport(Import["TSFile"], Exportable):
                 return imports
 
             # If import statement is a variable declaration, capture the variable scoping keyword (const, let, var, etc)
-            statement_node = import_statement_node.parent if import_statement_node.type in ["variable_declarator", "assignment_expression"] else import_statement_node
+            if import_statement_node.type == "lexical_declaration":
+                statement_node = import_statement_node
+            else:
+                statement_node = import_statement_node.parent if import_statement_node.type in ["variable_declarator", "assignment_expression"] else import_statement_node
 
             # ==== [ Named dynamic import ] ====
             if name_node.type == "property_identifier":

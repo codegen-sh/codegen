@@ -1,12 +1,12 @@
-import logging
-
 from github import Consts
 from github.GithubException import UnknownObjectException
 from github.MainClass import Github
 from github.Organization import Organization
 from github.Repository import Repository
 
-logger = logging.getLogger(__name__)
+from codegen.shared.logging.get_logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class GithubClient:

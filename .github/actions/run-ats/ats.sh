@@ -50,7 +50,7 @@ if [ ! -s codecov_ats/tests_to_run.txt ]; then
     echo "No tests to run, collecting from default tests"
     PYTEST_ARGS="${COLLECT_ARGS} ${DEFAULT_TESTS}"
     echo "Using args: ${PYTEST_ARGS}"
-    TESTS_TO_RUN=$(PYTEST_ARGS=${PYTEST_ARGS} ./.circleci/collect.sh)
+    TESTS_TO_RUN=$(PYTEST_ARGS=${PYTEST_ARGS} ./.github/actions/run-ats/collect.sh)
     echo "${TESTS_TO_RUN}" > codecov_ats/tests_to_run.txt
     run_count=1
     echo "Added ${TESTS_TO_RUN} as fallback. New run count: $run_count"

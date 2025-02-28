@@ -1,6 +1,4 @@
-import socket
 from collections.abc import Generator
-from contextlib import closing
 from unittest.mock import Mock
 
 import pytest
@@ -11,16 +9,7 @@ from codegen.git.schemas.enums import SetupOption
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.runner.clients.codebase_client import CodebaseClient
 from codegen.shared.enums.programming_language import ProgrammingLanguage
-
-
-@pytest.fixture
-def get_free_port():
-    """Find and return a free port on localhost"""
-    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
-        s.bind(("", 0))
-        s.listen(1)
-        port = s.getsockname()[1]
-        return port
+from codegen.shared.network.port import get_free_port
 
 
 @pytest.fixture()
@@ -44,7 +33,7 @@ def git_repo_client(op: RepoOperator, repo_config: RepoConfig) -> Generator[GitR
 
 
 @pytest.fixture
-def codebase_client(repo_config: RepoConfig, get_free_port) -> Generator[CodebaseClient, None, None]:
-    sb_client = CodebaseClient(repo_config=repo_config, port=get_free_port)
+def codebase_client(repo_config: RepoConfig) -> Generator[CodebaseClient, None, None]:
+    sb_client = CodebaseClient(repo_config=repo_config, port=get_free_port())
     sb_client.runner = Mock()
     yield sb_client

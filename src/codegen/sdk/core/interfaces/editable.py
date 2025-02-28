@@ -485,7 +485,7 @@ class Editable(JSONable, Generic[Parent]):
 
     @reader
     def find(self, strings_to_match: list[str] | str, *, exact: bool = False) -> list[Editable]:
-        r"""Find and return matching nodes or substrings \within an Editable instance.
+        """Find and return matching nodes or substrings within an Editable instance.
 
         This method searches through the extended_nodes of the Editable instance and returns all nodes or substrings that match the given search criteria.
 
@@ -823,7 +823,7 @@ class Editable(JSONable, Generic[Parent]):
     @reader
     @noapidoc
     def child_by_field_types(self, field_types: str | Iterable[str]) -> Expression[Self] | None:
-        """Get child by field types."""
+        """Get child by fiexld types."""
         return next(self.children_by_field_types(field_types), None)
 
     @property
@@ -1095,6 +1095,14 @@ class Editable(JSONable, Generic[Parent]):
             return self.parent
         if self.parent is not self and self.parent is not None:
             return self.parent.parent_of_type(type)
+        return None
+
+    def parent_of_types(self, types: set[type[T]]) -> T | None:
+        """Find the first ancestor of the node of the given type. Does not return itself"""
+        if self.parent and any(isinstance(self.parent, t) for t in types):
+            return self.parent
+        if self.parent is not self and self.parent is not None:
+            return self.parent.parent_of_types(types)
         return None
 
     @reader

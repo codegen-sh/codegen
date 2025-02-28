@@ -13,14 +13,15 @@ from .prompts import REASONER_SYSTEM_MESSAGE
 from .tools import (
     CreateFileTool,
     DeleteFileTool,
-    EditFileTool,
     ListDirectoryTool,
     MoveSymbolTool,
+    ReflectionTool,
+    RelaceEditTool,
     RenameFileTool,
     ReplacementEditTool,
     RevealSymbolTool,
     SearchTool,
-    SemanticEditTool,
+    # SemanticEditTool,
     ViewFileTool,
 )
 
@@ -31,7 +32,7 @@ if TYPE_CHECKING:
 def create_codebase_agent(
     codebase: "Codebase",
     model_provider: str = "anthropic",
-    model_name: str = "claude-3-5-sonnet-latest",
+    model_name: str = "claude-3-7-sonnet-latest",
     system_message: SystemMessage = SystemMessage(REASONER_SYSTEM_MESSAGE),
     memory: bool = True,
     debug: bool = False,
@@ -62,14 +63,16 @@ def create_codebase_agent(
         ViewFileTool(codebase),
         ListDirectoryTool(codebase),
         SearchTool(codebase),
-        EditFileTool(codebase),
+        # EditFileTool(codebase),
         CreateFileTool(codebase),
         DeleteFileTool(codebase),
         RenameFileTool(codebase),
         MoveSymbolTool(codebase),
         RevealSymbolTool(codebase),
-        SemanticEditTool(codebase),
+        # SemanticEditTool(codebase),
         ReplacementEditTool(codebase),
+        RelaceEditTool(codebase),
+        ReflectionTool(codebase),
         # SemanticSearchTool(codebase),
         # =====[ Github Integration ]=====
         # Enable Github integration
@@ -80,6 +83,55 @@ def create_codebase_agent(
     ]
 
     # Add additional tools if provided
+    if additional_tools:
+        tools.extend(additional_tools)
+
+    memory = MemorySaver() if memory else None
+
+    return create_react_agent(model=llm, tools=tools, prompt=system_message, checkpointer=memory, debug=debug)
+
+
+def create_chat_agent(
+    codebase: "Codebase",
+    model_provider: str = "anthropic",
+    model_name: str = "claude-3-5-sonnet-latest",
+    system_message: SystemMessage = SystemMessage(REASONER_SYSTEM_MESSAGE),
+    memory: bool = True,
+    debug: bool = False,
+    additional_tools: Optional[list[BaseTool]] = None,
+    **kwargs,
+) -> CompiledGraph:
+    """Create an agent with all codebase tools.
+
+    Args:
+        codebase: The codebase to operate on
+        model_provider: The model provider to use ("anthropic" or "openai")
+        model_name: Name of the model to use
+        verbose: Whether to print agent's thought process (default: True)
+        chat_history: Optional list of messages to initialize chat history with
+        **kwargs: Additional LLM configuration options. Supported options:
+            - temperature: Temperature parameter (0-1)
+            - top_p: Top-p sampling parameter (0-1)
+            - top_k: Top-k sampling parameter (>= 1)
+            - max_tokens: Maximum number of tokens to generate
+
+    Returns:
+        Initialized agent with message history
+    """
+    llm = LLM(model_provider=model_provider, model_name=model_name, **kwargs)
+
+    tools = [
+        ViewFileTool(codebase),
+        ListDirectoryTool(codebase),
+        SearchTool(codebase),
+        CreateFileTool(codebase),
+        DeleteFileTool(codebase),
+        RenameFileTool(codebase),
+        MoveSymbolTool(codebase),
+        RevealSymbolTool(codebase),
+        RelaceEditTool(codebase),
+    ]
+
     if additional_tools:
         tools.extend(additional_tools)
 

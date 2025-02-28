@@ -1,4 +1,3 @@
-import logging
 import os
 from typing import Any, Optional
 
@@ -7,15 +6,14 @@ from fastapi.responses import HTMLResponse
 
 from codegen.configs.models.codebase import CodebaseConfig
 from codegen.configs.models.secrets import SecretsConfig
-from codegen.git.clients.git_repo_client import GitRepoClient
-from codegen.git.schemas.repo_config import RepoConfig
 from codegen.sdk.core.codebase import Codebase
+from codegen.shared.logging.get_logger import get_logger
 
 from .github import GitHub
 from .linear import Linear
 from .slack import Slack
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 class CodegenApp:
     """A FastAPI-based application for handling various code-related events."""

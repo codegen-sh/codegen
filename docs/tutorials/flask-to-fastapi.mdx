@@ -119,7 +119,7 @@ FastAPI handles static files differently than Flask. We need to add the StaticFi
 
 ```python
 # Add StaticFiles import
-file.add_import_from_import_string("from fastapi.staticfiles import StaticFiles")
+file.add_import("from fastapi.staticfiles import StaticFiles")
 
 # Mount static directory
 file.add_symbol_from_source(

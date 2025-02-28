@@ -11,7 +11,7 @@ import {HorizontalDivider} from '/snippets/HorizontalDivider.mdx';
 import {GithubLinkNote} from '/snippets/GithubLinkNote.mdx';
 import {Attribute} from '/snippets/Attribute.mdx';
 
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/python/assignment.py#L21-L98" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/python/assignment.py#L25-L162" />
 
 ### Inherits from
 [PySymbol](/api-reference/python/PySymbol), [Assignment](/api-reference/core/Assignment), [Symbol](/api-reference/core/Symbol), [HasValue](/api-reference/core/HasValue), [Typeable](/api-reference/core/Typeable), [Usable](/api-reference/core/Usable), [Importable](/api-reference/core/Importable), [Editable](/api-reference/core/Editable), [Expression](/api-reference/core/Expression), [HasName](/api-reference/core/HasName)
@@ -171,7 +171,7 @@ Insert a keyword in the appropriate place before this symbol if it doesn't alrea
 
 ### <span className="text-primary">ancestors</span>
 Find all ancestors of the node of the given type. Does not return itself
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1101-L1109" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1109-L1117" />
 
 
 <Return return_type={ <><span>list[</span> <a href="/api-reference/core/Editable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Editable</a> <span>]</span></> } description=""/>
@@ -291,7 +291,7 @@ Flags a Python symbol by adding a flag comment and returning a CodeFlag.
 
 ### <span className="text-primary">from_named_expression</span>
 Creates a MultiExpression from a Python named expression.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/python/assignment.py#L40-L64" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/python/assignment.py#L44-L68" />
 
 <ParameterWrapper>
 <Parameter
@@ -531,6 +531,14 @@ Find the first ancestor of the node of the given type. Does not return itself
 <Return return_type={ <><a href="/api-reference/core/Editable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Editable</a> <span>| None</span></> } description=""/>
 
 
+### <span className="text-primary">parent_of_types</span>
+Find the first ancestor of the node of the given type. Does not return itself
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1100-L1106" />
+
+
+<Return return_type={ <><a href="/api-reference/core/Editable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Editable</a> <span>| None</span></> } description=""/>
+
+
 ### <span className="text-primary">reduce_condition</span>
 Simplifies an assignment expression by reducing it based on a boolean condition and updating all the usages.
 <GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/assignment.py#L276-L287" />
@@ -549,8 +557,8 @@ Simplifies an assignment expression by reducing it based on a boolean condition 
 
 
 ### <span className="text-primary">remove</span>
-Deletes this Node and its related extended nodes (e.g. decorators, comments).
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L687-L702" />
+Deletes this assignment and its related extended nodes (e.g. decorators, comments).
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/python/assignment.py#L129-L162" />
 
 <ParameterWrapper>
 <Parameter

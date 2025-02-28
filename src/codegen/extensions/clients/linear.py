@@ -1,10 +1,11 @@
 import json
-import logging
 
 import requests
 from pydantic import BaseModel
 
-logger = logging.getLogger(__name__)
+from codegen.shared.logging.get_logger import get_logger
+
+logger = get_logger(__name__)
 
 
 # --- TYPES
@@ -114,7 +115,7 @@ class LinearClient:
             comment_data = data["data"]["commentCreate"]["comment"]
 
             return comment_data
-        except:
+        except Exception:
             msg = f"Error creating comment\n{data}"
             raise Exception(msg)
 

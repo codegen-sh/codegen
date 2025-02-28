@@ -1,24 +1,37 @@
-name: Unit Tests
+name: Tests
 
 on:
   push:
     branches:
       - "develop"
-  pull_request:
+  pull_request_target:
     types: [ opened, synchronize, reopened, labeled ]
     branches:
       - "develop"
   workflow_dispatch:
 
 jobs:
+  access-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions-cool/check-user-permission@v2
+        with:
+          require: write
+          username: ${{ github.triggering_actor }}
+          error-if-missing: true
+
   unit-tests:
+    needs: access-check
     runs-on: ubuntu-latest-8
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
       - name: Setup environment
         uses: ./.github/actions/setup-environment
+
       - name: Run ATS and Tests
         uses: ./.github/actions/run-ats
         timeout-minutes: 15
@@ -30,6 +43,7 @@ jobs:
           codecov_flags: unit-tests
 
   codemod-tests:
+    needs: access-check
     # TODO: re-enable when this check is a develop required check
     if: false
     runs-on: ubuntu-latest-32
@@ -48,10 +62,15 @@ jobs:
     name: "Codemod tests ${{matrix.size}}: Sync Graph=${{matrix.sync_graph}}"
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
       - name: Setup environment
         uses: ./.github/actions/setup-environment
+
       - name: Cache oss-repos
         uses: ./.github/actions/setup-oss-repos
+
       - name: Run ATS and Tests
         uses: ./.github/actions/run-ats
         timeout-minutes: 15
@@ -66,11 +85,14 @@ jobs:
           GITHUB_WORKSPACE: $GITHUB_WORKSPACE
 
   parse-tests:
-    runs-on: ubuntu-latest-32
+    needs: access-check
     if: contains(github.event.pull_request.labels.*.name, 'parse-tests') || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    environment: parse-tests
+    runs-on: ubuntu-latest-32
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
       - name: Setup environment
         uses: ./.github/actions/setup-environment
 
@@ -91,10 +113,12 @@ jobs:
             -n auto \
             -o junit_suite_name="${{github.job}}" \
             tests/integration/codemod/test_parse.py
+
       - uses: ./.github/actions/report
         with:
           flag: no-flag
           codecov_token: ${{ secrets.CODECOV_TOKEN }}
+
       - name: Notify parse tests failure
         uses: slackapi/slack-github-action@v2.0.0
         if: failure() && github.event_name == 'push' && false
@@ -132,11 +156,16 @@ jobs:
             }
 
   integration-tests:
+    needs: access-check
     runs-on: ubuntu-latest-16
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
       - name: Setup environment
         uses: ./.github/actions/setup-environment
+
       - name: Test with pytest
         timeout-minutes: 5
         env:
@@ -147,6 +176,7 @@ jobs:
             -n auto \
             -o junit_suite_name="${{github.job}}" \
             tests/integration/codegen
+
       - uses: ./.github/actions/report
         with:
           flag: integration-tests

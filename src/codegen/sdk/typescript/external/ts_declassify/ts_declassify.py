@@ -1,11 +1,11 @@
-import logging
 import os
 import shutil
 import subprocess
 
 from codegen.sdk.core.external.external_process import ExternalProcess
+from codegen.shared.logging.get_logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class TSDeclassify(ExternalProcess):

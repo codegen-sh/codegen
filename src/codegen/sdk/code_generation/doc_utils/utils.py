@@ -1,4 +1,3 @@
-import logging
 import re
 import textwrap
 
@@ -11,8 +10,9 @@ from codegen.sdk.core.interfaces.callable import Callable
 from codegen.sdk.core.symbol import Symbol
 from codegen.sdk.python.statements.attribute import PyAttribute
 from codegen.shared.enums.programming_language import ProgrammingLanguage
+from codegen.shared.logging.get_logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # These are the classes that are not language specific, but have language specific subclasses with different names
 SPECIAL_BASE_CLASSES = {"SourceFile": "File"}

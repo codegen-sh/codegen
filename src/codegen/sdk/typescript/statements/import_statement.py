@@ -35,9 +35,9 @@ class TSImportStatement(ImportStatement["TSFile", TSImport, "TSCodeBlock"], Buil
         imports = []
         if ts_node.type == "import_statement":
             imports.extend(TSImport.from_import_statement(ts_node, file_node_id, ctx, self))
-        elif ts_node.type == "call_expression":
-            import_call_node = ts_node.child_by_field_name("function")
-            arguments = ts_node.child_by_field_name("arguments")
+        elif ts_node.type in ["call_expression", "lexical_declaration", "expression_statement", "type_alias_declaration"]:
+            import_call_node = source_node.child_by_field_name("function")
+            arguments = source_node.child_by_field_name("arguments")
             imports.extend(TSImport.from_dynamic_import_statement(import_call_node, arguments, file_node_id, ctx, self))
         elif ts_node.type == "export_statement":
             imports.extend(TSImport.from_export_statement(source_node, file_node_id, ctx, self))

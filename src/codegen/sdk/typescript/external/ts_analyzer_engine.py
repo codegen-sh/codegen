@@ -1,5 +1,4 @@
 import json
-import logging
 import os
 import shutil
 import subprocess
@@ -14,13 +13,14 @@ from py_mini_racer._types import JSEvalException
 
 from codegen.sdk.core.external.language_engine import LanguageEngine
 from codegen.sdk.typescript.external.mega_racer import MegaRacer
+from codegen.shared.logging.get_logger import get_logger
 
 if TYPE_CHECKING:
     from codegen.sdk.core.external.dependency_manager import DependencyManager
     from codegen.sdk.core.interfaces.editable import Editable
 
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class TypescriptEngine(LanguageEngine):

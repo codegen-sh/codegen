@@ -25,7 +25,7 @@ The script automates the entire migration process in a few key steps:
 
    ```python
    import_str = "import { useQuery, useSuspenseQueries } from '@tanstack/react-query'"
-   file.add_import_from_import_string(import_str)
+   file.add_import(import_str)
    ```
 
    - Uses Codegen's import analysis to add required imports

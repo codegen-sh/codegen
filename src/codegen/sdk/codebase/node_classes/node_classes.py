@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from codegen.sdk.core.file import SourceFile
     from codegen.sdk.core.function import Function
     from codegen.sdk.core.import_resolution import Import
+    from codegen.sdk.core.interfaces.editable import Editable
     from codegen.sdk.core.statements.comment import Comment
     from codegen.sdk.core.symbol import Symbol
 
@@ -33,7 +34,7 @@ class NodeClasses:
     function_call_cls: type[FunctionCall]
     comment_cls: type[Comment]
     bool_conversion: dict[bool, str]
-    dynamic_import_parent_types: set[str]
+    dynamic_import_parent_types: set[type[Editable]]
     symbol_map: dict[str, type[Symbol]] = field(default_factory=dict)
     expression_map: dict[str, type[Expression]] = field(default_factory=dict)
     type_map: dict[str, type[Type] | dict[str, type[Type]]] = field(default_factory=dict)

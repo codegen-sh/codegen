@@ -84,7 +84,7 @@ def run(codebase: Codebase):
 
         # Add imports if needed
         if needs_imports:
-            file.add_import_from_import_string("from pydantic import BaseModel")
+            file.add_import("from pydantic import BaseModel")
 
         if file_modified:
             files_modified += 1

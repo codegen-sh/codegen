@@ -324,6 +324,7 @@ class Import(Usable[ImportStatement], Chainable, Generic[TSourceFile], HasAttrib
         """Returns the symbol directly being imported, including an indirect import and an External
         Module.
         """
+        from codegen.sdk.python.file import PyFile
         from codegen.sdk.typescript.file import TSFile
 
         symbol = next(iter(self.ctx.successors(self.node_id, edge_type=EdgeType.IMPORT_SYMBOL_RESOLUTION, sort=False)), None)
@@ -341,6 +342,14 @@ class Import(Usable[ImportStatement], Chainable, Generic[TSourceFile], HasAttrib
             if self.import_type == ImportType.NAMED_EXPORT:
                 if export := symbol.valid_import_names.get(name, None):
                     return export
+        elif resolve_exports and isinstance(symbol, PyFile):
+            name = self.symbol_name.source if self.symbol_name else ""
+            if self.import_type == ImportType.NAMED_EXPORT:
+                if symbol.name == name:
+                    return symbol
+                if imp := symbol.valid_import_names.get(name, None):
+                    return imp
+
         if symbol is not self:
             return symbol
 
@@ -419,15 +428,7 @@ class Import(Usable[ImportStatement], Chainable, Generic[TSourceFile], HasAttrib
             bool: True if the import is dynamic (within a control flow or scope block),
             False if it's a top-level import.
         """
-        curr = self.ts_node
-
-        # always traverses upto the module level
-        while curr:
-            if curr.type in self.ctx.node_classes.dynamic_import_parent_types:
-                return True
-            curr = curr.parent
-
-        return False
+        return self.parent_of_types(self.ctx.node_classes.dynamic_import_parent_types) is not None
 
     ####################################################################################################################
     # MANIPULATIONS
@@ -632,6 +633,11 @@ class Import(Usable[ImportStatement], Chainable, Generic[TSourceFile], HasAttrib
         #             if used_frame.parent_frame:
         #                 used_frame.parent_frame.add_usage(self.symbol_name or self.module, SymbolUsageType.IMPORTED_WILDCARD, self, self.ctx)
         # else:
+        if isinstance(self, Import) and self.import_type == ImportType.NAMED_EXPORT:
+            # It could be a wildcard import downstream, hence we have to pop the cache
+            if file := self.from_file:
+                file.invalidate()
+
         for used_frame in self.resolved_type_frames:
             if used_frame.parent_frame:
                 used_frame.parent_frame.add_usage(self._unique_node, UsageKind.IMPORTED, self, self.ctx)

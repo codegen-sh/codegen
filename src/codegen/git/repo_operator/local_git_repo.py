@@ -47,6 +47,7 @@ class LocalGitRepo:
         """Returns the url of the first remote found on the repo, or None if no remotes are set"""
         if self.has_remote():
             return self.git_cli.remote("origin")
+        return None
 
     @cached_property
     def base_url(self) -> str | None:

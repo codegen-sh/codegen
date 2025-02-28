@@ -14,7 +14,13 @@ from codegen.sdk.core.expressions.parenthesized_expression import ParenthesizedE
 from codegen.sdk.core.expressions.subscript_expression import SubscriptExpression
 from codegen.sdk.core.expressions.unary_expression import UnaryExpression
 from codegen.sdk.core.expressions.unpack import Unpack
+from codegen.sdk.core.function import Function
 from codegen.sdk.core.statements.comment import Comment
+from codegen.sdk.core.statements.for_loop_statement import ForLoopStatement
+from codegen.sdk.core.statements.if_block_statement import IfBlockStatement
+from codegen.sdk.core.statements.switch_statement import SwitchStatement
+from codegen.sdk.core.statements.try_catch_statement import TryCatchStatement
+from codegen.sdk.core.statements.while_statement import WhileStatement
 from codegen.sdk.core.symbol_groups.dict import Dict
 from codegen.sdk.core.symbol_groups.list import List
 from codegen.sdk.core.symbol_groups.tuple import Tuple
@@ -29,6 +35,8 @@ from codegen.sdk.python.expressions.named_type import PyNamedType
 from codegen.sdk.python.expressions.string import PyString
 from codegen.sdk.python.expressions.union_type import PyUnionType
 from codegen.sdk.python.statements.import_statement import PyImportStatement
+from codegen.sdk.python.statements.match_case import PyMatchCase
+from codegen.sdk.python.statements.with_statement import WithStatement
 
 
 def parse_subscript(node: TSNode, file_node_id, ctx, parent):
@@ -110,16 +118,13 @@ PyNodeClasses = NodeClasses(
         False: "False",
     },
     dynamic_import_parent_types={
-        "function_definition",
-        "if_statement",
-        "try_statement",
-        "with_statement",
-        "else_clause",
-        "for_statement",
-        "except_clause",
-        "while_statement",
-        "match_statement",
-        "case_clause",
-        "finally_clause",
+        Function,
+        IfBlockStatement,
+        TryCatchStatement,
+        WithStatement,
+        ForLoopStatement,
+        WhileStatement,
+        SwitchStatement,
+        PyMatchCase,
     },
 )
