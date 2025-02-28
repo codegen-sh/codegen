@@ -1,4 +1,3 @@
-import logging
 from typing import TYPE_CHECKING, Generic, Self, TypeVar, Union
 
 from tree_sitter import Node as TSNode
@@ -13,6 +12,7 @@ from codegen.sdk.enums import EdgeType
 from codegen.sdk.extensions.autocommit import commiter
 from codegen.sdk.extensions.sort import sort_editables
 from codegen.shared.decorators.docs import apidoc, noapidoc
+from codegen.shared.logging.get_logger import get_logger
 
 if TYPE_CHECKING:
     from codegen.sdk.codebase.codebase_context import CodebaseContext
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
 Parent = TypeVar("Parent", bound="Editable")
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @apidoc

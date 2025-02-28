@@ -26,7 +26,7 @@ def run(codebase: Codebase):
 
         print(f"Processing {file.filepath}")
         # Add the import statement
-        file.add_import_from_import_string(import_str)
+        file.add_import(import_str)
         file_modified = False
 
         # Iterate through all functions in the file

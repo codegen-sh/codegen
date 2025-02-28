@@ -41,7 +41,7 @@ class PivotReturnTypes(Codemod, Skill):
                 function.set_return_type("FastStr")
 
                 # Add import for 'FastStr' if it doesn't exist
-                function.file.add_import_from_import_string("from app.models.fast_str import FastStr")
+                function.file.add_import("from app.models.fast_str import FastStr")
 
                 # Modify all return statements within the function
                 for return_stmt in function.code_block.return_statements:

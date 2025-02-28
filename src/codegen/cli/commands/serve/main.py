@@ -13,8 +13,9 @@ from rich.logging import RichHandler
 from rich.panel import Panel
 
 from codegen.extensions.events.codegen_app import CodegenApp
+from codegen.shared.logging.get_logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def setup_logging(debug: bool):
@@ -80,7 +81,7 @@ def create_app_module(file_path: Path) -> str:
     module_name = f"codegen_app_{file_path.stem}"
     module_code = f"""
 from {file_path.stem} import app
-app = app.app
+app = app
 """
     module_path = file_path.parent / f"{module_name}.py"
     module_path.write_text(module_code)

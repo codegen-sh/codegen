@@ -2,7 +2,9 @@ import logging
 
 import click
 
-logger = logging.getLogger(__name__)
+from codegen.shared.logging.get_logger import get_logger
+
+logger = get_logger(__name__)
 
 
 @click.command(name="lsp")

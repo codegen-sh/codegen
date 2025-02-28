@@ -11,7 +11,7 @@ import {HorizontalDivider} from '/snippets/HorizontalDivider.mdx';
 import {GithubLinkNote} from '/snippets/GithubLinkNote.mdx';
 import {Attribute} from '/snippets/Attribute.mdx';
 
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/codebase.py#L113-L1458" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/codebase.py#L113-L1460" />
 
 
 ## Attributes
@@ -257,7 +257,7 @@ Creates a pull request from the current branch to the repository's default branc
 
 ### <span className="text-primary">create_pr_comment</span>
 Create a comment on a pull request
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/codebase.py#L1439-L1441" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/codebase.py#L1441-L1443" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
@@ -265,7 +265,7 @@ Create a comment on a pull request
 
 ### <span className="text-primary">create_pr_review_comment</span>
 Create a review comment on a pull request.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/codebase.py#L1443-L1458" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/codebase.py#L1445-L1460" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
@@ -298,7 +298,7 @@ Finds editable objects that overlap with the given source code span.
 
 ### <span className="text-primary">from_files</span>
 Creates a Codebase instance from multiple files.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/codebase.py#L1349-L1429" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/codebase.py#L1351-L1431" />
 
 
 <Return return_type={ <><a href="/api-reference/core/Codebase" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Codebase</a></> } description="A Codebase instance initialized with the provided files"/>
@@ -306,7 +306,7 @@ Creates a Codebase instance from multiple files.
 
 ### <span className="text-primary">from_repo</span>
 Fetches a codebase from GitHub and returns a Codebase instance.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/codebase.py#L1241-L1300" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/codebase.py#L1241-L1302" />
 
 <ParameterWrapper>
 <Parameter
@@ -359,7 +359,7 @@ Fetches a codebase from GitHub and returns a Codebase instance.
 
 ### <span className="text-primary">from_string</span>
 Creates a Codebase instance from a string of code.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/codebase.py#L1303-L1346" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/codebase.py#L1305-L1348" />
 
 
 <Return return_type={ <><a href="/api-reference/core/Codebase" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Codebase</a></> } description="A Codebase instance initialized with the provided code Example: >>> # Python code >>> code = &quot;def add(a, b): return a + b&quot; >>> codebase = Codebase.from_string(code, language=&quot;python&quot;) >>> # TypeScript code >>> code = &quot;function add(a: number, b: number): number { return a + b; }&quot; >>> codebase = Codebase.from_string(code, language=&quot;typescript&quot;)"/>
@@ -465,7 +465,7 @@ Retrieves a function from the codebase by its name.
 
 ### <span className="text-primary">get_modified_symbols_in_pr</span>
 Get all modified symbols in a pull request
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/codebase.py#L1431-L1437" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/codebase.py#L1433-L1439" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">tuple[str, dict[str, str], list[str]]</code> } description=""/>

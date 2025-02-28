@@ -60,4 +60,4 @@ class SwapCallSiteImports(Codemod, Skill):
                 legacy_function.remove()
 
                 # Add import of the new function
-                call_site.file.add_import_from_import_string(f"from settings.collections import {legacy_function.name}")
+                call_site.file.add_import(f"from settings.collections import {legacy_function.name}")

@@ -329,19 +329,19 @@ class Symbol(Usable[Statement["CodeBlock[Parent, ...]"]], Generic[Parent, TCodeB
                 # =====[ Imports - copy over ]=====
                 elif isinstance(dep, Import):
                     if dep.imported_symbol:
-                        file.add_symbol_import(dep.imported_symbol, alias=dep.alias.source)
+                        file.add_import(imp=dep.imported_symbol, alias=dep.alias.source)
                     else:
-                        file.add_import_from_import_string(dep.source)
+                        file.add_import(imp=dep.source)
         else:
             for dep in self.dependencies:
                 # =====[ Symbols - add back edge ]=====
                 if isinstance(dep, Symbol) and dep.is_top_level:
-                    file.add_symbol_import(symbol=dep, alias=dep.name, import_type=ImportType.NAMED_EXPORT, is_type_import=False)
+                    file.add_import(imp=dep, alias=dep.name, import_type=ImportType.NAMED_EXPORT, is_type_import=False)
                 elif isinstance(dep, Import):
                     if dep.imported_symbol:
-                        file.add_symbol_import(dep.imported_symbol, alias=dep.alias.source)
+                        file.add_import(imp=dep.imported_symbol, alias=dep.alias.source)
                     else:
-                        file.add_import_from_import_string(dep.source)
+                        file.add_import(imp=dep.source)
 
         # =====[ Make a new symbol in the new file ]=====
         file.add_symbol(self)
@@ -364,7 +364,7 @@ class Symbol(Usable[Statement["CodeBlock[Parent, ...]"]], Generic[Parent, TCodeB
         # Here, we will add a "back edge" to the old file importing the symbol
         elif strategy == "add_back_edge":
             if is_used_in_file or any(usage.kind is UsageKind.IMPORTED and usage.usage_symbol not in encountered_symbols for usage in self.usages):
-                self.file.add_import_from_import_string(import_line)
+                self.file.add_import(imp=import_line)
             # Delete the original symbol
             self.remove()
 
@@ -374,7 +374,7 @@ class Symbol(Usable[Statement["CodeBlock[Parent, ...]"]], Generic[Parent, TCodeB
             for usage in self.usages:
                 if isinstance(usage.usage_symbol, Import) and usage.usage_symbol.file != file:
                     # Add updated import
-                    usage.usage_symbol.file.add_import_from_import_string(import_line)
+                    usage.usage_symbol.file.add_import(import_line)
                     usage.usage_symbol.remove()
                 elif usage.usage_type == UsageType.CHAINED:
                     # Update all previous usages of import * to the new import name
@@ -383,11 +383,11 @@ class Symbol(Usable[Statement["CodeBlock[Parent, ...]"]], Generic[Parent, TCodeB
                             usage.match.get_name().edit(self.name)
                         if isinstance(usage.match, ChainedAttribute):
                             usage.match.edit(self.name)
-                        usage.usage_symbol.file.add_import_from_import_string(import_line)
+                        usage.usage_symbol.file.add_import(imp=import_line)
 
             # Add the import to the original file
             if is_used_in_file:
-                self.file.add_import_from_import_string(import_line)
+                self.file.add_import(imp=import_line)
             # Delete the original symbol
             self.remove()
 

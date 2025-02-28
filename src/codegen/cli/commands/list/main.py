@@ -18,6 +18,7 @@ def list_command():
         table.add_column("Type", style="magenta")
         table.add_column("Path", style="dim")
         table.add_column("Subdirectories", style="dim")
+        table.add_column("Language", style="dim")
 
         for func in functions:
             func_type = "Webhook" if func.lint_mode else "Function"
@@ -26,6 +27,7 @@ def list_command():
                 func_type,
                 str(func.filepath.relative_to(Path.cwd())) if func.filepath else "<unknown>",
                 ", ".join(func.subdirectories) if func.subdirectories else "",
+                func.language or "",
             )
 
         rich.print(table)

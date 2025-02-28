@@ -1,5 +1,4 @@
 import ast
-import logging
 import os
 import re
 from collections.abc import Callable
@@ -7,7 +6,9 @@ from concurrent.futures import ThreadPoolExecutor
 
 import astor
 
-logger = logging.getLogger(__name__)
+from codegen.shared.logging.get_logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class MethodRemover(ast.NodeTransformer):

@@ -40,7 +40,7 @@ async def test_sandbox_runner_warmup_starts_with_default_branch(mock_executor, r
     # assert len(runner.codebase._op.git_cli.branches) == 1  TODO: fix GHA creating master and main branch
     assert not runner.codebase._op.git_cli.head.is_detached
     assert runner.codebase._op.git_cli.active_branch.name == runner.codebase.default_branch
-    assert runner.codebase._op.git_cli.head.commit == runner.commit
+    assert runner.codebase._op.git_cli.head.commit == runner.op.head_commit
 
 
 @pytest.mark.asyncio

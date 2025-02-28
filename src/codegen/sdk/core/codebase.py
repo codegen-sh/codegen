@@ -2,7 +2,6 @@
 
 import codecs
 import json
-import logging
 import os
 import re
 import tempfile
@@ -26,7 +25,7 @@ from typing_extensions import TypeVar, deprecated
 from codegen.configs.models.codebase import CodebaseConfig
 from codegen.configs.models.secrets import SecretsConfig
 from codegen.git.repo_operator.repo_operator import RepoOperator
-from codegen.git.schemas.enums import CheckoutResult
+from codegen.git.schemas.enums import CheckoutResult, SetupOption
 from codegen.git.utils.pr_review import CodegenPR
 from codegen.sdk._proxy import proxy_property
 from codegen.sdk.ai.client import get_openai_client
@@ -84,10 +83,11 @@ from codegen.sdk.typescript.type_alias import TSTypeAlias
 from codegen.shared.decorators.docs import apidoc, noapidoc, py_noapidoc
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 from codegen.shared.exceptions.control_flow import MaxAIRequestsError
+from codegen.shared.logging.get_logger import get_logger
 from codegen.shared.performance.stopwatch_utils import stopwatch
 from codegen.visualizations.visualization_manager import VisualizationManager
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 MAX_LINES = 10000  # Maximum number of lines of text allowed to be logged
 
 
@@ -734,7 +734,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
     # State/Git
     ####################################################################################################################
 
-    def git_commit(self, message: str, *, verify: bool = False) -> GitCommit | None:
+    def git_commit(self, message: str, *, verify: bool = False, exclude_paths: list[str] | None = None) -> GitCommit | None:
         """Stages + commits all changes to the codebase and git.
 
         Args:
@@ -745,7 +745,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             GitCommit | None: The commit object if changes were committed, None otherwise.
         """
         self.ctx.commit_transactions(sync_graph=False)
-        if self._op.stage_and_commit_all_changes(message, verify):
+        if self._op.stage_and_commit_all_changes(message, verify, exclude_paths):
             logger.info(f"Commited repository to {self._op.head_commit} on {self._op.get_active_branch_or_commit()}")
             return self._op.head_commit
         else:
@@ -1247,6 +1247,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         language: Literal["python", "typescript"] | ProgrammingLanguage | None = None,
         config: CodebaseConfig | None = None,
         secrets: SecretsConfig | None = None,
+        setup_option: SetupOption | None = None,
     ) -> "Codebase":
         """Fetches a codebase from GitHub and returns a Codebase instance.
 
@@ -1286,7 +1287,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
                 repo_operator = RepoOperator.create_from_repo(repo_path=repo_path, url=repo_url)
             else:
                 # Ensure the operator can handle remote operations
-                repo_operator = RepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url)
+                access_token = secrets.github_token if secrets else None
+                repo_operator = RepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url, full_name=repo_full_name, access_token=access_token)
             logger.info("Clone completed successfully")
 
             # Initialize and return codebase with proper context

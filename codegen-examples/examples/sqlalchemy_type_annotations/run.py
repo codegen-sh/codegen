@@ -100,16 +100,16 @@ def run(codebase: Codebase):
 
             # Add necessary imports
             if not cls.file.has_import("Mapped"):
-                cls.file.add_import_from_import_string("from sqlalchemy.orm import Mapped\n")
+                cls.file.add_import("from sqlalchemy.orm import Mapped\n")
 
             if "Optional" in new_type and not cls.file.has_import("Optional"):
-                cls.file.add_import_from_import_string("from typing import Optional\n")
+                cls.file.add_import("from typing import Optional\n")
 
             if "Decimal" in new_type and not cls.file.has_import("Decimal"):
-                cls.file.add_import_from_import_string("from decimal import Decimal\n")
+                cls.file.add_import("from decimal import Decimal\n")
 
             if "datetime" in new_type and not cls.file.has_import("datetime"):
-                cls.file.add_import_from_import_string("from datetime import datetime\n")
+                cls.file.add_import("from datetime import datetime\n")
 
         if class_modified:
             classes_modified += 1

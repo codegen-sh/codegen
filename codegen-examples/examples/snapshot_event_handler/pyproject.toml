@@ -1,0 +1,32 @@
+[project]
+name = "codegen-examples"
+version = "0.0.0"
+readme = "README.md"
+requires-python = ">=3.12, <3.14"
+dependencies = [
+  "fastapi-utils>=0.8.0",
+  "fastapi[standard]>=0.115.9",
+  "modal>=0.73.72",
+  "fastapi-restful[all]>=0.6.0",
+  "classy-fastapi>=0.6.1",
+  "codegen==0.42.1",
+]
+license = { file = "LICENSE" }
+classifiers = [
+  "License :: OSI Approved :: Apache Software License",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development",
+  "Development Status :: 4 - Beta",
+  "Environment :: MacOS X",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python",
+]
+
+[tool.ruff]
+line-length = 200
+exclude = ["**/input_repo/**", "**/output_repo/**", "**/repositories/**"]
+
+[tool.uv]
+cache-keys = [{ git = { commit = true, tags = true } }]

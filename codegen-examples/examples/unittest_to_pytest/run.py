@@ -24,7 +24,7 @@ def convert_to_pytest_fixtures(file):
     print(f"🔍 Processing file: {file.filepath}")
 
     if not any(imp.name == "pytest" for imp in file.imports):
-        file.add_import_from_import_string("import pytest")
+        file.add_import("import pytest")
         print(f"➕ Added pytest import to {file.filepath}")
 
     for cls in file.classes:

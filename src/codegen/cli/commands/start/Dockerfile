@@ -21,10 +21,6 @@ RUN apt-get update && apt-get install -y \
     # Cleanup apt cache to reduce image size
     && rm -rf /var/lib/apt/lists/*
 
-# Set git config
-RUN git config --global user.email "team+codegenbot@codegen.sh" \
-    && git config --global user.name "codegen-bot"
-
 # Install nvm and Node.js
 SHELL ["/bin/bash", "-c"]
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash \
@@ -46,14 +42,23 @@ RUN node --version \
     && pnpm --version \
     && python --version
 
-# Build codegen
-WORKDIR /codegen-sdk
-COPY . .
+# Add build argument for codegen version and build type
+ARG CODEGEN_VERSION
+ARG BUILD_TYPE="release"  # Can be "release" or "dev"
+
+# Install codegen based on BUILD_TYPE
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv venv && source .venv/bin/activate \
-    && uv sync --frozen --no-dev --all-extras \
-    && uv pip install --system -e . --no-deps \
-    && uv pip install --system .
+    --mount=type=bind,source=.,target=/codegen-sdk,rw \
+    if [ "$BUILD_TYPE" = "release" ]; then \
+        uv pip install --system codegen==${CODEGEN_VERSION}; \
+    else \
+        cd /codegen-sdk \
+        && uv venv && source .venv/bin/activate \
+        && uv sync --frozen --no-dev --all-extras \
+        && uv pip install --system -e . --no-deps \
+        && uv pip install --system .; \
+    fi
+
 RUN codegen --version
 
 # Create a non-root user for local development + debugging

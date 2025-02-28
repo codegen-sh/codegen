@@ -1,10 +1,10 @@
-import logging
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from codegen.sdk.codebase.io.io import IO, BadWriteError
+from codegen.shared.logging.get_logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class FileIO(IO):

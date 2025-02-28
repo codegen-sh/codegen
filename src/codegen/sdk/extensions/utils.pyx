@@ -31,7 +31,7 @@ def get_all_identifiers(node: TSNode) -> list[TSNode]:
     return sorted(dict.fromkeys(identifiers), key=lambda x: x.start_byte)
 
 
-def find_all_descendants(node: TSNode, type_names: Iterable[str] | str, max_depth: int | None = None, nested: bool = True) -> list[TSNode]:
+def find_all_descendants(node: TSNode, type_names: Iterable[str] | str, max_depth: int | None = None, nested: bool = True, stop_at_first: str | None = None) -> list[TSNode]:
     if isinstance(type_names, str):
         type_names = [type_names]
     descendants = []
@@ -44,6 +44,9 @@ def find_all_descendants(node: TSNode, type_names: Iterable[str] | str, max_dept
             descendants.append(current_node)
             if not nested and current_node != node:
                 return
+
+        if stop_at_first and current_node.type == stop_at_first:
+            return
 
         for child in current_node.children:
             traverse(child, depth + 1)

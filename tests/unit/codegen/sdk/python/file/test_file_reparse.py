@@ -98,7 +98,7 @@ def test_file_reparse_move_global_var(mock_codebase_setup: tuple[Codebase, File,
     global_var1.remove()
     global_var2 = file2.get_global_var("GLOBAL_CONSTANT_2")
     global_var2.insert_before(global_var1.source)
-    file1.add_symbol_import(global_var1)
+    file1.add_import(global_var1)
 
     # Remove the import to GLOBAL_CONSTANT_1 from file2
     imp_to_remove = file2.get_import("GLOBAL_CONSTANT_1")

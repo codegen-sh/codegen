@@ -29,7 +29,7 @@ class ConvertAttributeToDecorator(Codemod, Skill):
             ...
 
     That is, it deletes the attribute and adds the appropriate decorator via the `cls.add_decorator` method.
-    Note that `cls.file.add_import_from_import_string(import_str)` is the method used to add import for the decorator.
+    Note that `cls.file.add_import(import_str)` is the method used to add import for the decorator.
     """
 
     language = ProgrammingLanguage.PYTHON
@@ -51,7 +51,7 @@ class ConvertAttributeToDecorator(Codemod, Skill):
                     decorator_name = attr_value_to_decorator[attribute.right.source]
                     # Import the necessary decorators
                     required_import = f"from src.flask.sessions import {decorator_name}"
-                    cls.file.add_import_from_import_string(required_import)
+                    cls.file.add_import(required_import)
 
                     # Add the appropriate decorator
                     cls.add_decorator(f"@{decorator_name}")

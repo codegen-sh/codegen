@@ -8,13 +8,16 @@ from codegen.cli.auth.session import CodegenSession
 from codegen.cli.utils.function_finder import DecoratedFunction
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.repo_config import RepoConfig
+from codegen.git.utils.language import determine_project_language
 from codegen.sdk.codebase.config import ProjectConfig
 from codegen.sdk.core.codebase import Codebase
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def parse_codebase(
     repo_path: Path,
     subdirectories: list[str] | None = None,
+    language: ProgrammingLanguage | None = None,
 ) -> Codebase:
     """Parse the codebase at the given root.
 
@@ -29,6 +32,7 @@ def parse_codebase(
             ProjectConfig(
                 repo_operator=RepoOperator(repo_config=RepoConfig.from_repo_path(repo_path=repo_path)),
                 subdirectories=subdirectories,
+                programming_language=language or determine_project_language(repo_path),
             )
         ]
     )
@@ -48,8 +52,8 @@ def run_local(
         diff_preview: Number of lines of diff to preview (None for all)
     """
     # Parse codebase and run
-    with Status(f"[bold]Parsing codebase at {session.repo_path} with subdirectories {function.subdirectories or 'ALL'} ...", spinner="dots") as status:
-        codebase = parse_codebase(repo_path=session.repo_path, subdirectories=function.subdirectories)
+    with Status(f"[bold]Parsing codebase at {session.repo_path} with subdirectories {function.subdirectories or 'ALL'} and language {function.language or 'AUTO'} ...", spinner="dots") as status:
+        codebase = parse_codebase(repo_path=session.repo_path, subdirectories=function.subdirectories, language=function.language)
         status.update("[bold green]✓ Parsed codebase")
 
         status.update("[bold]Running codemod...")

@@ -18,6 +18,7 @@ from codegen.sdk.core.symbol import Symbol
 from codegen.sdk.enums import SymbolType
 from codegen.sdk.extensions.utils import cached_property
 from codegen.shared.decorators.docs import apidoc, noapidoc
+from codegen.shared.logging.get_logger import get_logger
 from codegen.visualizations.enums import VizNode
 
 if TYPE_CHECKING:
@@ -39,9 +40,8 @@ if TYPE_CHECKING:
     from codegen.sdk.core.symbol_groups.multi_line_collection import MultiLineCollection
     from codegen.sdk.core.symbol_groups.parents import Parents
 
-import logging
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 TFunction = TypeVar("TFunction", bound="Function", default="Function")
@@ -378,9 +378,9 @@ class Class(Inherits[TType], HasBlock[TCodeBlock, TDecorator], Callable[TParamet
             file = self.file
             for d in deps:
                 if isinstance(d, Import):
-                    file.add_symbol_import(d.imported_symbol)
+                    file.add_import(d.imported_symbol)
                 elif isinstance(d, Symbol):
-                    file.add_symbol_import(d)
+                    file.add_import(d)
 
     @property
     @noapidoc

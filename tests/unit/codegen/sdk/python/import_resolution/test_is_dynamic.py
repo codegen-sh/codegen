@@ -1,4 +1,10 @@
+from codegen import Codebase
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
+from codegen.sdk.core.function import Function
+from codegen.sdk.core.statements.for_loop_statement import ForLoopStatement
+from codegen.sdk.core.statements.if_block_statement import IfBlockStatement
+from codegen.sdk.core.statements.try_catch_statement import TryCatchStatement
+from codegen.sdk.python.statements.with_statement import WithStatement
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
@@ -225,3 +231,83 @@ def test_py_import_is_dynamic_in_match_case(tmpdir):
         assert imports[1].is_dynamic  # dynamic_in_case import
         assert imports[2].is_dynamic  # from x import y
         assert imports[3].is_dynamic  # another_dynamic import
+
+
+def test_parent_of_types_function():
+    codebase = Codebase.from_string(
+        """
+        def hello():
+            import foo
+        """,
+        language="python",
+    )
+    import_stmt = codebase.files[0].imports[0]
+    assert import_stmt.parent_of_types({Function}) is not None
+    assert import_stmt.parent_of_types({IfBlockStatement}) is None
+
+
+def test_parent_of_types_if_statement():
+    codebase = Codebase.from_string(
+        """
+        if True:
+            import foo
+        """,
+        language="python",
+    )
+    import_stmt = codebase.files[0].imports[0]
+    assert import_stmt.parent_of_types({IfBlockStatement}) is not None
+    assert import_stmt.parent_of_types({Function}) is None
+
+
+def test_parent_of_types_multiple():
+    codebase = Codebase.from_string(
+        """
+        def hello():
+            if True:
+                import foo
+        """,
+        language="python",
+    )
+    import_stmt = codebase.files[0].imports[0]
+    # Should find both Function and IfBlockStatement parents
+    assert import_stmt.parent_of_types({Function, IfBlockStatement}) is not None
+    # Should find closest parent first (IfBlockStatement)
+    assert isinstance(import_stmt.parent_of_types({Function, IfBlockStatement}), IfBlockStatement)
+
+
+def test_parent_of_types_try_catch():
+    codebase = Codebase.from_string(
+        """
+        try:
+            import foo
+        except:
+            pass
+        """,
+        language="python",
+    )
+    import_stmt = codebase.files[0].imports[0]
+    assert import_stmt.parent_of_types({TryCatchStatement}) is not None
+
+
+def test_parent_of_types_with():
+    codebase = Codebase.from_string(
+        """
+        with open('file.txt') as f:
+            import foo
+        """,
+        language="python",
+    )
+    import_stmt = codebase.files[0].imports[0]
+    assert import_stmt.parent_of_types({WithStatement}) is not None
+
+
+def test_parent_of_types_for_loop():
+    codebase = Codebase.from_string(
+        """
+        for i in range(10):
+            import foo
+        """,
+        language="python",
+    )
+    import_stmt = codebase.files[0].imports[0]
+    assert import_stmt.parent_of_types({ForLoopStatement}) is not None

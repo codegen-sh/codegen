@@ -428,15 +428,7 @@ class Import(Usable[ImportStatement], Chainable, Generic[TSourceFile], HasAttrib
             bool: True if the import is dynamic (within a control flow or scope block),
             False if it's a top-level import.
         """
-        curr = self.ts_node
-
-        # always traverses upto the module level
-        while curr:
-            if curr.type in self.ctx.node_classes.dynamic_import_parent_types:
-                return True
-            curr = curr.parent
-
-        return False
+        return self.parent_of_types(self.ctx.node_classes.dynamic_import_parent_types) is not None
 
     ####################################################################################################################
     # MANIPULATIONS

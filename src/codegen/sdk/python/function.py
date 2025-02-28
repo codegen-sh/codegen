@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 import re
 from typing import TYPE_CHECKING, override
 
@@ -17,6 +16,7 @@ from codegen.sdk.python.interfaces.has_block import PyHasBlock
 from codegen.sdk.python.placeholder.placeholder_return_type import PyReturnTypePlaceholder
 from codegen.sdk.python.symbol import PySymbol
 from codegen.shared.decorators.docs import noapidoc, py_apidoc
+from codegen.shared.logging.get_logger import get_logger
 
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from codegen.sdk.core.node_id_factory import NodeId
     from codegen.sdk.core.symbol import Symbol
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @py_apidoc

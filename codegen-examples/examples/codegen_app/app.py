@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 ########################################################################################################################
 
 # Create the cg_app
-cg = CodegenApp(name="codegen-test", repos=["codegen-sh/Kevin-s-Adventure-Game"])
+cg = CodegenApp(name="codegen-test", repo="codegen-sh/Kevin-s-Adventure-Game")
 
 
 @cg.slack.event("app_mention")
@@ -26,7 +26,7 @@ async def handle_mention(event: SlackEvent):
 
     # Codebase
     logger.info("[CODEBASE] Initializing codebase")
-    codebase = cg.get_codebase("codegen-sh/Kevin-s-Adventure-Game")
+    codebase = cg.get_codebase()
 
     # Code Agent
     logger.info("[CODE_AGENT] Initializing code agent")
@@ -43,7 +43,7 @@ async def handle_mention(event: SlackEvent):
 def handle_pr(event: PullRequestLabeledEvent):
     logger.info("PR labeled")
     logger.info(f"PR head sha: {event.pull_request.head.sha}")
-    codebase = cg.get_codebase("codegen-sh/Kevin-s-Adventure-Game")
+    codebase = cg.get_codebase()
 
     # =====[ Check out commit ]=====
     # Might require fetch?
@@ -62,7 +62,7 @@ def handle_pr(event: PullRequestLabeledEvent):
 @cg.linear.event("Issue")
 def handle_issue(event: LinearEvent):
     logger.info(f"Issue created: {event}")
-    codebase = cg.get_codebase("codegen-sh/Kevin-s-Adventure-Game")
+    codebase = cg.get_codebase()
     return {"message": "Linear Issue event", "num_files": len(codebase.files), "num_functions": len(codebase.functions)}
 
 
@@ -74,7 +74,7 @@ def handle_issue(event: LinearEvent):
 
 # For deploying local package
 REPO_URL = "https://github.com/codegen-sh/codegen-sdk.git"
-COMMIT_ID = "26dafad2c319968e14b90806d42c6c7aaa627bb0"
+COMMIT_ID = "6a0e101718c247c01399c60b7abf301278a41786"
 
 # Create the base image with dependencies
 base_image = (
@@ -97,4 +97,5 @@ app = modal.App("codegen-test")
 @app.function(image=base_image, secrets=[modal.Secret.from_dotenv()])
 @modal.asgi_app()
 def fastapi_app():
+    print("Starting codegen fastapi app")
     return cg.app

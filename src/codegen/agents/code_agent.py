@@ -1,19 +1,25 @@
+import os
 from typing import TYPE_CHECKING, Optional
 from uuid import uuid4
 
 from langchain.tools import BaseTool
 from langchain_core.messages import AIMessage
+from langsmith import Client
 
 from codegen.extensions.langchain.agent import create_codebase_agent
+from codegen.extensions.langchain.utils.get_langsmith_url import find_and_print_langsmith_run_url
 
 if TYPE_CHECKING:
     from codegen import Codebase
+
+# Remove logger configuration
+# logger = logging.getLogger(__name__)
 
 
 class CodeAgent:
     """Agent for interacting with a codebase."""
 
-    def __init__(self, codebase: "Codebase", model_provider: str = "anthropic", model_name: str = "claude-3-5-sonnet-latest", memory: bool = True, tools: Optional[list[BaseTool]] = None, **kwargs):
+    def __init__(self, codebase: "Codebase", model_provider: str = "anthropic", model_name: str = "claude-3-7-sonnet-latest", memory: bool = True, tools: Optional[list[BaseTool]] = None, **kwargs):
         """Initialize a CodeAgent.
 
         Args:
@@ -30,6 +36,11 @@ class CodeAgent:
         """
         self.codebase = codebase
         self.agent = create_codebase_agent(self.codebase, model_provider=model_provider, model_name=model_name, memory=memory, additional_tools=tools, **kwargs)
+        self.langsmith_client = Client()
+
+        # Get project name from environment variable or use a default
+        self.project_name = os.environ.get("LANGCHAIN_PROJECT", "RELACE")
+        print(f"Using LangSmith project: {self.project_name}")
 
     def run(self, prompt: str, thread_id: Optional[str] = None) -> str:
         """Run the agent with a prompt.
@@ -49,7 +60,10 @@ class CodeAgent:
         input = {"messages": [("user", prompt)]}
 
         # we stream the steps instead of invoke because it allows us to access intermediate nodes
-        stream = self.agent.stream(input, config={"configurable": {"thread_id": thread_id}}, stream_mode="values")
+        stream = self.agent.stream(input, config={"configurable": {"thread_id": thread_id, "metadata": {"project": self.project_name}}, "recursion_limit": 100}, stream_mode="values")
+
+        # Keep track of run IDs from the stream
+        run_ids = []
 
         for s in stream:
             message = s["messages"][-1]
@@ -61,5 +75,23 @@ class CodeAgent:
                 else:
                     message.pretty_print()
 
-        # last stream object contains all messages. message[-1] is the last message
-        return s["messages"][-1].content
+                # Try to extract run ID if available in metadata
+                if hasattr(message, "additional_kwargs") and "run_id" in message.additional_kwargs:
+                    run_ids.append(message.additional_kwargs["run_id"])
+
+        # Get the last message content
+        result = s["messages"][-1].content
+
+        # Try to find run IDs in the LangSmith client's recent runs
+        try:
+            # Find and print the LangSmith run URL
+            find_and_print_langsmith_run_url(self.langsmith_client, self.project_name)
+        except Exception as e:
+            separator = "=" * 60
+            print(f"\n{separator}\nCould not retrieve LangSmith URL: {e}")
+            import traceback
+
+            print(traceback.format_exc())
+            print(separator)
+
+        return result

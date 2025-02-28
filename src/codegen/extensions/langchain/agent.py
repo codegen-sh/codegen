@@ -15,6 +15,7 @@ from .tools import (
     DeleteFileTool,
     ListDirectoryTool,
     MoveSymbolTool,
+    ReflectionTool,
     RelaceEditTool,
     RenameFileTool,
     ReplacementEditTool,
@@ -31,7 +32,7 @@ if TYPE_CHECKING:
 def create_codebase_agent(
     codebase: "Codebase",
     model_provider: str = "anthropic",
-    model_name: str = "claude-3-5-sonnet-latest",
+    model_name: str = "claude-3-7-sonnet-latest",
     system_message: SystemMessage = SystemMessage(REASONER_SYSTEM_MESSAGE),
     memory: bool = True,
     debug: bool = False,
@@ -71,6 +72,7 @@ def create_codebase_agent(
         # SemanticEditTool(codebase),
         ReplacementEditTool(codebase),
         RelaceEditTool(codebase),
+        ReflectionTool(codebase),
         # SemanticSearchTool(codebase),
         # =====[ Github Integration ]=====
         # Enable Github integration

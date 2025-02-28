@@ -120,7 +120,7 @@ for module, imports in module_imports.items():
     if len(imports) > 1:
         # Create combined import
         symbols = [imp.name for imp in imports]
-        file.add_import_from_import_string(
+        file.add_import(
             f"import {{ {', '.join(symbols)} }} from '{module}'"
         )
         # Remove old imports
