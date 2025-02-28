@@ -869,7 +869,7 @@ class RepoOperator:
                     remote_head = git_cli.remotes.origin.refs[git_cli.active_branch.name].commit
                     # If up to date, use existing repo
                     if local_head.hexsha == remote_head.hexsha:
-                        return cls(repo_config=RepoConfig.from_repo_path(repo_path, full_name=full_name), bot_commit=False, access_token=access_token)
+                        return cls(repo_config=RepoConfig.from_repo_path(repo_path), bot_commit=False, access_token=access_token)
             except Exception:
                 # If any git operations fail, fallback to fresh clone
                 pass

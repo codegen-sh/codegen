@@ -1,21 +1,19 @@
-from typing import Literal
-from dotenv import load_dotenv
-from fastapi import FastAPI, Request
-
-from codegen.extensions.github.types.pull_request import PullRequestLabeledEvent
-
-load_dotenv(".env")
-
-import modal
-import logging
 from codegen.agents.code_agent import CodeAgent
 from codegen.extensions.events.codegen_app import CodegenApp
 from codegen.extensions.linear.types import LinearEvent
 from codegen.extensions.slack.types import SlackEvent
-
 from codegen.extensions.events.modal.base import CodebaseEventsApp, EventRouterMixin
+from codegen.extensions.github.types.pull_request import PullRequestLabeledEvent
 from pr_tasks import lint_for_dev_import_violations, review_with_codegen_agent
+from typing import Literal
+from dotenv import load_dotenv
+from fastapi import FastAPI, Request
 from classy_fastapi import Routable, post
+import modal
+import logging
+
+load_dotenv(".env")
+
 
 logging.basicConfig(level=logging.INFO, force=True)
 logger = logging.getLogger(__name__)
@@ -40,7 +38,6 @@ base_image = (
         "openai>=1.1.0",
         "fastapi[standard]",
         "slack_sdk",
-        "fastapi_utils[all]",
         "classy-fastapi>=0.6.1",
     )
 )
