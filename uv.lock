@@ -1,4 +1,5 @@
 version = 1
+revision = 1
 requires-python = ">=3.12, <3.14"
 resolution-markers = [
     "python_full_version >= '3.12.4'",
@@ -562,6 +563,7 @@ dependencies = [
     { name = "langchain-openai" },
     { name = "langgraph" },
     { name = "langgraph-prebuilt" },
+    { name = "langsmith" },
     { name = "lazy-object-proxy" },
     { name = "lox" },
     { name = "mcp", extra = ["cli"] },
@@ -689,6 +691,7 @@ requires-dist = [
     { name = "langchain-openai" },
     { name = "langgraph" },
     { name = "langgraph-prebuilt" },
+    { name = "langsmith" },
     { name = "lazy-object-proxy", specifier = ">=0.0.0" },
     { name = "lox", specifier = ">=0.12.0" },
     { name = "lsprotocol", marker = "extra == 'lsp'", specifier = "==2024.0.0b1" },
@@ -698,7 +701,7 @@ requires-dist = [
     { name = "neo4j" },
     { name = "networkx", specifier = ">=3.4.1" },
     { name = "numpy", specifier = ">=2.2.2" },
-    { name = "openai", specifier = "==1.65.1" },
+    { name = "openai", specifier = "==1.65.2" },
     { name = "packaging", specifier = ">=24.2" },
     { name = "pip", specifier = ">=24.3.1" },
     { name = "plotly", specifier = ">=5.24.0,<7.0.0" },
@@ -744,6 +747,7 @@ requires-dist = [
     { name = "wrapt", specifier = ">=1.16.0,<2.0.0" },
     { name = "xmltodict", specifier = ">=0.13.0,<1.0.0" },
 ]
+provides-extras = ["lsp", "types"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -2698,7 +2702,7 @@ wheels = [
 
 [[package]]
 name = "openai"
-version = "1.65.1"
+version = "1.65.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -2710,9 +2714,9 @@ dependencies = [
     { name = "tqdm" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/5b/99/b7c99aaf4ab0b433556ece264d2295232704f7eebdef37d7fe3fd276f114/openai-1.65.1.tar.gz", hash = "sha256:9d9370a20d2b8c3ce319fd2194c2eef5eab59effbcc5b04ff480977edc530fba", size = 357529 }
+sdist = { url = "https://files.pythonhosted.org/packages/f6/03/0bbf201a7e44920d892db0445874c8111be4255cb9495379df18d6d36ea1/openai-1.65.2.tar.gz", hash = "sha256:729623efc3fd91c956f35dd387fa5c718edd528c4bed9f00b40ef290200fb2ce", size = 359185 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/97/0a/405970c3dad0ef5f1b2bbf770d91c4f27b883f1e3f144dca4962da09900f/openai-1.65.1-py3-none-any.whl", hash = "sha256:396652a6452dd42791b3ad8a3aab09b1feb7c1c4550a672586fb300760a8e204", size = 472817 },
+    { url = "https://files.pythonhosted.org/packages/2c/3b/722ed868cb56f70264190ed479b38b3e46d14daa267d559a3fe3bd9061cf/openai-1.65.2-py3-none-any.whl", hash = "sha256:27d9fe8de876e31394c2553c4e6226378b6ed85e480f586ccfe25b7193fb1750", size = 473206 },
 ]
 
 [[package]]
