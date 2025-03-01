@@ -17,7 +17,7 @@ LOG_DIR = Path(__file__).parent / "logs"
 run_agent_modal = modal.Function.from_name(app_name="swebench-agent-run", name="run_agent_modal")
 
 
-async def process_batch(examples: list[SweBenchExample], batch_size=10):
+async def process_batch_modal(examples: list[SweBenchExample], batch_size=10):
     """Process a batch of examples concurrently.
 
     Args:
@@ -90,7 +90,7 @@ async def process_batch(examples: list[SweBenchExample], batch_size=10):
     return results
 
 
-def process_batch_sync(examples: list[SweBenchExample], batch_size=10, codebases: dict[str, Codebase] = {}):
+def process_batch_local(examples: list[SweBenchExample], batch_size=10, codebases: dict[str, Codebase] = {}):
     """Process a batch of examples synchronously.
 
     Args:
@@ -160,9 +160,9 @@ async def run_eval(use_existing_preds: str | None, dataset: str, length: int, in
 
             # Process all examples in parallel batches
             if local:
-                results = process_batch_sync(examples, codebases=codebases)
+                results = process_batch_local(examples, codebases=codebases)
             else:
-                results = await process_batch(examples)
+                results = await process_batch_modal(examples)
 
             # Save individual results
             for result in results:
