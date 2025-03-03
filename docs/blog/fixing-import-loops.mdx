@@ -8,7 +8,7 @@ description: "Identifying and visualizing import loops in the PyTorch codebase"
 In this post, we will visualize all import loops in the [PyTorch](https://github.com/pytorch/pytorch) codebase, propose a fix for one potentially unstable case, and use Codegen to refactor that fix.
 
 <Info>
-You can find the complete jupyter notebook in our [examples repository](https://github.com/codegen-sh/codegen-examples/tree/main/examples/removing_import_loops_in_pytorch).
+You can find the complete jupyter notebook in our [examples repository](https://github.com/codegen-sh/codegen/tree/develop/codegen-examples/examples/removing_import_loops_in_pytorch).
 </Info>
 
 Import loops (or circular dependencies) occur when two or more Python modules depend on each other, creating a cycle. For example:
