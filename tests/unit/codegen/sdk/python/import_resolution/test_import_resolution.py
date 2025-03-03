@@ -857,10 +857,10 @@ def test_import_resolution_init_wildcard_chainging_deep(tmpdir: str) -> None:
         assert symb.symbol_usages == [test1, imp]
 
 
-def test_import_resolution_paths_init(tmpdir:str) -> None:
-    cfg= TestFlags.model_copy()
-    cfg.debug = False ##Disable to ignore binary expression edge duplicate
-    cfg.import_resolution_paths=['package']
+def test_import_resolution_paths_init(tmpdir: str) -> None:
+    cfg = TestFlags.model_copy()
+    cfg.debug = False  ##Disable to ignore binary expression edge duplicate
+    cfg.import_resolution_paths = ["package"]
 
     # language=python
     content1 = """
@@ -878,7 +878,7 @@ def test_import_resolution_paths_init(tmpdir:str) -> None:
         2
     ]
 """
-    content2="""
+    content2 = """
         from main.dir.dir2 import PLAN_MODEL_AVAILABLE_STREAMS
         def do_smth():
             foo=PLAN_MODEL_AVAILABLE_STREAMS
@@ -890,24 +890,21 @@ def test_import_resolution_paths_init(tmpdir:str) -> None:
         tmpdir=tmpdir,
         config=cfg,
         files={
-            "package/main/dir/dir2/file1.py":"bar=2",
+            "package/main/dir/dir2/file1.py": "bar=2",
             "package/main/dir/dir2/__init__.py": content1,
             "package/main/dir/__init__.py": content2,
-            "package/main/__init__.py":"",
-            "start.py":"""from main.dir.dir2.file1 import bar
+            "package/main/__init__.py": "",
+            "start.py": """from main.dir.dir2.file1 import bar
             print(bar)
-            """
-
+            """,
         },
     ) as codebase:
-
         file1: SourceFile = codebase.get_file("package/main/dir/dir2/__init__.py")
         p_m = file1.get_symbol("PLAN_MODEL_AVAILABLE_STREAMS")
-        file2:SourceFile = codebase.get_file("package/main/dir/__init__.py")
+        file2: SourceFile = codebase.get_file("package/main/dir/__init__.py")
         dosmth = file2.get_symbol("do_smth")
-        import_pm=file2.get_import("PLAN_MODEL_AVAILABLE_STREAMS")
+        import_pm = file2.get_import("PLAN_MODEL_AVAILABLE_STREAMS")
 
         assert len(p_m.usages) == 3
-        assert p_m.symbol_usages==[dosmth,import_pm]
+        assert p_m.symbol_usages == [dosmth, import_pm]
         assert len(file1.symbols) != 1
-

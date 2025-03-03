@@ -151,7 +151,7 @@ class PyImport(Import["PyFile"]):
         if len(self.ctx.config.import_resolution_paths) > 0 or self.ctx.config.py_resolve_syspath:
             # Handle resolve overrides first if both is set
             resolve_paths: list[str] = self.ctx.config.import_resolution_paths + (sys.path if self.ctx.config.py_resolve_syspath else [])
-            if from_file := self._file_by_custom_resolve_paths(resolve_paths,filepath):
+            if from_file := self._file_by_custom_resolve_paths(resolve_paths, filepath):
                 symbol = from_file.get_node_by_name(symbol_name)
                 if symbol is None:
                     if from_file.get_node_from_wildcard_chain(symbol_name):
@@ -162,7 +162,6 @@ class PyImport(Import["PyFile"]):
 
                 else:
                     return ImportResolution(from_file=from_file, symbol=symbol)
-
 
         # =====[ Check if `module/__init__.py` file exists in the graph ]=====
         if from_file := self.ctx.get_file(filepath):
