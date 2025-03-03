@@ -12,6 +12,7 @@ import lox
 
 from codegen import Codebase
 from codegen.agents.code_agent import CodeAgent
+from codegen.configs.models.codebase import CodebaseConfig
 from codegen.extensions.swebench.utils import (
     SweBenchExample,
     get_swe_bench_examples,
@@ -64,7 +65,10 @@ def run_agent_on_entry(entry: SweBenchExample, codebase: Codebase | None = None)
     gold_files = files_in_patch(entry.patch)
 
     if codebase is None:
-        codebase = Codebase.from_repo(repo_full_name=entry.repo, commit=base_commit, language="python")  # check out the repo
+        config = CodebaseConfig(
+            disable_file_parse=True,  # Disable the graph AND disable file parsing (file.edit only)
+        )
+        codebase = Codebase.from_repo(repo_full_name=entry.repo, commit=base_commit, language="python", config=config)  # check out the repo
 
     agent = CodeAgent(codebase=codebase)
 
@@ -117,8 +121,9 @@ Also DO NOT ADD OR EDIT ANY TESTS!
 
     # Did we get a successful patch?
     if not model_patch:
-        msg = "Failed to generate a patch"
-        raise ValueError(msg)
+        pprint.pprint("=" * 60)
+        pprint.pprint("Failed to generate a patch")
+        pprint.pprint("=" * 60)
 
     return result
 

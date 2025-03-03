@@ -7,9 +7,6 @@ from typing import Literal, Optional
 
 from datasets import load_dataset
 
-# Add constant for cache directory
-CACHE_DIR = Path.home() / ".cache" / "swebench"
-
 
 class SWEBenchDataset(Enum):
     LITE = "princeton-nlp/SWE-bench_Lite"
@@ -73,30 +70,30 @@ def get_swe_bench_examples(
     offset: int = 0,
     length: int = 100,
     instance_id: str | None = None,
+    repo: str | None = None,
 ) -> list[SweBenchExample]:
     """Fetch examples from the SWE-bench dataset using the datasets library.
 
     Args:
-        dataset: The dataset to use (LITE, FULL, or VERIFIED)
+        dataset: The dataset to use ("lite", "full", or "verified")
         split: The dataset split to use
         offset: Starting index for examples
         length: Number of examples to fetch
+        instance_id: Optional specific instance ID to fetch
 
     Returns:
         List of SweBenchExample objects
     """
-    # Ensure cache directory exists
-    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    # Convert string dataset name to enum
 
     # Load the dataset with caching enabled
-    dataset_name = dataset.value
-    swe_bench_dataset = load_dataset(dataset_name, cache_dir=str(CACHE_DIR), download_mode="reuse_dataset_if_exists")
+    swe_bench_dataset = load_dataset(dataset.value, download_mode="reuse_dataset_if_exists")
 
     # Get the requested split
     split_data = swe_bench_dataset[split]
 
     # Apply offset and length
-    if instance_id:
+    if instance_id or repo:
         offset = 0
         end_idx = len(split_data)
     else:
@@ -112,6 +109,8 @@ def get_swe_bench_examples(
     examples = []
     for row in selected_rows:
         if instance_id and row["instance_id"] != instance_id:
+            continue
+        if repo and row["repo"] != repo:
             continue
         example = SweBenchExample(
             repo=row["repo"],
@@ -129,4 +128,4 @@ def get_swe_bench_examples(
         )
         examples.append(example)
 
-    return examples
+    return examples[:length]

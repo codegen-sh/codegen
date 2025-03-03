@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 class CodeAgent:
     """Agent for interacting with a codebase."""
 
-    def __init__(self, codebase: "Codebase", model_provider: str = "anthropic", model_name: str = "claude-3-7-sonnet-latest", memory: bool = True, tools: Optional[list[BaseTool]] = None, **kwargs):
+    def __init__(self, codebase: "Codebase", model_provider: str = "anthropic", model_name: str = "claude-3-5-sonnet-latest", memory: bool = True, tools: Optional[list[BaseTool]] = None, **kwargs):
         """Initialize a CodeAgent.
 
         Args:

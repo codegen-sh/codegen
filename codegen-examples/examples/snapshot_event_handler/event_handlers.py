@@ -4,7 +4,7 @@ from codegen.extensions.linear.types import LinearEvent
 from codegen.extensions.slack.types import SlackEvent
 from codegen.extensions.events.modal.base import CodebaseEventsApp, EventRouterMixin
 from codegen.extensions.github.types.pull_request import PullRequestLabeledEvent
-from pr_tasks import lint_for_dev_import_violations, review_with_codegen_agent
+from pr_tasks import lint_for_dev_import_violations
 from typing import Literal
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
@@ -84,9 +84,6 @@ class CustomEventHandlersAPI(CodebaseEventsApp):
             logger.info("> Running PR Lints")
             # LINT CODEMOD
             lint_for_dev_import_violations(codebase, event)
-
-            # REVIEW CODEMOD
-            review_with_codegen_agent(codebase, event)
 
             return {"message": "PR event handled", "num_files": len(codebase.files), "num_functions": len(codebase.functions)}
 

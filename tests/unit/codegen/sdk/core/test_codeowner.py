@@ -69,7 +69,13 @@ def test_from_parser_method(fake_files):
     # Create a fake parser with a paths attribute.
     fake_parser = MagicMock()
     fake_parser.paths = [
-        ("pattern1", "ignored", [("USERNAME", "alice"), ("TEAM", "devs")], "ignored", "ignored"),
+        (
+            "pattern1",
+            "ignored",
+            [("USERNAME", "alice"), ("TEAM", "devs")],
+            "ignored",
+            "ignored",
+        ),
         ("pattern2", "ignored", [("EMAIL", "bob@example.com")], "ignored", "ignored"),
     ]
 

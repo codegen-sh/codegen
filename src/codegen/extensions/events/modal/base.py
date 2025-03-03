@@ -53,8 +53,6 @@ class EventRouterMixin:
         Klass = self.get_event_handler_cls()
         klass = Klass(repo_org=org, repo_name=repo, commit=last_snapshot_commit)
 
-        print(f"Repo info: org: {org} repo: {repo} commit: {last_snapshot_commit}")
-        print("DEBUG: ", await request.body())
         request_payload = await request.json()
         request_headers = dict(request.headers)
         request_headers.pop("host", None)  # Remove host header if present
