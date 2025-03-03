@@ -1,8 +1,7 @@
 import traceback
-from http import HTTPStatus  # Add this import
+from http import HTTPStatus
 from typing import Callable, TypeVar
 
-from starlette.background import BackgroundTasks
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
