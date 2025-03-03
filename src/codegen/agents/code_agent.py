@@ -95,3 +95,21 @@ class CodeAgent:
             print(separator)
 
         return result
+
+    def get_agent_trace_url(self) -> str | None:
+        """Get the URL for the most recent agent run in LangSmith.
+
+        Returns:
+            The URL for the run in LangSmith if found, None otherwise
+        """
+        try:
+            # TODO - this is definitely not correct, we should be able to get the URL directly...
+            return find_and_print_langsmith_run_url(client=self.langsmith_client, project_name=self.project_name)
+        except Exception as e:
+            separator = "=" * 60
+            print(f"\n{separator}\nCould not retrieve LangSmith URL: {e}")
+            import traceback
+
+            print(traceback.format_exc())
+            print(separator)
+            return None
