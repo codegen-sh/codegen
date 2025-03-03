@@ -12,9 +12,6 @@ from codegen.extensions.langchain.utils.get_langsmith_url import find_and_print_
 if TYPE_CHECKING:
     from codegen import Codebase
 
-# Remove logger configuration
-# logger = logging.getLogger(__name__)
-
 
 class CodeAgent:
     """Agent for interacting with a codebase."""
