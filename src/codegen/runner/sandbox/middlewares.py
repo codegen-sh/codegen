@@ -33,12 +33,10 @@ class CodemodRunMiddleware[TRequest, TResponse](BaseHTTPMiddleware):
         return await call_next(request)
 
     async def process_request(self, request: TRequest, call_next: RequestResponseEndpoint) -> TResponse:
-        background_tasks = BackgroundTasks()
         try:
             logger.info(f"> (CodemodRunMiddleware) Request: {request.url.path}")
             self.runner.codebase.viz.clear_graphviz_data()
             response = await call_next(request)
-            response.background = background_tasks
             return response
 
         except UserCodeException as e:
@@ -50,5 +48,4 @@ class CodemodRunMiddleware[TRequest, TResponse](BaseHTTPMiddleware):
             message = f"Unexpected error for {request.url.path}"
             logger.exception(message)
             res = JSONResponse(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content={"detail": message, "error": str(e), "traceback": traceback.format_exc()})
-            res.background = background_tasks
             return res
