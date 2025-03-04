@@ -510,7 +510,6 @@ class CodebaseContext:
 
         # Step 6: Build directory tree
         logger.info("> Building directory tree")
-        files = [f for f in sort_editables(self.get_nodes(NodeType.FILE), alphabetical=True, dedupe=False)]
         self.build_directory_tree()
 
         # Step 7: Build configs
