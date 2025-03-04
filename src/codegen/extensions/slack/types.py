@@ -30,6 +30,7 @@ class SlackEvent(BaseModel):
     blocks: list[Block] | None = None
     channel: str
     event_ts: str
+    thread_ts: str | None = None
 
 
 class SlackWebhookPayload(BaseModel):
