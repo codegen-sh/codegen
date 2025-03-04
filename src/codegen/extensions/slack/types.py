@@ -7,15 +7,19 @@ class RichTextElement(BaseModel):
     type: str
     user_id: str | None = None
     text: str | None = None
+    style: dict | None = None
+    url: str | None = None
+    channel_id: str | None = None
 
 
 class RichTextSection(BaseModel):
-    type: Literal["rich_text_section"]
+    type: Literal["rich_text_section", "rich_text_list", "rich_text_quote", "rich_text_preformatted", "text", "channel", "user", "emoji", "link"]
     elements: list[RichTextElement]
+    style: dict | None = None
 
 
 class Block(BaseModel):
-    type: Literal["rich_text"]
+    type: Literal["rich_text", "section", "divider", "header", "context", "actions", "image"]
     block_id: str
     elements: list[RichTextSection]
 
