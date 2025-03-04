@@ -15,9 +15,9 @@ from typing import ClassVar, Optional
 from pydantic import Field
 
 from codegen.sdk.core.codebase import Codebase
-from .semantic_search import semantic_search, SearchResult
 
 from .observation import Observation
+from .semantic_search import SearchResult, semantic_search
 
 
 class SearchMatch(Observation):
@@ -326,14 +326,14 @@ def search(
     try:
         # Try ripgrep first
         result = _search_with_ripgrep(codebase, query, target_directories, file_extensions, page, files_per_page, use_regex)
-        
+
         # If no results found, try semantic search
         if not result.results:
             semantic_results = semantic_search(codebase, query, k=files_per_page)
             if semantic_results.status == "success" and semantic_results.results:
                 # Convert semantic results to regular search results format
                 file_results = _convert_semantic_to_search_results(semantic_results.results, query)
-                
+
                 return SearchObservation(
                     status="success",
                     query=query,
@@ -343,15 +343,15 @@ def search(
                     files_per_page=files_per_page,
                     results=file_results,
                 )
-        
+
         return result
-        
+
     except (FileNotFoundError, subprocess.SubprocessError):
         # If ripgrep fails, try semantic search directly
         semantic_results = semantic_search(codebase, query, k=files_per_page)
         if semantic_results.status == "success":
             file_results = _convert_semantic_to_search_results(semantic_results.results, query)
-            
+
             return SearchObservation(
                 status="success",
                 query=query,
