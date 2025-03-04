@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+from unittest.mock import patch
 
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
 
@@ -161,8 +162,8 @@ def test_remove_unpacking_assignment_num(tmpdir) -> None:
         assert len(file2.symbols) == 0
         assert file2.source == """"""
 
-
-def test_unpacking_function_with_underscore_removal(tmpdir: str) -> None:
+@patch("codegen.sdk.python.assignment.logger")
+def test_unpacking_function_with_underscore_removal(mock_logger,tmpdir: str) -> None:
     # language=python
     content1 = """
     args, _ = parser.parse_known_args() ##args gets deleted
@@ -181,5 +182,5 @@ def test_unpacking_function_with_underscore_removal(tmpdir: str) -> None:
             if not symbol.usages:
                 symbol.remove()
         codebase.commit()
-        # The first TEST_BOOL Assigment gets removed when it should stay due to conditionality
         assert len(file1.symbols) != 0
+        assert mock_logger.warning.call_count==1

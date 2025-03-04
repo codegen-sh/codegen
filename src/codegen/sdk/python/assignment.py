@@ -156,7 +156,7 @@ class PyAssignment(Assignment["PyAssignmentStatement"], PySymbol):
                         self.parent._values_scheduled_for_removal = []
                 else:
                     if name.source == "_":
-                        logger.warning("Attempting to remove '_' in unpacking, command will be ignored if you wish to remove the statement, remove the other remaining variable(s)!")
+                        logger.warning("Attempting to remove '_' in unpacking, command will be ignored. If you wish to remove the statement, remove the other remaining variable(s)!")
                         return
                     transaction_count = self._active_transactions_on_assignment_names(TransactionPriority.Edit)
                     throwaway = [asgnmt.name == "_" for asgnmt in self.parent.assignments].count(True)
