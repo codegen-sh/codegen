@@ -34,7 +34,7 @@ async def process_batch_modal(examples: list[SweBenchExample], num_workers=5, mi
         "active_workers": num_workers,
         "success_streak": 0,
         "last_scaling_time": time.time(),
-        "scaling_cooldown": 10,  # seconds between scaling operations
+        "scaling_cooldown": 0,  # seconds between scaling operations
         "worker_tasks": [],
         "running": True,
     }
@@ -114,7 +114,7 @@ async def process_batch_modal(examples: list[SweBenchExample], num_workers=5, mi
 
             if result is None:
                 print(f"Warning: Null result for {example.instance_id}")
-                return {"status": "error", "error_info": {"error_type": "NullResult", "error_message": "Process returned None"}}
+                return {"status": "error", "instance_id": example.instance_id, "error_info": {"error_type": "NullResult", "error_message": "Process returned None"}}
 
             # Increment success streak and potentially scale up
             async with state_lock:
@@ -123,7 +123,7 @@ async def process_batch_modal(examples: list[SweBenchExample], num_workers=5, mi
             if state["success_streak"] % 5 == 0:  # Check after every 5 successes
                 await scale_up_worker()
 
-            return {"status": "success", "result": result}
+            return result
 
         except Exception as e:
             error_type = type(e).__name__
@@ -161,7 +161,7 @@ async def process_batch_modal(examples: list[SweBenchExample], num_workers=5, mi
                 await queue.put((example, attempt + 1))
                 return None
 
-            return {"status": "error", "error_info": error_info}
+            return {"status": "error", "instance_id": example.instance_id, "error_info": error_info}
 
     async def worker():
         # Store this task reference to allow targeted cancellation
@@ -189,9 +189,11 @@ async def process_batch_modal(examples: list[SweBenchExample], num_workers=5, mi
 
                 # If None is returned, the task was requeued due to rate limiting
                 # and this worker is being shut down, so exit the loop
-                elif current_task not in state["worker_tasks"]:
+                else:
+                    print(f"Task for {example.instance_id} has been requeued")
                     queue.task_done()
-                    break
+                    if current_task not in state["worker_tasks"]:
+                        break
 
             except asyncio.CancelledError:
                 # Handle graceful cancellation
