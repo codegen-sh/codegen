@@ -647,6 +647,8 @@ class RepoOperator:
                         content = self.get_file(filepath)
                         yield rel_filepath, content
                     else:
+                        # WTF??? A no-op file read here fixes file parsing somehow?
+                        open(filepath).close()
                         yield rel_filepath, ""
                 except Exception as e:
                     logger.warning(f"Error reading file {filepath}: {e}")
