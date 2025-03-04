@@ -189,14 +189,14 @@ class Editable(JSONable, Generic[Parent]):
     def transaction_manager(self) -> TransactionManager:
         return self.ctx.transaction_manager
 
-    @cached_property
+    @property
     @noapidoc
     @reader
     def start_byte(self) -> int:
         """The start byte of the Editable instance that appears in file."""
         return self.ts_node.start_byte
 
-    @cached_property
+    @property
     @noapidoc
     @reader
     @final
@@ -227,7 +227,7 @@ class Editable(JSONable, Generic[Parent]):
         """The 0-indexed line/row range that the Editable instance spans in the file."""
         return range(self.start_point[0], self.end_point[0] + 1)  # +1 b/c end_point[0] is inclusive
 
-    @cached_property
+    @property
     @noapidoc
     @reader
     def _source(self) -> str:
@@ -657,7 +657,7 @@ class Editable(JSONable, Generic[Parent]):
 
         t = EditTransaction(
             self.start_byte,
-            self.ts_node.end_byte,
+            self.end_byte,
             self.file,
             new_src,
             priority=priority,
