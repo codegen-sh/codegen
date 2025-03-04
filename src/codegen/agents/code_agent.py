@@ -32,10 +32,12 @@ class CodeAgent:
                 - max_tokens: Maximum number of tokens to generate
         """
         self.codebase = codebase
+        if tools is None:
+            tools = []
+        tools = [tool for tool in tools if tool.name not in ["reveal_symbol", "move_symbol"]]
         self.agent = create_codebase_agent(self.codebase, model_provider=model_provider, model_name=model_name, memory=memory, additional_tools=tools, **kwargs)
         self.langsmith_client = Client()
 
-        # Get project name from environment variable or use a default
         self.project_name = os.environ.get("LANGCHAIN_PROJECT", "RELACE")
         print(f"Using LangSmith project: {self.project_name}")
 
@@ -52,14 +54,10 @@ class CodeAgent:
         if thread_id is None:
             thread_id = str(uuid4())
 
-        # this message has a reducer which appends the current message to the existing history
-        # see more https://langchain-ai.github.io/langgraph/concepts/low_level/#reducers
         input = {"messages": [("user", prompt)]}
 
-        # we stream the steps instead of invoke because it allows us to access intermediate nodes
         stream = self.agent.stream(input, config={"configurable": {"thread_id": thread_id, "metadata": {"project": self.project_name}}, "recursion_limit": 100}, stream_mode="values")
 
-        # Keep track of run IDs from the stream
         run_ids = []
 
         for s in stream:
@@ -72,16 +70,12 @@ class CodeAgent:
                 else:
                     message.pretty_print()
 
-                # Try to extract run ID if available in metadata
                 if hasattr(message, "additional_kwargs") and "run_id" in message.additional_kwargs:
                     run_ids.append(message.additional_kwargs["run_id"])
 
-        # Get the last message content
         result = s["messages"][-1].content
 
-        # Try to find run IDs in the LangSmith client's recent runs
         try:
-            # Find and print the LangSmith run URL
             find_and_print_langsmith_run_url(self.langsmith_client, self.project_name)
         except Exception as e:
             separator = "=" * 60
@@ -100,7 +94,6 @@ class CodeAgent:
             The URL for the run in LangSmith if found, None otherwise
         """
         try:
-            # TODO - this is definitely not correct, we should be able to get the URL directly...
             return find_and_print_langsmith_run_url(client=self.langsmith_client, project_name=self.project_name)
         except Exception as e:
             separator = "=" * 60
