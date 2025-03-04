@@ -5,14 +5,14 @@ icon: "robot"
 iconType: "solid"
 ---
 
-Coding assistants like Cursor have introduced a new era of programming. But there's a class of programming tasks they can't handle: large-scale, systematic modifications across large codebases. You wouldn't ask an AI to delete all dead code or reorganize your entire component hierarchy - the tooling just isn't there.
+Coding assistants like Cursor have brought us into a new era of programming. But there's a class of programming tasks that remain outside their reach: large-scale, systematic modifications across large codebases. You wouldn't ask an AI to delete all your dead code or reorganize your entire component hierarchy - the tooling just isn't there.
 
-That's where codemods come in. A codemod is a program that operates on your codebase, and when you give an AI agent the ability to write and execute them, these tasks fall below the high-water mark of AI capabilities.
+That's where codemods come in. A codemod is a program that operates on a codebase, and when you give an AI agent the ability to write and execute them, these platform-level tasks fall below the high-water mark of AI capabilities.
 
 Here's a real example: we asked [Devin](https://docs.devin.ai/get-started/devin-intro) (an autonomous SWE agent) to "delete all dead code" from our codebase. Instead of trying to make hundreds of individual edits, Devin [wrote and debugged a program](https://github.com/codegen-sh/codegen/pull/660/files#diff-199b0c459adf1639f664fed248fa48bb640412aeacbe61cd89475d6598284b5f) that systematically removed unused code while handling edge cases like tests, decorators and indirect references.
 
 - [View the PR](https://github.com/codegen-sh/codegen/pull/660)
-- [View on Devin](app.devin.ai/sessions/a49eac87da644fa9ac1144fe130b847e)
+- [View on Devin](https://app.devin.ai/sessions/a49eac87da644fa9ac1144fe130b847e)
 
 <Frame caption="Devin edits a codemod in response to linter errors">
     <img src="/images/devin-edits-codemod.png" />
@@ -89,4 +89,4 @@ Or try it with other platform-level modifications supported by Codegen:
   </Card>
 </CardGroup>
 
-We'd love to hear how it works for you! Let us know in our [community](https://community.codegen.com) and share other tasks that it is helpful in performing.
+We'd love to hear how it works for you! Let us know in our [community](https://community.codegen.com) and share your experience developing codemods with Devin or other code assistants.
