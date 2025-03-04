@@ -15,7 +15,7 @@ class RichTextElement(BaseModel):
 class RichTextSection(BaseModel):
     type: Literal["rich_text_section", "rich_text_list", "rich_text_quote", "rich_text_preformatted", "text", "channel", "user", "emoji", "link"]
     elements: list[RichTextElement]
-    style: dict | None = None
+    style: dict | str | None = None  # Can be either a dict for rich text styling or a string for list styles (e.g. "bullet")
 
 
 class Block(BaseModel):
