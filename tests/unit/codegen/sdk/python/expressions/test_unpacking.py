@@ -162,8 +162,9 @@ def test_remove_unpacking_assignment_num(tmpdir) -> None:
         assert len(file2.symbols) == 0
         assert file2.source == """"""
 
+
 @patch("codegen.sdk.python.assignment.logger")
-def test_unpacking_function_with_underscore_removal(mock_logger,tmpdir: str) -> None:
+def test_unpacking_function_with_underscore_removal(mock_logger, tmpdir: str) -> None:
     # language=python
     content1 = """
     args, _ = parser.parse_known_args() ##args gets deleted
@@ -183,4 +184,4 @@ def test_unpacking_function_with_underscore_removal(mock_logger,tmpdir: str) -> 
                 symbol.remove()
         codebase.commit()
         assert len(file1.symbols) != 0
-        assert mock_logger.warning.call_count==1
+        assert mock_logger.warning.call_count == 1
