@@ -162,8 +162,7 @@ def test_remove_unpacking_assignment_num(tmpdir) -> None:
         assert file2.source == """"""
 
 
-def test_unpacking_function_with_underscore_removal(tmpdir:str) -> None:
-
+def test_unpacking_function_with_underscore_removal(tmpdir: str) -> None:
     # language=python
     content1 = """
     args, _ = parser.parse_known_args() ##args gets deleted
@@ -176,13 +175,11 @@ def test_unpacking_function_with_underscore_removal(tmpdir:str) -> None:
             "file1.py": content1,
         },
     ) as codebase:
-
         file1: SourceFile = codebase.get_file("file1.py")
-
 
         for symbol in codebase.symbols:
             if not symbol.usages:
                 symbol.remove()
         codebase.commit()
-        #The first TEST_BOOL Assigment gets removed when it should stay due to conditionality
+        # The first TEST_BOOL Assigment gets removed when it should stay due to conditionality
         assert len(file1.symbols) != 0
