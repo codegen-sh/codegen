@@ -159,14 +159,14 @@ async def run_eval(
         "verified": SWEBenchDataset.VERIFIED,
     }
     dataset_enum = dataset_dict[dataset]
-    print(repo)
+
     examples = get_swe_bench_examples(dataset=dataset_enum, length=length, instance_id=instance_id, repo=repo)
-    print(f"Examples:\n{'\n'.join([f'{e.instance_id} - {e.repo} - {e.base_commit}' for e in examples])}")
 
     try:
         if use_existing_preds is None:
+            print(f"Repo: {repo}")
+            print(f"Examples:\n{'\n'.join([f'{e.instance_id} - {e.repo} - {e.base_commit}' for e in examples])}")
             print(f"Processing {len(examples)} examples...")
-
             # Create output directory if it doesn't exist
             predictions_dir.mkdir(exist_ok=True, parents=True)
 
