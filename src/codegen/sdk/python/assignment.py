@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.node_id_factory import NodeId
     from codegen.sdk.python.statements.assignment_statement import PyAssignmentStatement
-    
+
 logger = get_logger(__name__)
 
 

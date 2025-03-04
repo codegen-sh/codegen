@@ -1,4 +1,9 @@
+from typing import TYPE_CHECKING
+
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
+
+if TYPE_CHECKING:
+    from codegen.sdk.core.file import SourceFile
 
 
 def test_remove_unpacking_assignment(tmpdir) -> None:
@@ -161,7 +166,7 @@ def test_unpacking_function_with_underscore_removal(tmpdir:str) -> None:
 
     # language=python
     content1 = """
-    args, _ = parser.parse_known_args() ##args gets deleted 
+    args, _ = parser.parse_known_args() ##args gets deleted
     with open(args.template_path) as f:
         print('test')
     """
@@ -171,7 +176,7 @@ def test_unpacking_function_with_underscore_removal(tmpdir:str) -> None:
             "file1.py": content1,
         },
     ) as codebase:
-    
+
         file1: SourceFile = codebase.get_file("file1.py")
 
 
@@ -180,4 +185,4 @@ def test_unpacking_function_with_underscore_removal(tmpdir:str) -> None:
                 symbol.remove()
         codebase.commit()
         #The first TEST_BOOL Assigment gets removed when it should stay due to conditionality
-        assert len(file1.symbols) !=0
+        assert len(file1.symbols) != 0
