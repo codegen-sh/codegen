@@ -135,7 +135,7 @@ def generate_report(predictions_dir: Path, logs_dir: Path, dataset: SWEBenchData
 
         print(f"Successfully loaded {len(predictions)} predictions")
 
-    predictions_jsonl = preds_to_jsonl(predictions, predictions_dir)
+        predictions_jsonl = preds_to_jsonl(predictions, predictions_dir)
 
     # Setup log directory
     log_dir = logs_dir / "results"
