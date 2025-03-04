@@ -24,7 +24,6 @@ class Name(Expression[Parent], Resolvable, Generic[Parent]):
     composed of a name.
     """
 
-
     @reader
     @noapidoc
     @override
@@ -33,14 +32,14 @@ class Name(Expression[Parent], Resolvable, Generic[Parent]):
         if used := self.resolve_name(self.source, self.start_byte):
             yield from self.with_resolution_frame(used)
             from codegen.sdk.core.assignment import Assignment
-            if isinstance(used,Assignment):
+
+            if isinstance(used, Assignment):
                 if nested_blocks := used.nested_blocks_for_conditional_parent():
                     blocks = nested_blocks[:-1]
                     for block in blocks:
                         for assignment in block.local_var_assignments:
-                            if assignment.name==self.source:
+                            if assignment.name == self.source:
                                 yield from self.with_resolution_frame(assignment)
-
 
     @noapidoc
     @commiter

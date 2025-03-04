@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 class PyMatchCase(SwitchCase[PyCodeBlock["PyMatchStatement"]], PyBlockStatement):
     """Python match case."""
 
-    def __init__(self, ts_node: PyNode, file_node_id: NodeId, ctx: "CodebaseContext", parent: PyCodeBlock, match_statement:"PyMatchStatement", pos: int | None = None) -> None:
+    def __init__(self, ts_node: PyNode, file_node_id: NodeId, ctx: "CodebaseContext", parent: PyCodeBlock, match_statement: "PyMatchStatement", pos: int | None = None) -> None:
         super().__init__(ts_node, file_node_id, ctx, parent, pos)
         self.condition = self.child_by_field_name("alternative")
-        self.match_statement=match_statement
+        self.match_statement = match_statement

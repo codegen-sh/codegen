@@ -293,8 +293,8 @@ class Assignment(Symbol[Parent, ...], Typeable[Parent, ...], HasValue, Generic[P
         from codegen.sdk.python.statements.match_statement import PyMatchCase
         from codegen.sdk.typescript.statements.switch_statement import TSSwitchCase
 
-        conditionals = {TryCatchStatement,IfBlockStatement,PyMatchCase,TSSwitchCase}
-        if parent:= self.parent_of_types(conditionals):
+        conditionals = {TryCatchStatement, IfBlockStatement, PyMatchCase, TSSwitchCase}
+        if parent := self.parent_of_types(conditionals):
             match parent:
                 case IfBlockStatement():
                     if parent._main_if_block:
@@ -303,4 +303,3 @@ class Assignment(Symbol[Parent, ...], Typeable[Parent, ...], HasValue, Generic[P
                     return parent.match_statement.nested_code_blocks
                 case _:
                     return parent.nested_code_blocks
-

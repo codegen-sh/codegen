@@ -76,8 +76,9 @@ def risky():
         assert file.function_calls[1].is_wrapped_in(TryCatchStatement)
         assert file.function_calls[2].is_wrapped_in(TryCatchStatement)
 
+
 def test_try_except_reassigment_handling(tmpdir) -> None:
-    content="""
+    content = """
         try:
             PYSPARK = True # This gets removed even though there is a later use
         except ImportError:
@@ -89,8 +90,8 @@ def test_try_except_reassigment_handling(tmpdir) -> None:
     with get_codebase_session(tmpdir=tmpdir, files={"test.py": content}) as codebase:
         file = codebase.get_file("test.py")
         symbo = file.get_symbol("PYSPARK")
-        funct_call=file.function_calls[0]
+        funct_call = file.function_calls[0]
         pyspark_arg = funct_call.args.children[0]
         for symb in file.symbols:
             usage = symb.usages[0]
-            assert usage.match==pyspark_arg
+            assert usage.match == pyspark_arg
