@@ -28,7 +28,6 @@ async def process_batch_modal(examples: list[SweBenchExample], num_workers=10, m
     results = {}
     queue = asyncio.Queue()
 
-
     # Initialize the queue with (example, attempt) tuples
     for example in examples:
         await queue.put((example, 0))  # 0 represents first attempt
