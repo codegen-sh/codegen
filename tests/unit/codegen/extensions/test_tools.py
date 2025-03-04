@@ -259,6 +259,7 @@ def test_search_regex(codebase):
     assert any("def hello" in match for match in matches)
     assert any("def greet" in match for match in matches)
 
+
 def test_search_pagination(codebase, tmpdir):
     """Test search pagination."""
     # Create multiple files to test pagination
@@ -287,7 +288,6 @@ def test_search_pagination(codebase, tmpdir):
             page1_files = {r.filepath for r in result_page1.results}
             page2_files = {r.filepath for r in result_page2.results}
             assert not page1_files.intersection(page2_files)
-
 
 
 def test_search_fallback(codebase, monkeypatch):
@@ -350,6 +350,7 @@ def test_search_uses_ripgrep(codebase, monkeypatch):
 
     # Verify ripgrep was called
     assert ripgrep_called, "Ripgrep was not used for the search"
+
 
 def test_edit_file(codebase):
     """Test editing a file."""
