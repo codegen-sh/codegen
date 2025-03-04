@@ -126,3 +126,24 @@ def foo():
         assert len(alt_blocks[2].alternative_blocks) == 0
         assert len(alt_blocks[2].elif_statements) == 0
         assert alt_blocks[2].else_statement is None
+
+def test_if_else_reassigment_handling(tmpdir) -> None:
+    content="""
+        if True:
+            PYSPARK = True
+        elif False:
+            PYSPARK = False
+        else:
+            PYSPARK = None
+
+        print(PYSPARK)
+    """
+
+    with get_codebase_session(tmpdir=tmpdir, files={"test.py": content}) as codebase:
+        file = codebase.get_file("test.py")
+        symbo = file.get_symbol("PYSPARK")
+        funct_call=file.function_calls[0]
+        pyspark_arg = funct_call.args.children[0]
+        for symb in file.symbols:
+            usage = symb.usages[0]
+            assert usage.match==pyspark_arg
