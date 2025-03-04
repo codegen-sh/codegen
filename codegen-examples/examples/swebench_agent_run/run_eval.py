@@ -27,7 +27,7 @@ async def process_batch_modal(examples: list[SweBenchExample], batch_size=10):
                    while staying well within Modal's limits.
     """
     results = []
-
+    batch_size = 3
     # Process examples in batches
     for i in range(0, len(examples), batch_size):
         batch = examples[i : i + batch_size]
