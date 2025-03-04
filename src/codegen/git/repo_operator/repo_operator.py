@@ -616,6 +616,7 @@ class RepoOperator:
         subdirs: list[str] | None = None,
         extensions: list[str] | None = None,
         ignore_list: list[str] | None = None,
+        skip_content: bool = False,
     ) -> Generator[tuple[str, str]]:
         """Iterates over all files in the codebase, yielding the filepath and its content.
 
@@ -642,8 +643,11 @@ class RepoOperator:
 
             if extensions is None or any(filepath.endswith(e) for e in extensions):
                 try:
-                    content = self.get_file(filepath)
-                    yield rel_filepath, content
+                    if not skip_content:
+                        content = self.get_file(filepath)
+                        yield rel_filepath, content
+                    else:
+                        yield rel_filepath, ""
                 except Exception as e:
                     logger.warning(f"Error reading file {filepath}: {e}")
 
