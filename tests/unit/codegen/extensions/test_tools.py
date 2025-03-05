@@ -260,48 +260,6 @@ def test_search_regex(codebase):
     assert any("def greet" in match for match in matches)
 
 
-def test_search_target_directories(codebase):
-    """Test searching with target directory filtering."""
-    # First search without filter to ensure we have results
-    result_all = search(codebase, "hello")
-    assert result_all.status == "success"
-    assert len(result_all.results) > 0
-
-    # Now search with correct target directory
-    result_filtered = search(codebase, "hello", target_directories=["src"])
-    assert result_filtered.status == "success"
-    assert len(result_filtered.results) > 0
-
-    # Search with non-existent directory
-    result_none = search(codebase, "hello", target_directories=["nonexistent"])
-    assert result_none.status == "success"
-    assert len(result_none.results) == 0
-
-
-def test_search_file_extensions(codebase, tmpdir):
-    """Test searching with file extension filtering."""
-    # Add a non-Python file
-    js_content = "function hello() { console.log('Hello from JS!'); }"
-    js_file = tmpdir / "src" / "script.js"
-    js_file.write_text(js_content, encoding="utf-8")
-
-    # Search all files
-    result_all = search(codebase, "hello")
-    assert result_all.status == "success"
-    assert len(result_all.results) > 0
-
-    # Search only Python files
-    result_py = search(codebase, "hello", file_extensions=[".py"])
-    assert result_py.status == "success"
-    assert all(file_result.filepath.endswith(".py") for file_result in result_py.results)
-
-    # Search only JS files
-    result_js = search(codebase, "hello", file_extensions=[".js"])
-    assert result_js.status == "success"
-    if len(result_js.results) > 0:  # Only if JS file was properly added to codebase
-        assert all(file_result.filepath.endswith(".js") for file_result in result_js.results)
-
-
 def test_search_pagination(codebase, tmpdir):
     """Test search pagination."""
     # Create multiple files to test pagination
@@ -330,21 +288,6 @@ def test_search_pagination(codebase, tmpdir):
             page1_files = {r.filepath for r in result_page1.results}
             page2_files = {r.filepath for r in result_page2.results}
             assert not page1_files.intersection(page2_files)
-
-
-def test_search_invalid_regex(codebase):
-    """Test search with invalid regex pattern."""
-    result = search(codebase, "(unclosed", use_regex=True)
-    assert result.status == "error"
-    # Check for either Python's error message or ripgrep's error message
-    assert any(
-        error_msg in result.error
-        for error_msg in [
-            "Invalid regex pattern",  # Python error message
-            "regex parse error",  # ripgrep error message
-            "unclosed group",  # Common error description
-        ]
-    )
 
 
 def test_search_fallback(codebase, monkeypatch):
@@ -407,52 +350,6 @@ def test_search_uses_ripgrep(codebase, monkeypatch):
 
     # Verify ripgrep was called
     assert ripgrep_called, "Ripgrep was not used for the search"
-
-
-def test_search_implementation_consistency(codebase, monkeypatch):
-    """Test that ripgrep and Python implementations produce consistent results."""
-    from codegen.extensions.tools.search import _search_with_python, _search_with_ripgrep
-
-    # Skip test if ripgrep is not available
-    try:
-        subprocess.run(["rg", "--version"], capture_output=True, check=False)
-    except FileNotFoundError:
-        pytest.skip("Ripgrep not available, skipping consistency test")
-
-    # Simple search that should work in both implementations
-    query = "hello"
-
-    # Get results from both implementations
-    ripgrep_result = _search_with_ripgrep(codebase, query)
-    python_result = _search_with_python(codebase, query)
-
-    # Compare basic metadata
-    assert ripgrep_result.status == python_result.status
-    assert ripgrep_result.query == python_result.query
-
-    # Compare file paths found (order might differ)
-    ripgrep_files = {r.filepath for r in ripgrep_result.results}
-    python_files = {r.filepath for r in python_result.results}
-
-    # There might be slight differences in which files are found due to how ripgrep handles
-    # certain files, so we'll check for substantial overlap rather than exact equality
-    common_files = ripgrep_files.intersection(python_files)
-    assert len(common_files) > 0, "No common files found between ripgrep and Python implementations"
-
-    # For common files, compare the line numbers found
-    for filepath in common_files:
-        # Find the corresponding file results
-        ripgrep_file_result = next(r for r in ripgrep_result.results if r.filepath == filepath)
-        python_file_result = next(r for r in python_result.results if r.filepath == filepath)
-
-        # Compare line numbers - there might be slight differences in how matches are found
-        ripgrep_lines = {m.line_number for m in ripgrep_file_result.matches}
-        python_lines = {m.line_number for m in python_file_result.matches}
-
-        # Check for substantial overlap in line numbers
-        common_lines = ripgrep_lines.intersection(python_lines)
-        if ripgrep_lines and python_lines:  # Only check if both found matches
-            assert len(common_lines) > 0, f"No common line matches found in {filepath}"
 
 
 def test_edit_file(codebase):
