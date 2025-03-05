@@ -49,7 +49,7 @@ def show_problems(dataset):
         print(f"{inst}: {problem}")
 
 
-def run_agent_on_entry(entry: SweBenchExample, codebase: Codebase | None = None):
+def run_agent_on_entry(entry: SweBenchExample, codebase: Codebase | None = None, run_id: str | None = None):
     """Process one `entry` from SWE Bench using the LLM `models` at the
     given `temperature`.  Set `model_name_or_path` in the result json.
     """
@@ -70,7 +70,7 @@ def run_agent_on_entry(entry: SweBenchExample, codebase: Codebase | None = None)
         )
         codebase = Codebase.from_repo(repo_full_name=entry.repo, commit=base_commit, language="python", config=config)  # check out the repo
 
-    agent = CodeAgent(codebase=codebase)
+    agent = CodeAgent(codebase=codebase, run_id=run_id, instance_id=instance_id)
 
     pprint.pprint(instance_id)
     pprint.pprint(gold_files)

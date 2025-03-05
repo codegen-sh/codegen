@@ -17,7 +17,7 @@ LOG_DIR = Path(__file__).parent / "logs"
 run_agent_modal = modal.Function.from_name(app_name="swebench-agent-run", name="run_agent_modal")
 
 
-async def process_batch_modal(examples: list[SweBenchExample], num_workers=5, min_workers=1, max_retries=3):
+async def process_batch_modal(examples: list[SweBenchExample], run_id: str, num_workers=5, min_workers=1, max_retries=3):
     """Process a batch of examples concurrently using a queue system with incremental worker scaling.
 
     Args:
@@ -110,7 +110,7 @@ async def process_batch_modal(examples: list[SweBenchExample], num_workers=5, mi
 
     async def process_example(example, attempt, current_task):
         try:
-            result = await run_agent_modal.remote.aio(example)
+            result = await run_agent_modal.remote.aio(example, run_id=run_id)
 
             if result is None:
                 print(f"Warning: Null result for {example.instance_id}")
@@ -222,7 +222,7 @@ async def process_batch_modal(examples: list[SweBenchExample], num_workers=5, mi
     return [results.get(example.instance_id, {"instance_id": example.instance_id, "status": "missing"}) for example in examples]
 
 
-def process_batch_local(examples: list[SweBenchExample], num_workers=5, codebases: dict[str, Codebase] = {}):
+def process_batch_local(examples: list[SweBenchExample], num_workers=5, codebases: dict[str, Codebase] = {}, run_id: str | None = None):
     """Process a batch of examples synchronously.
 
     Args:
@@ -242,9 +242,9 @@ def process_batch_local(examples: list[SweBenchExample], num_workers=5, codebase
             try:
                 # Run the agent locally instead of using modal
                 if codebases and example.instance_id in codebases:
-                    result = run_agent_on_entry(example, codebase=codebases[example.instance_id])
+                    result = run_agent_on_entry(example, codebase=codebases[example.instance_id], run_id=run_id)
                 else:
-                    result = run_agent_on_entry(example)
+                    result = run_agent_on_entry(example, run_id=run_id)
                 results.append(result)
 
             except Exception as e:
@@ -294,9 +294,9 @@ async def run_eval(
 
             # Process all examples in parallel batches
             if local:
-                results = process_batch_local(examples, codebases=codebases)
+                results = process_batch_local(examples, codebases=codebases, run_id=run_id)
             else:
-                results = await process_batch_modal(examples, num_workers=num_workers)
+                results = await process_batch_modal(examples, num_workers=num_workers, run_id=run_id)
 
             # Save individual results
             for result in results:
