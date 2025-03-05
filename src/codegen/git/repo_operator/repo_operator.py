@@ -608,7 +608,12 @@ class RepoOperator:
             # -c: show cached files
             # -o: show other / untracked files
             # --exclude-standard: exclude standard gitignore rules
-            return self.git_cli.git.ls_files("-co", "--exclude-standard").split("\n")
+            return [
+                filepath.strip()
+                for filepath in self.git_cli.git.ls_files("-co", "--exclude-standard").split("\n")
+                if filepath.strip()
+                if not self._matches_ignore_list(ignore_list, filepath)
+            ]
 
         filepaths = []
         for dirpath, subdirnames, filenames in os.walk(self.repo_path):
@@ -625,7 +630,7 @@ class RepoOperator:
                 filepath = os.path.join(dirpath, filename)
                 if self._matches_ignore_list(ignore_list, filepath):
                     continue
-                filepaths.append(filepath)
+                filepaths.append(os.path.relpath(filepath, self.repo_path))
 
         return filepaths
 
