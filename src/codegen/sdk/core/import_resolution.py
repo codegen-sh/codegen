@@ -711,6 +711,7 @@ class WildcardImport(Chainable, Generic[TImport]):
     def filepath(self) -> str:
         return self.imp.filepath
 
+
 class ExternalImportResolver:
     def resolve(self, imp: Import) -> str | None:
         return None
