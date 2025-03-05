@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 
 from codegen.extensions.linear.linear_client import LinearClient
 from codegen.extensions.tools.bash import run_bash_command
+from codegen.extensions.tools.github.search import search
 from codegen.extensions.tools.linear.linear import (
     linear_comment_on_issue_tool,
     linear_create_issue_tool,
@@ -20,7 +21,6 @@ from codegen.extensions.tools.reflection import perform_reflection
 from codegen.extensions.tools.relace_edit import relace_edit
 from codegen.extensions.tools.replacement_edit import replacement_edit
 from codegen.extensions.tools.reveal_symbol import reveal_symbol
-from codegen.extensions.tools.search import search
 from codegen.extensions.tools.semantic_edit import semantic_edit
 from codegen.extensions.tools.semantic_search import semantic_search
 from codegen.sdk.core.codebase import Codebase
@@ -560,6 +560,28 @@ class GithubCreatePRTool(BaseTool):
         return result.render()
 
 
+class GithubSearchIssuesInput(BaseModel):
+    """Input for searching GitHub issues."""
+
+    query: str = Field(..., description="Search query string to find issues")
+
+
+class GithubSearchIssuesTool(BaseTool):
+    """Tool for searching GitHub issues."""
+
+    name: ClassVar[str] = "search_issues"
+    description: ClassVar[str] = "Search for GitHub issues/PRs using a query string from pygithub, e.g. 'is:pr is:open test_query'"
+    args_schema: ClassVar[type[BaseModel]] = GithubSearchIssuesInput
+    codebase: Codebase = Field(exclude=True)
+
+    def __init__(self, codebase: Codebase) -> None:
+        super().__init__(codebase=codebase)
+
+    def _run(self, query: str) -> str:
+        result = search(self.codebase, query)
+        return result.render()
+
+
 class GithubViewPRInput(BaseModel):
     """Input for getting PR contents."""
 
@@ -856,6 +878,7 @@ def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
         GithubCreatePRCommentTool(codebase),
         GithubCreatePRReviewCommentTool(codebase),
         GithubViewPRTool(codebase),
+        GithubSearchIssuesTool(codebase),
         # Linear
         LinearGetIssueTool(codebase),
         LinearGetIssueCommentsTool(codebase),
@@ -870,22 +893,28 @@ class ReplacementEditInput(BaseModel):
     filepath: str = Field(..., description="Path to the file to edit relative to the workspace root. The file must exist and be a text file.")
     pattern: str = Field(
         ...,
-        description="Regular expression pattern to match text that should be replaced. Supports all Python regex syntax including capture groups (\1, \2, etc). The pattern is compiled with re.MULTILINE flag by default.",
+        description="""Regular expression pattern to match text that should be replaced.
+Supports all Python regex syntax including capture groups (\1, \2, etc). The pattern is compiled with re.MULTILINE flag by default.""",
     )
     replacement: str = Field(
         ...,
-        description="Text to replace matched patterns with. Can reference regex capture groups using \1, \2, etc. If using regex groups in pattern, make sure to preserve them in replacement if needed.",
+        description="""Text to replace matched patterns with.
+Can reference regex capture groups using \1, \2, etc. If using regex groups in pattern, make sure to preserve them in replacement if needed.""",
     )
     start: int = Field(
-        default=1, description="Starting line number (1-indexed, inclusive) to begin replacements from. Use this with 'end' to limit changes to a specific region. Default is 1 (start of file)."
+        default=1,
+        description="""Starting line number (1-indexed, inclusive) to begin replacements from.
+Use this with 'end' to limit changes to a specific region. Default is 1 (start of file).""",
     )
     end: int = Field(
         default=-1,
-        description="Ending line number (1-indexed, inclusive) to stop replacements at. Use -1 to indicate end of file. Use this with 'start' to limit changes to a specific region. Default is -1 (end of file).",
+        description="""Ending line number (1-indexed, inclusive) to stop replacements at.
+Use -1 to indicate end of file. Use this with 'start' to limit changes to a specific region. Default is -1 (end of file).""",
     )
     count: Optional[int] = Field(
         default=None,
-        description="Maximum number of replacements to make. Use None to replace all occurrences (default), or specify a number to limit replacements. Useful when you only want to replace the first N occurrences.",
+        description="""Maximum number of replacements to make. Use None to replace all occurrences (default), or specify a number to limit replacements.
+Useful when you only want to replace the first N occurrences.""",
     )
 
 
