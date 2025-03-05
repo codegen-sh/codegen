@@ -7,7 +7,9 @@ from langchain_core.messages import AIMessage
 from langsmith import Client
 
 from codegen.extensions.langchain.agent import create_codebase_agent
-from codegen.extensions.langchain.utils.get_langsmith_url import find_and_print_langsmith_run_url
+from codegen.extensions.langchain.utils.get_langsmith_url import (
+    find_and_print_langsmith_run_url,
+)
 
 if TYPE_CHECKING:
     from codegen import Codebase
@@ -16,7 +18,22 @@ if TYPE_CHECKING:
 class CodeAgent:
     """Agent for interacting with a codebase."""
 
-    def __init__(self, codebase: "Codebase", model_provider: str = "anthropic", model_name: str = "claude-3-5-sonnet-latest", memory: bool = True, tools: Optional[list[BaseTool]] = None, **kwargs):
+    codebase: "Codebase"
+    agent: any
+    langsmith_client: Client
+    project_name: str
+    thread_id: str | None = None
+    config: dict = {}
+
+    def __init__(
+        self,
+        codebase: "Codebase",
+        model_provider: str = "anthropic",
+        model_name: str = "claude-3-5-sonnet-latest",
+        memory: bool = True,
+        tools: Optional[list[BaseTool]] = None,
+        **kwargs,
+    ):
         """Initialize a CodeAgent.
 
         Args:
@@ -32,7 +49,14 @@ class CodeAgent:
                 - max_tokens: Maximum number of tokens to generate
         """
         self.codebase = codebase
-        self.agent = create_codebase_agent(self.codebase, model_provider=model_provider, model_name=model_name, memory=memory, additional_tools=tools, **kwargs)
+        self.agent = create_codebase_agent(
+            self.codebase,
+            model_provider=model_provider,
+            model_name=model_name,
+            memory=memory,
+            additional_tools=tools,
+            **kwargs,
+        )
         self.langsmith_client = Client()
 
         # Get project name from environment variable or use a default
@@ -51,13 +75,25 @@ class CodeAgent:
         """
         if thread_id is None:
             thread_id = str(uuid4())
+        self.thread_id = thread_id
+        self.config = {
+            "configurable": {
+                "thread_id": thread_id,
+                "metadata": {"project": self.project_name},
+            },
+            "recursion_limit": 100,
+        }
 
         # this message has a reducer which appends the current message to the existing history
         # see more https://langchain-ai.github.io/langgraph/concepts/low_level/#reducers
         input = {"messages": [("user", prompt)]}
 
         # we stream the steps instead of invoke because it allows us to access intermediate nodes
-        stream = self.agent.stream(input, config={"configurable": {"thread_id": thread_id, "metadata": {"project": self.project_name}}, "recursion_limit": 100}, stream_mode="values")
+        stream = self.agent.stream(
+            input,
+            config=self.config,
+            stream_mode="values",
+        )
 
         # Keep track of run IDs from the stream
         run_ids = []
@@ -110,3 +146,9 @@ class CodeAgent:
             print(traceback.format_exc())
             print(separator)
             return None
+
+    def get_tools(self) -> list[BaseTool]:
+        return list(self.agent.get_graph().nodes["tools"].data.tools_by_name.values())
+
+    def get_state(self) -> dict:
+        return self.agent.get_state(self.config)
