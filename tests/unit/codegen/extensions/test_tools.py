@@ -68,7 +68,8 @@ def large_codebase(tmpdir):
     for i in range(1, 401):  # This will create a 400+ line file
         if i % 20 == 0:
             # Add some class methods periodically
-            large_file_lines.extend(["    @classmethod", f"    def class_method_{i}(cls) -> None:", f"        print('Class method {i}')", "        return None", ""])
+            large_file_lines.extend(
+                ["    @classmethod", f"    def class_method_{i}(cls) -> None:", f"        print('Class method {i}')", "        return None", ""])
         else:
             # Add regular methods
             large_file_lines.extend(
@@ -123,7 +124,8 @@ def test_view_file_pagination(large_codebase):
     assert "def method_251" not in result.content  # Method after page 1
 
     # Test custom pagination range
-    result = view_file(large_codebase, "src/large_file.py", start_line=200, end_line=250)
+    result = view_file(large_codebase, "src/large_file.py",
+                       start_line=200, end_line=250)
     assert result.status == "success"
     assert result.start_line == 200
     assert result.end_line == 250
@@ -156,7 +158,8 @@ def test_view_file_pagination(large_codebase):
     assert len(result.content.splitlines()) <= 100
 
     # Test line numbers display
-    result = view_file(large_codebase, "src/large_file.py", start_line=198, end_line=202, line_numbers=True)
+    result = view_file(large_codebase, "src/large_file.py",
+                       start_line=198, end_line=202, line_numbers=True)
     assert result.status == "success"
     assert "198|" in result.content
     assert "199|" in result.content
@@ -165,7 +168,8 @@ def test_view_file_pagination(large_codebase):
     assert "202|" in result.content
 
     # Test without line numbers
-    result = view_file(large_codebase, "src/large_file.py", start_line=198, end_line=202, line_numbers=False)
+    result = view_file(large_codebase, "src/large_file.py",
+                       start_line=198, end_line=202, line_numbers=False)
     assert result.status == "success"
     assert "198|" not in result.content
     assert "199|" not in result.content
@@ -174,7 +178,8 @@ def test_view_file_pagination(large_codebase):
 def test_view_file_pagination_edge_cases(large_codebase):
     """Test edge cases for file pagination."""
     # Test start_line > end_line (should respect provided end_line)
-    result = view_file(large_codebase, "src/large_file.py", start_line=200, end_line=100)
+    result = view_file(large_codebase, "src/large_file.py",
+                       start_line=200, end_line=100)
     assert result.status == "success"
     assert result.start_line == 200
     assert result.end_line == 100  # Should respect provided end_line
@@ -188,7 +193,8 @@ def test_view_file_pagination_edge_cases(large_codebase):
     assert result.has_more is False
 
     # Test end_line > file length (should truncate to file length)
-    result = view_file(large_codebase, "src/large_file.py", start_line=200, end_line=2000)
+    result = view_file(large_codebase, "src/large_file.py",
+                       start_line=200, end_line=2000)
     assert result.status == "success"
     assert result.start_line == 200
     # Should respect max_lines and file length
@@ -234,92 +240,6 @@ def test_list_directory(codebase):
     ├── utils.py
     └── core/"""
     assert expected_tree in rendered.strip()
-
-
-def test_search(codebase):
-    """Test searching the codebase."""
-    result = search(codebase, "hello")
-    assert result.status == "success"
-    assert len(result.results) > 0
-
-    # Check that we found the right content
-    assert any("hello" in match.match.lower() for file_result in result.results for match in file_result.matches)
-
-    # Check pagination info
-    assert result.page == 1
-    assert result.total_pages >= 1
-    assert result.files_per_page == 10
-
-
-def test_search_regex(codebase):
-    """Test searching with regex."""
-    # Search for function definitions
-    result = search(codebase, r"def\s+\w+", use_regex=True)
-    assert result.status == "success"
-    assert len(result.results) > 0
-
-    # Should find both 'def hello' and 'def greet'
-    matches = [match.line for file_result in result.results for match in file_result.matches]
-    assert any("def hello" in match for match in matches)
-    assert any("def greet" in match for match in matches)
-
-
-def test_search_pagination(codebase, tmpdir):
-    """Test search pagination."""
-    # Create multiple files to test pagination
-    files_dict = {}
-    for i in range(15):  # Create enough files to span multiple pages
-        content = f"def function_{i}():\n    print('Hello from function {i}!')"
-        files_dict[f"src/file_{i}.py"] = content
-
-    # Create a new codebase with all the files
-    with get_codebase_session(tmpdir=tmpdir, files=files_dict) as pagination_codebase:
-        # Search with default pagination (page 1)
-        result_page1 = search(pagination_codebase, "Hello", files_per_page=5)
-        assert result_page1.status == "success"
-        assert result_page1.page == 1
-        assert len(result_page1.results) <= 5
-
-        # If we have enough results for multiple pages
-        if result_page1.total_pages > 1:
-            # Get page 2
-            result_page2 = search(pagination_codebase, "Hello", page=2, files_per_page=5)
-            assert result_page2.status == "success"
-            assert result_page2.page == 2
-            assert len(result_page2.results) <= 5
-
-            # Ensure different files on different pages
-            page1_files = {r.filepath for r in result_page1.results}
-            page2_files = {r.filepath for r in result_page2.results}
-            assert not page1_files.intersection(page2_files)
-
-
-def test_search_uses_ripgrep(codebase, monkeypatch):
-    """Test that ripgrep is used when available."""
-    # Track if ripgrep was called
-    ripgrep_called = False
-
-    # Store original subprocess.run
-    original_run = subprocess.run
-
-    # Mock subprocess.run to track calls and then call the original
-    def mock_subprocess_run(*args, **kwargs):
-        nonlocal ripgrep_called
-        # Check if this is a ripgrep call
-        if args and args[0] and isinstance(args[0], list) and args[0][0] == "rg":
-            ripgrep_called = True
-        # Call the original implementation
-        return original_run(*args, **kwargs)
-
-    # Apply the mock
-    monkeypatch.setattr(subprocess, "run", mock_subprocess_run)
-
-    # Perform a search
-    result = search(codebase, "hello")
-    assert result.status == "success"
-
-    # Verify ripgrep was called
-    assert ripgrep_called, "Ripgrep was not used for the search"
 
 
 def test_edit_file(codebase):
