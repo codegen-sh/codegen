@@ -1347,11 +1347,11 @@ class Codebase(
         try:
             # Use RepoOperator to fetch the repository
             logger.info("Cloning repository...")
+            access_token = secrets.github_token if secrets else None
             if commit is None:
-                repo_operator = RepoOperator.create_from_repo(repo_path=repo_path, url=repo_url)
+                repo_operator = RepoOperator.create_from_repo(repo_path=repo_path, url=repo_url, access_token=access_token)
             else:
                 # Ensure the operator can handle remote operations
-                access_token = secrets.github_token if secrets else None
                 repo_operator = RepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url, full_name=repo_full_name, access_token=access_token)
             logger.info("Clone completed successfully")
 
