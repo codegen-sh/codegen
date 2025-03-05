@@ -32,6 +32,14 @@ def create_graph_from_codebase(repo_path):
     return G
 
 
+def convert_all_calls_to_kwargs(codebase):
+    for file in codebase.files:
+        for function_call in file.function_calls:
+            function_call.convert_args_to_kwargs()
+
+    print("All function calls have been converted to kwargs")
+
+
 def find_import_cycles(G):
     """Identify strongly connected components (cycles) in the import graph."""
     cycles = [scc for scc in nx.strongly_connected_components(G) if len(scc) > 1]
@@ -95,37 +103,25 @@ def find_problematic_import_loops(G, cycles):
 def handle_pr(event: PullRequestLabeledEvent):
     codebase = Codebase.from_repo(event.repository.get("full_name"), commit=event.pull_request.head.sha)
 
-    files = codebase.files
-
     G = create_graph_from_codebase(event.repository.get("full_name"))
     cycles = find_import_cycles(G)
     problematic_loops = find_problematic_import_loops(G, cycles)
 
     # Build comment message
-    message = ["### Import Cycle Analysis\n"]
-    message.append(f"Files analyzed: {len(files)}\n")
-
-    if cycles:
-        message.append(f"\nFound {len(cycles)} import cycles.")
-        for i, cycle in enumerate(cycles, 1):
-            message.append(f"\n#### Cycle #{i}: {len(cycle)} files")
-            message.append("Files in cycle:")
-            for file in cycle:
-                message.append(f"- {file}")
-    else:
-        message.append("\nNo import cycles found! 🎉")
+    message = ["### Import Cycle Analysis - GitHub Check\n"]
 
     if problematic_loops:
-        message.append("\n### ⚠️ Problematic Import Cycles")
-        message.append("(Cycles with mixed static and dynamic imports)")
+        message.append("\n### ⚠️ Potentially Problematic Import Cycles")
+        message.append("Cycles with mixed static and dynamic imports, which might recquire attention.")
         for i, cycle in enumerate(problematic_loops, 1):
-            message.append(f"\n#### Problematic Cycle #{i}")
-            message.append("Mixed imports:")
+            message.append(f"\n#### Problematic Cycle {i}")
             for (from_file, to_file), imports in cycle["mixed_imports"].items():
                 message.append(f"\nFrom: `{from_file}`")
                 message.append(f"To: `{to_file}`")
                 message.append(f"- Static imports: {imports['static']}")
                 message.append(f"- Dynamic imports: {imports['dynamic']}")
+    else:
+        message.append("\nNo problematic import cycles found! 🎉")
 
     create_pr_comment(
         codebase,
