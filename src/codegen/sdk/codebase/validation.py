@@ -37,7 +37,16 @@ def post_init_validation(codebase: CodebaseType) -> PostInitValidationStatus:
         return PostInitValidationStatus.NO_NODES
 
     # Verify the graph has the same number of files as there are in the repo
-    if len(codebase.files) != len(list(codebase.op.iter_files(codebase.ctx.projects[0].subdirectories, extensions=codebase.ctx.extensions, ignore_list=GLOBAL_FILE_IGNORE_LIST))):
+    if len(codebase.files) != len(
+        list(
+            codebase.op.iter_files(
+                codebase.ctx.projects[0].subdirectories,
+                extensions=codebase.ctx.extensions,
+                ignore_list=GLOBAL_FILE_IGNORE_LIST,
+                skip_content=True,
+            )
+        )
+    ):
         return PostInitValidationStatus.MISSING_FILES
 
     # Verify import resolution
