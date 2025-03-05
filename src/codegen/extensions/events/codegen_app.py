@@ -161,15 +161,18 @@ class CodegenApp:
         async def _root():
             return await self.root()
 
-        @self.app.post("/{org}/{repo}/slack/events")
+        # @self.app.post("/{org}/{repo}/slack/events")
+        @self.app.post("/slack/events")
         async def _handle_slack_event(request: Request):
             return await self.handle_slack_event(request)
 
-        @self.app.post("/{org}/{repo}/github/events")
+        # @self.app.post("/{org}/{repo}/github/events")
+        @self.app.post("/github/events")
         async def _handle_github_event(request: Request):
             return await self.handle_github_event(request)
 
-        @self.app.post("/{org}/{repo}/linear/events")
+        # @self.app.post("/{org}/{repo}/linear/events")
+        @self.app.post("/linear/events")
         async def handle_linear_event(request: Request):
             return await self.handle_linear_event(request)
 

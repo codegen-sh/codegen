@@ -72,7 +72,7 @@ jobs:
 
       # TODO: add cbuildwheel cache
       - name: Build wheel
-        uses: pypa/cibuildwheel@v2.22.0
+        uses: pypa/cibuildwheel@v2.23.0
         env:
           CIBW_BUILD: "*cp3${{ matrix.python }}*"
 

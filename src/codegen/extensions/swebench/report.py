@@ -113,6 +113,8 @@ def generate_report(predictions_dir: Path, logs_dir: Path, dataset: SWEBenchData
         print(f"Directory does not exist: {predictions_dir}")
         return 1
 
+    predictions_jsonl = predictions_dir / "all_preds.jsonl"
+    existing_preds = predictions_jsonl.exists()
     prediction_files = list(predictions_dir.glob("*.json"))
     print(f"Found {len(prediction_files)} prediction files")
 
@@ -126,29 +128,27 @@ def generate_report(predictions_dir: Path, logs_dir: Path, dataset: SWEBenchData
         except json.JSONDecodeError:
             print(f"Error reading JSON from {file_path}")
             continue
+    if not existing_preds:
+        if not predictions:
+            print("No valid predictions found")
+            return 1
 
-    print(f"Successfully loaded {len(predictions)} predictions")
+        print(f"Successfully loaded {len(predictions)} predictions")
 
-    if predictions:
-        # Create predictions JSONL file
         predictions_jsonl = preds_to_jsonl(predictions, predictions_dir)
-        print(f"\nCreated predictions JSONL: {predictions_jsonl}")
 
-        # Setup log directory
-        log_dir = logs_dir / "results"
-        log_dir.mkdir(exist_ok=True, parents=True)
-        print(f"Using log directory: {log_dir}")
+    # Setup log directory
+    log_dir = logs_dir / "results"
+    log_dir.mkdir(exist_ok=True, parents=True)
+    print(f"Using log directory: {log_dir}")
 
-        # Run evaluations
-        run_evals(predictions_jsonl, logs_dir, dataset, run_id)
+    # Run evaluations
+    run_evals(predictions_jsonl, logs_dir, dataset, run_id)
 
-        # Get and display report
-        report = get_report(predictions_jsonl, logs_dir)
+    # Get and display report
+    report = get_report(predictions_jsonl, logs_dir)
 
-        # Update prediction JSONs with results
-        predictions = update_pred_json(predictions, report, predictions_dir)
-    else:
-        print("No valid predictions found")
-        return 1
+    # Update prediction JSONs with results
+    predictions = update_pred_json(predictions, report, predictions_dir)
 
     return 0

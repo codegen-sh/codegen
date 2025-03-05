@@ -13,7 +13,7 @@ image = (
 app = modal.App(name="swebench-agent-run", image=image, secrets=[modal.Secret.from_dotenv()])
 
 
-@app.function(timeout=10 * 60)
+@app.function(timeout=43200)
 async def run_agent_modal(entry: SweBenchExample):
     """Modal function to process a single example from the SWE-bench dataset."""
     return run_agent_on_entry(entry)

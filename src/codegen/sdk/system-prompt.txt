@@ -6358,7 +6358,7 @@ Explore our tutorials to learn how to use Codegen for various code transformatio
   <Card 
     title="SQLAlchemy 1.4 to 2.0"
     icon="layer-group"
-    href="/tutorials/sqlalchemy-1.4-to-2.0"
+    href="/tutorials/sqlalchemy-1.6-to-2.0"
   >
     Update SQLAlchemy code to use the new 2.0-style query interface and patterns.
   </Card>
@@ -7049,39 +7049,6 @@ While this example demonstrates a basic PR review bot, you can extend it to:
 - ... etc.
 
 <Tip>Check out our [Code Agent tutorial](/tutorials/build-code-agent) to learn more about building sophisticated AI agents with Codegen</Tip>
-
-## Learn More
-
-<CardGroup cols={2}>
-  <Card
-    title="Code Agent Guide"
-    icon="robot"
-    href="/building-with-codegen/code-agent"
-  >
-    Learn how to build intelligent code agents with Codegen.
-  </Card>
-  <Card
-    title="GitHub Integration"
-    icon="github"
-    href="/building-with-codegen/github-integration"
-  >
-    Explore Codegen's GitHub integration features.
-  </Card>
-  <Card
-    title="Modal Deployment"
-    icon="cloud"
-    href="https://modal.com/docs/guide"
-  >
-    Learn about deploying apps with Modal.
-  </Card>
-  <Card
-    title="Code Review Best Practices"
-    icon="code-pull-request"
-    href="https://google.github.io/eng-practices/review/"
-  >
-    Understand code review patterns and best practices.
-  </Card>
-</CardGroup> 
 
 ---
 title: "Deep Code Research with AI"
@@ -8470,7 +8437,7 @@ new_code = promise_statement.edit(
 - Ambiguous/conditional return blocks
 
 <Info>
-A list of all the covered cases can be found in the [example notebook](codegen-examples/examples/promises_to_async_await/promise_to_async_await.ipynb).
+A list of all the covered cases can be found in the [example notebook](https://github.com/codegen-sh/codegen-sdk/tree/codegen-examples/examples/promises_to_async_await/promise_to_async_await.ipynb).
 </Info>
 
 

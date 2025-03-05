@@ -31,10 +31,10 @@ async def lifespan(server: FastAPI):
     global server_info
     global runner
 
+    default_repo_config = RepositoryConfig()
+    repo_name = default_repo_config.full_name or default_repo_config.name
+    server_info = ServerInfo(repo_name=repo_name)
     try:
-        default_repo_config = RepositoryConfig()
-        repo_name = default_repo_config.full_name or default_repo_config.name
-        server_info = ServerInfo(repo_name=repo_name)
         logger.info(f"Starting up sandbox fastapi server for repo_name={repo_name}")
         repo_config = RepoConfig(
             name=default_repo_config.name,

@@ -81,7 +81,7 @@ def create_app_module(file_path: Path) -> str:
     module_name = f"codegen_app_{file_path.stem}"
     module_code = f"""
 from {file_path.stem} import app
-app = app
+app = app.app  # Get the FastAPI instance from the CodegenApp
 """
     module_path = file_path.parent / f"{module_name}.py"
     module_path.write_text(module_code)

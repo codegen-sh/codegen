@@ -66,9 +66,9 @@ class CodebaseClient(Client):
     def _get_envs(self) -> dict:
         envs = os.environ.copy()
         codebase_envs = {
-            "REPOSITORY_LANGUAGE": self.repo_config.language.value,
-            "REPOSITORY_OWNER": self.repo_config.organization_name,
             "REPOSITORY_PATH": str(self.repo_config.repo_path),
+            "REPOSITORY_OWNER": self.repo_config.organization_name,
+            "REPOSITORY_LANGUAGE": self.repo_config.language.value,
             "GITHUB_TOKEN": SecretsConfig().github_token,
         }
 

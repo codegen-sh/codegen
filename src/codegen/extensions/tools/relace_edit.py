@@ -90,7 +90,7 @@ def apply_relace_edit(api_key: str, initial_code: str, edit_snippet: str, stream
     Raises:
         Exception: If the API request fails
     """
-    url = "https://instantapply.endpoint.relace.run/v1/code/apply"
+    url = "https://codegen-instantapply.dev-endpoint.relace.run/v1/code/apply"
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
 
     data = {"initialCode": initial_code, "editSnippet": edit_snippet, "stream": stream}

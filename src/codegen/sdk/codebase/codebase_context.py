@@ -365,7 +365,11 @@ class CodebaseContext:
         # Reset and rebuild the directory tree
         self.directories = dict()
 
-        for file_path, _ in self.projects[0].repo_operator.iter_files(subdirs=self.projects[0].subdirectories, ignore_list=GLOBAL_FILE_IGNORE_LIST):
+        for file_path, _ in self.projects[0].repo_operator.iter_files(
+            subdirs=self.projects[0].subdirectories,
+            ignore_list=GLOBAL_FILE_IGNORE_LIST,
+            skip_content=True,
+        ):
             file_path = Path(file_path)
             directory = self.get_directory(file_path.parent, create_on_missing=True)
             directory._add_file(file_path.name)
@@ -510,7 +514,6 @@ class CodebaseContext:
 
         # Step 6: Build directory tree
         logger.info("> Building directory tree")
-        files = [f for f in sort_editables(self.get_nodes(NodeType.FILE), alphabetical=True, dedupe=False)]
         self.build_directory_tree()
 
         # Step 7: Build configs

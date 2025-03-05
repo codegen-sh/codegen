@@ -12,6 +12,7 @@ from codegen.sdk.extensions.autocommit import reader
 from codegen.sdk.python.symbol import PySymbol
 from codegen.sdk.python.symbol_groups.comment_group import PyCommentGroup
 from codegen.shared.decorators.docs import noapidoc, py_apidoc
+from codegen.shared.logging.get_logger import get_logger
 
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
@@ -19,6 +20,8 @@ if TYPE_CHECKING:
     from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.node_id_factory import NodeId
     from codegen.sdk.python.statements.assignment_statement import PyAssignmentStatement
+
+logger = get_logger(__name__)
 
 
 @py_apidoc
@@ -152,6 +155,9 @@ class PyAssignment(Assignment["PyAssignmentStatement"], PySymbol):
                     else:
                         self.parent._values_scheduled_for_removal = []
                 else:
+                    if name.source == "_":
+                        logger.warning("Attempting to remove '_' in unpacking, command will be ignored. If you wish to remove the statement, remove the other remaining variable(s)!")
+                        return
                     transaction_count = self._active_transactions_on_assignment_names(TransactionPriority.Edit)
                     throwaway = [asgnmt.name == "_" for asgnmt in self.parent.assignments].count(True)
                     # Only edit if we didn't already omit all the other assignments, otherwise just remove the whole thing
