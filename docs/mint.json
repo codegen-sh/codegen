@@ -1,381 +1,379 @@
 {
-  "$schema": "https://mintlify.com/schema.json",
-  "name": "Codegen",
-  "logo": {
-    "dark": "https://cdn.prod.website-files.com/67070304751b9b01bf6a161c/679bcf45a3e32761c42b324b_Codegen_Logomark_Dark.svg",
-    "light": "https://cdn.prod.website-files.com/67070304751b9b01bf6a161c/679bcf45bf55446746125835_Codegen_Logomark_Light.svg"
-  },
-  "modeToggle": {
-    "default": "dark"
-  },
-  "metadata": {
-    "og:site_name": "Codegen",
-    "og:title": "Codegen - Manipulate Code at Scale",
-    "og:description": "A scriptable interface to a powerful, multi-lingual language server built on top of Tree-sitter.",
-    "og:url": "https://docs.codegen.com",
-    "og:locale": "en_US",
-    "og:logo": "https://i.imgur.com/f4OVOqI.png",
-    "article:publisher": "Codegen, Inc.",
-    "twitter:site": "@codegen"
-  },
-  "favicon": "/favicon.svg",
-  "colors": {
-    "primary": "#a277ff",
-    "light": "#a277ff",
-    "dark": "#a277ff",
-    "anchors": {
-      "from": "#61ffca",
-      "to": "#61ffca"
-    }
-  },
-  "theme": "prism",
-  "background": {
-    "style": "gradient"
-  },
-  "analytics": {
-    "posthog": {
-      "apiKey": "phc_GLxaINoQJnuyCyxDmTciQqzdKBYFVDkY7bRBO4bDdso"
-    }
-  },
-  "feedback": {
-    "thumbsRating": true
-  },
-  "topbarCtaButton": {
-    "name": "GitHub",
-    "url": "https://github.com/codegen-sh/codegen-sdk"
-  },
-  "tabs": [
-    {
-      "name": "API Reference",
-      "url": "/api-reference"
-    },
-    {
-      "name": "CLI",
-      "url": "/cli"
-    },
-    {
-      "name": "Blog",
-      "url": "/blog"
-    },
-    {
-      "name": "Changelog",
-      "url": "/changelog"
-    }
-  ],
-  "navigation": [
-    {
-      "group": "Introduction",
-      "pages": [
-        "introduction/overview",
-        "introduction/getting-started",
-        "introduction/installation",
-        "introduction/ide-usage",
-        "introduction/work-with-ai",
-        "introduction/how-it-works",
-        "introduction/advanced-settings",
-        "introduction/guiding-principles",
-        "introduction/community",
-        "introduction/about",
-        "introduction/faq"
-      ]
-    },
-    {
-      "group": "Tutorials",
-      "pages": [
-        "tutorials/at-a-glance",
-        "tutorials/build-code-agent",
-        "tutorials/slack-bot",
-        "tutorials/github-review-bot",
-        "tutorials/deep-code-research",
-        "tutorials/training-data",
-        "tutorials/codebase-visualization",
-        "tutorials/migrating-apis",
-        "tutorials/organize-your-codebase",
-        "tutorials/promise-to-async-await",
-        "tutorials/modularity",
-        "tutorials/manage-feature-flags",
-        "tutorials/deleting-dead-code",
-        "tutorials/increase-type-coverage",
-        "tutorials/managing-typescript-exports",
-        "tutorials/converting-default-exports",
-        "tutorials/creating-documentation",
-        "tutorials/react-modernization",
-        "tutorials/unittest-to-pytest",
-        "tutorials/sqlalchemy-1.6-to-2.0",
-        "tutorials/fixing-import-loops-in-pytorch",
-        "tutorials/python2-to-python3",
-        "tutorials/flask-to-fastapi",
-        "tutorials/build-mcp",
-        "tutorials/neo4j-graph"
-      ]
-    },
-    {
-      "group": "Building with Codegen",
-      "pages": [
-        "building-with-codegen/at-a-glance",
-        "building-with-codegen/parsing-codebases",
-        "building-with-codegen/reusable-codemods",
-        "building-with-codegen/dot-codegen",
-        "building-with-codegen/function-decorator",
-        "building-with-codegen/language-support",
-        "building-with-codegen/commit-and-reset",
-        "building-with-codegen/git-operations",
-        "building-with-codegen/files-and-directories",
-        "building-with-codegen/the-editable-api",
-        "building-with-codegen/symbol-api",
-        "building-with-codegen/class-api",
-        "building-with-codegen/imports",
-        "building-with-codegen/exports",
-        "building-with-codegen/inheritable-behaviors",
-        "building-with-codegen/statements-and-code-blocks",
-        "building-with-codegen/dependencies-and-usages",
-        "building-with-codegen/function-calls-and-callsites",
-        "building-with-codegen/variable-assignments",
-        "building-with-codegen/local-variables",
-        "building-with-codegen/comments-and-docstrings",
-        "building-with-codegen/external-modules",
-        "building-with-codegen/type-annotations",
-        "building-with-codegen/moving-symbols",
-        "building-with-codegen/collections",
-        "building-with-codegen/traversing-the-call-graph",
-        "building-with-codegen/react-and-jsx",
-        "building-with-codegen/codebase-visualization",
-        "building-with-codegen/flagging-symbols",
-        "building-with-codegen/calling-out-to-llms",
-        "building-with-codegen/semantic-code-search",
-        "building-with-codegen/reducing-conditions"
-      ]
-    },
-    {
-      "group": "CLI",
-      "pages": [
-        "cli/about",
-        "cli/init",
-        "cli/notebook",
-        "cli/create",
-        "cli/run",
-        "cli/reset",
-        "cli/expert"
-      ]
-    },
-    {
-      "group": "Changelog",
-      "pages": [
-        "changelog/changelog"
-      ]
-    },
-    {
-      "group": "Blog",
-      "pages": [
-        "blog/posts",
-        "blog/devin",
-        "blog/act-via-code",
-        "blog/promise-to-async-await-twilio",
-        "blog/fixing-import-loops"
-      ]
-    },
-    {
-      "group": "API Reference",
-      "pages": [
-        "api-reference/index",
-        {
-          "group": "Core",
-          "icon": "code",
-          "pages": [
-            "api-reference/core/Argument",
-            "api-reference/core/Assignment",
-            "api-reference/core/AssignmentStatement",
-            "api-reference/core/Attribute",
-            "api-reference/core/AwaitExpression",
-            "api-reference/core/BinaryExpression",
-            "api-reference/core/BlockStatement",
-            "api-reference/core/Boolean",
-            "api-reference/core/Callable",
-            "api-reference/core/CatchStatement",
-            "api-reference/core/ChainedAttribute",
-            "api-reference/core/Class",
-            "api-reference/core/CodeBlock",
-            "api-reference/core/CodeOwner",
-            "api-reference/core/Codebase",
-            "api-reference/core/Comment",
-            "api-reference/core/CommentGroup",
-            "api-reference/core/ComparisonExpression",
-            "api-reference/core/Decorator",
-            "api-reference/core/Dict",
-            "api-reference/core/Directory",
-            "api-reference/core/Editable",
-            "api-reference/core/Export",
-            "api-reference/core/ExportStatement",
-            "api-reference/core/Exportable",
-            "api-reference/core/Expression",
-            "api-reference/core/ExpressionGroup",
-            "api-reference/core/ExpressionStatement",
-            "api-reference/core/ExternalModule",
-            "api-reference/core/File",
-            "api-reference/core/FlagKwargs",
-            "api-reference/core/ForLoopStatement",
-            "api-reference/core/Function",
-            "api-reference/core/FunctionCall",
-            "api-reference/core/GenericType",
-            "api-reference/core/HasBlock",
-            "api-reference/core/HasName",
-            "api-reference/core/HasValue",
-            "api-reference/core/IfBlockStatement",
-            "api-reference/core/Import",
-            "api-reference/core/ImportStatement",
-            "api-reference/core/ImportType",
-            "api-reference/core/Importable",
-            "api-reference/core/Interface",
-            "api-reference/core/List",
-            "api-reference/core/MessageType",
-            "api-reference/core/MultiExpression",
-            "api-reference/core/MultiLineCollection",
-            "api-reference/core/Name",
-            "api-reference/core/NamedType",
-            "api-reference/core/NoneType",
-            "api-reference/core/Number",
-            "api-reference/core/Pair",
-            "api-reference/core/Parameter",
-            "api-reference/core/ParenthesizedExpression",
-            "api-reference/core/Placeholder",
-            "api-reference/core/PlaceholderType",
-            "api-reference/core/RaiseStatement",
-            "api-reference/core/ReturnStatement",
-            "api-reference/core/SourceFile",
-            "api-reference/core/Span",
-            "api-reference/core/Statement",
-            "api-reference/core/StatementType",
-            "api-reference/core/String",
-            "api-reference/core/StubPlaceholder",
-            "api-reference/core/SubscriptExpression",
-            "api-reference/core/SwitchCase",
-            "api-reference/core/SwitchStatement",
-            "api-reference/core/Symbol",
-            "api-reference/core/SymbolGroup",
-            "api-reference/core/SymbolStatement",
-            "api-reference/core/TernaryExpression",
-            "api-reference/core/TryCatchStatement",
-            "api-reference/core/Tuple",
-            "api-reference/core/TupleType",
-            "api-reference/core/Type",
-            "api-reference/core/TypeAlias",
-            "api-reference/core/TypePlaceholder",
-            "api-reference/core/Typeable",
-            "api-reference/core/UnaryExpression",
-            "api-reference/core/UnionType",
-            "api-reference/core/Unpack",
-            "api-reference/core/Unwrappable",
-            "api-reference/core/Usable",
-            "api-reference/core/Usage",
-            "api-reference/core/UsageKind",
-            "api-reference/core/UsageType",
-            "api-reference/core/Value",
-            "api-reference/core/WhileStatement",
-            "api-reference/core/WithStatement"
-          ]
-        },
-        {
-          "group": "Python",
-          "icon": "python",
-          "pages": [
-            "api-reference/python/PyAssignment",
-            "api-reference/python/PyAssignmentStatement",
-            "api-reference/python/PyAttribute",
-            "api-reference/python/PyBlockStatement",
-            "api-reference/python/PyBreakStatement",
-            "api-reference/python/PyCatchStatement",
-            "api-reference/python/PyChainedAttribute",
-            "api-reference/python/PyClass",
-            "api-reference/python/PyCodeBlock",
-            "api-reference/python/PyComment",
-            "api-reference/python/PyCommentGroup",
-            "api-reference/python/PyCommentType",
-            "api-reference/python/PyConditionalExpression",
-            "api-reference/python/PyDecorator",
-            "api-reference/python/PyFile",
-            "api-reference/python/PyForLoopStatement",
-            "api-reference/python/PyFunction",
-            "api-reference/python/PyGenericType",
-            "api-reference/python/PyHasBlock",
-            "api-reference/python/PyIfBlockStatement",
-            "api-reference/python/PyImport",
-            "api-reference/python/PyImportStatement",
-            "api-reference/python/PyMatchCase",
-            "api-reference/python/PyMatchStatement",
-            "api-reference/python/PyNamedType",
-            "api-reference/python/PyParameter",
-            "api-reference/python/PyPassStatement",
-            "api-reference/python/PyReturnTypePlaceholder",
-            "api-reference/python/PyString",
-            "api-reference/python/PySymbol",
-            "api-reference/python/PyTryCatchStatement",
-            "api-reference/python/PyUnionType",
-            "api-reference/python/PyWhileStatement"
-          ]
-        },
-        {
-          "group": "Typescript",
-          "icon": "js",
-          "pages": [
-            "api-reference/typescript/JSXElement",
-            "api-reference/typescript/JSXExpression",
-            "api-reference/typescript/JSXProp",
-            "api-reference/typescript/TSArrayType",
-            "api-reference/typescript/TSAssignment",
-            "api-reference/typescript/TSAssignmentStatement",
-            "api-reference/typescript/TSAttribute",
-            "api-reference/typescript/TSBlockStatement",
-            "api-reference/typescript/TSCatchStatement",
-            "api-reference/typescript/TSChainedAttribute",
-            "api-reference/typescript/TSClass",
-            "api-reference/typescript/TSCodeBlock",
-            "api-reference/typescript/TSComment",
-            "api-reference/typescript/TSCommentGroup",
-            "api-reference/typescript/TSCommentType",
-            "api-reference/typescript/TSConditionalType",
-            "api-reference/typescript/TSConfig",
-            "api-reference/typescript/TSDecorator",
-            "api-reference/typescript/TSDict",
-            "api-reference/typescript/TSEnum",
-            "api-reference/typescript/TSExport",
-            "api-reference/typescript/TSExpressionType",
-            "api-reference/typescript/TSFile",
-            "api-reference/typescript/TSForLoopStatement",
-            "api-reference/typescript/TSFunction",
-            "api-reference/typescript/TSFunctionType",
-            "api-reference/typescript/TSGenericType",
-            "api-reference/typescript/TSHasBlock",
-            "api-reference/typescript/TSIfBlockStatement",
-            "api-reference/typescript/TSImport",
-            "api-reference/typescript/TSImportStatement",
-            "api-reference/typescript/TSInterface",
-            "api-reference/typescript/TSLabeledStatement",
-            "api-reference/typescript/TSLookupType",
-            "api-reference/typescript/TSNamedType",
-            "api-reference/typescript/TSNamespace",
-            "api-reference/typescript/TSObjectType",
-            "api-reference/typescript/TSPair",
-            "api-reference/typescript/TSParameter",
-            "api-reference/typescript/TSQueryType",
-            "api-reference/typescript/TSReadonlyType",
-            "api-reference/typescript/TSReturnTypePlaceholder",
-            "api-reference/typescript/TSString",
-            "api-reference/typescript/TSSwitchCase",
-            "api-reference/typescript/TSSwitchStatement",
-            "api-reference/typescript/TSSymbol",
-            "api-reference/typescript/TSTernaryExpression",
-            "api-reference/typescript/TSTryCatchStatement",
-            "api-reference/typescript/TSTypeAlias",
-            "api-reference/typescript/TSUndefinedType",
-            "api-reference/typescript/TSUnionType",
-            "api-reference/typescript/TSWhileStatement"
-          ]
-        }
-      ]
-    }
-  ],
-  "footerSocials": {
-    "x": "https://x.com/codegen",
-    "linkedin": "https://linkedin.com/company/codegen-dot-com"
-  }
+	"$schema": "https://mintlify.com/schema.json",
+	"name": "Codegen",
+	"logo": {
+		"dark": "https://cdn.prod.website-files.com/67070304751b9b01bf6a161c/679bcf45a3e32761c42b324b_Codegen_Logomark_Dark.svg",
+		"light": "https://cdn.prod.website-files.com/67070304751b9b01bf6a161c/679bcf45bf55446746125835_Codegen_Logomark_Light.svg"
+	},
+	"modeToggle": {
+		"default": "dark"
+	},
+	"metadata": {
+		"og:site_name": "Codegen",
+		"og:title": "Codegen - Manipulate Code at Scale",
+		"og:description": "A scriptable interface to a powerful, multi-lingual language server built on top of Tree-sitter.",
+		"og:url": "https://docs.codegen.com",
+		"og:locale": "en_US",
+		"og:logo": "https://i.imgur.com/f4OVOqI.png",
+		"article:publisher": "Codegen, Inc.",
+		"twitter:site": "@codegen"
+	},
+	"favicon": "/favicon.svg",
+	"colors": {
+		"primary": "#a277ff",
+		"light": "#a277ff",
+		"dark": "#a277ff",
+		"anchors": {
+			"from": "#61ffca",
+			"to": "#61ffca"
+		}
+	},
+	"theme": "prism",
+	"background": {
+		"style": "gradient"
+	},
+	"analytics": {
+		"posthog": {
+			"apiKey": "phc_GLxaINoQJnuyCyxDmTciQqzdKBYFVDkY7bRBO4bDdso"
+		}
+	},
+	"feedback": {
+		"thumbsRating": true
+	},
+	"topbarCtaButton": {
+		"name": "GitHub",
+		"url": "https://github.com/codegen-sh/codegen-sdk"
+	},
+	"tabs": [
+		{
+			"name": "API Reference",
+			"url": "/api-reference"
+		},
+		{
+			"name": "CLI",
+			"url": "/cli"
+		},
+		{
+			"name": "Blog",
+			"url": "/blog"
+		},
+		{
+			"name": "Changelog",
+			"url": "/changelog"
+		}
+	],
+	"navigation": [
+		{
+			"group": "Introduction",
+			"pages": [
+				"introduction/overview",
+				"introduction/getting-started",
+				"introduction/installation",
+				"introduction/ide-usage",
+				"introduction/work-with-ai",
+				"introduction/how-it-works",
+				"introduction/advanced-settings",
+				"introduction/guiding-principles",
+				"introduction/community",
+				"introduction/about",
+				"introduction/faq"
+			]
+		},
+		{
+			"group": "Tutorials",
+			"pages": [
+				"tutorials/at-a-glance",
+				"tutorials/build-code-agent",
+				"tutorials/slack-bot",
+				"tutorials/github-review-bot",
+				"tutorials/deep-code-research",
+				"tutorials/training-data",
+				"tutorials/codebase-visualization",
+				"tutorials/migrating-apis",
+				"tutorials/organize-your-codebase",
+				"tutorials/promise-to-async-await",
+				"tutorials/modularity",
+				"tutorials/manage-feature-flags",
+				"tutorials/deleting-dead-code",
+				"tutorials/increase-type-coverage",
+				"tutorials/managing-typescript-exports",
+				"tutorials/converting-default-exports",
+				"tutorials/creating-documentation",
+				"tutorials/react-modernization",
+				"tutorials/unittest-to-pytest",
+				"tutorials/sqlalchemy-1.6-to-2.0",
+				"tutorials/fixing-import-loops-in-pytorch",
+				"tutorials/python2-to-python3",
+				"tutorials/flask-to-fastapi",
+				"tutorials/build-mcp",
+				"tutorials/neo4j-graph"
+			]
+		},
+		{
+			"group": "Building with Codegen",
+			"pages": [
+				"building-with-codegen/at-a-glance",
+				"building-with-codegen/parsing-codebases",
+				"building-with-codegen/reusable-codemods",
+				"building-with-codegen/dot-codegen",
+				"building-with-codegen/function-decorator",
+				"building-with-codegen/language-support",
+				"building-with-codegen/commit-and-reset",
+				"building-with-codegen/git-operations",
+				"building-with-codegen/files-and-directories",
+				"building-with-codegen/the-editable-api",
+				"building-with-codegen/symbol-api",
+				"building-with-codegen/class-api",
+				"building-with-codegen/imports",
+				"building-with-codegen/exports",
+				"building-with-codegen/inheritable-behaviors",
+				"building-with-codegen/statements-and-code-blocks",
+				"building-with-codegen/dependencies-and-usages",
+				"building-with-codegen/function-calls-and-callsites",
+				"building-with-codegen/variable-assignments",
+				"building-with-codegen/local-variables",
+				"building-with-codegen/comments-and-docstrings",
+				"building-with-codegen/external-modules",
+				"building-with-codegen/type-annotations",
+				"building-with-codegen/moving-symbols",
+				"building-with-codegen/collections",
+				"building-with-codegen/traversing-the-call-graph",
+				"building-with-codegen/react-and-jsx",
+				"building-with-codegen/codebase-visualization",
+				"building-with-codegen/flagging-symbols",
+				"building-with-codegen/calling-out-to-llms",
+				"building-with-codegen/semantic-code-search",
+				"building-with-codegen/reducing-conditions"
+			]
+		},
+		{
+			"group": "CLI",
+			"pages": [
+				"cli/about",
+				"cli/init",
+				"cli/notebook",
+				"cli/create",
+				"cli/run",
+				"cli/reset",
+				"cli/expert"
+			]
+		},
+		{
+			"group": "Changelog",
+			"pages": ["changelog/changelog"]
+		},
+		{
+			"group": "Blog",
+			"pages": [
+				"blog/posts",
+				"blog/devin",
+				"blog/act-via-code",
+				"blog/promise-to-async-await-twilio",
+				"blog/fixing-import-loops"
+			]
+		},
+		{
+			"group": "API Reference",
+			"pages": [
+				"api-reference/index",
+				{
+					"group": "Core",
+					"icon": "code",
+					"pages": [
+						"api-reference/core/Argument",
+						"api-reference/core/Assignment",
+						"api-reference/core/AssignmentStatement",
+						"api-reference/core/Attribute",
+						"api-reference/core/AwaitExpression",
+						"api-reference/core/BinaryExpression",
+						"api-reference/core/BlockStatement",
+						"api-reference/core/Boolean",
+						"api-reference/core/Callable",
+						"api-reference/core/CatchStatement",
+						"api-reference/core/ChainedAttribute",
+						"api-reference/core/Class",
+						"api-reference/core/CodeBlock",
+						"api-reference/core/CodeOwner",
+						"api-reference/core/Codebase",
+						"api-reference/core/Comment",
+						"api-reference/core/CommentGroup",
+						"api-reference/core/ComparisonExpression",
+						"api-reference/core/Decorator",
+						"api-reference/core/Dict",
+						"api-reference/core/Directory",
+						"api-reference/core/Editable",
+						"api-reference/core/Export",
+						"api-reference/core/ExportStatement",
+						"api-reference/core/Exportable",
+						"api-reference/core/Expression",
+						"api-reference/core/ExpressionGroup",
+						"api-reference/core/ExpressionStatement",
+						"api-reference/core/ExternalModule",
+						"api-reference/core/File",
+						"api-reference/core/FlagKwargs",
+						"api-reference/core/ForLoopStatement",
+						"api-reference/core/Function",
+						"api-reference/core/FunctionCall",
+						"api-reference/core/GenericType",
+						"api-reference/core/HasBlock",
+						"api-reference/core/HasName",
+						"api-reference/core/HasValue",
+						"api-reference/core/IfBlockStatement",
+						"api-reference/core/Import",
+						"api-reference/core/ImportStatement",
+						"api-reference/core/ImportType",
+						"api-reference/core/Importable",
+						"api-reference/core/Interface",
+						"api-reference/core/List",
+						"api-reference/core/MessageType",
+						"api-reference/core/MultiExpression",
+						"api-reference/core/MultiLineCollection",
+						"api-reference/core/Name",
+						"api-reference/core/NamedType",
+						"api-reference/core/NoneType",
+						"api-reference/core/Number",
+						"api-reference/core/Pair",
+						"api-reference/core/Parameter",
+						"api-reference/core/ParenthesizedExpression",
+						"api-reference/core/Placeholder",
+						"api-reference/core/PlaceholderType",
+						"api-reference/core/RaiseStatement",
+						"api-reference/core/ReturnStatement",
+						"api-reference/core/SourceFile",
+						"api-reference/core/Span",
+						"api-reference/core/Statement",
+						"api-reference/core/StatementType",
+						"api-reference/core/String",
+						"api-reference/core/StubPlaceholder",
+						"api-reference/core/SubscriptExpression",
+						"api-reference/core/SwitchCase",
+						"api-reference/core/SwitchStatement",
+						"api-reference/core/Symbol",
+						"api-reference/core/SymbolGroup",
+						"api-reference/core/SymbolStatement",
+						"api-reference/core/TernaryExpression",
+						"api-reference/core/TryCatchStatement",
+						"api-reference/core/Tuple",
+						"api-reference/core/TupleType",
+						"api-reference/core/Type",
+						"api-reference/core/TypeAlias",
+						"api-reference/core/TypePlaceholder",
+						"api-reference/core/Typeable",
+						"api-reference/core/UnaryExpression",
+						"api-reference/core/UnionType",
+						"api-reference/core/Unpack",
+						"api-reference/core/Unwrappable",
+						"api-reference/core/Usable",
+						"api-reference/core/Usage",
+						"api-reference/core/UsageKind",
+						"api-reference/core/UsageType",
+						"api-reference/core/Value",
+						"api-reference/core/WhileStatement",
+						"api-reference/core/WithStatement"
+					]
+				},
+				{
+					"group": "Python",
+					"icon": "python",
+					"pages": [
+						"api-reference/python/PyAssignment",
+						"api-reference/python/PyAssignmentStatement",
+						"api-reference/python/PyAttribute",
+						"api-reference/python/PyBlockStatement",
+						"api-reference/python/PyBreakStatement",
+						"api-reference/python/PyCatchStatement",
+						"api-reference/python/PyChainedAttribute",
+						"api-reference/python/PyClass",
+						"api-reference/python/PyCodeBlock",
+						"api-reference/python/PyComment",
+						"api-reference/python/PyCommentGroup",
+						"api-reference/python/PyCommentType",
+						"api-reference/python/PyConditionalExpression",
+						"api-reference/python/PyDecorator",
+						"api-reference/python/PyFile",
+						"api-reference/python/PyForLoopStatement",
+						"api-reference/python/PyFunction",
+						"api-reference/python/PyGenericType",
+						"api-reference/python/PyHasBlock",
+						"api-reference/python/PyIfBlockStatement",
+						"api-reference/python/PyImport",
+						"api-reference/python/PyImportStatement",
+						"api-reference/python/PyMatchCase",
+						"api-reference/python/PyMatchStatement",
+						"api-reference/python/PyNamedType",
+						"api-reference/python/PyParameter",
+						"api-reference/python/PyPassStatement",
+						"api-reference/python/PyReturnTypePlaceholder",
+						"api-reference/python/PyString",
+						"api-reference/python/PySymbol",
+						"api-reference/python/PyTryCatchStatement",
+						"api-reference/python/PyUnionType",
+						"api-reference/python/PyWhileStatement"
+					]
+				},
+				{
+					"group": "Typescript",
+					"icon": "js",
+					"pages": [
+						"api-reference/typescript/JSXElement",
+						"api-reference/typescript/JSXExpression",
+						"api-reference/typescript/JSXProp",
+						"api-reference/typescript/TSArrayType",
+						"api-reference/typescript/TSAssignment",
+						"api-reference/typescript/TSAssignmentStatement",
+						"api-reference/typescript/TSAttribute",
+						"api-reference/typescript/TSBlockStatement",
+						"api-reference/typescript/TSCatchStatement",
+						"api-reference/typescript/TSChainedAttribute",
+						"api-reference/typescript/TSClass",
+						"api-reference/typescript/TSCodeBlock",
+						"api-reference/typescript/TSComment",
+						"api-reference/typescript/TSCommentGroup",
+						"api-reference/typescript/TSCommentType",
+						"api-reference/typescript/TSConditionalType",
+						"api-reference/typescript/TSConfig",
+						"api-reference/typescript/TSDecorator",
+						"api-reference/typescript/TSDict",
+						"api-reference/typescript/TSEnum",
+						"api-reference/typescript/TSExport",
+						"api-reference/typescript/TSExpressionType",
+						"api-reference/typescript/TSFile",
+						"api-reference/typescript/TSForLoopStatement",
+						"api-reference/typescript/TSFunction",
+						"api-reference/typescript/TSFunctionType",
+						"api-reference/typescript/TSGenericType",
+						"api-reference/typescript/TSHasBlock",
+						"api-reference/typescript/TSIfBlockStatement",
+						"api-reference/typescript/TSImport",
+						"api-reference/typescript/TSImportStatement",
+						"api-reference/typescript/TSInterface",
+						"api-reference/typescript/TSLabeledStatement",
+						"api-reference/typescript/TSLookupType",
+						"api-reference/typescript/TSNamedType",
+						"api-reference/typescript/TSNamespace",
+						"api-reference/typescript/TSObjectType",
+						"api-reference/typescript/TSPair",
+						"api-reference/typescript/TSParameter",
+						"api-reference/typescript/TSQueryType",
+						"api-reference/typescript/TSReadonlyType",
+						"api-reference/typescript/TSReturnTypePlaceholder",
+						"api-reference/typescript/TSString",
+						"api-reference/typescript/TSSwitchCase",
+						"api-reference/typescript/TSSwitchStatement",
+						"api-reference/typescript/TSSymbol",
+						"api-reference/typescript/TSTernaryExpression",
+						"api-reference/typescript/TSTryCatchStatement",
+						"api-reference/typescript/TSTypeAlias",
+						"api-reference/typescript/TSUndefinedType",
+						"api-reference/typescript/TSUnionType",
+						"api-reference/typescript/TSWhileStatement"
+					]
+				}
+			]
+		}
+	],
+	"footerSocials": {
+		"x": "https://x.com/codegen",
+		"linkedin": "https://linkedin.com/company/codegen-dot-com"
+	}
 }
