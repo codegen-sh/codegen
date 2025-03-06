@@ -83,6 +83,7 @@ This application is a GitHub integration that analyzes import cycles in codebase
    ```bash
    modal deploy app.py
    ```
+
    - After deployment, configure your GitHub App's webhook URL in its developer settings to point to your Modal endpoint with the endpoint `/github/events`
    - The app will analyze imports via the Modal deployment whenever a pull request receives a `Codegen` label
 
