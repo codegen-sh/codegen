@@ -4,6 +4,7 @@ from uuid import uuid4
 
 from langchain.tools import BaseTool
 from langchain_core.messages import AIMessage
+from langchain_core.runnables.config import RunnableConfig
 from langsmith import Client
 
 from codegen.extensions.langchain.agent import create_codebase_agent
@@ -29,9 +30,11 @@ class CodeAgent:
         self,
         codebase: "Codebase",
         model_provider: str = "anthropic",
-        model_name: str = "claude-3-5-sonnet-latest",
+        model_name: str = "claude-3-7-sonnet-latest",
         memory: bool = True,
         tools: Optional[list[BaseTool]] = None,
+        run_id: Optional[str] = None,
+        instance_id: Optional[str] = None,
         **kwargs,
     ):
         """Initialize a CodeAgent.
@@ -58,6 +61,8 @@ class CodeAgent:
             **kwargs,
         )
         self.langsmith_client = Client()
+        self.run_id = run_id
+        self.instance_id = instance_id
 
         # Get project name from environment variable or use a default
         self.project_name = os.environ.get("LANGCHAIN_PROJECT", "RELACE")
@@ -87,13 +92,20 @@ class CodeAgent:
         # this message has a reducer which appends the current message to the existing history
         # see more https://langchain-ai.github.io/langgraph/concepts/low_level/#reducers
         input = {"messages": [("user", prompt)]}
+        metadata = {"project": self.project_name}
+        tags = []
+        # Add SWEBench run ID and instance ID to the metadata and tags for filtering
+        if self.run_id is not None:
+            metadata["swebench_run_id"] = self.run_id
+            tags.append(self.run_id)
 
+        if self.instance_id is not None:
+            metadata["swebench_instance_id"] = self.instance_id
+            tags.append(self.instance_id)
+
+        config = RunnableConfig(configurable={"thread_id": thread_id}, tags=tags, metadata=metadata, recursion_limit=100)
         # we stream the steps instead of invoke because it allows us to access intermediate nodes
-        stream = self.agent.stream(
-            input,
-            config=self.config,
-            stream_mode="values",
-        )
+        stream = self.agent.stream(input, config=config, stream_mode="values")
 
         # Keep track of run IDs from the stream
         run_ids = []

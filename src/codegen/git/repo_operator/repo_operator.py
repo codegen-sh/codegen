@@ -643,13 +643,14 @@ class RepoOperator:
 
             if extensions is None or any(filepath.endswith(e) for e in extensions):
                 try:
-                    if not skip_content:
-                        content = self.get_file(filepath)
-                        yield rel_filepath, content
+                    if os.path.isfile(filepath):
+                        if not skip_content:
+                            content = self.get_file(filepath)
+                            yield rel_filepath, content
+                        else:
+                            yield rel_filepath, ""
                     else:
-                        # WTF??? A no-op file read here fixes file parsing somehow?
-                        open(filepath).close()
-                        yield rel_filepath, ""
+                        logger.warning(f"Skipping {filepath} because it does not exist or is not a valid file.")
                 except Exception as e:
                     logger.warning(f"Error reading file {filepath}: {e}")
 
