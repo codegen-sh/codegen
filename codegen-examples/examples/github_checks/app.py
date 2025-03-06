@@ -144,7 +144,7 @@ base_image = (
     )
 )
 
-app = modal.App("codegen-test")
+app = modal.App("codegen-import-cycles-github-check")
 
 
 @app.function(image=base_image, secrets=[modal.Secret.from_dotenv()])

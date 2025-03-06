@@ -1,10 +1,10 @@
 # Github Checks
 
-This application is a GitHub integration that analyzes import cycles in Python codebases. It automatically runs when a pull request is labeled and checks for potentially problematic import patterns in the modified codebase.
+This application is a GitHub integration that analyzes import cycles in codebases. It automatically runs when a pull request is labeled and checks for potentially problematic import patterns in the modified codebase.
 
 ## Features
 
-- Analyzes import relationships in Python codebases
+- Analyzes import relationships in codebases
 - Detects circular import dependencies
 - Identifies problematic cycles with mixed static and dynamic imports
 - Automatically comments on pull requests with detailed analysis
@@ -48,19 +48,20 @@ This application is a GitHub integration that analyzes import cycles in Python c
 1. Results are posted as a comment on the pull request
 
    ```python
-    if problematic_loops:
-       message.append("\n### ⚠️ Problematic Import Cycles")
-       message.append("(Cycles with mixed static and dynamic imports)")
-       for i, cycle in enumerate(problematic_loops, 1):
-           message.append(f"\n#### Problematic Cycle #{i}")
-           message.append("Mixed imports:")
-           for (from_file, to_file), imports in cycle["mixed_imports"].items():
-               message.append(f"\nFrom: `{from_file}`")
-               message.append(f"To: `{to_file}`")
-               message.append(f"- Static imports: {imports['static']}")
-               message.append(f"- Dynamic imports: {imports['dynamic']}")
+    message = ["### Import Cycle Analysis - GitHub Check\n"]
 
-   create_pr_comment(codebase, event.pull_request, number, "\n".join(message))
+    if problematic_loops:
+        message.append("\n### ⚠️ Potentially Problematic Import Cycles")
+        message.append("Cycles with mixed static and dynamic imports, which might recquire attention.")
+        for i, cycle in enumerate(problematic_loops, 1):
+            message.append(f"\n#### Problematic Cycle {i}")
+            for (from_file, to_file), imports in cycle["mixed_imports"].items():
+                message.append(f"\nFrom: `{from_file}`")
+                message.append(f"To: `{to_file}`")
+                message.append(f"- Static imports: {imports['static']}")
+                message.append(f"- Dynamic imports: {imports['dynamic']}")
+    else:
+        message.append("\nNo problematic import cycles found! 🎉")
    ```
 
 ## Setup
@@ -75,13 +76,15 @@ This application is a GitHub integration that analyzes import cycles in Python c
 
 1. Set up your environment variables in a `.env` file
 
-   - `GITHUB_TOKEN`: Your GitHub token, configured with `repo` and `workflow` scopes
+   - `GITHUB_TOKEN`: Your GitHub token, configured with `repo` and `workflow` scopes.
 
 1. Deploy the app using Modal:
 
    ```bash
    modal deploy app.py
    ```
+   - After deployment, configure your GitHub App's webhook URL in its developer settings to point to your Modal endpoint with the endpoint `/github/events`
+   - The app will analyze imports via the Modal deployment whenever a pull request receives a `Codegen` label
 
 ## Technical Details
 
