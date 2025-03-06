@@ -8,7 +8,6 @@ from fastapi import Request
 from codegen.extensions.events.codegen_app import CodegenApp
 from codegen.extensions.events.modal.request_util import fastapi_request_adapter
 from codegen.git.clients.git_repo_client import GitRepoClient
-from codegen.git.schemas.repo_config import RepoConfig
 
 logging.basicConfig(level=logging.INFO, force=True)
 logger = logging.getLogger(__name__)
@@ -36,17 +35,11 @@ class EventRouterMixin:
         raise NotImplementedError(msg)
 
     async def handle_event(self, org: str, repo: str, provider: Literal["slack", "github", "linear"], request: Request):
-        repo_config = RepoConfig(
-            name=repo,
-            full_name=f"{org}/{repo}",
-        )
-
         repo_snapshotdict = modal.Dict.from_name(self.snapshot_index_id, {}, create_if_missing=True)
-
         last_snapshot_commit = repo_snapshotdict.get(f"{org}/{repo}", None)
 
         if last_snapshot_commit is None:
-            git_client = GitRepoClient(repo_config=repo_config, access_token=os.environ["GITHUB_ACCESS_TOKEN"])
+            git_client = GitRepoClient(repo_full_name=f"{org}/{repo}", access_token=os.environ["GITHUB_ACCESS_TOKEN"])
             branch = git_client.get_branch_safe(git_client.default_branch)
             last_snapshot_commit = branch.commit.sha if branch and branch.commit else None
 
@@ -76,15 +69,8 @@ class EventRouterMixin:
             try:
                 # Parse the repository full name to get org and repo
                 org, repo = repo_full_name.split("/")
-
-                # Create a RepoConfig for the repository
-                repo_config = RepoConfig(
-                    name=repo,
-                    full_name=repo_full_name,
-                )
-
                 # Initialize the GitRepoClient to fetch the latest commit
-                git_client = GitRepoClient(repo_config=repo_config, access_token=os.environ["GITHUB_ACCESS_TOKEN"])
+                git_client = GitRepoClient(repo_full_name=repo_full_name, access_token=os.environ["GITHUB_ACCESS_TOKEN"])
 
                 # Get the default branch and its latest commit
                 branch = git_client.get_branch_safe(git_client.default_branch)

@@ -3,6 +3,7 @@ from pathlib import Path
 
 from pydantic import Field
 
+from codegen.configs.constants import ENV_FILENAME
 from codegen.configs.models.codebase import CodebaseConfig
 from codegen.configs.models.repository import RepositoryConfig
 from codegen.configs.models.secrets import SecretsConfig
@@ -14,11 +15,11 @@ class UserConfig:
     codebase: CodebaseConfig = Field(default_factory=CodebaseConfig)
     secrets: SecretsConfig = Field(default_factory=SecretsConfig)
 
-    def __init__(self, env_filepath: Path) -> None:
-        self.env_filepath = env_filepath
-        self.secrets = SecretsConfig(env_filepath=env_filepath)
-        self.repository = RepositoryConfig(env_filepath=env_filepath)
-        self.codebase = CodebaseConfig(env_filepath=env_filepath)
+    def __init__(self, root_path: Path) -> None:
+        self.env_filepath = root_path / ENV_FILENAME
+        self.secrets = SecretsConfig(root_path=root_path)
+        self.repository = RepositoryConfig(root_path=root_path)
+        self.codebase = CodebaseConfig(root_path=root_path)
 
     def save(self) -> None:
         """Save configuration to the config file."""

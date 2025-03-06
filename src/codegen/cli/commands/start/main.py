@@ -10,9 +10,9 @@ from rich.panel import Panel
 
 from codegen.cli.commands.start.docker_container import DockerContainer
 from codegen.cli.commands.start.docker_fleet import CODEGEN_RUNNER_IMAGE
+from codegen.configs.models.repository import RepositoryConfig
 from codegen.configs.models.secrets import SecretsConfig
 from codegen.git.repo_operator.local_git_repo import LocalGitRepo
-from codegen.git.schemas.repo_config import RepoConfig
 from codegen.shared.network.port import get_free_port
 
 _default_host = "0.0.0.0"
@@ -26,7 +26,7 @@ _default_host = "0.0.0.0"
 def start_command(port: int | None, detached: bool = False, skip_build: bool = False, force: bool = False) -> None:
     """Starts a local codegen server"""
     repo_path = Path.cwd().resolve()
-    repo_config = RepoConfig.from_repo_path(str(repo_path))
+    repo_config = LocalGitRepo(repo_path=repo_path).get_repo_config()
     if (container := DockerContainer.get(repo_config.name)) is not None:
         if force:
             rich.print(f"[yellow]Removing existing runner {repo_config.name} to force restart[/yellow]")
@@ -50,7 +50,7 @@ def start_command(port: int | None, detached: bool = False, skip_build: bool = F
         raise click.Abort()
 
 
-def _handle_existing_container(repo_config: RepoConfig, container: DockerContainer) -> None:
+def _handle_existing_container(repo_config: RepositoryConfig, container: DockerContainer) -> None:
     if container.is_running():
         rich.print(
             Panel(
@@ -122,20 +122,21 @@ def _get_platform() -> str:
         return "linux/amd64"
 
 
-def _run_docker_container(repo_config: RepoConfig, port: int, detached: bool) -> None:
+def _run_docker_container(repo_config: RepositoryConfig, port: int, detached: bool) -> None:
     rich.print("[bold blue]Starting Docker container...[/bold blue]")
     container_repo_path = f"/app/git/{repo_config.name}"
     name_args = ["--name", f"{repo_config.name}"]
+    repo_path = Path(repo_config.path)
     envvars = {
-        "REPOSITORY_LANGUAGE": repo_config.language.value,
-        "REPOSITORY_OWNER": LocalGitRepo(repo_config.repo_path).owner,
+        "REPOSITORY_LANGUAGE": repo_config.language,
+        "REPOSITORY_OWNER": LocalGitRepo(repo_path=repo_path).owner,
         "REPOSITORY_PATH": container_repo_path,
-        "GITHUB_TOKEN": SecretsConfig().github_token,
+        "GITHUB_TOKEN": SecretsConfig(root_path=repo_path).github_token,
         "PYTHONUNBUFFERED": "1",  # Ensure Python output is unbuffered
         "CODEBASE_SYNC_ENABLED": "True",
     }
     envvars_args = [arg for k, v in envvars.items() for arg in ("--env", f"{k}={v}")]
-    mount_args = ["-v", f"{repo_config.repo_path}:{container_repo_path}"]
+    mount_args = ["-v", f"{repo_config.path}:{container_repo_path}"]
     entry_point = f"uv run --frozen uvicorn codegen.runner.servers.local_daemon:app --host {_default_host} --port {port}"
     port_args = ["-p", f"{port}:{port}"]
     detached_args = ["-d"] if detached else []

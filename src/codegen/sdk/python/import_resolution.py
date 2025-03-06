@@ -15,12 +15,12 @@ if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
 
     from codegen.sdk.codebase.codebase_context import CodebaseContext
+    from codegen.sdk.core.file import SourceFile
     from codegen.sdk.core.interfaces.editable import Editable
     from codegen.sdk.core.interfaces.exportable import Exportable
     from codegen.sdk.core.node_id_factory import NodeId
     from codegen.sdk.core.statements.import_statement import ImportStatement
     from codegen.sdk.python.file import PyFile
-    from src.codegen.sdk.core.file import SourceFile
 
 
 logger = get_logger(__name__)

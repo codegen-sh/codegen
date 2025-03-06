@@ -16,7 +16,8 @@ class BaseConfig(BaseSettings, ABC):
 
     model_config = SettingsConfigDict(extra="ignore", case_sensitive=False)
 
-    def __init__(self, prefix: str, env_filepath: Path | None = None, *args, **kwargs) -> None:
+    def __init__(self, prefix: str, root_path: Path | None = None, *args, **kwargs) -> None:
+        env_filepath = root_path / ENV_FILENAME if root_path else None
         if env_filepath is None:
             root_path = get_git_root_path()
             if root_path is not None:

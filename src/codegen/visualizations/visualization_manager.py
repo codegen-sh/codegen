@@ -22,7 +22,7 @@ class VisualizationManager:
 
     @property
     def viz_path(self) -> str:
-        return os.path.join(self.op.base_dir, "codegen-graphviz")
+        return os.path.join(self.op.repo_config.base_dir, "codegen-graphviz")
 
     @property
     def viz_file_path(self) -> str:

@@ -2,6 +2,7 @@ from collections import Counter
 from pathlib import Path
 from typing import Literal
 
+from codegen.configs.models.repository import RepositoryConfig
 from codegen.git.utils.file_utils import split_git_path
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 from codegen.shared.logging.get_logger import get_logger
@@ -108,7 +109,6 @@ def _determine_language_by_git_file_count(folder_path: str) -> ProgrammingLangua
         or if less than MIN_LANGUAGE_RATIO of files match the dominant language
     """
     from codegen.git.repo_operator.repo_operator import RepoOperator
-    from codegen.git.schemas.repo_config import RepoConfig
     from codegen.sdk.codebase.codebase_context import GLOBAL_FILE_IGNORE_LIST
     from codegen.sdk.python import PyFile
     from codegen.sdk.typescript.file import TSFile
@@ -129,7 +129,7 @@ def _determine_language_by_git_file_count(folder_path: str) -> ProgrammingLangua
 
     # Initiate RepoOperator
     git_root, base_path = split_git_path(folder_path)
-    repo_config = RepoConfig.from_repo_path(repo_path=git_root)
+    repo_config = RepositoryConfig.from_path(path=git_root)
     repo_operator = RepoOperator(repo_config=repo_config)
 
     # Walk through the directory

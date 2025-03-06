@@ -1,6 +1,6 @@
 from urllib.parse import urlparse
 
-from codegen.git.schemas.repo_config import RepoConfig
+from codegen.configs.models.repository import RepositoryConfig
 
 
 # TODO: move out doesn't belong here
@@ -9,11 +9,11 @@ def url_to_github(url: str, branch: str) -> str:
     return f"{clone_url}/blob/{branch}"
 
 
-def get_clone_url_for_repo_config(repo_config: RepoConfig) -> str:
+def get_clone_url_for_repo_config(repo_config: RepositoryConfig) -> str:
     return f"https://github.com/{repo_config.full_name}.git"
 
 
-def get_authenticated_clone_url_for_repo_config(repo: RepoConfig, token: str) -> str:
+def get_authenticated_clone_url_for_repo_config(repo: RepositoryConfig, token: str) -> str:
     git_url = get_clone_url_for_repo_config(repo)
     return add_access_token_to_url(git_url, token)
 

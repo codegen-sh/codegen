@@ -1,15 +1,16 @@
 import sys
 
 from codegen.configs.models.codebase import CodebaseConfig
+from codegen.configs.models.repository import RepositoryConfig
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.enums import SetupOption
-from codegen.git.schemas.repo_config import RepoConfig
 from codegen.runner.models.apis import CreateBranchRequest, CreateBranchResponse, GetDiffRequest, GetDiffResponse
 from codegen.runner.sandbox.executor import SandboxExecutor
 from codegen.sdk.codebase.config import ProjectConfig, SessionOptions
 from codegen.sdk.codebase.factory.codebase_factory import CodebaseType
 from codegen.sdk.core.codebase import Codebase
 from codegen.shared.compilation.string_to_code import create_execute_function_from_codeblock
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 from codegen.shared.logging.get_logger import get_logger
 
 logger = get_logger(__name__)
@@ -19,16 +20,16 @@ class SandboxRunner:
     """Responsible for orchestrating the lifecycle of a warmed sandbox"""
 
     # =====[ __init__ instance attributes ]=====
-    repo: RepoConfig
+    repo: RepositoryConfig
     op: RepoOperator | None
 
     # =====[ computed instance attributes ]=====
     codebase: CodebaseType
     executor: SandboxExecutor
 
-    def __init__(self, repo_config: RepoConfig, op: RepoOperator | None = None) -> None:
-        self.repo = repo_config
-        self.op = op or RepoOperator(repo_config=self.repo, setup_option=SetupOption.PULL_OR_CLONE, bot_commit=True)
+    def __init__(self, repo_config: RepositoryConfig, op: RepoOperator | None = None) -> None:
+        self.op = op or RepoOperator(repo_config=repo_config, setup_option=SetupOption.PULL_OR_CLONE, bot_commit=True)
+        self.repo = self.op.repo_config
 
     async def warmup(self, codebase_config: CodebaseConfig | None = None) -> None:
         """Warms up this runner by cloning the repo and parsing the graph."""
@@ -40,7 +41,8 @@ class SandboxRunner:
 
     async def _build_graph(self, codebase_config: CodebaseConfig | None = None) -> Codebase:
         logger.info("> Building graph...")
-        projects = [ProjectConfig(programming_language=self.repo.language, repo_operator=self.op, base_path=self.repo.base_path, subdirectories=self.repo.subdirectories)]
+        programming_language = ProgrammingLanguage(self.repo.language.upper())
+        projects = [ProjectConfig(programming_language=programming_language, repo_operator=self.op, base_path=self.repo.base_path, subdirectories=self.repo.subdirectories)]
         return Codebase(projects=projects, config=codebase_config)
 
     async def get_diff(self, request: GetDiffRequest) -> GetDiffResponse:

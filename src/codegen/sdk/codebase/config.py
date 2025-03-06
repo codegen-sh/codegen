@@ -6,8 +6,8 @@ from pydantic.config import ConfigDict
 from pydantic.fields import Field
 
 from codegen.configs.models.codebase import DefaultCodebaseConfig
+from codegen.configs.models.repository import RepositoryConfig
 from codegen.git.repo_operator.repo_operator import RepoOperator
-from codegen.git.schemas.repo_config import RepoConfig
 from codegen.git.utils.file_utils import split_git_path
 from codegen.git.utils.language import determine_project_language
 from codegen.shared.enums.programming_language import ProgrammingLanguage
@@ -35,7 +35,7 @@ class ProjectConfig(BaseModel):
     model_config = ConfigDict(frozen=True, arbitrary_types_allowed=True)
     repo_operator: RepoOperator
 
-    # TODO: clean up these fields. Duplicated across RepoConfig and CodebaseContext
+    # TODO: clean up these fields. Duplicated across RepositoryConfig and CodebaseContext
     base_path: str | None = None
     subdirectories: list[str] | None = None
     programming_language: ProgrammingLanguage = ProgrammingLanguage.PYTHON
@@ -47,9 +47,7 @@ class ProjectConfig(BaseModel):
         git_root, base_path = split_git_path(repo_path)
         subdirectories = [base_path] if base_path else None
         programming_language = programming_language or determine_project_language(repo_path)
-        repo_config = RepoConfig.from_repo_path(repo_path=git_root)
-        repo_config.language = programming_language
-        repo_config.subdirectories = subdirectories
+        repo_config = RepositoryConfig.from_path(path=repo_path, language=programming_language.value, subdirectories=subdirectories, base_path=base_path)
         # Create main project
         return cls(
             repo_operator=RepoOperator(repo_config=repo_config),
@@ -60,9 +58,13 @@ class ProjectConfig(BaseModel):
 
     @classmethod
     def from_repo_operator(cls, repo_operator: RepoOperator, programming_language: ProgrammingLanguage | None = None, base_path: str | None = None) -> Self:
+        language = programming_language or determine_project_language(repo_operator.repo_path)
+        repo_operator.repo_config.language = language.value
+        repo_operator.repo_config.subdirectories = [base_path] if base_path else None
+        repo_operator.repo_config.base_path = base_path
         return cls(
             repo_operator=repo_operator,
-            programming_language=programming_language or determine_project_language(repo_operator.repo_path),
+            programming_language=language,
             base_path=base_path,
             subdirectories=[base_path] if base_path else None,
         )

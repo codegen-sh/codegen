@@ -112,7 +112,7 @@ def get_codebase_graph_session(
     session_options: SessionOptions = SessionOptions(),
 ) -> Generator[CodebaseContext, None, None]:
     """Gives you a Codebase2 operating on the files you provided as a dict"""
-    op = RepoOperator.create_from_files(repo_path=tmpdir, files=files)
+    op = RepoOperator.create_from_files(repo_path=tmpdir, files=files, programming_language=programming_language)
     projects = [ProjectConfig(repo_operator=op, programming_language=programming_language)]
     graph = CodebaseContext(projects=projects, config=TestFlags)
     with graph.session(sync_graph=sync_graph, session_options=session_options):

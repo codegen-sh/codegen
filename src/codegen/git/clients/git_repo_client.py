@@ -17,7 +17,6 @@ from github.Workflow import Workflow
 
 from codegen.configs.models.secrets import SecretsConfig
 from codegen.git.clients.github_client import GithubClient
-from codegen.git.schemas.repo_config import RepoConfig
 from codegen.git.utils.format import format_comparison
 from codegen.shared.logging.get_logger import get_logger
 
@@ -27,12 +26,12 @@ logger = get_logger(__name__)
 class GitRepoClient:
     """Wrapper around PyGithub's Remote Repository."""
 
-    repo_config: RepoConfig
+    repo_full_name: str
     gh_client: GithubClient
     _repo: Repository
 
-    def __init__(self, repo_config: RepoConfig, access_token: str | None = None) -> None:
-        self.repo_config = repo_config
+    def __init__(self, repo_full_name: str, access_token: str | None = None) -> None:
+        self.repo_full_name = repo_full_name
         self.gh_client = self._create_github_client(token=access_token or SecretsConfig().github_token)
         self._repo = self._create_client()
 
@@ -40,9 +39,9 @@ class GitRepoClient:
         return GithubClient(token=token)
 
     def _create_client(self) -> Repository:
-        client = self.gh_client.get_repo_by_full_name(self.repo_config.full_name)
+        client = self.gh_client.get_repo_by_full_name(self.repo_full_name)
         if not client:
-            msg = f"Repo {self.repo_config.full_name} not found!"
+            msg = f"Repo {self.repo_full_name} not found!"
             raise ValueError(msg)
         return client
 

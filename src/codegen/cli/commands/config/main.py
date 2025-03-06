@@ -4,7 +4,7 @@ import rich
 import rich_click as click
 from rich.table import Table
 
-from codegen.configs.constants import ENV_FILENAME, GLOBAL_ENV_FILE
+from codegen.configs.constants import ENV_FILENAME, GLOBAL_CONFIG_DIR
 from codegen.configs.user_config import UserConfig
 from codegen.shared.path import get_git_root_path
 
@@ -117,8 +117,8 @@ def set_command(key: str, value: str):
 
 def _get_user_config() -> UserConfig:
     if (project_root := get_git_root_path()) is None:
-        env_filepath = GLOBAL_ENV_FILE
+        root_path = GLOBAL_CONFIG_DIR
     else:
-        env_filepath = project_root / ENV_FILENAME
+        root_path = project_root
 
-    return UserConfig(env_filepath)
+    return UserConfig(root_path)

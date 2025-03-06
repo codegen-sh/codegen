@@ -23,6 +23,6 @@ class CodebaseFactory:
         config: CodebaseConfig | None = None,
         secrets: SecretsConfig | None = None,
     ) -> CodebaseType:
-        op = RepoOperator.create_from_files(repo_path=repo_path, files=files, bot_commit=bot_commit)
+        op = RepoOperator.create_from_files(repo_path=repo_path, files=files, bot_commit=bot_commit, programming_language=programming_language)
         projects = [ProjectConfig(repo_operator=op, programming_language=programming_language)]
         return Codebase(projects=projects, config=config, secrets=secrets)

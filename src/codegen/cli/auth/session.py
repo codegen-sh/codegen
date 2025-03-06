@@ -7,7 +7,7 @@ from github.MainClass import Github
 
 from codegen.cli.git.repo import get_git_repo
 from codegen.cli.rich.codeblocks import format_command
-from codegen.configs.constants import CODEGEN_DIR_NAME, ENV_FILENAME
+from codegen.configs.constants import CODEGEN_DIR_NAME
 from codegen.configs.session_manager import session_manager
 from codegen.configs.user_config import UserConfig
 from codegen.git.repo_operator.local_git_repo import LocalGitRepo
@@ -30,7 +30,7 @@ class CodegenSession:
         self.repo_path = repo_path
         self.local_git = LocalGitRepo(repo_path=repo_path)
         self.codegen_dir = repo_path / CODEGEN_DIR_NAME
-        self.config = UserConfig(env_filepath=repo_path / ENV_FILENAME)
+        self.config = UserConfig(root_path=repo_path)
         self.config.secrets.github_token = git_token or self.config.secrets.github_token
         self.existing = session_manager.get_session(repo_path) is not None
 

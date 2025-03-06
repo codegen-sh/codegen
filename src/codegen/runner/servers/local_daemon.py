@@ -4,10 +4,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from codegen.configs.models.codebase import DefaultCodebaseConfig
+from codegen.configs.models.repository import RepositoryConfig
 from codegen.git.configs.constants import CODEGEN_BOT_EMAIL, CODEGEN_BOT_NAME
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.enums import SetupOption
-from codegen.git.schemas.repo_config import RepoConfig
 from codegen.runner.enums.warmup_state import WarmupState
 from codegen.runner.models.apis import (
     RUN_FUNCTION_ENDPOINT,
@@ -37,18 +37,17 @@ async def lifespan(server: FastAPI):
     global runner
 
     try:
-        repo_config = RepoConfig.from_envs()
-        server_info = ServerInfo(repo_name=repo_config.full_name or repo_config.name)
-
-        # Set the bot email and username
+        repo_config = RepositoryConfig()
         op = RepoOperator(repo_config=repo_config, setup_option=SetupOption.SKIP, bot_commit=True)
         runner = SandboxRunner(repo_config=repo_config, op=op)
+        server_info = ServerInfo(repo_name=runner.repo.full_name or runner.repo.name)
+
         logger.info(f"Configuring git user config to {CODEGEN_BOT_EMAIL} and {CODEGEN_BOT_NAME}")
         runner.op.git_cli.git.config("user.email", CODEGEN_BOT_EMAIL)
         runner.op.git_cli.git.config("user.name", CODEGEN_BOT_NAME)
 
         # Parse the codebase with sync enabled
-        logger.info(f"Starting up fastapi server for repo_name={repo_config.name}")
+        logger.info(f"Starting up fastapi server for repo_name={server_info.repo_name}")
         server_info.warmup_state = WarmupState.PENDING
         codebase_config = DefaultCodebaseConfig.model_copy(update={"sync_enabled": True})
         await runner.warmup(codebase_config=codebase_config)

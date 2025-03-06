@@ -5,9 +5,9 @@ from pathlib import Path
 from typing import TypedDict
 
 from codegen.configs.models.codebase import CodebaseConfig
+from codegen.configs.models.repository import RepositoryConfig
 from codegen.configs.models.secrets import SecretsConfig
 from codegen.git.repo_operator.repo_operator import RepoOperator
-from codegen.git.schemas.repo_config import RepoConfig
 from codegen.sdk.codebase.config import ProjectConfig
 from codegen.sdk.core.codebase import Codebase, CodebaseType
 from codegen.shared.decorators.docs import DocumentedObject, apidoc_objects, no_apidoc_objects, py_apidoc_objects, ts_apidoc_objects
@@ -41,11 +41,10 @@ def get_current_code_codebase(config: CodebaseConfig | None = None, secrets: Sec
     base_dir = get_codegen_codebase_base_path()
     logger.info(f"Creating codebase from repo at: {codegen_repo_path} with base_path {base_dir}")
 
-    repo_config = RepoConfig.from_repo_path(codegen_repo_path)
-    repo_config.respect_gitignore = False
-    op = RepoOperator(repo_config=repo_config, bot_commit=False)
+    repo_config = RepositoryConfig.from_path(path=codegen_repo_path)
+    op = RepoOperator(repo_config=repo_config, bot_commit=False, respect_gitignore=False)
 
-    config = (config or CodebaseConfig()).model_copy(update={"base_path": base_dir})
+    config = config or CodebaseConfig()
     projects = [ProjectConfig(repo_operator=op, programming_language=ProgrammingLanguage.PYTHON, subdirectories=subdirectories, base_path=base_dir)]
     codebase = Codebase(projects=projects, config=config, secrets=secrets)
     return codebase

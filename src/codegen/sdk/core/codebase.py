@@ -23,6 +23,7 @@ from rich.console import Console
 from typing_extensions import TypeVar, deprecated
 
 from codegen.configs.models.codebase import CodebaseConfig
+from codegen.configs.models.repository import RepositoryConfig
 from codegen.configs.models.secrets import SecretsConfig
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.enums import CheckoutResult, SetupOption
@@ -1342,13 +1343,19 @@ class Codebase(
         # Setup repo path and URL
         repo_path = os.path.join(tmp_dir, repo)
         repo_url = f"https://github.com/{repo_full_name}.git"
+        repo_config = RepositoryConfig(
+            root_path=Path(repo_path),
+            path=repo_path,
+            owner=owner,
+            language=language.value if language else None,
+        )
         logger.info(f"Will clone {repo_url} to {repo_path}")
 
         try:
             # Use RepoOperator to fetch the repository
             logger.info("Cloning repository...")
             if commit is None:
-                repo_operator = RepoOperator.create_from_repo(repo_path=repo_path, url=repo_url)
+                repo_operator = RepoOperator(repo_config=repo_config, setup_option=SetupOption.PULL_OR_CLONE)
             else:
                 # Ensure the operator can handle remote operations
                 access_token = secrets.github_token if secrets else None

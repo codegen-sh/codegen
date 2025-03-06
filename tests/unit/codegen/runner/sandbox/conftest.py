@@ -13,7 +13,7 @@ from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 @pytest.fixture
 def codebase(tmpdir) -> Codebase:
-    op = RepoOperator.create_from_files(repo_path=f"{tmpdir}/test-repo", files={"test.py": "a = 1"}, bot_commit=True)
+    op = RepoOperator.create_from_files(repo_path=f"{tmpdir}/test-repo", files={"test.py": "a = 1"}, bot_commit=True, programming_language=ProgrammingLanguage.PYTHON)
     projects = [ProjectConfig(repo_operator=op, programming_language=ProgrammingLanguage.PYTHON)]
     codebase = Codebase(projects=projects)
     return codebase

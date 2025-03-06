@@ -6,8 +6,8 @@ from rich.status import Status
 
 from codegen.cli.auth.session import CodegenSession
 from codegen.cli.utils.function_finder import DecoratedFunction
+from codegen.configs.models.repository import RepositoryConfig
 from codegen.git.repo_operator.repo_operator import RepoOperator
-from codegen.git.schemas.repo_config import RepoConfig
 from codegen.git.utils.language import determine_project_language
 from codegen.sdk.codebase.config import ProjectConfig
 from codegen.sdk.core.codebase import Codebase
@@ -30,7 +30,7 @@ def parse_codebase(
     codebase = Codebase(
         projects=[
             ProjectConfig(
-                repo_operator=RepoOperator(repo_config=RepoConfig.from_repo_path(repo_path=repo_path)),
+                repo_operator=RepoOperator(repo_config=RepositoryConfig.from_path(path=repo_path)),
                 subdirectories=subdirectories,
                 programming_language=language or determine_project_language(repo_path),
             )
