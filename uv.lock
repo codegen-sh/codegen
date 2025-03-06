@@ -561,6 +561,7 @@ dependencies = [
     { name = "langchain-anthropic" },
     { name = "langchain-core" },
     { name = "langchain-openai" },
+    { name = "langchain-xai" },
     { name = "langgraph" },
     { name = "langgraph-prebuilt" },
     { name = "langsmith" },
@@ -689,6 +690,7 @@ requires-dist = [
     { name = "langchain-anthropic", specifier = ">=0.3.7" },
     { name = "langchain-core" },
     { name = "langchain-openai" },
+    { name = "langchain-xai" },
     { name = "langgraph" },
     { name = "langgraph-prebuilt" },
     { name = "langsmith" },
@@ -2107,6 +2109,21 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/0d/33/89912a07c63e4e818f9b0c8d52e4f9d600c97beca8a91db8c9dae6a1b28f/langchain_text_splitters-0.3.6.tar.gz", hash = "sha256:c537972f4b7c07451df431353a538019ad9dadff7a1073ea363946cea97e1bee", size = 40545 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/4c/f8/6b82af988e65af9697f6a2f25373fb173fd32d48b62772a8773c5184c870/langchain_text_splitters-0.3.6-py3-none-any.whl", hash = "sha256:e5d7b850f6c14259ea930be4a964a65fa95d9df7e1dbdd8bad8416db72292f4e", size = 31197 },
+]
+
+[[package]]
+name = "langchain-xai"
+version = "0.2.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "aiohttp" },
+    { name = "langchain-core" },
+    { name = "langchain-openai" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a3/94/a633bf1b4bbf66e4516f4188adc1174480c465ae12fb98f06c3e23c98519/langchain_xai-0.2.1.tar.gz", hash = "sha256:143a6f52be7617b5e5c68ab10c9b7df90914f54a6b3098566ce22b5d8fd89da5", size = 7788 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7b/88/d8050e610fadabf97c1745d24f0987b3e53b72fca63c8038ab1e0c103da9/langchain_xai-0.2.1-py3-none-any.whl", hash = "sha256:87228125cb15131663979d627210fca47dcd6b9a28462e8b5fee47f73bbed9f4", size = 6263 },
 ]
 
 [[package]]
