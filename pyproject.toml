@@ -43,7 +43,7 @@ dependencies = [
   "hatch-vcs>=0.4.0",
   "hatchling>=1.25.0",
   "pyinstrument>=5.0.0",
-  "pip>=24.3.1", # This is needed for some NPM/YARN/PNPM post-install scripts to work!
+  "pip>=24.3.1",                       # This is needed for some NPM/YARN/PNPM post-install scripts to work!
   "rich-click>=1.8.5",
   "python-dotenv>=1.0.1",
   "giturlparse",
