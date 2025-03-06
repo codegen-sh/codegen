@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 
 from codegen.extensions.linear.linear_client import LinearClient
 from codegen.extensions.tools.bash import run_bash_command
+from codegen.extensions.tools.github.checkout_pr import checkout_pr
 from codegen.extensions.tools.github.search import search
 from codegen.extensions.tools.github.view_pr_checks import view_pr_checks
 from codegen.extensions.tools.linear.linear import (
@@ -602,6 +603,28 @@ class GithubViewPRTool(BaseTool):
 
     def _run(self, pr_id: int) -> str:
         result = view_pr(self.codebase, pr_id)
+        return result.render()
+
+
+class GithubCheckoutPRInput(BaseModel):
+    """Input for checkout out a PR head branch."""
+
+    pr_number: int = Field(..., description="Number of the PR to checkout")
+
+
+class GithubCheckoutPRTool(BaseTool):
+    """Tool for checking out a PR head branch."""
+
+    name: ClassVar[str] = "checkout_pr"
+    description: ClassVar[str] = "Checkout out a PR head branch"
+    args_schema: ClassVar[type[BaseModel]] = GithubCheckoutPRInput
+    codebase: Codebase = Field(exclude=True)
+
+    def __init__(self, codebase: Codebase) -> None:
+        super().__init__(codebase=codebase)
+
+    def _run(self, pr_number: int) -> str:
+        result = checkout_pr(self.codebase, pr_number)
         return result.render()
 
 
