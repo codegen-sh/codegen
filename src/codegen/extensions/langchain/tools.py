@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from codegen.extensions.linear.linear_client import LinearClient
 from codegen.extensions.tools.bash import run_bash_command
 from codegen.extensions.tools.github.search import search
+from codegen.extensions.tools.github.view_pr_checks import view_pr_checks
 from codegen.extensions.tools.linear.linear import (
     linear_comment_on_issue_tool,
     linear_create_issue_tool,
@@ -666,6 +667,28 @@ class GithubCreatePRReviewCommentTool(BaseTool):
             path=path,
             line=line,
         )
+        return result.render()
+
+
+class GithubViewPRCheckInput(BaseModel):
+    """Input for viewing PR checks"""
+
+    pr_number: int = Field(..., description="The PR number to view checks for")
+
+
+class GithubViewPRCheckTool(BaseTool):
+    """Tool for viewing PR checks."""
+
+    name: ClassVar[str] = "view_pr_checks"
+    description: ClassVar[str] = "View the check suites for a PR"
+    args_schema: ClassVar[type[BaseModel]] = GithubCreatePRReviewCommentInput
+    codebase: Codebase = Field(exclude=True)
+
+    def __init__(self, codebase: Codebase) -> None:
+        super().__init__(codebase=codebase)
+
+    def _run(self, pr_number: int) -> str:
+        result = view_pr_checks(self.codebase, pr_number=pr_number)
         return result.render()
 
 
