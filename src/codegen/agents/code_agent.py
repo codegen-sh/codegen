@@ -60,6 +60,7 @@ class CodeAgent:
             additional_tools=tools,
             **kwargs,
         )
+        self.model_name = model_name
         self.langsmith_client = Client()
         self.run_id = run_id
         self.instance_id = instance_id
@@ -92,8 +93,8 @@ class CodeAgent:
         # this message has a reducer which appends the current message to the existing history
         # see more https://langchain-ai.github.io/langgraph/concepts/low_level/#reducers
         input = {"messages": [("user", prompt)]}
-        metadata = {"project": self.project_name}
-        tags = []
+        metadata = {"project": self.project_name, "model": self.model_name}
+        tags = [self.model_name]
         # Add SWEBench run ID and instance ID to the metadata and tags for filtering
         if self.run_id is not None:
             metadata["swebench_run_id"] = self.run_id
