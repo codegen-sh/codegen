@@ -90,7 +90,7 @@ class RepoOperator:
     @property
     def remote_git_repo(self) -> GitRepoClient:
         if not self.access_token and self.repo_config.visibility != RepoVisibility.PUBLIC:
-            msg = "Must initialize with access_token to get remote_git_repo"
+            msg = "Must initialize with access_token to get remote"
             raise ValueError(msg)
 
         if not self._remote_git_repo:
@@ -616,6 +616,7 @@ class RepoOperator:
         subdirs: list[str] | None = None,
         extensions: list[str] | None = None,
         ignore_list: list[str] | None = None,
+        skip_content: bool = False,
     ) -> Generator[tuple[str, str]]:
         """Iterates over all files in the codebase, yielding the filepath and its content.
 
@@ -642,8 +643,14 @@ class RepoOperator:
 
             if extensions is None or any(filepath.endswith(e) for e in extensions):
                 try:
-                    content = self.get_file(filepath)
-                    yield rel_filepath, content
+                    if os.path.isfile(filepath):
+                        if not skip_content:
+                            content = self.get_file(filepath)
+                            yield rel_filepath, content
+                        else:
+                            yield rel_filepath, ""
+                    else:
+                        logger.warning(f"Skipping {filepath} because it does not exist or is not a valid file.")
                 except Exception as e:
                     logger.warning(f"Error reading file {filepath}: {e}")
 
