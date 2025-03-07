@@ -130,6 +130,10 @@ To run in no-graph mode:
 codebase = Codebase(str(repo_path), language="python", config=CodebaseConfig(disable_graph=True))
 ```
 
+<Notes>
+To learn more about no-graph mode, see the [Advanced Settings](/introduction/advanced-settings) page.
+</Notes>
+
 ## Running the Conversion
 
 ```bash
