@@ -3,8 +3,6 @@
 This performs either a regex pattern match or simple text search across all files in the codebase.
 Each matching line will be returned with its line number.
 Results are paginated with a default of 10 files per page.
-
-If no exact matches are found, falls back to semantic search to find relevant code.
 """
 
 import os
@@ -17,7 +15,6 @@ from pydantic import Field
 from codegen.sdk.core.codebase import Codebase
 
 from .observation import Observation
-from .semantic_search import SearchResult, semantic_search
 
 
 class SearchMatch(Observation):
@@ -128,7 +125,7 @@ def _search_with_ripgrep(
     This is faster than the Python implementation, especially for large codebases.
     """
     # Build ripgrep command
-    cmd = ["rg", "--line-number", "--with-filename"]
+    cmd = ["rg", "--line-number"]
 
     # Add case insensitivity if not using regex
     if not use_regex:
@@ -203,6 +200,8 @@ def _search_with_ripgrep(
                 match_text = query
                 if use_regex:
                     # For regex, we need to find what actually matched
+                    # This is a simplification - ideally we'd use ripgrep's --json option
+                    # to get the exact match positions
                     pattern = re.compile(query)
                     match_obj = pattern.search(content)
                     if match_obj:
@@ -227,20 +226,11 @@ def _search_with_ripgrep(
         # Convert to SearchFileResult objects
         file_results = []
         for filepath, matches in all_results.items():
-            # Sort matches by line number and deduplicate
-            unique_matches = []
-            seen = set()
-            for match in sorted(matches, key=lambda x: x.line_number):
-                key = (match.line_number, match.match)
-                if key not in seen:
-                    seen.add(key)
-                    unique_matches.append(match)
-
             file_results.append(
                 SearchFileResult(
                     status="success",
                     filepath=filepath,
-                    matches=unique_matches,
+                    matches=sorted(matches, key=lambda x: x.line_number),
                 )
             )
 
@@ -271,40 +261,120 @@ def _search_with_ripgrep(
         raise
 
 
-def _convert_semantic_to_search_results(semantic_results: list[SearchResult], query: str) -> list[SearchFileResult]:
-    """Convert semantic search results to regular search results format."""
-    file_results = []
-    for result in semantic_results:
-        file_results.append(
-            SearchFileResult(
-                status="success",
-                filepath=result.filepath,
-                matches=[
+def _search_with_python(
+    codebase: Codebase,
+    query: str,
+    target_directories: Optional[list[str]] = None,
+    file_extensions: Optional[list[str]] = None,
+    page: int = 1,
+    files_per_page: int = 10,
+    use_regex: bool = False,
+) -> SearchObservation:
+    """Search the codebase using Python's regex engine.
+
+    This is a fallback for when ripgrep is not available.
+    """
+    # Validate pagination parameters
+    if page < 1:
+        page = 1
+    if files_per_page < 1:
+        files_per_page = 10
+
+    # Prepare the search pattern
+    if use_regex:
+        try:
+            pattern = re.compile(query)
+        except re.error as e:
+            return SearchObservation(
+                status="error",
+                error=f"Invalid regex pattern: {e!s}",
+                query=query,
+                page=page,
+                total_pages=0,
+                total_files=0,
+                files_per_page=files_per_page,
+                results=[],
+            )
+    else:
+        # For non-regex searches, escape special characters and make case-insensitive
+        pattern = re.compile(re.escape(query), re.IGNORECASE)
+
+    # Handle file extensions
+    extensions = file_extensions if file_extensions is not None else "*"
+
+    all_results = []
+    for file in codebase.files(extensions=extensions):
+        # Skip if file doesn't match target directories
+        if target_directories and not any(file.filepath.startswith(d) for d in target_directories):
+            continue
+
+        # Skip binary files
+        try:
+            content = file.content
+        except ValueError:  # File is binary
+            continue
+
+        file_matches = []
+        # Split content into lines and store with line numbers (1-based)
+        lines = enumerate(content.splitlines(), 1)
+
+        # Search each line for the pattern
+        for line_number, line in lines:
+            match = pattern.search(line)
+            if match:
+                file_matches.append(
                     SearchMatch(
                         status="success",
-                        line_number=1,  # We don't have line numbers for semantic matches
-                        line=result.preview,
-                        match=query,
+                        line_number=line_number,
+                        line=line.strip(),
+                        match=match.group(0),
                     )
-                ],
+                )
+
+        if file_matches:
+            all_results.append(
+                SearchFileResult(
+                    status="success",
+                    filepath=file.filepath,
+                    matches=sorted(file_matches, key=lambda x: x.line_number),
+                )
             )
-        )
-    return file_results
+
+    # Sort all results by filepath
+    all_results.sort(key=lambda x: x.filepath)
+
+    # Calculate pagination
+    total_files = len(all_results)
+    total_pages = (total_files + files_per_page - 1) // files_per_page
+    start_idx = (page - 1) * files_per_page
+    end_idx = start_idx + files_per_page
+
+    # Get the current page of results
+    paginated_results = all_results[start_idx:end_idx]
+
+    return SearchObservation(
+        status="success",
+        query=query,
+        page=page,
+        total_pages=total_pages,
+        total_files=total_files,
+        files_per_page=files_per_page,
+        results=paginated_results,
+    )
 
 
 def search(
     codebase: Codebase,
     query: str,
     target_directories: Optional[list[str]] = None,
-    file_extensions: Optional[list[str] | str] = None,
+    file_extensions: Optional[list[str]] = None,
     page: int = 1,
     files_per_page: int = 10,
     use_regex: bool = False,
 ) -> SearchObservation:
     """Search the codebase using text search or regex pattern matching.
 
-    Uses ripgrep for performance when available. If no exact matches are found,
-    falls back to semantic search to find relevant code.
+    Uses ripgrep for performance when available, with fallback to Python's regex engine.
     If use_regex is True, performs a regex pattern match on each line.
     Otherwise, performs a case-insensitive text search.
     Returns matching lines with their line numbers, grouped by file.
@@ -323,52 +393,9 @@ def search(
     Returns:
         SearchObservation containing search results with matches and their sources
     """
+    # Try to use ripgrep first
     try:
-        # Try ripgrep first
-        result = _search_with_ripgrep(codebase, query, target_directories, file_extensions, page, files_per_page, use_regex)
-
-        # If no results found, try semantic search
-        if not result.results:
-            semantic_results = semantic_search(codebase, query, k=files_per_page)
-            if semantic_results.status == "success" and semantic_results.results:
-                # Convert semantic results to regular search results format
-                file_results = _convert_semantic_to_search_results(semantic_results.results, query)
-
-                return SearchObservation(
-                    status="success",
-                    query=query,
-                    page=1,  # Semantic search doesn't support pagination yet
-                    total_pages=1,
-                    total_files=len(file_results),
-                    files_per_page=files_per_page,
-                    results=file_results,
-                )
-
-        return result
-
+        return _search_with_ripgrep(codebase, query, target_directories, file_extensions, page, files_per_page, use_regex)
     except (FileNotFoundError, subprocess.SubprocessError):
-        # If ripgrep fails, try semantic search directly
-        semantic_results = semantic_search(codebase, query, k=files_per_page)
-        if semantic_results.status == "success":
-            file_results = _convert_semantic_to_search_results(semantic_results.results, query)
-
-            return SearchObservation(
-                status="success",
-                query=query,
-                page=1,
-                total_pages=1,
-                total_files=len(file_results),
-                files_per_page=files_per_page,
-                results=file_results,
-            )
-        else:
-            return SearchObservation(
-                status="error",
-                error=f"Both text search and semantic search failed: {semantic_results.error}",
-                query=query,
-                page=page,
-                total_pages=0,
-                total_files=0,
-                files_per_page=files_per_page,
-                results=[],
-            )
+        # Fall back to Python implementation if ripgrep fails or isn't available
+        return _search_with_python(codebase, query, target_directories, file_extensions, page, files_per_page, use_regex)

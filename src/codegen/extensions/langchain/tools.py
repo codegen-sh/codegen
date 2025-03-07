@@ -112,111 +112,24 @@ class ListDirectoryTool(BaseTool):
 
 
 class SearchInput(BaseModel):
+    """Input for searching the codebase."""
+
     query: str = Field(
         ...,
-        description="""The text or pattern to search for in the codebase.
-
-        For simple text search (use_regex=False):
-        - Uses ripgrep's fixed-strings mode (--fixed-strings)
-        - Case-insensitive matching (--ignore-case)
-        - All characters are treated literally, including special regex characters
-        - Exact string matching (no regex interpretation)
-
-        For regex search (use_regex=True):
-        - Full regex pattern support
-        - Case-sensitive by default
-        - Special characters have regex meaning and need proper escaping
-        - Uses ripgrep's default regex mode
-
-        If no exact matches are found, automatically falls back to semantic search
-        to find relevant code even without exact text matches.""",
+        description="The search query to find in the codebase. When ripgrep is available, this will be passed as a ripgrep pattern. For regex searches, set use_regex=True. Ripgrep is the preferred method.",
     )
-
-    target_directories: Optional[list[str]] = Field(
-        default=None,
-        description="""Optional list of directories to limit the search scope.
-
-        - Paths should be relative to the workspace root
-        - Multiple directories are searched in parallel
-        - If None, searches the entire codebase
-
-        Example: ["src/frontend", "tests/unit"]""",
-    )
-
-    file_extensions: Optional[list[str]] = Field(
-        default=None,
-        description="""Optional list of file extensions to filter the search.
-
-        - Include the dot in extensions (e.g. ['.py', '.ts'])
-        - Multiple extensions are combined with OR logic
-        - If None, searches all file types
-        - Binary files are automatically excluded
-
-        Example: [".py", ".tsx", ".md"]""",
-    )
-
-    page: int = Field(
-        default=1,
-        description="""Page number for paginated results (1-based indexing).
-
-        - Use with files_per_page to navigate large result sets
-        - If page exceeds available pages, returns last available page
-        - Note: When falling back to semantic search, pagination is not supported
-
-        Example: page=2 with files_per_page=10 shows files 11-20""",
-    )
-
-    files_per_page: int = Field(
-        default=10,
-        description="""Number of files to show per page.
-
-        - Each file can contain multiple matching lines
-        - Reasonable values are between 5 and 50
-        - Larger values may impact performance
-        - When falling back to semantic search, this becomes the number of semantic results
-
-        Example: files_per_page=20 shows up to 20 files with matches""",
-    )
-
-    use_regex: bool = Field(
-        default=False,
-        description="""Whether to treat the query as a regex pattern.
-
-        - False (default): Simple text search, case-insensitive
-        - True: Full regex syntax, case-sensitive
-        - Invalid regex patterns will return an error
-        - Note: Semantic fallback is used regardless of this setting when no matches found
-
-        Example: Set to True to use patterns like "test_.*_func.*" """,
-    )
+    target_directories: Optional[list[str]] = Field(default=None, description="Optional list of directories to search in")
+    file_extensions: Optional[list[str]] = Field(default=None, description="Optional list of file extensions to search (e.g. ['.py', '.ts'])")
+    page: int = Field(default=1, description="Page number to return (1-based, default: 1)")
+    files_per_page: int = Field(default=10, description="Number of files to return per page (default: 10)")
+    use_regex: bool = Field(default=False, description="Whether to treat query as a regex pattern (default: False)")
 
 
 class SearchTool(BaseTool):
     """Tool for searching the codebase."""
 
     name: ClassVar[str] = "search"
-    description: ClassVar[str] = r"""Search the codebase using text search or regex pattern matching.
-
-    This tool provides powerful text-based search capabilities across your codebase,
-    with support for both simple text matching and regular expressions. It uses ripgrep
-    when available for high-performance searches.
-
-    If no exact matches are found, automatically falls back to semantic search to find
-    relevant code even without exact text matches.
-
-    Features:
-    - Plain text or regex pattern matching
-    - Directory and file type filtering
-    - Paginated results for large codebases
-    - Case-insensitive by default for simple text searches
-    - Semantic fallback for finding related code
-
-    Example queries:
-    1. Simple text: "function calculateTotal" (matches exactly, case-insensitive)
-    2. Regex: "def.*calculate.*\(.*\)" (with use_regex=True)
-    3. File-specific: "TODO" with file_extensions=[".py", ".ts"]
-    4. Directory-specific: "api" with target_directories=["src/backend"]
-    """
+    description: ClassVar[str] = "Search the codebase using text search or regex pattern matching"
     args_schema: ClassVar[type[BaseModel]] = SearchInput
     codebase: Codebase = Field(exclude=True)
 
