@@ -13,6 +13,7 @@ from langchain_core.outputs import ChatResult
 from langchain_core.runnables import Runnable
 from langchain_core.tools import BaseTool
 from langchain_openai import ChatOpenAI
+from langchain_xai import ChatXAI
 from pydantic import Field
 
 
@@ -76,6 +77,9 @@ class LLM(BaseChatModel):
 
         if self.model_provider == "anthropic":
             return {**base_kwargs, "model": self.model_name}
+        elif self.model_provider == "xai":
+            xai_api_base = os.getenv("XAI_API_BASE", "https://api.x.ai/v1/")
+            return {**base_kwargs, "model": self.model_name, "xai_api_base": xai_api_base}
         else:  # openai
             return {**base_kwargs, "model": self.model_name}
 
@@ -93,7 +97,13 @@ class LLM(BaseChatModel):
                 raise ValueError(msg)
             return ChatOpenAI(**self._get_model_kwargs())
 
-        msg = f"Unknown model provider: {self.model_provider}. Must be one of: anthropic, openai"
+        elif self.model_provider == "xai":
+            if not os.getenv("XAI_API_KEY"):
+                msg = "XAI_API_KEY not found in environment. Please set it in your .env file or environment variables."
+                raise ValueError(msg)
+            return ChatXAI(**self._get_model_kwargs())
+
+        msg = f"Unknown model provider: {self.model_provider}. Must be one of: anthropic, openai, xai"
         raise ValueError(msg)
 
     def _generate(

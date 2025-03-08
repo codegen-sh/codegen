@@ -1,0 +1,391 @@
+---
+title: "Advanced Settings"
+sidebarTitle: "Advanced Settings"
+icon: "memory"
+iconType: "solid"
+---
+
+Codegen's [Codebase](/api-reference/core/Codebase) constructor accepts a `CodebaseConfig` object which is used to configure more advanced behaviors of the graph construction process.
+
+These flags are helpful for debugging problematic repos, optimizing Codegen's performance, or testing unreleased or experimental (potentially backwards-breaking) features.
+
+<Warning>
+**These are considered experimental features and may change in the future!**
+
+As such, they may have little to no testing or documentation. Many of these flags may also be unsupported in the future!
+
+If you need help, please visit our [community](/introduction/community).
+</Warning>
+
+<Note>
+These configuration options are defined in [src/codegen/configs/models/codebase.py](https://github.com/codegen-sh/codegen/blob/develop/src/codegen/configs/models/codebase.py).
+</Note>
+
+# Usage
+
+You can customize the behavior of the graph construction process when initializing a [Codebase](/api-reference/core/Codebase) by passing a `CodebaseConfig` object with the desired configuration flags.
+
+```python
+from codegen import Codebase
+from codegen.configs import CodebaseConfig
+
+# Initialize a Codebase with custom configuration
+codebase = Codebase(
+    "<repo_path>",
+    config=CodebaseConfig(
+        flag1=...,
+        flag2=...,
+        ...
+    )
+)
+```
+
+# Table of Contents
+
+- [debug](#flag-debug)
+- [verify-graph](#flag-verify-graph)
+- [track-graph](#flag-track-graph)
+- [method-usages](#flag-method-usages)
+- [sync-enabled](#flag-sync-enabled)
+- [full-range-index](#flag-full-range-index)
+- [ignore-process-errors](#flag-ignore-process-errors)
+- [disable-graph](#flag-disable-graph)
+- [disable-file-parse](#flag-disable-file-parse)
+- [exp-lazy-graph](#flag-exp-lazy-graph)
+- [generics](#flag-generics)
+- [import-resolution-paths](#flag-import-resolution-paths)
+- [import-resolution-overrides](#flag-import-resolution-overrides)
+- [py-resolve-syspath](#flag-py-resolve-syspath)
+- [ts-dependency-manager](#flag-ts-dependency-manager)
+- [ts-language-engine](#flag-ts-language-engine)
+- [v8-ts-engine](#flag-v8-ts-engine)
+- [unpacking-assignment-partial-removal](#flag-unpacking-assignment-partial-removal)
+
+# Configuration Flags
+
+## Flag: `debug`
+> **Default: `False`**
+
+Enables verbose logging for debugging purposes. In its current form, it enables:
+- Verbose logging when adding nodes to the graph
+- Verbose logging during initial file parsing
+- Additional assertions on graph creation
+- Additional (costly) debug metrics on codebase construction
+- etc.
+
+<Warning>
+This flag may be very noisy and significantly impact performance. It is generally not recommended to use.
+</Warning>
+
+## Flag: `verify_graph`
+> **Default: `False`**
+
+Adds assertions for graph state during reset resync. Used to test and debug graph desyncs after a codebase reset.
+
+Runs `post_reset_validation` after a reset resync.
+
+<Note>
+This is an internal debug flag.
+</Note>
+
+## Flag: `track_graph`
+> **Default: `False`**
+
+Keeps a copy of the original graph before a resync. Used in conjunction with `verify_graph` to test and debug graph desyncs.
+
+Original graph is saved as `ctx.old_graph`.
+
+<Note>
+This is an internal debug flag.
+</Note>
+
+## Flag: `method_usages`
+> **Default: `True`**
+
+Enables and disables resolving method usages.
+
+**Example Codebase:**
+```python
+class Foo:
+    def bar():
+        ...
+
+obj = Foo()
+obj.bar()  # Method Usage
+```
+
+**Codemod with `method_usages` on:**
+```python
+bar_func = codebase.get_class("Foo").get_method("bar")
+len(bar_func.usages)  # 1
+bar_func.usages  # [obj.bar()]
+```
+
+**Codemod with `method_usages` off:**
+```python
+bar_func = codebase.get_class("Foo").get_method("bar")
+len(bar_func.usages)  # 0
+bar_func.usages  # []
+```
+
+Method usage resolution could be disabled for a marginal performance boost. However, it is generally recommended to leave it enabled.
+
+## Flag: `sync_enabled`
+> **Default: `False`**
+
+Enables or disables graph sync during `codebase.commit`.
+
+<Note>
+Implementation-specific details on sync graph can be found [here](https://github.com/codegen-sh/codegen/blob/develop/architecture/6.%20incremental-computation/C.%20Graph%20Recomputation.md).
+</Note>
+
+This section won't go into the specific details of sync graph, but the general idea is that enabling sync graph will update the Codebase object to whatever new changes were made.
+
+**Example with `sync_enabled` on:**
+```python
+file = codebase.get_file(...)
+file.insert_after("foobar = 1")
+codebase.commit()
+
+foobar = codebase.get_symbol("foobar")
+assert foobar  # foobar is available after commit / graph sync
+```
+
+**Example with `sync_enabled` disabled:**
+```python
+file = codebase.get_file(...)
+file.insert_after("foobar = 1")
+
+foobar = codebase.get_symbol("foobar", optional=True)
+assert not foobar  # foobar is not available after commit
+```
+
+<Warning>
+Enabling sync graph will have a performance impact on codebase commit, but will also unlock a bunch of operations that were previously not possible.
+</Warning>
+
+## Flag: `full_range_index`
+> **Default: `False`**
+
+By default, Codebase maintains an internal range-to-node index for fast lookups. (i.e. `bytes 120 to 130 maps to node X`).
+For optimization purposes, this only applies to nodes defined and handled by `parser.py`.
+
+Enabling `full_range_index` will create an additional index that maps **all** tree-sitter ranges to nodes.
+This can be useful for debugging or when you need to build any applications that require a full range-to-node index (i.e. a codebase tree lookup).
+
+<Warning>
+This flag **significantly** increases memory usage!
+</Warning>
+
+## Flag: `ignore_process_errors`
+> **Default: `True`**
+
+Controls whether to ignore errors that occur during external process execution (such as dependency manager or language engine).
+
+Disabling `ignore_process_errors` would make Codegen fail on errors that would otherwise be logged then ignored.
+
+## Flag: `disable_graph`
+> **Default: `False`**
+
+Disables the graph construction process. Any operations that require the graph will no longer work. (In other words, this turns off import resolution and usage/dependency resolution)
+
+Functions that operate purely on AST such as getting and editing parameters or modifying function and class definitions will still work.
+
+<Note>
+For codemods that do not require the graph (aka only AST/Syntax-level changes), **disabling graph parse could yield a 30%-40% decrease in parse time and memory usage**!
+</Note>
+
+## Flag: `disable_file_parse`
+> **Default: `False`**
+
+Disables **ALL** parsing, including file and graph parsing. This essentially treats all codebases as the "UNSUPPORTED" language mode.
+
+Nearly all functions except for editing primitives like `codebase.get_file` and `file.edit` will no longer work.
+
+<Note>
+This flag is useful for any usages of Codegen that do **NOT** require any AST/CST/Graph parsing. (i.e. using Codegen purely as a file editing harness)
+
+If this is your use case, this **could decrease parse and memory usage by 95%.**
+</Note>
+
+## Flag: `exp_lazy_graph`
+> **Default: `False`**
+
+This experimental flag pushes the graph creation back until the graph is needed. This is an experimental feature and may have some unintended consequences.
+
+**Example Codemod:**
+```python
+from codegen import Codebase
+from codegen.configs import CodebaseConfig
+
+# Enable lazy graph parsing
+codebase = Codebase("<repo_path>", config=CodebaseConfig(exp_lazy_graph=True))
+
+# The codebase object will be created immediately with no parsing done
+# These all do not require graph parsing
+codebase.files
+codebase.directories
+codebase.get_file("...")
+
+# These do require graph parsing, and will create the graph only if called
+codebase.get_function("...")
+codebase.get_class("...")
+codebase.imports
+```
+
+<Note>
+This may have a very slight performance boost. Use at your own risk!
+</Note>
+
+## Flag: `generics`
+> **Default: `True`**
+
+Enables and disables generic type resolution.
+
+**Example Codebase:**
+```python
+class Point:
+    def scale(cls, n: int):
+        pass
+
+class List[T]():
+    def pop(self) -> T:
+        ...
+
+l: List[Point] = []
+l.pop().scale(1)  # Generic Usage
+```
+
+**Codemod with `generics` on:**
+```python
+bar_func = codebase.get_class("Point").get_method("scale")
+len(bar_func.usages)  # 1
+bar_func.usages  # [l.pop().scale(1)]
+```
+
+**Codemod with `generics` off:**
+```python
+bar_func = codebase.get_class("Point").get_method("scale")
+len(bar_func.usages)  # 0
+bar_func.usages  # []
+```
+
+<Note>
+Generic resolution is still largely WIP and experimental, and may not work in all cases. In some rare circumstances, disabling generics may result in a significant performance boost.
+</Note>
+
+## Flag: `import_resolution_paths`
+> **Default: `[]`**
+
+Controls alternative paths to resolve imports from.
+
+**Example Codebase:**
+```python
+# a/b/c/src.py
+def update():
+    pass
+
+# consumer.py
+from c import src as operations
+
+operations.update()
+```
+
+**Codemod:**
+```python
+codebase.ctx.config.import_resolution_paths = ["a/b"]
+```
+
+## Flag: `import_resolution_overrides`
+> **Default: `{}`**
+
+Controls import path overrides during import resolution.
+
+**Example**
+`from a.b.c import d` with the override `a/b` -> `foo/bar` will internally resolve the import as `from foo.bar.c import d`.
+
+## Flag: `py_resolve_syspath`
+> **Default: `False`**
+
+Enables and disables resolution of imports from `sys.path`.
+
+## Flag: `ts_dependency_manager`
+> **Default: `False`**
+
+<Warning>
+**This is an internal flag used for Codegen Cloud and should not be used externally!**
+
+This flag **WILL** nuke any existing `node_modules` folder!
+</Warning>
+
+<Warning>
+This flag also assumes many constants for Codegen Cloud. Very likely this will not work if run locally.
+
+Instead, just install `node_modules` as normal (either through `npm`, `pnpm`, or `yarn`) and skip this setting!
+</Warning>
+
+Enables Codegen's internal dependency installer for TypeScript. This will modify `package.json` and install the bare minimum set of installable dependencies.
+
+<Note>
+More documentation on TypeScript dependency manager can be found [here](https://github.com/codegen-sh/codegen/blob/develop/architecture/external/dependency-manager.md)
+</Note>
+
+## Flag: `ts_language_engine`
+> **Default: `False`**
+
+<Warning>
+This feature was built primarily with Codegen Cloud in mind. As such, this assumes a valid NodeJS and TypeScript environment.
+</Warning>
+
+Enables using the TypeScript compiler to extract information from the codebase. Enables commands such as `inferred_return_type`.
+
+<Warning>
+This will increase memory usage and parsing time. Larger repos may even hit resource constraints with the bundled TypeScript compiler integration.
+</Warning>
+
+## Flag: `v8_ts_engine`
+> **Default: `False`**
+
+<Note>
+This feature flag requires `ts_language_engine` to be enabled as well.
+</Note>
+
+Enables using the **V8-based TypeScript compiler** to extract information from the codebase. Enables commands such as `inferred_return_type`.
+
+The V8 implementation (as opposed to the default external-process based implementation) is less stable, but provides the entire TypeScript API to be used from within Codegen.
+
+<Warning>
+This will increase memory usage and parsing time. Larger repos may even hit resource constraints with the V8-based TypeScript compiler integration.
+</Warning>
+
+## Flag: `unpacking_assignment_partial_removal`
+> **Default: `False`**
+
+Enables smarter removal of unpacking assignments.
+
+**Example Codebase:**
+```python
+a, b, c = (1, 2, 3)
+```
+
+**Codemod with `unpacking_assignment_partial_removal` on:**
+```python
+file = codebase.get_file(...)
+b = file.get_symbol("b")
+b.remove()
+codebase.commit()
+
+file.symbols  # [a, c]
+file.source  # "a, c = (1, 3)"
+```
+
+**Codemod with `unpacking_assignment_partial_removal` off:**
+```python
+file = codebase.get_file(...)
+b = file.get_symbol("b")
+b.remove()
+codebase.commit()
+
+file.symbols  # []
+file.source  # ""
+```

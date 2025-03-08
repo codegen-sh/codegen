@@ -706,6 +706,11 @@ class WildcardImport(Chainable, Generic[TImport]):
     def _compute_dependencies(self, usage_type: UsageKind, dest: HasName | None = None) -> None:
         pass
 
+    @property
+    @override
+    def filepath(self) -> str:
+        return self.imp.filepath
+
 
 class ExternalImportResolver:
     def resolve(self, imp: Import) -> str | None:

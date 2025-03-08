@@ -26,6 +26,7 @@ from codegen.configs.models.codebase import CodebaseConfig
 from codegen.configs.models.secrets import SecretsConfig
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.enums import CheckoutResult, SetupOption
+from codegen.git.schemas.repo_config import RepoConfig
 from codegen.git.utils.pr_review import CodegenPR
 from codegen.sdk._proxy import proxy_property
 from codegen.sdk.ai.client import get_openai_client
@@ -1343,15 +1344,17 @@ class Codebase(
         repo_path = os.path.join(tmp_dir, repo)
         repo_url = f"https://github.com/{repo_full_name}.git"
         logger.info(f"Will clone {repo_url} to {repo_path}")
+        access_token = secrets.github_token if secrets else None
 
         try:
             # Use RepoOperator to fetch the repository
             logger.info("Cloning repository...")
             if commit is None:
-                repo_operator = RepoOperator.create_from_repo(repo_path=repo_path, url=repo_url)
+                repo_config = RepoConfig.from_repo_path(repo_path)
+                repo_config.full_name = repo_full_name
+                repo_operator = RepoOperator(repo_config=repo_config, access_token=access_token, setup_option=setup_option)
             else:
                 # Ensure the operator can handle remote operations
-                access_token = secrets.github_token if secrets else None
                 repo_operator = RepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url, full_name=repo_full_name, access_token=access_token)
             logger.info("Clone completed successfully")
 
