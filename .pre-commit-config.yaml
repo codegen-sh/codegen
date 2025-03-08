@@ -80,26 +80,12 @@ repos:
     rev: 39.169.3
     hooks:
       - id: renovate-config-validator
+
   - repo: https://github.com/astral-sh/uv-pre-commit
     rev: "0.5.31"
     hooks:
       - id: uv-sync
         args: ["--frozen", "--all-packages", "--all-extras"]
-
-  - repo: "local"
-    hooks:
-      # Disabled as part of LFS removal.
-      # - id: disallowed-words-check
-      #   name: Check for disallowed words
-      #   entry: scripts/disallowed-words-check.sh
-      #   language: script
-      #   files: ''  # Check all files
-      - id: generate-runner-imports
-        name: Generate Runner Imports
-        entry: bash -c "uv run --frozen python -m codegen.gscli.cli generate runner-imports src/codegen/shared/compilation/function_imports.py"
-        language: system
-        pass_filenames: false
-        always_run: true
 
   - repo: https://github.com/hukkin/mdformat
     rev: 0.7.22  # Use the ref you want to point at

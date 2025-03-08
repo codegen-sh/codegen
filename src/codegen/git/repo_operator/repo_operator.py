@@ -20,7 +20,7 @@ from codegen.configs.models.secrets import SecretsConfig
 from codegen.git.clients.git_repo_client import GitRepoClient
 from codegen.git.configs.constants import CODEGEN_BOT_EMAIL, CODEGEN_BOT_NAME
 from codegen.git.repo_operator.local_git_repo import LocalGitRepo
-from codegen.git.schemas.enums import CheckoutResult, FetchResult, SetupOption
+from codegen.git.schemas.enums import CheckoutResult, FetchResult, RepoVisibility, SetupOption
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.git.utils.clone import clone_or_pull_repo, clone_repo, pull_repo
 from codegen.git.utils.clone_url import add_access_token_to_url, get_authenticated_clone_url_for_repo_config, get_clone_url_for_repo_config, url_to_github
@@ -89,7 +89,7 @@ class RepoOperator:
 
     @property
     def remote_git_repo(self) -> GitRepoClient:
-        if not self.access_token:
+        if not self.access_token and self.repo_config.visibility != RepoVisibility.PUBLIC:
             msg = "Must initialize with access_token to get remote"
             raise ValueError(msg)
 

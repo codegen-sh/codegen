@@ -5,8 +5,8 @@ import subprocess
 from collections import defaultdict
 from pathlib import Path
 
+from codegen.extensions.swebench.enums import SWEBenchDataset
 from codegen.extensions.swebench.tests import remove_patches_to_tests
-from codegen.extensions.swebench.utils import SWEBenchDataset
 
 NUM_EVAL_PROCS = 5
 
