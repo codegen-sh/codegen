@@ -360,7 +360,7 @@ class TSFunction(Function[TSDecorator, "TSCodeBlock", TSParameter, TSType], TSHa
 
     @noapidoc
     @reader
-    def resolve_name(self, name: str, start_byte: int | None = None,strict:bool = False) -> Generator[Symbol | Import | WildcardImport | None]:
+    def resolve_name(self, name: str, start_byte: int | None = None, strict: bool = False) -> Generator[Symbol | Import | WildcardImport | None]:
         """Resolves the name of a symbol in the function.
 
         This method resolves the name of a symbol in the function. If the name is "this", it returns the parent class.

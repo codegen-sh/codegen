@@ -94,6 +94,7 @@ class TSTryCatchStatement(TryCatchStatement["TSCodeBlock"], TSBlockStatement):
         if self.finalizer:
             nested_blocks.append(self.finalizer.code_block)
         return nested_blocks
+
     @property
     def other_possible_blocks(self) -> Sequence[ConditionalBlock]:
         if self.catch:

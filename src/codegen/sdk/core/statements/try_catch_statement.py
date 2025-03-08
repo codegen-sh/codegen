@@ -17,7 +17,7 @@ Parent = TypeVar("Parent", bound="CodeBlock")
 
 
 @apidoc
-class TryCatchStatement(ConditionalBlock,BlockStatement[Parent], HasBlock, ABC, Generic[Parent]):
+class TryCatchStatement(ConditionalBlock, BlockStatement[Parent], HasBlock, ABC, Generic[Parent]):
     """Abstract representation of the try catch statement block.
 
     Attributes:

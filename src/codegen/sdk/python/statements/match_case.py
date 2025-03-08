@@ -22,8 +22,6 @@ class PyMatchCase(SwitchCase[PyCodeBlock["PyMatchStatement"]], PyBlockStatement)
         super().__init__(ts_node, file_node_id, ctx, parent, pos)
         self.condition = self.child_by_field_name("alternative")
 
-
-
     @property
-    def other_possible_blocks(self)-> list["ConditionalBlock"]:
-        return [case for case in self.parent.cases if case!=self]
+    def other_possible_blocks(self) -> list["ConditionalBlock"]:
+        return [case for case in self.parent.cases if case != self]

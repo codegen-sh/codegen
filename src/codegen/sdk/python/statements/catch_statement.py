@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from codegen.sdk.core.interfaces.conditional_block import ConditionalBlock
     from codegen.sdk.core.node_id_factory import NodeId
 
+
 @py_apidoc
 class PyCatchStatement(CatchStatement[PyCodeBlock], PyBlockStatement):
     """Python catch clause.
@@ -28,5 +29,5 @@ class PyCatchStatement(CatchStatement[PyCodeBlock], PyBlockStatement):
         self.condition = self.children[0]
 
     @property
-    def other_possible_blocks(self)-> list[ConditionalBlock]:
-        return [clause for clause in self.parent.except_clauses if clause!=self]+[self.parent]
+    def other_possible_blocks(self) -> list[ConditionalBlock]:
+        return [clause for clause in self.parent.except_clauses if clause != self] + [self.parent]

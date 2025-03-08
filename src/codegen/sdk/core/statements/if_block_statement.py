@@ -29,7 +29,7 @@ TCodeBlock = TypeVar("TCodeBlock", bound="CodeBlock")
 
 
 @apidoc
-class IfBlockStatement(ConditionalBlock,Statement[TCodeBlock], Generic[TCodeBlock, TIfBlockStatement]):
+class IfBlockStatement(ConditionalBlock, Statement[TCodeBlock], Generic[TCodeBlock, TIfBlockStatement]):
     """Abstract representation of the if/elif/else if/else statement block.
 
     For example, if there is a code block like:
@@ -275,9 +275,8 @@ class IfBlockStatement(ConditionalBlock,Statement[TCodeBlock], Generic[TCodeBloc
             else:
                 self.remove()
 
-
     @property
-    def other_possible_blocks(self)-> Sequence[ConditionalBlock]:
+    def other_possible_blocks(self) -> Sequence[ConditionalBlock]:
         if self.is_if_statement:
             return self._main_if_block.alternative_blocks
         elif self.is_elif_statement:
@@ -286,7 +285,7 @@ class IfBlockStatement(ConditionalBlock,Statement[TCodeBlock], Generic[TCodeBloc
             if main.else_statement:
                 statements.append(main.else_statement)
             for statement in main.elif_statements:
-                if statement!=self:
+                if statement != self:
                     statements.append(statement)
             return statements
         else:

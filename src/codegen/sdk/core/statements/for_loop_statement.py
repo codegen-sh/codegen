@@ -38,7 +38,7 @@ class ForLoopStatement(BlockStatement[Parent], HasBlock, ABC, Generic[Parent]):
 
     @noapidoc
     @reader
-    def resolve_name(self, name: str, start_byte: int | None = None,strict:bool = False) -> Generator[Symbol | Import | WildcardImport | None]:
+    def resolve_name(self, name: str, start_byte: int | None = None, strict: bool = False) -> Generator[Symbol | Import | WildcardImport | None]:
         if self.item and isinstance(self.iterable, Chainable):
             if start_byte is None or start_byte > self.iterable.end_byte:
                 if name == self.item:

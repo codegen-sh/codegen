@@ -128,7 +128,6 @@ def foo():
         assert alt_blocks[2].else_statement is None
 
 
-
 def test_if_else_reassigment_handling(tmpdir) -> None:
     content = """
 
@@ -191,16 +190,16 @@ def test_if_else_reassigment_handling_inside_func(tmpdir) -> None:
         file = codebase.get_file("test.py")
         foo = file.get_function("foo")
         assert foo
-        assert len(foo.parameters[0].usages)==0
+        assert len(foo.parameters[0].usages) == 0
         funct_call_a = foo.function_calls[0].args[0]
         funct_call_b = foo.function_calls[1]
         for symbol in file.symbols(True):
-            if symbol.name=='a':
-                assert len(symbol.usages)==1
-                symbol.usages[0].match==funct_call_a
-            elif symbol.name=='b':
-                assert len(symbol.usages)==1
-                symbol.usages[0].match==funct_call_b
+            if symbol.name == "a":
+                assert len(symbol.usages) == 1
+                symbol.usages[0].match == funct_call_a
+            elif symbol.name == "b":
+                assert len(symbol.usages) == 1
+                symbol.usages[0].match == funct_call_b
 
 
 def test_if_else_reassigment_handling_partial_if(tmpdir) -> None:
@@ -248,6 +247,7 @@ def test_if_else_reassigment_handling_double(tmpdir) -> None:
             usage = symb.usages[0]
             assert usage.match == pyspark_arg
 
+
 def test_if_else_reassigment_handling_nested_usage(tmpdir) -> None:
     content = """
         if True:
@@ -262,7 +262,7 @@ def test_if_else_reassigment_handling_nested_usage(tmpdir) -> None:
         file = codebase.get_file("test.py")
         funct_call = file.function_calls[0]
         pyspark_arg = funct_call.args.children[0]
-        first=file.symbols[0]
-        second=file.symbols[1]
-        assert len(first.usages)==0
+        first = file.symbols[0]
+        second = file.symbols[1]
+        assert len(first.usages) == 0
         assert second.usages[0].match == pyspark_arg

@@ -744,7 +744,7 @@ class SourceFile(
         Returns:
             Symbol | None: The found symbol, or None if not found.
         """
-        if symbol := next(self.resolve_name(name, self.end_byte),None):
+        if symbol := next(self.resolve_name(name, self.end_byte), None):
             if isinstance(symbol, Symbol):
                 return symbol
         return next((x for x in self.symbols if x.name == name), None)
@@ -819,7 +819,7 @@ class SourceFile(
         Returns:
             TClass | None: The matching Class object if found, None otherwise.
         """
-        if symbol := next(self.resolve_name(name, self.end_byte),None):
+        if symbol := next(self.resolve_name(name, self.end_byte), None):
             if isinstance(symbol, Class):
                 return symbol
 
@@ -880,7 +880,7 @@ class SourceFile(
 
     @noapidoc
     @reader
-    def resolve_name(self, name: str, start_byte: int | None = None,strict:bool = False) -> Generator[Symbol | Import | WildcardImport | None]:
+    def resolve_name(self, name: str, start_byte: int | None = None, strict: bool = False) -> Generator[Symbol | Import | WildcardImport | None]:
         if resolved := self.valid_symbol_names.get(name):
             if start_byte is not None and resolved.end_byte > start_byte:
                 for symbol in reversed(self.symbols):

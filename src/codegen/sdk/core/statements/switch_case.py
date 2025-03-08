@@ -19,7 +19,7 @@ Parent = TypeVar("Parent", bound="CodeBlock[SwitchStatement, Assignment]")
 
 
 @apidoc
-class SwitchCase(ConditionalBlock,BlockStatement[Parent], Generic[Parent]):
+class SwitchCase(ConditionalBlock, BlockStatement[Parent], Generic[Parent]):
     """Abstract representation for a switch case.
 
     Attributes:
@@ -37,5 +37,5 @@ class SwitchCase(ConditionalBlock,BlockStatement[Parent], Generic[Parent]):
         super()._compute_dependencies(usage_type, dest)
 
     @property
-    def other_possible_blocks(self)-> list[ConditionalBlock]:
-        return [case for case in self.parent.cases if case!=self]
+    def other_possible_blocks(self) -> list[ConditionalBlock]:
+        return [case for case in self.parent.cases if case != self]

@@ -18,7 +18,7 @@ Parent = TypeVar("Parent", bound="CodeBlock")
 
 
 @apidoc
-class CatchStatement(ConditionalBlock,BlockStatement[Parent], Generic[Parent]):
+class CatchStatement(ConditionalBlock, BlockStatement[Parent], Generic[Parent]):
     """Abstract representation catch clause.
 
     Attributes:

@@ -285,4 +285,3 @@ class Assignment(Symbol[Parent, ...], Typeable[Parent, ...], HasValue, Generic[P
         for usage in self.usages:
             if usage.match == self.name:
                 usage.match.reduce_condition(bool_condition)
-

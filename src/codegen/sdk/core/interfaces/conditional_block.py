@@ -4,7 +4,7 @@ from collections.abc import Sequence
 from codegen.sdk.core.statements.statement import Statement
 
 
-class ConditionalBlock(Statement,ABC):
+class ConditionalBlock(Statement, ABC):
     """An interface for any code block that might not be executed in the code, e.g if block/else block/try block/catch block ect."""
 
     @property

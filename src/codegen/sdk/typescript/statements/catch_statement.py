@@ -31,5 +31,5 @@ class TSCatchStatement(CatchStatement[Parent], TSBlockStatement, Generic[Parent]
         self.condition = self.child_by_field_name("parameter")
 
     @property
-    def other_possible_blocks(self)-> list[ConditionalBlock]:
+    def other_possible_blocks(self) -> list[ConditionalBlock]:
         return [self.parent]
