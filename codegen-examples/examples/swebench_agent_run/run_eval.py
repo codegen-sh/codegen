@@ -6,8 +6,10 @@ import uuid
 import modal
 import click
 import time
+from codegen.extensions.swebench.enums import SWEBenchDataset, SWEBenchLiteSubset
+from constants import DATASET_DICT
 from codegen.extensions.swebench.harness import run_agent_on_entry
-from codegen.extensions.swebench.utils import SWEBenchDataset, SweBenchExample, get_swe_bench_examples
+from codegen.extensions.swebench.utils import SweBenchExample, get_swe_bench_examples
 from codegen.extensions.swebench.report import generate_report
 from codegen.sdk.core.codebase import Codebase
 
@@ -280,13 +282,8 @@ async def run_eval(
     run_id = use_existing_preds or str(uuid.uuid4())
     print(f"Run ID: {run_id}")
     predictions_dir = PREDS_DNAME / f"results_{run_id}"
-    dataset_dict = {
-        "lite": SWEBenchDataset.LITE,
-        "full": SWEBenchDataset.FULL,
-        "verified": SWEBenchDataset.VERIFIED,
-    }
-    dataset_enum = dataset_dict[dataset]
 
+    dataset_enum = DATASET_DICT[dataset]
     examples = get_swe_bench_examples(dataset=dataset_enum, length=length, instance_id=instance_id, repo=repo)
 
     try:
@@ -345,6 +342,8 @@ async def run_eval(
                 for error_type, count in summary["error_types"].items():
                     print(f"  {error_type}: {count}")
 
+        if isinstance(dataset_enum, SWEBenchLiteSubset):
+            dataset_enum = SWEBenchDataset.LITE
         # Generate Report on Modal
         generate_report(predictions_dir, LOG_DIR, dataset_enum, run_id)
     except Exception:
@@ -355,7 +354,7 @@ async def run_eval(
 
 @click.command()
 @click.option("--use-existing-preds", help="The run ID of the existing predictions to use.", type=str, default=None)
-@click.option("--dataset", help="The dataset to use.", type=click.Choice(["lite", "full", "verified"]), default="lite")
+@click.option("--dataset", help="The dataset to use.", type=click.Choice(["lite", "full", "verified", "lite_small", "lite_medium", "lite_large"]), default="lite")
 @click.option("--length", help="The number of examples to process.", type=int, default=10)
 @click.option("--instance-id", help="The instance ID of the example to process.", type=str, default=None)
 @click.option("--local", help="Run the evaluation locally.", is_flag=True, default=False)
