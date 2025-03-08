@@ -3,7 +3,7 @@ import re
 import resource
 import sys
 from abc import abstractmethod
-from collections.abc import Sequence
+from collections.abc import Generator, Sequence
 from functools import cached_property
 from os import PathLike
 from pathlib import Path
@@ -744,7 +744,7 @@ class SourceFile(
         Returns:
             Symbol | None: The found symbol, or None if not found.
         """
-        if symbol := self.resolve_name(name, self.end_byte):
+        if symbol := next(self.resolve_name(name, self.end_byte),None):
             if isinstance(symbol, Symbol):
                 return symbol
         return next((x for x in self.symbols if x.name == name), None)
@@ -819,7 +819,7 @@ class SourceFile(
         Returns:
             TClass | None: The matching Class object if found, None otherwise.
         """
-        if symbol := self.resolve_name(name, self.end_byte):
+        if symbol := next(self.resolve_name(name, self.end_byte),None):
             if isinstance(symbol, Class):
                 return symbol
 
@@ -880,13 +880,18 @@ class SourceFile(
 
     @noapidoc
     @reader
-    def resolve_name(self, name: str, start_byte: int | None = None) -> Symbol | Import | WildcardImport | None:
+    def resolve_name(self, name: str, start_byte: int | None = None,strict:bool = False) -> Generator[Symbol | Import | WildcardImport | None]:
         if resolved := self.valid_symbol_names.get(name):
             if start_byte is not None and resolved.end_byte > start_byte:
-                for symbol in self.symbols:
+                for symbol in reversed(self.symbols):
                     if symbol.start_byte <= start_byte and symbol.name == name:
-                        return symbol
-            return resolved
+                        yield symbol
+                        return
+                if strict:
+                    return
+            yield resolved
+            return
+        return
 
     @property
     @reader

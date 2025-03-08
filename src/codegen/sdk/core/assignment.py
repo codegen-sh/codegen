@@ -286,20 +286,3 @@ class Assignment(Symbol[Parent, ...], Typeable[Parent, ...], HasValue, Generic[P
             if usage.match == self.name:
                 usage.match.reduce_condition(bool_condition)
 
-    @noapidoc
-    def nested_blocks_for_conditional_parent(self):
-        from codegen.sdk.core.statements.if_block_statement import IfBlockStatement
-        from codegen.sdk.core.statements.try_catch_statement import TryCatchStatement
-        from codegen.sdk.python.statements.match_statement import PyMatchCase
-        from codegen.sdk.typescript.statements.switch_statement import TSSwitchCase
-
-        conditionals = {TryCatchStatement, IfBlockStatement, PyMatchCase, TSSwitchCase}
-        if parent := self.parent_of_types(conditionals):
-            match parent:
-                case IfBlockStatement():
-                    if parent._main_if_block:
-                        return parent._main_if_block.nested_code_blocks
-                case PyMatchCase() | TSSwitchCase():
-                    return parent.match_statement.nested_code_blocks
-                case _:
-                    return parent.nested_code_blocks

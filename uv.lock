@@ -690,7 +690,7 @@ requires-dist = [
     { name = "langchain-anthropic", specifier = ">=0.3.7" },
     { name = "langchain-core" },
     { name = "langchain-openai" },
-    { name = "langchain-xai" },
+    { name = "langchain-xai", specifier = ">=0.2.1" },
     { name = "langgraph" },
     { name = "langgraph-prebuilt" },
     { name = "langsmith" },
