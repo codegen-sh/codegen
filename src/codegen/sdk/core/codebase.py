@@ -22,7 +22,7 @@ from openai import OpenAI
 from rich.console import Console
 from typing_extensions import TypeVar, deprecated
 
-from codegen.configs.models.codebase import CodebaseConfig
+from codegen.configs.models.codebase import CodebaseConfig, PinkMode
 from codegen.configs.models.secrets import SecretsConfig
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.enums import CheckoutResult, SetupOption
@@ -212,6 +212,10 @@ class Codebase(
         self.repo_path = Path(self._op.repo_path)
         self.ctx = CodebaseContext(projects, config=config, secrets=secrets, io=io, progress=progress)
         self.console = Console(record=True, soft_wrap=True)
+        if config.use_pink != PinkMode.OFF:
+            import codegen_sdk_pink
+
+            self._pink_codebase = codegen_sdk_pink.Codebase(self.repo_path)
 
     @noapidoc
     def __str__(self) -> str:

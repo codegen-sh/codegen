@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from pydantic.config import ConfigDict
 from pydantic.fields import Field
 
-from codegen.configs.models.codebase import DefaultCodebaseConfig
+from codegen.configs.models.codebase import DefaultCodebaseConfig, PinkMode
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.git.utils.file_utils import split_git_path
@@ -24,7 +24,7 @@ class SessionOptions(BaseModel):
     max_ai_requests: int = Field(default=150, le=HARD_MAX_AI_LIMIT)
 
 
-TestFlags = DefaultCodebaseConfig.model_copy(update=dict(debug=True, track_graph=True, verify_graph=True, full_range_index=True, sync_enabled=True))
+TestFlags = DefaultCodebaseConfig.model_copy(update=dict(debug=True, track_graph=True, verify_graph=True, full_range_index=True, sync_enabled=True, use_pink=PinkMode.ALL_FILES))
 LintFlags = DefaultCodebaseConfig.model_copy(update=dict(method_usages=False, sync_enabled=True))
 ParseTestFlags = DefaultCodebaseConfig.model_copy(update=dict(debug=False, track_graph=False, sync_enabled=True))
 

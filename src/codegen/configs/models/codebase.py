@@ -1,6 +1,14 @@
+from enum import IntEnum, auto
+
 from pydantic import Field
 
 from codegen.configs.models.base_config import BaseConfig
+
+
+class PinkMode(IntEnum):
+    OFF = auto()
+    ALL_FILES = auto()
+    NON_SOURCE_FILES = auto()
 
 
 class CodebaseConfig(BaseConfig):
@@ -25,6 +33,7 @@ class CodebaseConfig(BaseConfig):
     ts_language_engine: bool = False
     v8_ts_engine: bool = False
     unpacking_assignment_partial_removal: bool = True
+    use_pink: PinkMode = PinkMode.OFF
 
 
 DefaultCodebaseConfig = CodebaseConfig()

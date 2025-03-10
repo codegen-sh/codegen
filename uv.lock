@@ -1,5 +1,4 @@
 version = 1
-revision = 1
 requires-python = ">=3.12, <3.14"
 resolution-markers = [
     "python_full_version >= '3.12.4'",
@@ -640,6 +639,7 @@ dev = [
     { name = "loguru" },
     { name = "modal" },
     { name = "mypy", extra = ["faster-cache", "mypyc"] },
+    { name = "pink-python" },
     { name = "pre-commit" },
     { name = "pre-commit-uv" },
     { name = "pytest" },
@@ -740,7 +740,6 @@ requires-dist = [
     { name = "wrapt", specifier = ">=1.16.0,<2.0.0" },
     { name = "xmltodict", specifier = ">=0.13.0,<1.0.0" },
 ]
-provides-extras = ["lsp", "types"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -763,6 +762,7 @@ dev = [
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "modal", specifier = ">=0.73.25" },
     { name = "mypy", extras = ["mypyc", "faster-cache"], specifier = ">=1.13.0" },
+    { name = "pink-python", directory = "../pink/bindings/python" },
     { name = "pre-commit", specifier = ">=4.0.1" },
     { name = "pre-commit-uv", specifier = ">=4.1.4" },
     { name = "pytest", specifier = ">=8.3.3" },
@@ -2858,6 +2858,11 @@ sdist = { url = "https://files.pythonhosted.org/packages/42/92/cc564bf6381ff43ce
 wheels = [
     { url = "https://files.pythonhosted.org/packages/9e/c3/059298687310d527a58bb01f3b1965787ee3b40dce76752eda8b44e9a2c5/pexpect-4.9.0-py2.py3-none-any.whl", hash = "sha256:7236d1e080e4936be2dc3e326cec0af72acf9212a7e1d060210e70a47e253523", size = 63772 },
 ]
+
+[[package]]
+name = "pink-python"
+version = "0.1.0"
+source = { directory = "../pink/bindings/python" }
 
 [[package]]
 name = "pip"
