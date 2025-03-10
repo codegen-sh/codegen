@@ -28,7 +28,6 @@ class GitAttributionTracker:
         self.repo_path = codebase.ctx.projects[0].repo_operator.repo_path
         self.repo = pygit2.Repository(self.repo_path)
         self.org_branch_reference = self.repo.head
-
         # Default AI authors if none provided
         self.ai_authors = ai_authors or ["devin[bot]", "codegen[bot]"]
 
@@ -209,7 +208,19 @@ class GitAttributionTracker:
         print("Mapping symbols to git history...")
         start_time = time.time()
 
-        print("Turning off graph mapping!")
+
+
+        print("Stashing any working directory changes...")
+        stash_msg = f"Codegen Attribution Stash @ {datetime.now().timestamp()}"
+        stash_id=None
+        try:
+            stash_id = self.repo.stash(self.repo.default_signature,stash_msg,include_untracked=True)
+            print("Stashed!")
+        except KeyError as e:
+            print("Nothing to stash, proceeding.....")
+        except Exception as e:
+            print("Error encountered attempting to stash the current working state, stopping to preserve work, please manually clean the working directory and try again!")
+            raise(e)
 
         print("Generating initial symbol state...")
         filepaths = [file.filepath for file in self.codebase.files]
@@ -274,7 +285,27 @@ class GitAttributionTracker:
             print("Finished, restoring git repo state...")
             self.repo.checkout(self.org_branch_reference,strategy=CheckoutStrategy.FORCE)
 
-        print(f"Restored, newest commit id in repo is {self.repo.revparse_single(self.org_branch_reference.name).id}")
+            print(f"Restored to latest commit, newest commit id in repo is {self.repo.revparse_single(self.org_branch_reference.name).id}")
+
+            if stash_id:
+                #Restoring Working Directory
+                print("Restoring working directory changes...")
+                found_stash=None
+                for idx,stash in enumerate(self.repo.listall_stashes()):
+                    if stash_msg in stash.message:
+                        found_stash=idx
+                        break
+                if found_stash==0:
+                    print("Applying stash..")
+                    self.repo.stash_apply(0,reinstate_index=True)
+                    print("Applied Stash")
+                    self.repo.stash_drop(0)
+                    print("Stash Removed!")
+                else:
+                    print("Another stash occured in the meantime,please handle stash resotration manually")
+                    print(f"Codebase stash index:{found_stash}")
+                    print(f"Codebase stash msg:{stash_msg}")
+                    print(f"Codebase stash oid:{stash_id}")
 
 
 
