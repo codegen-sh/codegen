@@ -212,7 +212,7 @@ class Codebase(
         self.repo_path = Path(self._op.repo_path)
         self.ctx = CodebaseContext(projects, config=config, secrets=secrets, io=io, progress=progress)
         self.console = Console(record=True, soft_wrap=True)
-        if config.use_pink != PinkMode.OFF:
+        if self.ctx.config.use_pink != PinkMode.OFF:
             import codegen_sdk_pink
 
             self._pink_codebase = codegen_sdk_pink.Codebase(self.repo_path)
@@ -558,9 +558,13 @@ class Codebase(
         file = self.ctx.get_file(filepath, ignore_case=ignore_case)
         if file is not None:
             return file
+
         # If the file is not in the graph, check the filesystem
         absolute_path = self.ctx.to_absolute(filepath)
         if self.ctx.io.file_exists(absolute_path):
+            if self.ctx.config.use_pink != PinkMode.OFF:
+                if file := self._pink_codebase.get_file(absolute_path):
+                    return file
             return self.ctx._get_raw_file_from_path(absolute_path)
         # If the file is not in the graph, check the filesystem
         if absolute_path.parent.exists():
