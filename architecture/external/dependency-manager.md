@@ -10,6 +10,8 @@ This requires us to pull and install dependencies from a repository's `package.j
 
 Dependency Manager is an experimental solution to this problem. It creates a shadow tree of `package.json` files that includes all core dependencies and settings from the repository's original `package.json` without any custom registries or potentially problematic settings.
 
+> NOTE: Currently, this is only implemented for TypeScript projects.
+
 ## Implementation
 
 Given this example codebase structure:
