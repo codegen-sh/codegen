@@ -7,6 +7,7 @@ Some languages contain additional metadata on "exported" symbols, specifying whi
 ### Export Base Class
 
 The `Export` class serves as the foundation for language-specific export implementations. It:
+
 - Stores metadata about the export (symbol name, is default, etc.)
 - Tracks the relationship between the export and its declared symbol
 - Adds export edges to the codebase graph
@@ -25,6 +26,7 @@ The `TSExport` class implements TypeScript-specific export handling:
 The TypeScript implementation handles several types of exports:
 
 1. **Declaration Exports**
+
    - Function declarations (including generators)
    - Class declarations
    - Interface declarations
@@ -33,14 +35,16 @@ The TypeScript implementation handles several types of exports:
    - Namespace declarations
    - Variable/constant declarations
 
-2. **Value Exports**
+1. **Value Exports**
+
    - Object literals with property exports
    - Arrow functions and function expressions
    - Classes and class expressions
    - Assignment expressions
    - Primitive values and expressions
 
-3. **Special Export Forms**
+1. **Special Export Forms**
+
    - Wildcard exports (`export * from 'module'`)
    - Named re-exports (`export { name as alias } from 'module'`)
    - Default exports with various value types
@@ -48,6 +52,7 @@ The TypeScript implementation handles several types of exports:
 #### Symbol Tracking and Dependencies
 
 The export system:
+
 - Maintains relationships between exported symbols and their declarations
 - Validates export names match their declared symbols
 - Tracks dependencies through the codebase graph
@@ -59,6 +64,7 @@ The export system:
 #### Integration with Type System
 
 Exports are tightly integrated with the type system:
+
 - Exported type declarations are properly tracked
 - Symbol resolution considers both value and type exports
 - Re-exports preserve type information

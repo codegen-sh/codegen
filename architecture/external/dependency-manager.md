@@ -50,6 +50,7 @@ repo/
 ```
 
 Next, Dependency Manager iterates through all the `package.json` files and creates a "clean" version of each file. This "clean" version only includes a subset of information from the original, including:
+
 - Name
 - Version
 - Package Manager Details

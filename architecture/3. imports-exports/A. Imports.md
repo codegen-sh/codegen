@@ -9,15 +9,16 @@ Import resolution follows AST construction in the code analysis pipeline. It ide
 The import resolution system serves these purposes:
 
 1. **Dependency Tracking**: Maps relationships between files by resolving import statements.
-2. **Symbol Resolution**: Connects imported symbols to their definitions.
-3. **Module Graph Construction**: Builds a directed graph of module dependencies.
-4. **(WIP) Cross-Language Support**: Provides implementations for different programming languages.
+1. **Symbol Resolution**: Connects imported symbols to their definitions.
+1. **Module Graph Construction**: Builds a directed graph of module dependencies.
+1. **(WIP) Cross-Language Support**: Provides implementations for different programming languages.
 
 ## Core Components
 
 ### ImportResolution Class
 
 The `ImportResolution` class represents the outcome of resolving an import statement. It contains:
+
 - The source file containing the imported symbol
 - The specific symbol being imported (if applicable)
 - Whether the import references an entire file/module
@@ -25,6 +26,7 @@ The `ImportResolution` class represents the outcome of resolving an import state
 ### Import Base Class
 
 The `Import` class is the foundation for language-specific import implementations. It:
+
 - Stores metadata about the import (module path, symbol name, alias)
 - Provides the abstract `resolve_import()` method
 - Adds symbol resolution edges to the codebase graph

@@ -13,9 +13,9 @@ The Directory Tree is constructed during the initial build_graph step in codebas
 The directory tree is built through the following process:
 
 1. The `build_directory_tree` method in `CodebaseContext` is called during graph initialization or when the codebase structure changes.
-2. The method iterates through all files in the repository, creating directory objects for each directory path encountered.
-3. For each file, it adds the file to its parent directory using the `_add_file` method.
-4. Directories are created recursively as needed using the `get_directory` method with create_on_missing=True`.
+1. The method iterates through all files in the repository, creating directory objects for each directory path encountered.
+1. For each file, it adds the file to its parent directory using the `_add_file` method.
+1. Directories are created recursively as needed using the `get_directory` method with create_on_missing=True\`.
 
 ## Directory Representation
 
@@ -27,6 +27,7 @@ The `Directory` class provides a rich interface for working with directories:
 - **Directory Operations**: Rename, remove, or update directories
 
 Each `Directory` instance maintains:
+
 - A reference to its parent directory
 - Lists of files and subdirectories
 - Methods to recursively traverse the directory tree
@@ -39,6 +40,7 @@ Files are represented by the `File` class and its subclasses:
 - `SourceFile`: Specialized class for source code files that can be parsed into an AST
 
 Files maintain references to:
+
 - Their parent directory
 - Their content (loaded dynamically to preserve the source of truth)
 - For source files, the parsed AST and symbols

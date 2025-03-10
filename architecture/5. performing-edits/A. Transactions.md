@@ -7,11 +7,13 @@ Transactions represent atomic changes to files in the codebase. Each transaction
 The transaction system is built around a base `Transaction` class with specialized subclasses:
 
 ### Content Transactions
+
 - **RemoveTransaction**: Removes content between specified byte positions
 - **InsertTransaction**: Inserts new content at a specified byte position
 - **EditTransaction**: Replaces content between specified byte positions
 
 ### File Transactions
+
 - **FileAddTransaction**: Creates a new file
 - **FileRenameTransaction**: Renames an existing file
 - **FileRemoveTransaction**: Deletes a file
@@ -21,11 +23,11 @@ The transaction system is built around a base `Transaction` class with specializ
 Transactions are executed in a specific order defined by the `TransactionPriority` enum:
 
 1. **Remove** (highest priority)
-2. **Edit**
-3. **Insert**
-4. **FileAdd**
-5. **FileRename**
-6. **FileRemove**
+1. **Edit**
+1. **Insert**
+1. **FileAdd**
+1. **FileRename**
+1. **FileRemove**
 
 This ordering ensures that content is removed before editing or inserting, and that all content operations happen before file operations.
 
