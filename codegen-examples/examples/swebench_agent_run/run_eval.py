@@ -6,8 +6,10 @@ import uuid
 import modal
 import click
 import time
+from codegen.extensions.swebench.enums import SWEBenchDataset, SWEBenchLiteSubset
+from constants import DATASET_DICT
 from codegen.extensions.swebench.harness import run_agent_on_entry
-from codegen.extensions.swebench.utils import SWEBenchDataset, SweBenchExample, get_swe_bench_examples
+from codegen.extensions.swebench.utils import SweBenchExample, get_swe_bench_examples
 from codegen.extensions.swebench.report import generate_report
 from codegen.sdk.core.codebase import Codebase
 
@@ -267,26 +269,21 @@ def process_batch_local(examples: list[SweBenchExample], model: str, num_workers
 
 
 async def run_eval(
-    use_existing_preds: str | None,
     dataset: str,
-    length: int,
+    use_existing_preds: str | None = None,
+    length: int | None = None,
     instance_id: str | None = None,
     local: bool = False,
     codebases: dict[str, Codebase] = {},
     repo: str | None = None,
-    num_workers: int = 5,
+    num_workers: int = 2,
     model: str = "claude-3-7-sonnet-latest",
 ):
     run_id = use_existing_preds or str(uuid.uuid4())
     print(f"Run ID: {run_id}")
     predictions_dir = PREDS_DNAME / f"results_{run_id}"
-    dataset_dict = {
-        "lite": SWEBenchDataset.LITE,
-        "full": SWEBenchDataset.FULL,
-        "verified": SWEBenchDataset.VERIFIED,
-    }
-    dataset_enum = dataset_dict[dataset]
 
+    dataset_enum = DATASET_DICT[dataset]
     examples = get_swe_bench_examples(dataset=dataset_enum, length=length, instance_id=instance_id, repo=repo)
 
     try:
@@ -345,6 +342,8 @@ async def run_eval(
                 for error_type, count in summary["error_types"].items():
                     print(f"  {error_type}: {count}")
 
+        if isinstance(dataset_enum, SWEBenchLiteSubset):
+            dataset_enum = SWEBenchDataset.LITE
         # Generate Report on Modal
         generate_report(predictions_dir, LOG_DIR, dataset_enum, run_id)
     except Exception:
@@ -354,9 +353,9 @@ async def run_eval(
 
 
 @click.command()
+@click.option("--dataset", help="The dataset to use.", type=click.Choice(["lite", "full", "verified", "lite_small", "lite_medium", "lite_large"]), default="lite")
 @click.option("--use-existing-preds", help="The run ID of the existing predictions to use.", type=str, default=None)
-@click.option("--dataset", help="The dataset to use.", type=click.Choice(["lite", "full", "verified"]), default="lite")
-@click.option("--length", help="The number of examples to process.", type=int, default=10)
+@click.option("--length", help="The number of examples to process.", type=int, default=None)
 @click.option("--instance-id", help="The instance ID of the example to process.", type=str, default=None)
 @click.option("--local", help="Run the evaluation locally.", is_flag=True, default=False)
 @click.option("--repo", help="The repo to use.", type=str, default=None)
@@ -364,10 +363,10 @@ async def run_eval(
     "--num-workers", help="The number of workers to use. This is the number of examples that will be processed concurrently. A large number may lead to rate limiting issues.", type=int, default=5
 )
 @click.option("--model", help="The model to use.", type=str, default="claude-3-7-sonnet-latest")
-def run_eval_command(use_existing_preds, dataset, length, instance_id, local, repo, num_workers, model):
+def run_eval_command(dataset, use_existing_preds, length, instance_id, local, repo, num_workers, model):
     print(f"Repo: {repo}")
     print(f"Model: {model}")
-    asyncio.run(run_eval(use_existing_preds=use_existing_preds, dataset=dataset, length=length, instance_id=instance_id, codebases=None, local=local, repo=repo, num_workers=num_workers, model=model))
+    asyncio.run(run_eval(dataset=dataset, use_existing_preds=use_existing_preds, length=length, instance_id=instance_id, local=local, repo=repo, num_workers=num_workers, model=model))
 
 
 if __name__ == "__main__":

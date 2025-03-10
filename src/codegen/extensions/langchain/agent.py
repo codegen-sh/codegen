@@ -6,11 +6,10 @@ from langchain.tools import BaseTool
 from langchain_core.messages import SystemMessage
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph.graph import CompiledGraph
-from langgraph.prebuilt import create_react_agent
 
-from .llm import LLM
-from .prompts import REASONER_SYSTEM_MESSAGE
-from .tools import (
+from codegen.extensions.langchain.llm import LLM
+from codegen.extensions.langchain.prompts import REASONER_SYSTEM_MESSAGE
+from codegen.extensions.langchain.tools import (
     CreateFileTool,
     DeleteFileTool,
     ListDirectoryTool,
@@ -24,6 +23,8 @@ from .tools import (
     # SemanticEditTool,
     ViewFileTool,
 )
+
+from .graph import create_react_agent
 
 if TYPE_CHECKING:
     from codegen import Codebase
@@ -88,7 +89,7 @@ def create_codebase_agent(
 
     memory = MemorySaver() if memory else None
 
-    return create_react_agent(model=llm, tools=tools, prompt=system_message, checkpointer=memory, debug=debug)
+    return create_react_agent(model=llm, tools=tools, system_message=system_message, checkpointer=memory, debug=debug)
 
 
 def create_chat_agent(
@@ -137,7 +138,7 @@ def create_chat_agent(
 
     memory = MemorySaver() if memory else None
 
-    return create_react_agent(model=llm, tools=tools, prompt=system_message, checkpointer=memory, debug=debug)
+    return create_react_agent(model=llm, tools=tools, system_message=system_message, checkpointer=memory, debug=debug)
 
 
 def create_codebase_inspector_agent(
@@ -174,7 +175,7 @@ def create_codebase_inspector_agent(
     ]
 
     memory = MemorySaver() if memory else None
-    return create_react_agent(model=llm, tools=tools, prompt=system_message, checkpointer=memory, debug=debug)
+    return create_react_agent(model=llm, tools=tools, system_message=system_message, checkpointer=memory, debug=debug)
 
 
 def create_agent_with_tools(
@@ -208,4 +209,4 @@ def create_agent_with_tools(
 
     memory = MemorySaver() if memory else None
 
-    return create_react_agent(model=llm, tools=tools, prompt=system_message, checkpointer=memory, debug=debug)
+    return create_react_agent(model=llm, tools=tools, system_message=system_message, checkpointer=memory, debug=debug)

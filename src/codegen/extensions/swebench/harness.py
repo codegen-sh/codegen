@@ -70,7 +70,7 @@ def run_agent_on_entry(entry: SweBenchExample, model: str, codebase: Codebase | 
         )
         codebase = Codebase.from_repo(repo_full_name=entry.repo, commit=base_commit, language="python", config=config)  # check out the repo
 
-    agent = CodeAgent(codebase=codebase, run_id=run_id, instance_id=instance_id, model_name=model)
+    agent = CodeAgent(codebase=codebase, run_id=run_id, instance_id=instance_id, model_name=model, difficulty=entry.difficulty)
 
     pprint.pprint(instance_id)
     pprint.pprint(gold_files)

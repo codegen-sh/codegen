@@ -27,7 +27,8 @@
   Options:
   --use-existing-preds TEXT       The run ID of the existing predictions to
                                   use.
-  --dataset [lite|full|verified]  The dataset to use.
+  --dataset [lite|full|verified|lite_small|lite_medium|lite_large]
+                                  The dataset to use.
   --length INTEGER                The number of examples to process.
   --instance-id TEXT              The instance ID of the example to process.
   --repo TEXT                     The repo to use.

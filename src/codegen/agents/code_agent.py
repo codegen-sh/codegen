@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Optional
 from uuid import uuid4
 
 from langchain.tools import BaseTool
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables.config import RunnableConfig
 from langsmith import Client
 
@@ -35,6 +35,7 @@ class CodeAgent:
         tools: Optional[list[BaseTool]] = None,
         run_id: Optional[str] = None,
         instance_id: Optional[str] = None,
+        difficulty: Optional[int] = None,
         **kwargs,
     ):
         """Initialize a CodeAgent.
@@ -64,6 +65,7 @@ class CodeAgent:
         self.langsmith_client = Client()
         self.run_id = run_id
         self.instance_id = instance_id
+        self.difficulty = difficulty
 
         # Get project name from environment variable or use a default
         self.project_name = os.environ.get("LANGCHAIN_PROJECT", "RELACE")
@@ -92,9 +94,9 @@ class CodeAgent:
 
         # this message has a reducer which appends the current message to the existing history
         # see more https://langchain-ai.github.io/langgraph/concepts/low_level/#reducers
-        input = {"messages": [("user", prompt)]}
-        metadata = {"project": self.project_name, "model": self.model_name}
-        tags = [self.model_name]
+        input = {"query": prompt}
+        metadata = {"project": self.project_name}
+        tags = []
         # Add SWEBench run ID and instance ID to the metadata and tags for filtering
         if self.run_id is not None:
             metadata["swebench_run_id"] = self.run_id
@@ -112,7 +114,11 @@ class CodeAgent:
         run_ids = []
 
         for s in stream:
-            message = s["messages"][-1]
+            if len(s["messages"]) == 0:
+                message = HumanMessage(content=prompt)
+            else:
+                message = s["messages"][-1]
+
             if isinstance(message, tuple):
                 print(message)
             else:
@@ -126,7 +132,7 @@ class CodeAgent:
                     run_ids.append(message.additional_kwargs["run_id"])
 
         # Get the last message content
-        result = s["messages"][-1].content
+        result = s["final_answer"]
 
         # Try to find run IDs in the LangSmith client's recent runs
         try:
@@ -165,3 +171,21 @@ class CodeAgent:
 
     def get_state(self) -> dict:
         return self.agent.get_state(self.config)
+
+    def get_tags_metadata(self) -> tuple[list[str], dict]:
+        tags = [self.model_name]
+        metadata = {"project": self.project_name, "model": self.model_name}
+        # Add SWEBench run ID and instance ID to the metadata and tags for filtering
+        if self.run_id is not None:
+            metadata["swebench_run_id"] = self.run_id
+            tags.append(self.run_id)
+
+        if self.instance_id is not None:
+            metadata["swebench_instance_id"] = self.instance_id
+            tags.append(self.instance_id)
+
+        if self.difficulty is not None:
+            metadata["swebench_difficulty"] = self.difficulty
+            tags.append(f"difficulty_{self.difficulty}")
+
+        return tags, metadata
