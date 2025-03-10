@@ -27,13 +27,14 @@ class CreatePRObservation(Observation):
     str_template: ClassVar[str] = "Created PR #{number}: {title}"
 
 
-def create_pr(codebase: Codebase, title: str, body: str) -> CreatePRObservation:
+def create_pr(codebase: Codebase, title: str, body: str, branch_name: str = None) -> CreatePRObservation:
     """Create a PR for the current branch.
 
     Args:
         codebase: The codebase to operate on
         title: The title of the PR
         body: The body/description of the PR
+        branch_name: Optional name for the branch to create. If None, a UUID will be used.
     """
     try:
         # Check for uncommitted changes and commit them
@@ -53,7 +54,9 @@ def create_pr(codebase: Codebase, title: str, body: str) -> CreatePRObservation:
 
         # If on default branch, create a new branch
         if codebase._op.git_cli.active_branch.name == codebase._op.default_branch:
-            codebase.checkout(branch=f"{uuid.uuid4()}", create_if_missing=True)
+            # Use provided branch_name if available, otherwise generate a UUID
+            new_branch = branch_name if branch_name else f"{uuid.uuid4()}"
+            codebase.checkout(branch=new_branch, create_if_missing=True)
 
         # Create the PR
         try:
