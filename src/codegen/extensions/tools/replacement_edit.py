@@ -30,6 +30,14 @@ class ReplacementEditObservation(Observation):
         default=None,
         description="Message describing the result",
     )
+    error: Optional[str] = Field(
+        default=None,
+        description="Error message if an error occurred",
+    )
+    error_pattern: Optional[str] = Field(
+        default=None,
+        description="Regex pattern that failed to compile",
+    )
 
     str_template: ClassVar[str] = "{message}" if "{message}" else "Edited file {filepath}"
 
@@ -138,8 +146,13 @@ def replacement_edit(
         # Compile pattern for better error messages
         regex = re.compile(pattern, flags)
     except re.error as e:
-        msg = f"Invalid regex pattern: {e}"
-        raise ValueError(msg)
+        return ReplacementEditObservation(
+            status="error",
+            error=f"Invalid regex pattern: {e!s}",
+            error_pattern=pattern,
+            filepath=filepath,
+            message="Invalid regex pattern",
+        )
 
     # Perform the replacement
     if count is None:
