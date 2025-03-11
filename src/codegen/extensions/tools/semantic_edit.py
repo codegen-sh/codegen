@@ -109,7 +109,7 @@ def get_llm_edit(original_file_section: str, edit_content: str) -> str:
 
 
 def _validate_edit_boundaries(original_lines: list[str], modified_lines: list[str], start_idx: int, end_idx: int) -> None:
-    """Validate that the edit only modified lines within the specified boundaries.
+    """Validate` that the edit only modified lines within the specified boundaries.
 
     Args:
         original_lines: Original file lines

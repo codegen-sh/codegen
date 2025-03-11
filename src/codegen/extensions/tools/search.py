@@ -146,7 +146,7 @@ def _search_with_ripgrep(
         pass
 
     # Add the query and path
-    cmd.append(query)
+    cmd.append(f"{query}")
     cmd.append(search_path)
 
     # Run ripgrep

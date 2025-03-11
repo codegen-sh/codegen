@@ -30,6 +30,7 @@ supabase/config.toml
 **/scripts/*.md
 **/scripts/Personal/*
 **/infrastructure/aws_infra/.terraform/*
+pyrightconfig.json
 Edwards Scratchpad.ipynb
 
 # Allowing .env files to exist in repository, but not allowing updates
