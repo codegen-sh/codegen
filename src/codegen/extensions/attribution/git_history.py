@@ -33,15 +33,15 @@ class GitAttributionTracker:
 
         # Cache structures
         self._file_history = {}  # file path -> list of commit info
-        self._symbol_history:defaultdict[str,list] = defaultdict(list)  # symbol id -> list of commit info
+        self._symbol_history: defaultdict[str, list] = defaultdict(list)  # symbol id -> list of commit info
         self._author_contributions = defaultdict(list)  # author -> list of commit info
 
         # Track if history has been built
         self._history_built = False
 
-        self._file_symbol_location_state:dict[str,IntervalTree] = {}
+        self._file_symbol_location_state: dict[str, IntervalTree] = {}
 
-        self._commits:deque[Commit]
+        self._commits: deque[Commit]
 
     def build_history(self, max_commits: Optional[int] = None) -> None:
         """Build the git history for the codebase.
@@ -65,7 +65,7 @@ class GitAttributionTracker:
         commit_count = 0
         author_set = set()
 
-        self._commits=deque()
+        self._commits = deque()
         try:
             for commit in self.repo.walk(self.repo.head.target, SortMode.TIME):
                 # Track unique authors
@@ -153,34 +153,31 @@ class GitAttributionTracker:
             file_commit["file_path"] = file_path
             self._file_history[file_path].append(file_commit)
 
-
-    def _process_symbol_location_state(self, filepaths:list[str]):
+    def _process_symbol_location_state(self, filepaths: list[str]):
         for filepath in filepaths:
             file = self.codebase.get_file(filepath)
             filetree = IntervalTree()
             try:
                 for symbol in file.symbols:
-                    symbol:Symbol
-                    start_line=symbol.range.start_point.row+1 # 1 Indexing
-                    end_line=symbol.range.end_point.row+2 # Intervaltree is end non-inclusive
-                    filetree.addi(start_line,end_line,symbol)
+                    symbol: Symbol
+                    start_line = symbol.range.start_point.row + 1  # 1 Indexing
+                    end_line = symbol.range.end_point.row + 2  # Intervaltree is end non-inclusive
+                    filetree.addi(start_line, end_line, symbol)
             except Exception as e:
                 pass
             self._file_symbol_location_state[filepath] = filetree
 
-    def _get_symbols_affected_by_patch(self,patch:Patch,filepath):
+    def _get_symbols_affected_by_patch(self, patch: Patch, filepath):
         if filepath not in self._file_symbol_location_state:
             return []
-        symbols_affected=set()
+        symbols_affected = set()
         for hunk in patch.hunks:
             start = hunk.new_start
-            end = start+hunk.new_lines # Intervaltree is end non-inclusive
-            for interval in self._file_symbol_location_state[filepath].overlap(start,end):
+            end = start + hunk.new_lines  # Intervaltree is end non-inclusive
+            for interval in self._file_symbol_location_state[filepath].overlap(start, end):
                 symbols_affected.add(interval[2])
 
         return symbols_affected
-
-
 
     def _is_tracked_file(self, file_path: str) -> bool:
         """Check if a file should be tracked based on extension."""
@@ -198,7 +195,7 @@ class GitAttributionTracker:
         if not self._history_built:
             self.build_history()
 
-    def map_symbols_to_history(self,force=False) -> None:
+    def map_symbols_to_history(self, force=False) -> None:
         """Map symbols in the codebase to their git history. force ensures a rerun even if data is already found!"""
         self._ensure_history_built()
         if self._symbol_history:
@@ -208,19 +205,17 @@ class GitAttributionTracker:
         print("Mapping symbols to git history...")
         start_time = time.time()
 
-
-
         print("Stashing any working directory changes...")
         stash_msg = f"Codegen Attribution Stash @ {datetime.now().timestamp()}"
-        stash_id=None
+        stash_id = None
         try:
-            stash_id = self.repo.stash(self.repo.default_signature,stash_msg,include_untracked=True)
+            stash_id = self.repo.stash(self.repo.default_signature, stash_msg, include_untracked=True)
             print("Stashed!")
         except KeyError as e:
             print("Nothing to stash, proceeding.....")
         except Exception as e:
             print("Error encountered attempting to stash the current working state, stopping to preserve work, please manually clean the working directory and try again!")
-            raise(e)
+            raise (e)
 
         print("Generating initial symbol state...")
         filepaths = [file.filepath for file in self.codebase.files]
@@ -228,7 +223,7 @@ class GitAttributionTracker:
 
         elapsed = time.time() - start_time
         print(f"Finished initial symbol state generation in {elapsed:.2f} seconds.")
-        symbol_tracking_checkpoint=time.time()
+        symbol_tracking_checkpoint = time.time()
         try:
             print("Starting symbol tracking procedure....")
             for commit in self._commits:
@@ -246,36 +241,36 @@ class GitAttributionTracker:
                 }
                 commit_previous = commit.parents[0] if commit.parents else None
                 if not commit_previous:
-                    #If Last commit
+                    # If Last commit
                     empty_tree_old = self.repo.TreeBuilder().write()
-                    empty_tree=self.repo.get(empty_tree_old)
-                    diff = self.repo.diff(empty_tree,commit.tree)
+                    empty_tree = self.repo.get(empty_tree_old)
+                    diff = self.repo.diff(empty_tree, commit.tree)
                 else:
-                    diff = self.repo.diff(commit_previous, commit,context_lines=0) #We don't need context lines
+                    diff = self.repo.diff(commit_previous, commit, context_lines=0)  # We don't need context lines
 
-                if isinstance(diff,Patch):
-                    diff=[diff]
-                sync_past_filepaths=[] #Files to sync in the past commit
+                if isinstance(diff, Patch):
+                    diff = [diff]
+                sync_past_filepaths = []  # Files to sync in the past commit
                 for patch in diff:
-                    filepath=patch.delta.new_file.path
+                    filepath = patch.delta.new_file.path
                     if not self._is_tracked_file(filepath):
-                        continue #Ignore files we don't track
-                    if not patch.delta.status==DeltaStatus.ADDED: #Reversed since we're going backwards, if it doesn't exist in the past commits don't sync!
+                        continue  # Ignore files we don't track
+                    if not patch.delta.status == DeltaStatus.ADDED:  # Reversed since we're going backwards, if it doesn't exist in the past commits don't sync!
                         sync_past_filepaths.append(filepath)
-                    symbols_affected = self._get_symbols_affected_by_patch(patch,filepath)
+                    symbols_affected = self._get_symbols_affected_by_patch(patch, filepath)
                     for symbol in symbols_affected:
-                        symbol_id = f"{symbol.filepath}:{symbol.name}" #For future stuff might want to do this more neatly and allow for future dead symbols/renames
+                        symbol_id = f"{symbol.filepath}:{symbol.name}"  # For future stuff might want to do this more neatly and allow for future dead symbols/renames
                         self._symbol_history[symbol_id].append(commit_info)
 
                 if commit_previous:
-                    #If not last commit
-                    self.repo.checkout_tree(commit_previous,strategy=CheckoutStrategy.FORCE)
+                    # If not last commit
+                    self.repo.checkout_tree(commit_previous, strategy=CheckoutStrategy.FORCE)
                     self.repo.set_head(commit_previous.id)
                     files = [self.codebase.get_file(fp) for fp in sync_past_filepaths]
-                    exclude_state_files=[]
+                    exclude_state_files = []
                     for file in files:
-                        if not isinstance(file,SourceFile):
-                            #What kind of pyfiles are not source files? To investigate!
+                        if not isinstance(file, SourceFile):
+                            # What kind of pyfiles are not source files? To investigate!
                             exclude_state_files.append(file.filepath)
                             continue
                         file.sync_with_file_content()
@@ -283,21 +278,21 @@ class GitAttributionTracker:
 
         finally:
             print("Finished, restoring git repo state...")
-            self.repo.checkout(self.org_branch_reference,strategy=CheckoutStrategy.FORCE)
+            self.repo.checkout(self.org_branch_reference, strategy=CheckoutStrategy.FORCE)
 
             print(f"Restored to latest commit, newest commit id in repo is {self.repo.revparse_single(self.org_branch_reference.name).id}")
 
             if stash_id:
-                #Restoring Working Directory
+                # Restoring Working Directory
                 print("Restoring working directory changes...")
-                found_stash=None
-                for idx,stash in enumerate(self.repo.listall_stashes()):
+                found_stash = None
+                for idx, stash in enumerate(self.repo.listall_stashes()):
                     if stash_msg in stash.message:
-                        found_stash=idx
+                        found_stash = idx
                         break
-                if found_stash==0:
+                if found_stash == 0:
                     print("Applying stash..")
-                    self.repo.stash_apply(0,reinstate_index=True)
+                    self.repo.stash_apply(0, reinstate_index=True)
                     print("Applied Stash")
                     self.repo.stash_drop(0)
                     print("Stash Removed!")
@@ -307,11 +302,9 @@ class GitAttributionTracker:
                     print(f"Codebase stash msg:{stash_msg}")
                     print(f"Codebase stash oid:{stash_id}")
 
-
-
         end_time = time.time()
         elapsed_total = end_time - start_time
-        elapsed_symbol_tracking = end_time-symbol_tracking_checkpoint
+        elapsed_symbol_tracking = end_time - symbol_tracking_checkpoint
         print(f"Finished symbol tracking in {elapsed_symbol_tracking:.2f} seconds.")
         print(f"Finished mapping symbols in {elapsed_total:.2f} seconds.")
 
