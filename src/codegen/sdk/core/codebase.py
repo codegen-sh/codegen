@@ -1313,6 +1313,7 @@ class Codebase(
         config: CodebaseConfig | None = None,
         secrets: SecretsConfig | None = None,
         setup_option: SetupOption | None = None,
+        full_history: bool = False,
     ) -> "Codebase":
         """Fetches a codebase from GitHub and returns a Codebase instance.
 
@@ -1352,7 +1353,7 @@ class Codebase(
             if commit is None:
                 repo_config = RepoConfig.from_repo_path(repo_path)
                 repo_config.full_name = repo_full_name
-                repo_operator = RepoOperator(repo_config=repo_config, access_token=access_token, setup_option=setup_option)
+                repo_operator = RepoOperator.create_from_repo(repo_config=repo_config, access_token=access_token, setup_option=setup_option, full_history=full_history)
             else:
                 # Ensure the operator can handle remote operations
                 repo_operator = RepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url, full_name=repo_full_name, access_token=access_token)

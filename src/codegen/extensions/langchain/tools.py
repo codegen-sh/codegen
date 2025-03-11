@@ -116,7 +116,8 @@ class SearchInput(BaseModel):
 
     query: str = Field(
         ...,
-        description="The search query to find in the codebase. When ripgrep is available, this will be passed as a ripgrep pattern. For regex searches, set use_regex=True. Ripgrep is the preferred method.",
+        description="""The search query to find in the codebase. When ripgrep is available, this will be passed as a ripgrep pattern. For regex searches, set use_regex=True.
+        Ripgrep is the preferred method.""",
     )
     target_directories: Optional[list[str]] = Field(default=None, description="Optional list of directories to search in")
     file_extensions: Optional[list[str]] = Field(default=None, description="Optional list of file extensions to search (e.g. ['.py', '.ts'])")
@@ -849,31 +850,45 @@ def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
 
 
 class ReplacementEditInput(BaseModel):
-    filepath: str = Field(..., description="Path to the file to edit relative to the workspace root. The file must exist and be a text file.")
+    """Input for replacement editing."""
+
+    filepath: str = Field(
+        ...,
+        description=("Path to the file to edit relative to the workspace root. The file must exist and be a text file."),
+    )
     pattern: str = Field(
         ...,
-        description="""Regular expression pattern to match text that should be replaced.
-Supports all Python regex syntax including capture groups (\1, \2, etc). The pattern is compiled with re.MULTILINE flag by default.""",
+        description=(
+            "Regular expression pattern to match text that should be replaced. "
+            "Supports all Python regex syntax including capture groups (\\1, \\2, etc). "
+            "The pattern is compiled with re.MULTILINE flag by default."
+        ),
     )
     replacement: str = Field(
         ...,
-        description="""Text to replace matched patterns with.
-Can reference regex capture groups using \1, \2, etc. If using regex groups in pattern, make sure to preserve them in replacement if needed.""",
+        description=(
+            "Text to replace matched patterns with. Can reference regex capture groups using \\1, \\2, etc. If using regex groups in pattern, make sure to preserve them in replacement if needed."
+        ),
     )
     start: int = Field(
         default=1,
-        description="""Starting line number (1-indexed, inclusive) to begin replacements from.
-Use this with 'end' to limit changes to a specific region. Default is 1 (start of file).""",
+        description=("Starting line number (1-indexed, inclusive) to begin replacements from. Use this with 'end' to limit changes to a specific region. Default is 1 (start of file)."),
     )
     end: int = Field(
         default=-1,
-        description="""Ending line number (1-indexed, inclusive) to stop replacements at.
-Use -1 to indicate end of file. Use this with 'start' to limit changes to a specific region. Default is -1 (end of file).""",
+        description=(
+            "Ending line number (1-indexed, inclusive) to stop replacements at. "
+            "Use -1 to indicate end of file. Use this with 'start' to limit changes to a specific region. "
+            "Default is -1 (end of file)."
+        ),
     )
     count: Optional[int] = Field(
         default=None,
-        description="""Maximum number of replacements to make. Use None to replace all occurrences (default), or specify a number to limit replacements.
-Useful when you only want to replace the first N occurrences.""",
+        description=(
+            "Maximum number of replacements to make. "
+            "Use None to replace all occurrences (default), or specify a number to limit replacements. "
+            "Useful when you only want to replace the first N occurrences."
+        ),
     )
 
 

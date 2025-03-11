@@ -87,7 +87,7 @@ class TSHasBlock(HasBlock["TSCodeBlock", TSDecorator]):
         return jsx_elements
 
     @reader
-    def get_component(self, component_name: str) -> JSXElement[Self] | None:
+    def get_component(self, component_name: str, optional: bool = False) -> JSXElement[Self] | None:
         """Returns a specific JSX element from within this symbol's JSX elements.
 
         Searches through all JSX elements in this symbol's code block and returns the first one that matches
@@ -95,6 +95,7 @@ class TSHasBlock(HasBlock["TSCodeBlock", TSDecorator]):
 
         Args:
             component_name (str): The name of the JSX component to find.
+            optional (bool, optional): If True, return None if the component is not found. Defaults to False.
 
         Returns:
             JSXElement[Self] | None: The matching JSX element if found, None otherwise.
@@ -102,6 +103,9 @@ class TSHasBlock(HasBlock["TSCodeBlock", TSDecorator]):
         for component in self.jsx_elements:
             if component.name == component_name:
                 return component
+        if not optional:
+            msg = f"Component {component_name} not found in symbol {self.name} of file {self.file_path}. Use optional=True to return None instead."
+            raise ValueError(msg)
         return None
 
     @cached_property
