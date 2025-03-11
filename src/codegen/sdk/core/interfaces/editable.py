@@ -1003,11 +1003,11 @@ class Editable(JSONable, Generic[Parent]):
 
     @noapidoc
     @reader
-    def resolve_name(self, name: str, start_byte: int | None = None, strict: bool = False) -> Generator[Symbol | Import | WildcardImport | None]:
+    def resolve_name(self, name: str, start_byte: int | None = None, strict: bool = True) -> Generator[Symbol | Import | WildcardImport]:
         if self.parent is not None:
             yield from self.parent.resolve_name(name, start_byte or self.start_byte, strict=strict)
-        yield from self.file.resolve_name(name, start_byte or self.start_byte, strict=strict)
-        return
+        else:
+            yield from self.file.resolve_name(name, start_byte or self.start_byte, strict=strict)
 
     @cached_property
     @noapidoc

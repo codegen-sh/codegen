@@ -141,7 +141,7 @@ class Function(
 
     @noapidoc
     @reader
-    def resolve_name(self, name: str, start_byte: int | None = None, strict: bool = False) -> Generator[Symbol | Import | WildcardImport | None]:
+    def resolve_name(self, name: str, start_byte: int | None = None, strict: bool = True) -> Generator[Symbol | Import | WildcardImport]:
         from codegen.sdk.core.class_definition import Class
 
         for symbol in self.valid_symbol_names:

@@ -880,14 +880,14 @@ class SourceFile(
 
     @noapidoc
     @reader
-    def resolve_name(self, name: str, start_byte: int | None = None, strict: bool = False) -> Generator[Symbol | Import | WildcardImport | None]:
+    def resolve_name(self, name: str, start_byte: int | None = None, strict: bool = True) -> Generator[Symbol | Import | WildcardImport]:
         if resolved := self.valid_symbol_names.get(name):
             if start_byte is not None and resolved.end_byte > start_byte:
                 for symbol in reversed(self.symbols):
                     if symbol.start_byte <= start_byte and symbol.name == name:
                         yield symbol
                         return
-                if strict:
+                if not strict:
                     return
             yield resolved
             return

@@ -121,7 +121,7 @@ class PyFunction(Function[PyDecorator, PyCodeBlock, PyParameter, PyType], PyHasB
 
     @noapidoc
     @reader
-    def resolve_name(self, name: str, start_byte: int | None = None, strict: bool = False) -> Generator[Symbol | Import | WildcardImport | None]:
+    def resolve_name(self, name: str, start_byte: int | None = None, strict: bool = True) -> Generator[Symbol | Import | WildcardImport]:
         if self.is_method:
             if not self.is_static_method:
                 if len(self.parameters.symbols) > 0:
