@@ -185,7 +185,6 @@ def _search_with_ripgrep(
             # Convert to relative path within the codebase
             rel_path = os.path.relpath(filepath, codebase.repo_path)
 
-
             try:
                 line_number = int(line_number_str)
 

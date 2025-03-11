@@ -2,7 +2,7 @@
 
 RELACE_EDIT_PROMPT = """Edit a file using the Relace Instant Apply API.
 
-⚠️ IMPORTANT: The 'edit_snippet' parameter must be provided as a direct string, NOT as a dictionary or JSON object. 
+⚠️ IMPORTANT: The 'edit_snippet' parameter must be provided as a direct string, NOT as a dictionary or JSON object.
 For example, use: edit_snippet="// ... code here ..." NOT edit_snippet={"code": "// ... code here ..."}
 DO NOT pass the edit_snippet as a dictionary or JSON object or dictionary with a 'code' key .
 
