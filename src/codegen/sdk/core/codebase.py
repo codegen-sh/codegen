@@ -1353,7 +1353,7 @@ class Codebase(
             if commit is None:
                 repo_config = RepoConfig.from_repo_path(repo_path)
                 repo_config.full_name = repo_full_name
-                repo_operator = RepoOperator.create_from_repo(repo_config=repo_config, access_token=access_token, setup_option=setup_option, full_history=full_history)
+                repo_operator = RepoOperator.create_from_repo(repo_path=repo_path, url=repo_url, access_token=access_token, full_history=full_history)
             else:
                 # Ensure the operator can handle remote operations
                 repo_operator = RepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url, full_name=repo_full_name, access_token=access_token)
