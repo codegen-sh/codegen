@@ -53,7 +53,7 @@ class Name(Expression[Parent], Resolvable, Generic[Parent]):
     @noapidoc
     @reader
     def resolve_name(self, name: str, start_byte: int | None = None, strict: bool = True) -> Generator["Symbol | Import | WildcardImport"]:
-        resolved_name = next(super().resolve_name(name,start_byte or self.start_byte, strict=strict),None)
+        resolved_name = next(super().resolve_name(name, start_byte or self.start_byte, strict=strict), None)
         if resolved_name:
             yield resolved_name
         else:
