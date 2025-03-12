@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Generic, Self, TypeVar
 
+from codegen.sdk.core.interfaces.conditional_block import ConditionalBlock
 from codegen.sdk.core.statements.block_statement import BlockStatement
 from codegen.sdk.extensions.autocommit import commiter
 from codegen.shared.decorators.docs import apidoc, noapidoc
@@ -18,7 +19,7 @@ Parent = TypeVar("Parent", bound="CodeBlock[SwitchStatement, Assignment]")
 
 
 @apidoc
-class SwitchCase(BlockStatement[Parent], Generic[Parent]):
+class SwitchCase(ConditionalBlock, BlockStatement[Parent], Generic[Parent]):
     """Abstract representation for a switch case.
 
     Attributes:
@@ -34,3 +35,7 @@ class SwitchCase(BlockStatement[Parent], Generic[Parent]):
         if self.condition:
             self.condition._compute_dependencies(usage_type, dest)
         super()._compute_dependencies(usage_type, dest)
+
+    @property
+    def other_possible_blocks(self) -> list[ConditionalBlock]:
+        return [case for case in self.parent.cases if case != self]

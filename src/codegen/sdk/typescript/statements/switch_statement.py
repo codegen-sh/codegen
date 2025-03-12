@@ -24,4 +24,4 @@ class TSSwitchStatement(SwitchStatement["TSCodeBlock[Self]", "TSCodeBlock", TSSw
         code_block = self.ts_node.child_by_field_name("body")
         self.cases = []
         for node in code_block.named_children:
-            self.cases.append(TSSwitchCase(node, file_node_id, ctx, self.parent))
+            self.cases.append(TSSwitchCase(node, file_node_id, ctx, self))

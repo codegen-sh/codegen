@@ -136,7 +136,7 @@ class SearchTool(BaseTool):
     def __init__(self, codebase: Codebase) -> None:
         super().__init__(codebase=codebase)
 
-    def _run(self, query: str, target_directories: Optional[list[str]] = None, file_extensions: Optional[list[str]] = None, page: int = 1, files_per_page: int = 10, use_regex: bool = False) -> str:
+    def _run(self, query: str, file_extensions: Optional[list[str]] = None, page: int = 1, files_per_page: int = 10, use_regex: bool = False) -> str:
         result = search(self.codebase, query, file_extensions=file_extensions, page=page, files_per_page=files_per_page, use_regex=use_regex)
         return result.render()
 
@@ -171,7 +171,6 @@ Input for searching the codebase.
     1. Simple text: "function calculateTotal" (matches exactly, case-insensitive)
     2. Regex: "def.*calculate.*\(.*\)" (with use_regex=True)
     3. File-specific: "TODO" with file_extensions=[".py", ".ts"]
-    4. Directory-specific: "api" with target_directories=["src/backend"]
     """
     args_schema: ClassVar[type[BaseModel]] = EditFileInput
     codebase: Codebase = Field(exclude=True)
@@ -188,21 +187,45 @@ class CreateFileInput(BaseModel):
     """Input for creating a file."""
 
     filepath: str = Field(..., description="Path where to create the file")
-    content: str = Field(default="", description="Initial file content")
+    content: str = Field(
+        ...,
+        description="""
+Content for the new file (REQUIRED).
+
+⚠️ IMPORTANT: This parameter MUST be a STRING, not a dictionary, JSON object, or any other data type.
+Example: content="print('Hello world')"
+NOT: content={"code": "print('Hello world')"}
+                         """,
+    )
 
 
 class CreateFileTool(BaseTool):
     """Tool for creating files."""
 
     name: ClassVar[str] = "create_file"
-    description: ClassVar[str] = "Create a new file in the codebase"
+    description: ClassVar[str] = """
+Create a new file in the codebase. Always provide content for the new file, even if minimal.
+
+⚠️ CRITICAL WARNING ⚠️
+Both parameters MUST be provided as STRINGS:
+The content for the new file always needs to be provided.
+
+1. filepath: The path where to create the file (as a string)
+2. content: The content for the new file (as a STRING, NOT as a dictionary or JSON object)
+
+✅ CORRECT usage:
+create_file(filepath="path/to/file.py", content="print('Hello world')")
+
+The content parameter is REQUIRED and MUST be a STRING. If you receive a validation error about
+missing content, you are likely trying to pass a dictionary instead of a string.
+"""
     args_schema: ClassVar[type[BaseModel]] = CreateFileInput
     codebase: Codebase = Field(exclude=True)
 
     def __init__(self, codebase: Codebase) -> None:
         super().__init__(codebase=codebase)
 
-    def _run(self, filepath: str, content: str = "") -> str:
+    def _run(self, filepath: str, content: str) -> str:
         result = create_file(self.codebase, filepath, content)
         return result.render()
 

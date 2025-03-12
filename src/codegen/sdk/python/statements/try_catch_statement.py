@@ -9,11 +9,14 @@ from codegen.sdk.python.statements.catch_statement import PyCatchStatement
 from codegen.shared.decorators.docs import noapidoc, py_apidoc
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from tree_sitter import Node as PyNode
 
     from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.dataclasses.usage import UsageKind
     from codegen.sdk.core.detached_symbols.function_call import FunctionCall
+    from codegen.sdk.core.interfaces.conditional_block import ConditionalBlock
     from codegen.sdk.core.interfaces.has_name import HasName
     from codegen.sdk.core.interfaces.importable import Importable
     from codegen.sdk.core.node_id_factory import NodeId
@@ -96,3 +99,14 @@ class PyTryCatchStatement(TryCatchStatement["PyCodeBlock"], PyBlockStatement):
         if self.finalizer:
             nested_blocks.append(self.finalizer.code_block)
         return nested_blocks
+
+    @property
+    def other_possible_blocks(self) -> Sequence[ConditionalBlock]:
+        return self.except_clauses
+
+    @property
+    def end_byte_for_condition_block(self) -> int:
+        if self.code_block:
+            return self.code_block.end_byte
+        else:
+            return self.end_byte
