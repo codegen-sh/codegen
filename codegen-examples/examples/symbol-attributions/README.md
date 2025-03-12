@@ -12,12 +12,10 @@ This script performs several key functions:
    - Analyzes import relationships and dependencies
 
 ```python
-  repo_path = os.getcwd()
-  repo_config = RepoConfig.from_repo_path(repo_path)
-  repo_operator = RepoOperator(repo_config=repo_config)
+  from codegen import Codebase
 
-  project = ProjectConfig.from_repo_operator(repo_operator=repo_operator, programming_language=ProgrammingLanguage.PYTHON)
-  codebase = Codebase(projects=[project])
+  # Initialize codebase object from directory
+  codebase = Codebase.from_repo("your-org/your-repo", language="python")
 ```
 
 2. **AI Impact Analysis**
