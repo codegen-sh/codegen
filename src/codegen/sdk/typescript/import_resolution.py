@@ -215,63 +215,67 @@ class TSImport(Import["TSFile"], Exportable):
                 - symbol: The specific symbol being imported (None for module imports)
                 - imports_file: True if importing the entire file/module
         """
-        self.file: TSFile  # Type cast ts_file
-        base_path = base_path or self.ctx.projects[0].base_path or ""
+        try:
+            self.file: TSFile  # Type cast ts_file
+            base_path = base_path or self.ctx.projects[0].base_path or ""
 
-        # Get the import source path
-        import_source = self.module.source.strip('"').strip("'") if self.module else ""
+            # Get the import source path
+            import_source = self.module.source.strip('"').strip("'") if self.module else ""
 
-        # Try to resolve the import using the tsconfig paths
-        if self.file.ts_config:
-            import_source = self.file.ts_config.translate_import_path(import_source)
+            # Try to resolve the import using the tsconfig paths
+            if self.file.ts_config:
+                import_source = self.file.ts_config.translate_import_path(import_source)
 
-        # Check if need to resolve relative import path to absolute path
-        relative_import = False
-        if import_source.startswith("."):
-            relative_import = True
+            # Check if need to resolve relative import path to absolute path
+            relative_import = False
+            if import_source.startswith("."):
+                relative_import = True
 
-        # Insert base path
-        # This has the happen before the relative path resolution
-        if not import_source.startswith(base_path):
-            import_source = os.path.join(base_path, import_source)
+            # Insert base path
+            # This has the happen before the relative path resolution
+            if not import_source.startswith(base_path):
+                import_source = os.path.join(base_path, import_source)
 
-        # If the import is relative, convert it to an absolute path
-        if relative_import:
-            import_source = self._relative_to_absolute_import(import_source)
-        else:
-            import_source = os.path.normpath(import_source)
+            # If the import is relative, convert it to an absolute path
+            if relative_import:
+                import_source = self._relative_to_absolute_import(import_source)
+            else:
+                import_source = os.path.normpath(import_source)
 
-        # covers the case where the import is from a directory ex: "import { postExtract } from './post'"
-        import_name = import_source.split("/")[-1]
-        if "." not in import_name:
-            possible_paths = ["index.ts", "index.js", "index.tsx", "index.jsx"]
-            for p_path in possible_paths:
-                if self.ctx.to_absolute(os.path.join(import_source, p_path)).exists():
-                    import_source = os.path.join(import_source, p_path)
-                    break
+            # covers the case where the import is from a directory ex: "import { postExtract } from './post'"
+            import_name = import_source.split("/")[-1]
+            if "." not in import_name:
+                possible_paths = ["index.ts", "index.js", "index.tsx", "index.jsx"]
+                for p_path in possible_paths:
+                    if self.ctx.to_absolute(os.path.join(import_source, p_path)).exists():
+                        import_source = os.path.join(import_source, p_path)
+                        break
 
-        # Loop through all extensions and try to find the file
-        extensions = ["", ".ts", ".d.ts", ".tsx", ".d.tsx", ".js", ".jsx"]
-        # Try both filename with and without extension
-        for import_source_base in (import_source, os.path.splitext(import_source)[0]):
-            for extension in extensions:
-                import_source_ext = import_source_base + extension
-                if file := self.ctx.get_file(import_source_ext):
-                    if self.is_module_import():
-                        return ImportResolution(from_file=file, symbol=None, imports_file=True)
-                    else:
-                        # If the import is a named import, resolve to the named export in the file
-                        if self.symbol_name is None:
+            # Loop through all extensions and try to find the file
+            extensions = ["", ".ts", ".d.ts", ".tsx", ".d.tsx", ".js", ".jsx"]
+            # Try both filename with and without extension
+            for import_source_base in (import_source, os.path.splitext(import_source)[0]):
+                for extension in extensions:
+                    import_source_ext = import_source_base + extension
+                    if file := self.ctx.get_file(import_source_ext):
+                        if self.is_module_import():
                             return ImportResolution(from_file=file, symbol=None, imports_file=True)
-                        export_symbol = file.get_export(export_name=self.symbol_name.source)
-                        if export_symbol is None:
-                            # If the named export is not found, it is importing a module re-export.
-                            # In this case, resolve to the file itself and dynamically resolve the symbol later.
-                            return ImportResolution(from_file=file, symbol=None, imports_file=True)
-                        return ImportResolution(from_file=file, symbol=export_symbol)
+                        else:
+                            # If the import is a named import, resolve to the named export in the file
+                            if self.symbol_name is None:
+                                return ImportResolution(from_file=file, symbol=None, imports_file=True)
+                            export_symbol = file.get_export(export_name=self.symbol_name.source)
+                            if export_symbol is None:
+                                # If the named export is not found, it is importing a module re-export.
+                                # In this case, resolve to the file itself and dynamically resolve the symbol later.
+                                return ImportResolution(from_file=file, symbol=None, imports_file=True)
+                            return ImportResolution(from_file=file, symbol=export_symbol)
 
-        # If the imported file is not found, treat it as an external module
-        return None
+            # If the imported file is not found, treat it as an external module
+            return None
+        except AssertionError:
+            # Codebase is probably trying to import file from outside repo
+            return None
 
     @noapidoc
     @reader
