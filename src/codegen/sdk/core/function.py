@@ -148,7 +148,7 @@ class Function(
             if symbol.name == name and (start_byte is None or (symbol.start_byte if isinstance(symbol, Class | Function) else symbol.end_byte) <= start_byte):
                 yield symbol
                 return
-        yield from super().resolve_name(name, start_byte)
+        yield from super().resolve_name(name, start_byte, strict=strict)
 
     @cached_property
     @noapidoc

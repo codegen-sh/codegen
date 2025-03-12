@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Generic, TypeVar
 
 from codegen.sdk.core.statements.catch_statement import CatchStatement
 from codegen.sdk.typescript.statements.block_statement import TSBlockStatement
-from codegen.shared.decorators.docs import apidoc
+from codegen.shared.decorators.docs import apidoc, noapidoc
 
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
@@ -31,5 +31,6 @@ class TSCatchStatement(CatchStatement[Parent], TSBlockStatement, Generic[Parent]
         self.condition = self.child_by_field_name("parameter")
 
     @property
+    @noapidoc
     def other_possible_blocks(self) -> list[ConditionalBlock]:
         return [self.parent]

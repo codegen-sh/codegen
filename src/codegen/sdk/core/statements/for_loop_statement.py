@@ -57,4 +57,4 @@ class ForLoopStatement(BlockStatement[Parent], HasBlock, ABC, Generic[Parent]):
                                     return
                                 yield frame.top.node
                                 return
-        yield from super().resolve_name(name, start_byte)
+        yield from super().resolve_name(name, start_byte, strict=strict)
