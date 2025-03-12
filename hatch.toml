@@ -38,8 +38,12 @@ compile_args = [
   ], arch = "arm64", arg = "-mcpu=apple-m1" },
 ]
 env = [
-  { env = "CC", arg = "cc", platforms = ["linux"] },
-  { env = "CC", arg = "clang", platforms = ["darwin"] }
+  { env = "CC", arg = "cc", platforms = [
+    "linux",
+  ] },
+  { env = "CC", arg = "clang", platforms = [
+    "darwin",
+  ] },
 ]
 cythonize_kwargs = { annotate = true, nthreads = 16, exclude_failures = false, cache = true }
 compiled_sdist = true
