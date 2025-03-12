@@ -120,7 +120,7 @@ class CodeAgent:
             if isinstance(message, tuple):
                 print(message)
             else:
-                if isinstance(message, AIMessage) and isinstance(message.content, list) and "text" in message.content[0]:
+                if isinstance(message, AIMessage) and isinstance(message.content, list) and len(message.content) > 0 and "text" in message.content[0]:
                     AIMessage(message.content[0]["text"]).pretty_print()
                 else:
                     message.pretty_print()
