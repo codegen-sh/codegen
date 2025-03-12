@@ -96,6 +96,7 @@ class TSTryCatchStatement(TryCatchStatement["TSCodeBlock"], TSBlockStatement):
         return nested_blocks
 
     @property
+    @noapidoc
     def other_possible_blocks(self) -> Sequence[ConditionalBlock]:
         if self.catch:
             return [self.catch]
@@ -103,6 +104,7 @@ class TSTryCatchStatement(TryCatchStatement["TSCodeBlock"], TSBlockStatement):
             return []
 
     @property
+    @noapidoc
     def end_byte_for_condition_block(self) -> int:
         if self.code_block:
             return self.code_block.end_byte
