@@ -119,8 +119,13 @@ def relace_edit(codebase: Codebase, filepath: str, edit_snippet: str, api_key: O
     try:
         file = codebase.get_file(filepath)
     except ValueError:
-        msg = f"File not found: {filepath}"
-        raise FileNotFoundError(msg)
+        # Return an observation with error status instead of raising an exception
+        # Include the full filepath in the error message
+        return RelaceEditObservation(
+            status="error",
+            error=f"File not found: {filepath}. Please provide the full filepath relative to the repository root.",
+            filepath=filepath,
+        )
 
     # Get the original content
     original_content = file.content
