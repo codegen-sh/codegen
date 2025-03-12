@@ -225,7 +225,12 @@ class CodebaseContext:
         # =====[ Add all files to the graph in parallel ]=====
         syncs = defaultdict(lambda: [])
         if not self.config.disable_file_parse:
-            for filepath, _ in repo_operator.iter_files(subdirs=self.projects[0].subdirectories, extensions=self.extensions, ignore_list=GLOBAL_FILE_IGNORE_LIST):
+            for filepath, _ in repo_operator.iter_files(
+                subdirs=self.projects[0].subdirectories,
+                extensions=self.extensions,
+                ignore_list=GLOBAL_FILE_IGNORE_LIST,
+                skip_content=True,
+            ):
                 syncs[SyncType.ADD].append(self.to_absolute(filepath))
         logger.info(f"> Parsing {len(syncs[SyncType.ADD])} files in {self.projects[0].subdirectories or 'ALL'} subdirectories with {self.extensions} extensions")
         self._process_diff_files(syncs, incremental=False)

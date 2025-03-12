@@ -317,6 +317,7 @@ class Codebase(
             for filepath, _ in self._op.iter_files(
                 extensions=None if extensions == "*" else extensions,
                 ignore_list=GLOBAL_FILE_IGNORE_LIST,
+                skip_content=True,
             ):
                 files.append(self.get_file(filepath, optional=False))
         # Sort files alphabetically
