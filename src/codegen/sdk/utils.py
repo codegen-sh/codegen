@@ -353,7 +353,7 @@ def use_cwd(path):
 
     Example:
         ```python
-        with use_cwd('/path/to/directory'):
+        with use_cwd("/path/to/directory"):
             # Code here runs with the working directory set to '/path/to/directory'
             ...
         # Working directory is restored to the original
@@ -365,4 +365,3 @@ def use_cwd(path):
         yield path
     finally:
         os.chdir(old_cwd)
-
