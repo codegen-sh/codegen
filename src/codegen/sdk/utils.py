@@ -339,3 +339,30 @@ def is_minified_js(content):
     except Exception as e:
         print(f"Error analyzing content: {e}")
         return False
+
+
+@contextmanager
+def use_cwd(path):
+    """Context manager that temporarily changes the current working directory.
+
+    Args:
+        path (str): The directory path to change to.
+
+    Yields:
+        str: The new current working directory.
+
+    Example:
+        ```python
+        with use_cwd('/path/to/directory'):
+            # Code here runs with the working directory set to '/path/to/directory'
+            ...
+        # Working directory is restored to the original
+        ```
+    """
+    old_cwd = os.getcwd()
+    try:
+        os.chdir(path)
+        yield path
+    finally:
+        os.chdir(old_cwd)
+

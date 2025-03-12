@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING
 
 from codegen.sdk.codebase.config import TestFlags
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
+from codegen.sdk.utils import use_cwd
 
 if TYPE_CHECKING:
     from codegen.sdk.core.file import SourceFile
@@ -272,27 +273,31 @@ def func():
 """,
         },
     ) as codebase:
-        src_file: SourceFile = codebase.get_file("a/b/c/src.py")
-        consumer_file: SourceFile = codebase.get_file("consumer.py")
+        # Wrap CWD since we are using py_resolve_syspath
+        with use_cwd(tmpdir):
+            src_file: SourceFile = codebase.get_file("a/b/c/src.py")
+            consumer_file: SourceFile = codebase.get_file("consumer.py")
 
-        # Enable resolution via sys.path
-        codebase.ctx.config.py_resolve_syspath = True
+            # Enable resolution via sys.path
+            codebase.ctx.config.py_resolve_syspath = True
+            # Allow resolving files and modules outside of the repo path
+            codebase.ctx.config.allow_external = True
 
-        # =====[ Imports cannot be found without sys.path being set ]=====
-        assert len(consumer_file.imports) == 1
-        src_import: Import = consumer_file.imports[0]
-        src_import_resolution: ImportResolution = src_import.resolve_import()
-        assert src_import_resolution is None
+            # =====[ Imports cannot be found without sys.path being set ]=====
+            assert len(consumer_file.imports) == 1
+            src_import: Import = consumer_file.imports[0]
+            src_import_resolution: ImportResolution = src_import.resolve_import()
+            assert src_import_resolution is None
 
-        # Modify sys.path for this test only
-        monkeypatch.syspath_prepend("a")
+            # Modify sys.path for this test only
+            monkeypatch.syspath_prepend("a")
 
-        # =====[ Imports can be found with sys.path set and active ]=====
-        codebase.ctx.config.py_resolve_syspath = True
-        src_import_resolution = src_import.resolve_import()
-        assert src_import_resolution
-        assert src_import_resolution.from_file is src_file
-        assert src_import_resolution.imports_file is True
+            # =====[ Imports can be found with sys.path set and active ]=====
+            codebase.ctx.config.py_resolve_syspath = True
+            src_import_resolution = src_import.resolve_import()
+            assert src_import_resolution
+            assert src_import_resolution.from_file is src_file
+            assert src_import_resolution.imports_file is True
 
 
 def test_import_resolution_file_custom_resolve_path(tmpdir: str) -> None:
@@ -366,28 +371,32 @@ def func():
 """,
         },
     ) as codebase:
-        src_file: SourceFile = codebase.get_file("a/b/c/src.py")
-        consumer_file: SourceFile = codebase.get_file("consumer.py")
+        # Wrap CWD since we are using py_resolve_syspath
+        with use_cwd(tmpdir):
+            src_file: SourceFile = codebase.get_file("a/b/c/src.py")
+            consumer_file: SourceFile = codebase.get_file("consumer.py")
 
-        # Ensure we don't have overrites and enable syspath resolution
-        codebase.ctx.config.import_resolution_paths = []
-        codebase.ctx.config.py_resolve_syspath = True
+            # Ensure we don't have overrites and enable syspath resolution
+            codebase.ctx.config.import_resolution_paths = []
+            codebase.ctx.config.py_resolve_syspath = True
+            # Allow resolving files and modules outside of the repo path
+            codebase.ctx.config.allow_external = True
 
-        # =====[ Import with sys.path set can be found ]=====
-        assert len(consumer_file.imports) == 1
-        # Modify sys.path for this test only
-        monkeypatch.syspath_prepend("a")
-        src_import: Import = consumer_file.imports[0]
-        src_import_resolution = src_import.resolve_import()
-        assert src_import_resolution
-        assert src_import_resolution.from_file.file_path == "a/c/src.py"
+            # =====[ Import with sys.path set can be found ]=====
+            assert len(consumer_file.imports) == 1
+            # Modify sys.path for this test only
+            monkeypatch.syspath_prepend("a")
+            src_import: Import = consumer_file.imports[0]
+            src_import_resolution = src_import.resolve_import()
+            assert src_import_resolution
+            assert src_import_resolution.from_file.file_path == "a/c/src.py"
 
-        # =====[ Imports can be found with custom resolve over sys.path ]=====
-        codebase.ctx.config.import_resolution_paths = ["a/b"]
-        src_import_resolution = src_import.resolve_import()
-        assert src_import_resolution
-        assert src_import_resolution.from_file is src_file
-        assert src_import_resolution.imports_file is True
+            # =====[ Imports can be found with custom resolve over sys.path ]=====
+            codebase.ctx.config.import_resolution_paths = ["a/b"]
+            src_import_resolution = src_import.resolve_import()
+            assert src_import_resolution
+            assert src_import_resolution.from_file is src_file
+            assert src_import_resolution.imports_file is True
 
 
 def test_import_resolution_default_conflicts_overrite(tmpdir: str, monkeypatch) -> None:
@@ -412,34 +421,38 @@ def func():
 """,
         },
     ) as codebase:
-        src_file: SourceFile = codebase.get_file("a/src.py")
-        src_file_overrite: SourceFile = codebase.get_file("b/a/src.py")
-        consumer_file: SourceFile = codebase.get_file("consumer.py")
+        # Wrap CWD since we are using py_resolve_syspath
+        with use_cwd(tmpdir):
+            src_file: SourceFile = codebase.get_file("a/src.py")
+            src_file_overrite: SourceFile = codebase.get_file("b/a/src.py")
+            consumer_file: SourceFile = codebase.get_file("consumer.py")
 
-        # Ensure we don't have overrites and enable syspath resolution
-        codebase.ctx.config.import_resolution_paths = []
-        codebase.ctx.config.py_resolve_syspath = True
+            # Ensure we don't have overrites and enable syspath resolution
+            codebase.ctx.config.import_resolution_paths = []
+            codebase.ctx.config.py_resolve_syspath = True
+            # Allow resolving files and modules outside of the repo path
+            codebase.ctx.config.allow_external = True
 
-        # =====[ Default import works ]=====
-        assert len(consumer_file.imports) == 1
-        src_import: Import = consumer_file.imports[0]
-        src_import_resolution = src_import.resolve_import()
-        assert src_import_resolution
-        assert src_import_resolution.from_file is src_file
+            # =====[ Default import works ]=====
+            assert len(consumer_file.imports) == 1
+            src_import: Import = consumer_file.imports[0]
+            src_import_resolution = src_import.resolve_import()
+            assert src_import_resolution
+            assert src_import_resolution.from_file is src_file
 
-        # =====[ Sys.path overrite has precedence ]=====
-        monkeypatch.syspath_prepend("b")
-        src_import_resolution = src_import.resolve_import()
-        assert src_import_resolution
-        assert src_import_resolution.from_file is not src_file
-        assert src_import_resolution.from_file is src_file_overrite
+            # =====[ Sys.path overrite has precedence ]=====
+            monkeypatch.syspath_prepend("b")
+            src_import_resolution = src_import.resolve_import()
+            assert src_import_resolution
+            assert src_import_resolution.from_file is not src_file
+            assert src_import_resolution.from_file is src_file_overrite
 
-        # =====[ Custom overrite has precedence ]=====
-        codebase.ctx.config.import_resolution_paths = ["b"]
-        src_import_resolution = src_import.resolve_import()
-        assert src_import_resolution
-        assert src_import_resolution.from_file is not src_file
-        assert src_import_resolution.from_file is src_file_overrite
+            # =====[ Custom overrite has precedence ]=====
+            codebase.ctx.config.import_resolution_paths = ["b"]
+            src_import_resolution = src_import.resolve_import()
+            assert src_import_resolution
+            assert src_import_resolution.from_file is not src_file
+            assert src_import_resolution.from_file is src_file_overrite
 
 
 def test_import_resolution_init_wildcard(tmpdir: str) -> None:
