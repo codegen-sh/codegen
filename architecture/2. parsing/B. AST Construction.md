@@ -74,4 +74,4 @@ Statements have another layer of complexity. They are essentially pattern based 
 
 ## Next Step
 
-After the AST is constructed, the system moves on to [Import Resolution](../3.%20imports-exports/A.%20Imports.md) to analyze module dependencies and resolve symbols across files.
+After the AST is constructed, the system moves on to [Directory Parsing](./C.%20Directory%20Parsing.md) to build a hierarchical representation of the codebase's directory structure.

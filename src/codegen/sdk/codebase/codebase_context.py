@@ -609,6 +609,12 @@ class CodebaseContext:
         return [(x[0], x[1], x[2].type, x[2].usage) for x in self._graph.weighted_edge_list()]
 
     def get_file(self, file_path: os.PathLike, ignore_case: bool = False) -> SourceFile | None:
+        # If not part of repo path, return None
+        absolute_path = self.to_absolute(file_path)
+        if not self.is_subdir(absolute_path):
+            assert False, f"File {file_path} is not part of the repository path"
+
+        # Check if file exists in graph
         node_id = self.filepath_idx.get(str(self.to_relative(file_path)), None)
         if node_id is not None:
             return self.get_node(node_id)

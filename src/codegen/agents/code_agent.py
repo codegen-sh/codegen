@@ -33,9 +33,8 @@ class CodeAgent:
         model_name: str = "claude-3-7-sonnet-latest",
         memory: bool = True,
         tools: Optional[list[BaseTool]] = None,
-        run_id: Optional[str] = None,
-        instance_id: Optional[str] = None,
-        difficulty: Optional[int] = None,
+        tags: Optional[list[str]] = [],
+        metadata: Optional[dict] = {},
         **kwargs,
     ):
         """Initialize a CodeAgent.
@@ -46,6 +45,8 @@ class CodeAgent:
             model_name: Name of the model to use
             memory: Whether to let LLM keep track of the conversation history
             tools: Additional tools to use
+            tags: Tags to add to the agent trace. Must be of the same type.
+            metadata: Metadata to use for the agent. Must be a dictionary.
             **kwargs: Additional LLM configuration options. Supported options:
                 - temperature: Temperature parameter (0-1)
                 - top_p: Top-p sampling parameter (0-1)
@@ -63,13 +64,20 @@ class CodeAgent:
         )
         self.model_name = model_name
         self.langsmith_client = Client()
-        self.run_id = run_id
-        self.instance_id = instance_id
-        self.difficulty = difficulty
 
         # Get project name from environment variable or use a default
         self.project_name = os.environ.get("LANGCHAIN_PROJECT", "RELACE")
         print(f"Using LangSmith project: {self.project_name}")
+
+        # Initialize tags for agent trace
+        self.tags = [*tags, self.model_name]
+
+        # Initialize metadata for agent trace
+        self.metadata = {
+            "project": self.project_name,
+            "model": self.model_name,
+            **metadata,
+        }
 
     def run(self, prompt: str, thread_id: Optional[str] = None) -> str:
         """Run the agent with a prompt.
@@ -95,18 +103,8 @@ class CodeAgent:
         # this message has a reducer which appends the current message to the existing history
         # see more https://langchain-ai.github.io/langgraph/concepts/low_level/#reducers
         input = {"query": prompt}
-        metadata = {"project": self.project_name}
-        tags = []
-        # Add SWEBench run ID and instance ID to the metadata and tags for filtering
-        if self.run_id is not None:
-            metadata["swebench_run_id"] = self.run_id
-            tags.append(self.run_id)
 
-        if self.instance_id is not None:
-            metadata["swebench_instance_id"] = self.instance_id
-            tags.append(self.instance_id)
-
-        config = RunnableConfig(configurable={"thread_id": thread_id}, tags=tags, metadata=metadata, recursion_limit=100)
+        config = RunnableConfig(configurable={"thread_id": thread_id}, tags=self.tags, metadata=self.metadata, recursion_limit=100)
         # we stream the steps instead of invoke because it allows us to access intermediate nodes
         stream = self.agent.stream(input, config=config, stream_mode="values")
 

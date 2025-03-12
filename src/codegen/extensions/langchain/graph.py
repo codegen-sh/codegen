@@ -63,7 +63,7 @@ class AgentGraph:
         # the retry policy has an initial interval, a backoff factor, and a max interval of controlling the
         # amount of time between retries
         retry_policy = RetryPolicy(
-            retry_on=[anthropic.RateLimitError, openai.RateLimitError],
+            retry_on=[anthropic.RateLimitError, openai.RateLimitError, anthropic.InternalServerError],
             max_attempts=10,
             initial_interval=30.0,  # Start with 30 second wait
             backoff_factor=2,  # Double the wait time each retry

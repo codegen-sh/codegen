@@ -85,73 +85,87 @@ class PyImport(Import["PyFile"]):
     @noapidoc
     @reader
     def resolve_import(self, base_path: str | None = None, *, add_module_name: str | None = None) -> ImportResolution[PyFile] | None:
-        base_path = base_path or self.ctx.projects[0].base_path or ""
-        module_source = self.module.source if self.module else ""
-        symbol_name = self.symbol_name.source if self.symbol_name else ""
-        if add_module_name:
-            module_source += f".{symbol_name}"
-            symbol_name = add_module_name
-        # If import is relative, convert to absolute path
-        if module_source.startswith("."):
-            module_source = self._relative_to_absolute_import(module_source)
+        try:
+            base_path = base_path or self.ctx.projects[0].base_path or ""
+            module_source = self.module.source if self.module else ""
+            symbol_name = self.symbol_name.source if self.symbol_name else ""
+            if add_module_name:
+                module_source += f".{symbol_name}"
+                symbol_name = add_module_name
+            # If import is relative, convert to absolute path
+            if module_source.startswith("."):
+                module_source = self._relative_to_absolute_import(module_source)
 
-        # =====[ Check if we are importing an entire file ]=====
-        if self.is_module_import():
-            # covers `import a.b.c` case and `from a.b.c import *` case
-            filepath = os.path.join(base_path, module_source.replace(".", "/") + ".py")
-        else:
-            # This is the case where you do:
-            # `from a.b.c import foo`
-            filepath = os.path.join(
-                base_path,
-                module_source.replace(".", "/") + "/" + symbol_name + ".py",
-            )
+            # =====[ Check if we are importing an entire file ]=====
+            if self.is_module_import():
+                # covers `import a.b.c` case and `from a.b.c import *` case
+                filepath = os.path.join(base_path, module_source.replace(".", "/") + ".py")
+            else:
+                # This is the case where you do:
+                # `from a.b.c import foo`
+                filepath = os.path.join(
+                    base_path,
+                    module_source.replace(".", "/") + "/" + symbol_name + ".py",
+                )
 
-        # =====[ Check if we are importing an entire file with custom resolve path or sys.path enabled ]=====
-        if len(self.ctx.config.import_resolution_paths) > 0 or self.ctx.config.py_resolve_syspath:
-            # Handle resolve overrides first if both is set
-            resolve_paths: list[str] = self.ctx.config.import_resolution_paths + (sys.path if self.ctx.config.py_resolve_syspath else [])
-            if file := self._file_by_custom_resolve_paths(resolve_paths, filepath):
+            # =====[ Check if we are importing an entire file with custom resolve path or sys.path enabled ]=====
+            if len(self.ctx.config.import_resolution_paths) > 0 or self.ctx.config.py_resolve_syspath:
+                # Handle resolve overrides first if both is set
+                resolve_paths: list[str] = self.ctx.config.import_resolution_paths + (sys.path if self.ctx.config.py_resolve_syspath else [])
+                if file := self._file_by_custom_resolve_paths(resolve_paths, filepath):
+                    return ImportResolution(from_file=file, symbol=None, imports_file=True)
+
+            # =====[ Default path ]=====
+            if file := self.ctx.get_file(filepath):
                 return ImportResolution(from_file=file, symbol=None, imports_file=True)
 
-        # =====[ Default path ]=====
-        if file := self.ctx.get_file(filepath):
-            return ImportResolution(from_file=file, symbol=None, imports_file=True)
+            filepath = filepath.replace(".py", "/__init__.py")
+            if file := self.ctx.get_file(filepath):
+                # TODO - I think this is another edge case, due to `dao/__init__.py` etc.
+                # You can't do `from a.b.c import foo` => `foo.utils.x` right now since `foo` is just a file...
+                return ImportResolution(from_file=file, symbol=None, imports_file=True)
 
-        filepath = filepath.replace(".py", "/__init__.py")
-        if file := self.ctx.get_file(filepath):
-            # TODO - I think this is another edge case, due to `dao/__init__.py` etc.
-            # You can't do `from a.b.c import foo` => `foo.utils.x` right now since `foo` is just a file...
-            return ImportResolution(from_file=file, symbol=None, imports_file=True)
+            # =====[ Check if `module.py` file exists in the graph with custom resolve path or sys.path enabled  ]=====
+            filepath = module_source.replace(".", "/") + ".py"
+            if len(self.ctx.config.import_resolution_paths) > 0 or self.ctx.config.py_resolve_syspath:
+                # Handle resolve overrides first if both is set
+                resolve_paths: list[str] = self.ctx.config.import_resolution_paths + (sys.path if self.ctx.config.py_resolve_syspath else [])
+                if file := self._file_by_custom_resolve_paths(resolve_paths, filepath):
+                    symbol = file.get_node_by_name(symbol_name)
+                    return ImportResolution(from_file=file, symbol=symbol)
 
-        # =====[ Check if `module.py` file exists in the graph with custom resolve path or sys.path enabled  ]=====
-        filepath = module_source.replace(".", "/") + ".py"
-        if len(self.ctx.config.import_resolution_paths) > 0 or self.ctx.config.py_resolve_syspath:
-            # Handle resolve overrides first if both is set
-            resolve_paths: list[str] = self.ctx.config.import_resolution_paths + (sys.path if self.ctx.config.py_resolve_syspath else [])
-            if file := self._file_by_custom_resolve_paths(resolve_paths, filepath):
+            # =====[ Check if `module.py` file exists in the graph ]=====
+            filepath = os.path.join(base_path, filepath)
+            if file := self.ctx.get_file(filepath):
                 symbol = file.get_node_by_name(symbol_name)
-                return ImportResolution(from_file=file, symbol=symbol)
-
-        # =====[ Check if `module.py` file exists in the graph ]=====
-        filepath = os.path.join(base_path, filepath)
-        if file := self.ctx.get_file(filepath):
-            symbol = file.get_node_by_name(symbol_name)
-            if symbol is None:
-                if file.get_node_from_wildcard_chain(symbol_name):
-                    return ImportResolution(from_file=file, symbol=None, imports_file=True)
+                if symbol is None:
+                    if file.get_node_from_wildcard_chain(symbol_name):
+                        return ImportResolution(from_file=file, symbol=None, imports_file=True)
+                    else:
+                        # This is most likely a broken import
+                        return ImportResolution(from_file=file, symbol=None)
                 else:
-                    # This is most likely a broken import
-                    return ImportResolution(from_file=file, symbol=None)
-            else:
-                return ImportResolution(from_file=file, symbol=symbol)
+                    return ImportResolution(from_file=file, symbol=symbol)
 
-        # =====[ Check if `module/__init__.py` file exists in the graph with custom resolve path or sys.path enabled ]=====
-        filepath = filepath.replace(".py", "/__init__.py")
-        if len(self.ctx.config.import_resolution_paths) > 0 or self.ctx.config.py_resolve_syspath:
-            # Handle resolve overrides first if both is set
-            resolve_paths: list[str] = self.ctx.config.import_resolution_paths + (sys.path if self.ctx.config.py_resolve_syspath else [])
-            if from_file := self._file_by_custom_resolve_paths(resolve_paths, filepath):
+            # =====[ Check if `module/__init__.py` file exists in the graph with custom resolve path or sys.path enabled ]=====
+            filepath = filepath.replace(".py", "/__init__.py")
+            if len(self.ctx.config.import_resolution_paths) > 0 or self.ctx.config.py_resolve_syspath:
+                # Handle resolve overrides first if both is set
+                resolve_paths: list[str] = self.ctx.config.import_resolution_paths + (sys.path if self.ctx.config.py_resolve_syspath else [])
+                if from_file := self._file_by_custom_resolve_paths(resolve_paths, filepath):
+                    symbol = from_file.get_node_by_name(symbol_name)
+                    if symbol is None:
+                        if from_file.get_node_from_wildcard_chain(symbol_name):
+                            return ImportResolution(from_file=from_file, symbol=None, imports_file=True)
+                        else:
+                            # This is most likely a broken import
+                            return ImportResolution(from_file=from_file, symbol=None)
+
+                    else:
+                        return ImportResolution(from_file=from_file, symbol=symbol)
+
+            # =====[ Check if `module/__init__.py` file exists in the graph ]=====
+            if from_file := self.ctx.get_file(filepath):
                 symbol = from_file.get_node_by_name(symbol_name)
                 if symbol is None:
                     if from_file.get_node_from_wildcard_chain(symbol_name):
@@ -163,40 +177,30 @@ class PyImport(Import["PyFile"]):
                 else:
                     return ImportResolution(from_file=from_file, symbol=symbol)
 
-        # =====[ Check if `module/__init__.py` file exists in the graph ]=====
-        if from_file := self.ctx.get_file(filepath):
-            symbol = from_file.get_node_by_name(symbol_name)
-            if symbol is None:
-                if from_file.get_node_from_wildcard_chain(symbol_name):
-                    return ImportResolution(from_file=from_file, symbol=None, imports_file=True)
-                else:
-                    # This is most likely a broken import
-                    return ImportResolution(from_file=from_file, symbol=None)
+            # =====[ Case: Can't resolve the import ]=====
+            if base_path == "":
+                # Try to resolve with "src" as the base path
+                return self.resolve_import(base_path="src", add_module_name=add_module_name)
+            if base_path == "src":
+                # Try "test" next
+                return self.resolve_import(base_path="test", add_module_name=add_module_name)
 
-            else:
-                return ImportResolution(from_file=from_file, symbol=symbol)
+            # if not G_override:
+            #     for resolver in ctx.import_resolvers:
+            #         if imp := resolver.resolve(self):
+            #             return imp
 
-        # =====[ Case: Can't resolve the import ]=====
-        if base_path == "":
-            # Try to resolve with "src" as the base path
-            return self.resolve_import(base_path="src", add_module_name=add_module_name)
-        if base_path == "src":
-            # Try "test" next
-            return self.resolve_import(base_path="test", add_module_name=add_module_name)
-
-        # if not G_override:
-        #     for resolver in ctx.import_resolvers:
-        #         if imp := resolver.resolve(self):
-        #             return imp
-
-        return None
-        # # =====[ Check if we are importing an external module in the graph ]=====
-        # if ext := self.ctx.get_external_module(self.source, self._unique_node.source):
-        #     return ImportResolution(symbol=ext)
-        # # Implies we are not importing the symbol from the current repo.
-        # # In these cases, consider the import as an ExternalModule and add to graph
-        # ext = ExternalModule.from_import(self)
-        # return ImportResolution(symbol=ext)
+            return None
+            # # =====[ Check if we are importing an external module in the graph ]=====
+            # if ext := self.ctx.get_external_module(self.source, self._unique_node.source):
+            #     return ImportResolution(symbol=ext)
+            # # Implies we are not importing the symbol from the current repo.
+            # # In these cases, consider the import as an ExternalModule and add to graph
+            # ext = ExternalModule.from_import(self)
+            # return ImportResolution(symbol=ext)
+        except AssertionError:
+            # Codebase is probably trying to import file from outside repo
+            return None
 
     @noapidoc
     @reader

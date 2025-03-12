@@ -696,7 +696,7 @@ requires-dist = [
     { name = "neo4j" },
     { name = "networkx", specifier = ">=3.4.1" },
     { name = "numpy", specifier = ">=2.2.2" },
-    { name = "openai", specifier = "==1.65.5" },
+    { name = "openai", specifier = "==1.66.1" },
     { name = "packaging", specifier = ">=24.2" },
     { name = "pip", specifier = ">=24.3.1" },
     { name = "plotly", specifier = ">=5.24.0,<7.0.0" },
@@ -2704,7 +2704,7 @@ wheels = [
 
 [[package]]
 name = "openai"
-version = "1.65.5"
+version = "1.66.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -2716,9 +2716,9 @@ dependencies = [
     { name = "tqdm" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/56/cf/e02fb2c5a834803e6f29f43fd3dfe010303282d1ea450a5b95e28608860a/openai-1.65.5.tar.gz", hash = "sha256:17d39096bbcaf6c86580244b493a59e16613460147f0ba5ab6e608cdb6628149", size = 359548 }
+sdist = { url = "https://files.pythonhosted.org/packages/8b/a0/69b405d3015e8e3f0170291095cb2ee85e6fc65c869692dc7386b52f5929/openai-1.66.1.tar.gz", hash = "sha256:78ec5035d035ac052dcec1fd9f977647eab87f3c6f49375a73d629a4a136ddba", size = 396903 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fc/8f/a178d73277bf2d838617fa20ba4ae6952e26074664aacb53ae4532a69588/openai-1.65.5-py3-none-any.whl", hash = "sha256:5948a504e7b4003d921cfab81273813793a31c25b1d7b605797c01757e0141f1", size = 474468 },
+    { url = "https://files.pythonhosted.org/packages/fa/e6/b3b22bd4cd4d4bd2515dd7ae4965bf5429de9edef646784c39f2b14cc819/openai-1.66.1-py3-none-any.whl", hash = "sha256:fb239c46a907def7e1597b328c87b620eb71e73ca865e9748e195837d3c7abfc", size = 566383 },
 ]
 
 [[package]]
