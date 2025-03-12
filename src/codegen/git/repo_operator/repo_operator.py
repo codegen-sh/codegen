@@ -850,13 +850,14 @@ class RepoOperator:
         return op
 
     @classmethod
-    def create_from_repo(cls, repo_path: str, url: str, access_token: str | None = None) -> Self | None:
+    def create_from_repo(cls, repo_path: str, url: str, access_token: str | None = None, full_history: bool = False) -> Self | None:
         """Create a fresh clone of a repository or use existing one if up to date.
 
         Args:
             repo_path (str): Path where the repo should be cloned
             url (str): Git URL of the repository
             access_token (str | None): Optional GitHub API key for operations that need GitHub access
+            full_history (bool): If True, clones the complete repository history. If False, performs a shallow clone. Defaults to False.
         """
         access_token = access_token or SecretsConfig().github_token
         if access_token:
@@ -886,9 +887,13 @@ class RepoOperator:
             import shutil
 
             shutil.rmtree(repo_path)
+
         try:
-            # Clone the repository
-            GitCLI.clone_from(url=url, to_path=repo_path, depth=1)
+            # Clone the repository with or without full history
+            if full_history:
+                GitCLI.clone_from(url=url, to_path=repo_path)
+            else:
+                GitCLI.clone_from(url=url, to_path=repo_path, depth=1)
 
             # Initialize with the cloned repo
             git_cli = GitCLI(repo_path)

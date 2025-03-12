@@ -89,13 +89,13 @@ class LLM(BaseChatModel):
             if not os.getenv("ANTHROPIC_API_KEY"):
                 msg = "ANTHROPIC_API_KEY not found in environment. Please set it in your .env file or environment variables."
                 raise ValueError(msg)
-            return ChatAnthropic(**self._get_model_kwargs())
+            return ChatAnthropic(**self._get_model_kwargs(), max_retries=10, timeout=1000)
 
         elif self.model_provider == "openai":
             if not os.getenv("OPENAI_API_KEY"):
                 msg = "OPENAI_API_KEY not found in environment. Please set it in your .env file or environment variables."
                 raise ValueError(msg)
-            return ChatOpenAI(**self._get_model_kwargs())
+            return ChatOpenAI(**self._get_model_kwargs(), max_retries=10, timeout=1000)
 
         elif self.model_provider == "xai":
             if not os.getenv("XAI_API_KEY"):

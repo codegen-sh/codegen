@@ -116,9 +116,9 @@ class SearchInput(BaseModel):
 
     query: str = Field(
         ...,
-        description="The search query to find in the codebase. When ripgrep is available, this will be passed as a ripgrep pattern. For regex searches, set use_regex=True. Ripgrep is the preferred method.",
+        description="""The search query to find in the codebase. When ripgrep is available, this will be passed as a ripgrep pattern. For regex searches, set use_regex=True.
+        Ripgrep is the preferred method.""",
     )
-    target_directories: Optional[list[str]] = Field(default=None, description="Optional list of directories to search in")
     file_extensions: Optional[list[str]] = Field(default=None, description="Optional list of file extensions to search (e.g. ['.py', '.ts'])")
     page: int = Field(default=1, description="Page number to return (1-based, default: 1)")
     files_per_page: int = Field(default=10, description="Number of files to return per page (default: 10)")
@@ -136,8 +136,8 @@ class SearchTool(BaseTool):
     def __init__(self, codebase: Codebase) -> None:
         super().__init__(codebase=codebase)
 
-    def _run(self, query: str, target_directories: Optional[list[str]] = None, file_extensions: Optional[list[str]] = None, page: int = 1, files_per_page: int = 10, use_regex: bool = False) -> str:
-        result = search(self.codebase, query, target_directories=target_directories, file_extensions=file_extensions, page=page, files_per_page=files_per_page, use_regex=use_regex)
+    def _run(self, query: str, file_extensions: Optional[list[str]] = None, page: int = 1, files_per_page: int = 10, use_regex: bool = False) -> str:
+        result = search(self.codebase, query, file_extensions=file_extensions, page=page, files_per_page=files_per_page, use_regex=use_regex)
         return result.render()
 
 
@@ -171,7 +171,6 @@ Input for searching the codebase.
     1. Simple text: "function calculateTotal" (matches exactly, case-insensitive)
     2. Regex: "def.*calculate.*\(.*\)" (with use_regex=True)
     3. File-specific: "TODO" with file_extensions=[".py", ".ts"]
-    4. Directory-specific: "api" with target_directories=["src/backend"]
     """
     args_schema: ClassVar[type[BaseModel]] = EditFileInput
     codebase: Codebase = Field(exclude=True)
@@ -188,21 +187,45 @@ class CreateFileInput(BaseModel):
     """Input for creating a file."""
 
     filepath: str = Field(..., description="Path where to create the file")
-    content: str = Field(default="", description="Initial file content")
+    content: str = Field(
+        ...,
+        description="""
+Content for the new file (REQUIRED).
+
+⚠️ IMPORTANT: This parameter MUST be a STRING, not a dictionary, JSON object, or any other data type.
+Example: content="print('Hello world')"
+NOT: content={"code": "print('Hello world')"}
+                         """,
+    )
 
 
 class CreateFileTool(BaseTool):
     """Tool for creating files."""
 
     name: ClassVar[str] = "create_file"
-    description: ClassVar[str] = "Create a new file in the codebase"
+    description: ClassVar[str] = """
+Create a new file in the codebase. Always provide content for the new file, even if minimal.
+
+⚠️ CRITICAL WARNING ⚠️
+Both parameters MUST be provided as STRINGS:
+The content for the new file always needs to be provided.
+
+1. filepath: The path where to create the file (as a string)
+2. content: The content for the new file (as a STRING, NOT as a dictionary or JSON object)
+
+✅ CORRECT usage:
+create_file(filepath="path/to/file.py", content="print('Hello world')")
+
+The content parameter is REQUIRED and MUST be a STRING. If you receive a validation error about
+missing content, you are likely trying to pass a dictionary instead of a string.
+"""
     args_schema: ClassVar[type[BaseModel]] = CreateFileInput
     codebase: Codebase = Field(exclude=True)
 
     def __init__(self, codebase: Codebase) -> None:
         super().__init__(codebase=codebase)
 
-    def _run(self, filepath: str, content: str = "") -> str:
+    def _run(self, filepath: str, content: str) -> str:
         result = create_file(self.codebase, filepath, content)
         return result.render()
 
@@ -849,31 +872,45 @@ def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
 
 
 class ReplacementEditInput(BaseModel):
-    filepath: str = Field(..., description="Path to the file to edit relative to the workspace root. The file must exist and be a text file.")
+    """Input for replacement editing."""
+
+    filepath: str = Field(
+        ...,
+        description=("Path to the file to edit relative to the workspace root. The file must exist and be a text file."),
+    )
     pattern: str = Field(
         ...,
-        description="""Regular expression pattern to match text that should be replaced.
-Supports all Python regex syntax including capture groups (\1, \2, etc). The pattern is compiled with re.MULTILINE flag by default.""",
+        description=(
+            "Regular expression pattern to match text that should be replaced. "
+            "Supports all Python regex syntax including capture groups (\\1, \\2, etc). "
+            "The pattern is compiled with re.MULTILINE flag by default."
+        ),
     )
     replacement: str = Field(
         ...,
-        description="""Text to replace matched patterns with.
-Can reference regex capture groups using \1, \2, etc. If using regex groups in pattern, make sure to preserve them in replacement if needed.""",
+        description=(
+            "Text to replace matched patterns with. Can reference regex capture groups using \\1, \\2, etc. If using regex groups in pattern, make sure to preserve them in replacement if needed."
+        ),
     )
     start: int = Field(
         default=1,
-        description="""Starting line number (1-indexed, inclusive) to begin replacements from.
-Use this with 'end' to limit changes to a specific region. Default is 1 (start of file).""",
+        description=("Starting line number (1-indexed, inclusive) to begin replacements from. Use this with 'end' to limit changes to a specific region. Default is 1 (start of file)."),
     )
     end: int = Field(
         default=-1,
-        description="""Ending line number (1-indexed, inclusive) to stop replacements at.
-Use -1 to indicate end of file. Use this with 'start' to limit changes to a specific region. Default is -1 (end of file).""",
+        description=(
+            "Ending line number (1-indexed, inclusive) to stop replacements at. "
+            "Use -1 to indicate end of file. Use this with 'start' to limit changes to a specific region. "
+            "Default is -1 (end of file)."
+        ),
     )
     count: Optional[int] = Field(
         default=None,
-        description="""Maximum number of replacements to make. Use None to replace all occurrences (default), or specify a number to limit replacements.
-Useful when you only want to replace the first N occurrences.""",
+        description=(
+            "Maximum number of replacements to make. "
+            "Use None to replace all occurrences (default), or specify a number to limit replacements. "
+            "Useful when you only want to replace the first N occurrences."
+        ),
     )
 
 
