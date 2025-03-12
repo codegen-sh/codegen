@@ -24,4 +24,4 @@ class PyMatchStatement(SwitchStatement["PyCodeBlock", "PyCodeBlock", PyMatchCase
         code_block = self.ts_node.child_by_field_name("body")
         self.cases = []
         for node in code_block.children_by_field_name("alternative"):
-            self.cases.append(PyMatchCase(node, file_node_id, ctx, self.parent, self.index))
+            self.cases.append(PyMatchCase(node, file_node_id, ctx, self, self.index))

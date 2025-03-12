@@ -3,6 +3,7 @@ from __future__ import annotations
 from abc import ABC
 from typing import TYPE_CHECKING, Generic, TypeVar
 
+from codegen.sdk.core.interfaces.conditional_block import ConditionalBlock
 from codegen.sdk.core.interfaces.has_block import HasBlock
 from codegen.sdk.core.statements.block_statement import BlockStatement
 from codegen.sdk.core.statements.statement import StatementType
@@ -16,7 +17,7 @@ Parent = TypeVar("Parent", bound="CodeBlock")
 
 
 @apidoc
-class TryCatchStatement(BlockStatement[Parent], HasBlock, ABC, Generic[Parent]):
+class TryCatchStatement(ConditionalBlock, BlockStatement[Parent], HasBlock, ABC, Generic[Parent]):
     """Abstract representation of the try catch statement block.
 
     Attributes:

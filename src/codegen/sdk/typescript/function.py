@@ -19,6 +19,8 @@ from codegen.shared.decorators.docs import noapidoc, ts_apidoc
 from codegen.shared.logging.get_logger import get_logger
 
 if TYPE_CHECKING:
+    from collections.abc import Generator
+
     from tree_sitter import Node as TSNode
 
     from codegen.sdk.codebase.codebase_context import CodebaseContext
@@ -358,7 +360,7 @@ class TSFunction(Function[TSDecorator, "TSCodeBlock", TSParameter, TSType], TSHa
 
     @noapidoc
     @reader
-    def resolve_name(self, name: str, start_byte: int | None = None) -> Symbol | Import | WildcardImport | None:
+    def resolve_name(self, name: str, start_byte: int | None = None, strict: bool = True) -> Generator[Symbol | Import | WildcardImport]:
         """Resolves the name of a symbol in the function.
 
         This method resolves the name of a symbol in the function. If the name is "this", it returns the parent class.
@@ -367,14 +369,16 @@ class TSFunction(Function[TSDecorator, "TSCodeBlock", TSParameter, TSType], TSHa
         Args:
             name (str): The name of the symbol to resolve.
             start_byte (int | None): The start byte of the symbol to resolve.
+            strict (bool): If True considers candidates that don't satisfy start byte if none do.
 
         Returns:
-            Symbol | Import | WildcardImport | None: The resolved symbol, import, or wildcard import, or None if not found.
+            Symbol | Import | WildcardImport: The resolved symbol, import, or wildcard import, or None if not found.
         """
         if self.is_method:
             if name == "this":
-                return self.parent_class
-        return super().resolve_name(name, start_byte)
+                yield self.parent_class
+                return
+        yield from super().resolve_name(name, start_byte)
 
     @staticmethod
     def is_valid_node(node: TSNode) -> bool:

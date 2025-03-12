@@ -12,6 +12,8 @@ from codegen.sdk.core.symbol_groups.collection import Collection
 from codegen.shared.decorators.docs import apidoc, noapidoc
 
 if TYPE_CHECKING:
+    from collections.abc import Generator
+
     from codegen.sdk.core.detached_symbols.code_block import CodeBlock
     from codegen.sdk.core.expressions import Expression
     from codegen.sdk.core.import_resolution import Import, WildcardImport
@@ -36,19 +38,23 @@ class ForLoopStatement(BlockStatement[Parent], HasBlock, ABC, Generic[Parent]):
 
     @noapidoc
     @reader
-    def resolve_name(self, name: str, start_byte: int | None = None) -> Symbol | Import | WildcardImport | None:
+    def resolve_name(self, name: str, start_byte: int | None = None, strict: bool = True) -> Generator[Symbol | Import | WildcardImport]:
         if self.item and isinstance(self.iterable, Chainable):
             if start_byte is None or start_byte > self.iterable.end_byte:
                 if name == self.item:
                     for frame in self.iterable.resolved_type_frames:
                         if frame.generics:
-                            return next(iter(frame.generics.values()))
-                        return frame.top.node
+                            yield next(iter(frame.generics.values()))
+                            return
+                        yield frame.top.node
+                        return
                 elif isinstance(self.item, Collection):
                     for idx, item in enumerate(self.item):
                         if item == name:
                             for frame in self.iterable.resolved_type_frames:
                                 if frame.generics and len(frame.generics) > idx:
-                                    return list(frame.generics.values())[idx]
-                                return frame.top.node
-        return super().resolve_name(name, start_byte)
+                                    yield list(frame.generics.values())[idx]
+                                    return
+                                yield frame.top.node
+                                return
+        yield from super().resolve_name(name, start_byte)
