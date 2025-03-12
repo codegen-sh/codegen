@@ -881,14 +881,37 @@ class SourceFile(
     @noapidoc
     @reader
     def resolve_name(self, name: str, start_byte: int | None = None, strict: bool = True) -> Generator[Symbol | Import | WildcardImport]:
+        """Resolves a name to a symbol, import, or wildcard import within the file's scope.
+
+        Performs name resolution by first checking the file's valid symbols and imports. When a start_byte
+        is provided, ensures proper scope handling by only resolving to symbols that are defined before
+        that position in the file.
+
+        Args:
+            name (str): The name to resolve.
+            start_byte (int | None): If provided, only resolves to symbols defined before this byte position
+                in the file. Used for proper scope handling. Defaults to None.
+            strict (bool): When True and using start_byte, only yields symbols if found in the correct scope.
+                When False, allows falling back to global scope. Defaults to True.
+
+        Yields:
+            Symbol | Import | WildcardImport: The resolved symbol, import, or wildcard import that matches
+                the name and scope requirements. Yields at most one result.
+        """
         if resolved := self.valid_symbol_names.get(name):
+            # If we have a start_byte and the resolved symbol is after it,
+            # we need to look for earlier definitions of the symbol
             if start_byte is not None and resolved.end_byte > start_byte:
+                # Search backwards through symbols to find the most recent definition
+                # that comes before our start_byte position
                 for symbol in reversed(self.symbols):
                     if symbol.start_byte <= start_byte and symbol.name == name:
                         yield symbol
                         return
+                # If strict mode and no valid symbol found, return nothing
                 if not strict:
                     return
+            # Either no start_byte constraint or symbol is before start_byte
             yield resolved
             return
         return
