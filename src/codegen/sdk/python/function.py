@@ -19,6 +19,8 @@ from codegen.shared.decorators.docs import noapidoc, py_apidoc
 from codegen.shared.logging.get_logger import get_logger
 
 if TYPE_CHECKING:
+    from collections.abc import Generator
+
     from tree_sitter import Node as TSNode
 
     from codegen.sdk.codebase.codebase_context import CodebaseContext
@@ -119,15 +121,17 @@ class PyFunction(Function[PyDecorator, PyCodeBlock, PyParameter, PyType], PyHasB
 
     @noapidoc
     @reader
-    def resolve_name(self, name: str, start_byte: int | None = None) -> Symbol | Import | WildcardImport | None:
+    def resolve_name(self, name: str, start_byte: int | None = None, strict: bool = True) -> Generator[Symbol | Import | WildcardImport]:
         if self.is_method:
             if not self.is_static_method:
                 if len(self.parameters.symbols) > 0:
                     if name == self.parameters[0].name:
-                        return self.parent_class
+                        yield self.parent_class
+                        return
                 if name == "super()":
-                    return self.parent_class
-        return super().resolve_name(name, start_byte)
+                    yield self.parent_class
+                    return
+        yield from super().resolve_name(name, start_byte)
 
     @noapidoc
     @commiter

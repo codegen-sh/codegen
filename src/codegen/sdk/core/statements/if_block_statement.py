@@ -8,11 +8,14 @@ from codegen.sdk._proxy import proxy_property
 from codegen.sdk.core.autocommit import reader, writer
 from codegen.sdk.core.dataclasses.usage import UsageKind
 from codegen.sdk.core.function import Function
+from codegen.sdk.core.interfaces.conditional_block import ConditionalBlock
 from codegen.sdk.core.statements.statement import Statement, StatementType
 from codegen.sdk.extensions.autocommit import commiter
 from codegen.shared.decorators.docs import apidoc, noapidoc
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from codegen.sdk.core.detached_symbols.code_block import CodeBlock
     from codegen.sdk.core.detached_symbols.function_call import FunctionCall
     from codegen.sdk.core.expressions import Expression
@@ -26,7 +29,7 @@ TCodeBlock = TypeVar("TCodeBlock", bound="CodeBlock")
 
 
 @apidoc
-class IfBlockStatement(Statement[TCodeBlock], Generic[TCodeBlock, TIfBlockStatement]):
+class IfBlockStatement(ConditionalBlock, Statement[TCodeBlock], Generic[TCodeBlock, TIfBlockStatement]):
     """Abstract representation of the if/elif/else if/else statement block.
 
     For example, if there is a code block like:
@@ -271,3 +274,26 @@ class IfBlockStatement(Statement[TCodeBlock], Generic[TCodeBlock, TIfBlockStatem
                 self.remove_byte_range(self.ts_node.start_byte, remove_end)
             else:
                 self.remove()
+
+    @property
+    def other_possible_blocks(self) -> Sequence[ConditionalBlock]:
+        if self.is_if_statement:
+            return self._main_if_block.alternative_blocks
+        elif self.is_elif_statement:
+            main = self._main_if_block
+            statements = [main]
+            if main.else_statement:
+                statements.append(main.else_statement)
+            for statement in main.elif_statements:
+                if statement != self:
+                    statements.append(statement)
+            return statements
+        else:
+            main = self._main_if_block
+            return [main, *main.elif_statements]
+
+    @property
+    def end_byte_for_condition_block(self) -> int:
+        if self.is_if_statement:
+            return self.consequence_block.end_byte
+        return self.end_byte
