@@ -63,7 +63,7 @@ class PyCommentGroup(CommentGroup):
         if not comments:
             return None
 
-        return cls(comments, symbol.file_node_id, symbol.G, symbol)
+        return cls(comments, symbol.file_node_id, symbol.ctx, symbol)
 
     @classmethod
     @noapidoc
@@ -82,7 +82,7 @@ class PyCommentGroup(CommentGroup):
         if not comment_nodes:
             return None
 
-        return cls(comment_nodes, symbol.file_node_id, symbol.G, symbol)
+        return cls(comment_nodes, symbol.file_node_id, symbol.ctx, symbol)
 
     @classmethod
     @noapidoc
@@ -94,7 +94,7 @@ class PyCommentGroup(CommentGroup):
             if string_node.type == "string":
                 text = string_node.text.decode("utf-8")
                 comment_node = PyComment.from_code_block(string_node, symbol)
-                return cls([comment_node], symbol.file_node_id, symbol.G, symbol)
+                return cls([comment_node], symbol.file_node_id, symbol.ctx, symbol)
         return None
 
     def to_google_docstring(self, function: PyFunction) -> str:  # pragma: no cover

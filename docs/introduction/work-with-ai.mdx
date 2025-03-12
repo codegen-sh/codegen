@@ -25,7 +25,7 @@ import {
 
 The [Codegen CLI](/cli/about) provides commands to generate `.md` files that can be fed to any AI assistant for more accurate and contextual help.
 
-When you create a new codemod via [`codegen create`](/cli/create):
+When you create a new codemod via [codegen create](/cli/create):
 
 ```bash
 codegen create delete-dead-imports --description "Delete unused imports"
@@ -41,7 +41,7 @@ You can find this generated prompt in the `.codegen/prompts/<codemod-name>-syste
 
 <Note>
   All contents of the `.codegen/prompts` directory are by default ignored the
-  `.gitignore` file. after running [`codegen init`](/cli/init)
+  `.gitignore` file. after running [codegen init](/cli/init)
 </Note>
 
 This `.md` file can be used with any AI assistant (Claude, GPT-4, etc.) to get more accurate and contextual help.
@@ -50,7 +50,7 @@ This `.md` file can be used with any AI assistant (Claude, GPT-4, etc.) to get m
 
 <Steps>
   <Step title="Create a codemod with description">
-    Use the [`create` command](/cli/create) with a detailed description of what you want to accomplish:
+    Use the [create command](/cli/create) with a detailed description of what you want to accomplish:
     ```bash
     codegen create modernize-components --description "Convert class components to functional components with hooks"
     ```

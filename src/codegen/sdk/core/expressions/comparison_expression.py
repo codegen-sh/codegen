@@ -16,8 +16,8 @@ class ComparisonExpression(BinaryExpression):
     Includes all set of `<`, `<=`, `>`, `>=`, `==`, `!=` etc.
     """
 
-    def __init__(self, ts_node, file_node_id, G, parent: Parent) -> None:
-        super().__init__(ts_node, file_node_id, G, parent=parent)
+    def __init__(self, ts_node, file_node_id, ctx, parent: Parent) -> None:
+        super().__init__(ts_node, file_node_id, ctx, parent=parent)
         self.left = self.elements[0]
         self.right = self.elements[-1]
 
@@ -41,7 +41,7 @@ class ComparisonExpression(BinaryExpression):
             if n not in elements:
                 operator_group.append(n)
             elif operator_group:
-                operator = ExpressionGroup(self.file_node_id, self.G, self, children=[self._parse_expression(op) for op in operator_group])
+                operator = ExpressionGroup(self.file_node_id, self.ctx, self, children=[self._parse_expression(op) for op in operator_group])
                 operators.append(operator)
                 operator_group.clear()
         return operators

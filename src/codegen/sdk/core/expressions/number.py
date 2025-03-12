@@ -22,3 +22,7 @@ class Number(Expression[Parent], Builtin, Generic[Parent]):
     @override
     def _compute_dependencies(self, usage_type: UsageKind, dest: HasName | None = None) -> None:
         pass
+
+    @property
+    def __class__(self):
+        return int

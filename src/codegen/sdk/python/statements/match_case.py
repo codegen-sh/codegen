@@ -9,7 +9,7 @@ from codegen.sdk.python.statements.block_statement import PyBlockStatement
 from codegen.shared.decorators.docs import py_apidoc
 
 if TYPE_CHECKING:
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.python.statements.match_statement import PyMatchStatement
 
 
@@ -17,6 +17,6 @@ if TYPE_CHECKING:
 class PyMatchCase(SwitchCase[PyCodeBlock["PyMatchStatement"]], PyBlockStatement):
     """Python match case."""
 
-    def __init__(self, ts_node: PyNode, file_node_id: NodeId, G: "CodebaseGraph", parent: PyCodeBlock, pos: int | None = None) -> None:
-        super().__init__(ts_node, file_node_id, G, parent, pos)
+    def __init__(self, ts_node: PyNode, file_node_id: NodeId, ctx: "CodebaseContext", parent: PyCodeBlock, pos: int | None = None) -> None:
+        super().__init__(ts_node, file_node_id, ctx, parent, pos)
         self.condition = self.child_by_field_name("alternative")

@@ -7,11 +7,11 @@ iconType: "solid"
 
 Codegen provides fast, configurable and safe APIs for moving symbols (functions, classes, variables) between files while automatically handling imports and dependencies.
 
-The key API is [`Symbol.move_to_file(...)`](/api-reference/core/Symbol#move-to-file).
+The key API is [Symbol.move_to_file(...)](/api-reference/core/Symbol#move-to-file).
 
 ## Basic Symbol Movement
 
-Simply call [`Symbol.move_to_file(...)`](/api-reference/core/Symbol#move-to-file) to move a symbol to a new file.
+Simply call [Symbol.move_to_file(...)](/api-reference/core/Symbol#move-to-file) to move a symbol to a new file.
 
 ```python
 # Manipulation code:
@@ -35,7 +35,7 @@ helper_func.move_to_file(file2)
 
 ## Moving Strategies
 
-The [`Symbol.move_to_file(...)`](/api-reference/core/Symbol#move-to-file) method accepts a `strategy` parameter, which can be used to control how imports are updated.
+The [Symbol.move_to_file(...)](/api-reference/core/Symbol#move-to-file) method accepts a `strategy` parameter, which can be used to control how imports are updated.
 
 Your options are:
 
@@ -51,7 +51,7 @@ Your options are:
 
 ## Moving Symbols in Bulk
 
-Make sure to call [`Codebase.commit(...)`](/api-reference/core/Codebase#commit) _after_ moving symbols in bulk for performant symbol movement.
+Make sure to call [Codebase.commit(...)](/api-reference/core/Codebase#commit) _after_ moving symbols in bulk for performant symbol movement.
 
 ```python
 # Move all functions with a specific prefix

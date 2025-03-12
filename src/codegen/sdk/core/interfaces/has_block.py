@@ -47,7 +47,7 @@ class HasBlock(Expression, Generic[TCodeBlock, TDecorator]):
                 break
             parent = parent.parent
 
-        return self.G.node_classes.code_block_cls(body_node, level, parent_block, self)
+        return self.ctx.node_classes.code_block_cls(body_node, level, parent_block, self)
 
     @property
     @reader

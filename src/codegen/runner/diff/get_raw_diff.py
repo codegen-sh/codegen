@@ -1,12 +1,12 @@
 import io
-import logging
 
 from unidiff import LINE_TYPE_CONTEXT, Hunk, PatchedFile, PatchSet
 from unidiff.patch import Line
 
 from codegen.sdk.core.codebase import Codebase
+from codegen.shared.logging.get_logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def append_flag(file: PatchedFile, append_at: int, line_no: int, codebase: Codebase) -> None:
@@ -27,7 +27,7 @@ def patch_to_limited_diff_string(patch, codebase: Codebase, max_lines=10000):
 
     # Add flags that are not in the diff
     filenames = [patched_file.path for patched_file in patch]
-    flags_not_in_diff = list(filter(lambda flag: flag.symbol.filepath not in filenames, codebase.G.flags._flags))
+    flags_not_in_diff = list(filter(lambda flag: flag.symbol.filepath not in filenames, codebase.ctx.flags._flags))
 
     for flag in flags_not_in_diff:
         filename = flag.symbol.filepath
@@ -39,7 +39,7 @@ def patch_to_limited_diff_string(patch, codebase: Codebase, max_lines=10000):
         patch.append(patched_file)
 
     for patched_file in patch:
-        filtered_flags = filter(lambda flag: flag.symbol.filepath == patched_file.path, codebase.G.flags._flags)
+        filtered_flags = filter(lambda flag: flag.symbol.filepath == patched_file.path, codebase.ctx.flags._flags)
         sorted_flags = list(map(lambda flag: flag.symbol.start_point.row + 1, filtered_flags))
         sorted_flags.sort()
 

@@ -61,6 +61,7 @@ exclude = [
   "**/guides",
   "**/testing",
   "**/codebase_graph_utils.py",
+  "**/codegen_examples",
 ]
 
 [build.targets.wheel]

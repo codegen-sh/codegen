@@ -4,6 +4,7 @@ import rich_click as click
 from codegen.cli.api.client import RestAPI
 from codegen.cli.auth.decorators import requires_auth
 from codegen.cli.auth.session import CodegenSession
+from codegen.cli.auth.token_manager import get_current_token
 from codegen.cli.rich.spinners import create_spinner
 from codegen.cli.utils.codemod_manager import CodemodManager
 
@@ -18,9 +19,9 @@ def run_on_pr(session: CodegenSession, codemod_name: str, pr_number: int) -> Non
 
     with create_spinner(f"Testing webhook '{codemod_name}' on PR #{pr_number}...") as status:
         try:
-            response = RestAPI(session.token).run_on_pr(
+            response = RestAPI(get_current_token()).run_on_pr(
                 codemod_name=codemod_name,
-                repo_full_name=session.repo_name,
+                repo_full_name=session.config.repository.full_name,
                 github_pr_number=pr_number,
             )
             status.stop()

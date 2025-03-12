@@ -1,0 +1,15 @@
+name: "Release PyPI"
+description: "Release PyPI"
+inputs:
+  pypi-token:
+    required: true
+    description: "PyPI token"
+runs:
+  using: "composite"
+  steps:
+    - name: Release PyPI
+      shell: bash
+      run: |
+        export UV_PUBLISH_PASSWORD="${{ inputs.pypi-token }}"
+        export UV_PUBLISH_USERNAME="__token__"
+        uv publish --publish-url https://upload.pypi.org/legacy/

@@ -147,14 +147,14 @@ from d.f import (g as h, i as j)  # test three
     # =====[ Rename b.c ]=====
     imp = file.get_import("d")
     imp.rename("ABC")
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert "from b.c import ABC  # test two" in file.content
     assert file.get_import("ABC").symbol_name.source == "ABC"
 
     # =====[ Rename a ]=====
     imp = file.get_import("a")
     imp.rename("z")
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert "import z  # test one" in imp.file.content
     assert file.get_import("z").symbol_name.source == "z"
 

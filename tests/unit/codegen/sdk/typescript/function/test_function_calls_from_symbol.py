@@ -7,10 +7,10 @@ from codegen.sdk.core.expressions.parenthesized_expression import ParenthesizedE
 from codegen.sdk.core.statements.expression_statement import ExpressionStatement
 from codegen.sdk.core.statements.return_statement import ReturnStatement
 from codegen.sdk.core.statements.statement import StatementType
-from codegen.sdk.enums import ProgrammingLanguage
 from codegen.sdk.typescript.detached_symbols.decorator import TSDecorator
 from codegen.sdk.typescript.expressions.chained_attribute import TSChainedAttribute
 from codegen.sdk.typescript.statements.assignment_statement import TSAssignmentStatement
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def test_function_calls_from_file(tmpdir):

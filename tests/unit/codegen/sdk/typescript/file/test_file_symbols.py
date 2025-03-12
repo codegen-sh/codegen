@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 from codegen.sdk.codebase.factory.get_session import get_codebase_graph_session
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 if TYPE_CHECKING:
     from codegen.sdk.typescript.class_definition import TSClass
@@ -18,8 +18,8 @@ class foo {
     }
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as ctx:
+        file = ctx.get_file("test.ts")
         symbols = file.symbols
         assert len(symbols) == 1
         assert set(s.name for s in symbols) == {"foo"}
@@ -33,8 +33,8 @@ class foo {
     }
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as ctx:
+        file = ctx.get_file("test.ts")
         symbols = file.symbols
         assert len(symbols) == 1
         assert set(s.name for s in symbols) == {"foo"}
@@ -48,8 +48,8 @@ class foo {
     }
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as ctx:
+        file = ctx.get_file("test.ts")
         symbols = file.symbols
         assert len(symbols) == 1
         assert set(s.name for s in symbols) == {"foo"}
@@ -67,8 +67,8 @@ class foo {
     }
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as ctx:
+        file = ctx.get_file("test.ts")
         symbols = file.symbols
         assert len(symbols) == 1
         assert set(s.name for s in symbols) == {"foo"}
@@ -84,8 +84,8 @@ class foo extends bar {
     }
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as ctx:
+        file = ctx.get_file("test.ts")
         symbols = file.symbols
         assert len(symbols) == 2
         assert set(s.name for s in symbols) == {"foo", "bar"}
@@ -101,8 +101,8 @@ class foo extends bar {
     }
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as ctx:
+        file = ctx.get_file("test.ts")
 
         # =====[ symbols ]=====
         symbols = file.symbols
@@ -130,8 +130,8 @@ func("Do a function", () => {
     })
   """
     # Should not get any functions
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as ctx:
+        file = ctx.get_file("test.ts")
         assert len(file.symbols) == 0
 
 
@@ -146,8 +146,8 @@ type Dictionary<T> = {
   [key: string]: T;
 };"""
 
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as ctx:
+        file = ctx.get_file("test.ts")
         symbols = file.symbols
         assert len(symbols) == 2
         assert symbols[0].name == "Person"

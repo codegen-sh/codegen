@@ -15,7 +15,14 @@ from codegen.sdk.core.expressions.tuple_type import TupleType
 from codegen.sdk.core.expressions.unary_expression import UnaryExpression
 from codegen.sdk.core.expressions.unpack import Unpack
 from codegen.sdk.core.expressions.value import Value
+from codegen.sdk.core.function import Function
 from codegen.sdk.core.statements.comment import Comment
+from codegen.sdk.core.statements.for_loop_statement import ForLoopStatement
+from codegen.sdk.core.statements.if_block_statement import IfBlockStatement
+from codegen.sdk.core.statements.switch_case import SwitchCase
+from codegen.sdk.core.statements.switch_statement import SwitchStatement
+from codegen.sdk.core.statements.try_catch_statement import TryCatchStatement
+from codegen.sdk.core.statements.while_statement import WhileStatement
 from codegen.sdk.core.symbol_groups.list import List
 from codegen.sdk.core.symbol_groups.type_parameters import TypeParameters
 from codegen.sdk.typescript.class_definition import TSClass
@@ -166,18 +173,12 @@ TSNodeClasses = NodeClasses(
         False: "false",
     },
     dynamic_import_parent_types={
-        "function_declaration",
-        "method_definition",
-        "arrow_function",
-        "if_statement",
-        "try_statement",
-        "else_clause",
-        "catch_clause",
-        "finally_clause",
-        "while_statement",
-        "for_statement",
-        "do_statement",
-        "switch_case",
-        "switch_statement",
+        Function,
+        IfBlockStatement,
+        TryCatchStatement,
+        ForLoopStatement,
+        WhileStatement,
+        SwitchStatement,
+        SwitchCase,
     },
 )

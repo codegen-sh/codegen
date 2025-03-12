@@ -1,0 +1,67 @@
+---
+title: "Update Command"
+sidebarTitle: "update"
+icon: "sync"
+iconType: "solid"
+---
+
+The `update` command is designed to help you manage the version of Codegen installed on your system. Whether you want to update to the latest version or switch to a specific version, this command offers a streamlined way to do so. Additionally, you can list all supported versions available on PyPI.
+
+```bash
+codegen update [OPTIONS]
+```
+
+## Usage
+
+```bash
+codegen update [OPTIONS]
+```
+
+## Options
+
+- `--list, -l`: List all supported versions of Codegen.
+  When used, the command fetches the available releases from PyPI, filters them to display a range of versions (typically including the current version and a few preceding minor versions), and highlights the current version in the output.
+
+- `--version, -v`: Update to a specific version of Codegen (e.g., `2.1.0`).
+  This option enables you to target a particular version rather than updating to the latest available release.
+
+## Examples
+
+Update Codegen to the latest version:
+```bash
+codegen update
+```
+
+List all supported versions of Codegen:
+```bash
+codegen update --list
+```
+
+Update Codegen to a specific version:
+```bash
+codegen update --version 2.1.0
+```
+
+## Execution Flow
+
+When you run the `update` command, the following steps occur:
+
+1. **Retrieve Current Version:**
+   The command retrieves the current version of Codegen by accessing package metadata.
+
+2. **Option Handling:**
+   - **Listing Versions:**
+     If you use the `--list` flag, the command fetches all available releases from PyPI, filters them based on a defined range (typically covering future versions and a couple of previous minor versions), and prints the list with the current version highlighted.
+
+   - **Specific Version Update:**
+     If the `--version` option is provided, the command installs the specified version by invoking `pip install` with the exact version (e.g., `pip install codegen==2.1.0`).
+
+   - **Default Update:**
+     If no options are provided, the command updates Codegen to the latest version using `pip install --upgrade`.
+
+3. **Error Handling:**
+   The command checks for mutually exclusive options. If both `--list` and `--version` are specified simultaneously, an error is raised.
+
+<Note>
+Ensure you use either `--list` or `--version` when running the update command, not both.
+</Note>

@@ -1,6 +1,6 @@
 from codegen.sdk.core.codebase import Codebase
-from codegen.sdk.enums import ProgrammingLanguage
 from codegen.sdk.writer_decorators import canonical
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 from codemods.codemod import Codemod
 from tests.shared.skills.decorators import skill, skill_impl
 from tests.shared.skills.skill import Skill
@@ -60,4 +60,4 @@ class SwapCallSiteImports(Codemod, Skill):
                 legacy_function.remove()
 
                 # Add import of the new function
-                call_site.file.add_import_from_import_string(f"from settings.collections import {legacy_function.name}")
+                call_site.file.add_import(f"from settings.collections import {legacy_function.name}")

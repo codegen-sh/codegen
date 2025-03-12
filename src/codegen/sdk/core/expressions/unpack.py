@@ -22,8 +22,8 @@ class Unpack(Unwrappable[Parent], HasValue, IWrapper, Generic[Parent]):
         ```
     """
 
-    def __init__(self, ts_node, file_node_id, G, parent: Parent):
-        super().__init__(ts_node, file_node_id, G, parent=parent)
+    def __init__(self, ts_node, file_node_id, ctx, parent: Parent):
+        super().__init__(ts_node, file_node_id, ctx, parent=parent)
         self._value_node = self.children[0]
 
     def unwrap(self, node: Expression | None = None) -> None:

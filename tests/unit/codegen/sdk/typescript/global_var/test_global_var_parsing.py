@@ -1,7 +1,7 @@
 from codegen.sdk.codebase.factory.get_session import get_codebase_graph_session
 from codegen.sdk.core.assignment import Assignment
 from codegen.sdk.core.function import Function
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def test_parse_global_vars(tmpdir) -> None:
@@ -10,8 +10,8 @@ let a = 5;
 const b = 10;
 var c = d;
     """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as ctx:
+        file = ctx.get_file("test.ts")
         global_vars = file.global_vars
         assert len(global_vars) == 3
         assert set([x.name for x in global_vars]) == {"a", "b", "c"}
@@ -56,8 +56,8 @@ export const exportedObject = {
     ref: arrowFunction,
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as G:
-        file = G.get_file("test.tsx")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as ctx:
+        file = ctx.get_file("test.tsx")
 
         # =====[ arrowFunction ]=====
         arrow_func = file.get_symbol("arrowFunction")
@@ -133,7 +133,7 @@ const componentConfig = {
   },
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as G:
-        file = G.get_file("test.tsx")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as ctx:
+        file = ctx.get_file("test.tsx")
         component = file.get_symbol("TestComponent")
         assert len(component.symbol_usages) > 0

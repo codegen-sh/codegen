@@ -1,5 +1,5 @@
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def test_function_call_without_docstring_prepend_statements(tmpdir) -> None:

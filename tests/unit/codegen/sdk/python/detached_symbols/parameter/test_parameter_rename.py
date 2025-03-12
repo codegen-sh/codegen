@@ -38,7 +38,7 @@ def baz(x: int, y: str, z: list[int]) -> str:
     param = bar.parameters[0]
     param.set_type_annotation("str")
     param.rename("y_new")
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     bar = file1.get_function("bar")
     param = bar.parameters[0]
     assert param.type == "str"
@@ -53,7 +53,7 @@ def baz(x: int, y: str, z: list[int]) -> str:
     param = baz.parameters[1]
     param.set_type_annotation("int")
     param.rename("y_new")
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     baz = file1.get_function("baz")
     param = baz.parameters[1]
     assert param.type == "int"

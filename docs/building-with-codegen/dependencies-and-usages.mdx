@@ -11,8 +11,8 @@ Codegen pre-computes dependencies and usages for all symbols in the codebase, en
 
 Codegen provides two main ways to track relationships between symbols:
 
-- [`.dependencies`](/api-reference/core/Symbol#dependencies) / [`.get_dependencies(...)`](/api-reference/core/Symbol#get-dependencies) - What symbols does this symbol depend on?
-- [`.usages`](/api-reference/core/Symbol#usages) / [`.usages(...)`](/api-reference/core/Symbol#usages) - Where is this symbol used?
+- [.dependencies](/api-reference/core/Symbol#dependencies) / - What symbols does this symbol depend on?
+- [.usages](/api-reference/core/Symbol#usages) / [.usages(...)](/api-reference/core/Symbol#usages) - Where is this symbol used?
 
 Dependencies and usages are inverses of each other. For example, given the following input code:
 
@@ -129,12 +129,12 @@ The dependencies API lets you find what symbols a given symbol depends on.
 
 ```python
 # Get all direct dependencies
-deps = my_class.dependencies  # Shorthand for get_dependencies(UsageType.DIRECT)
+deps = my_class.dependencies  # Shorthand for dependencies(UsageType.DIRECT)
 
 # Get dependencies of specific types
-direct_deps = my_class.get_dependencies(UsageType.DIRECT)
-chained_deps = my_class.get_dependencies(UsageType.CHAINED)
-indirect_deps = my_class.get_dependencies(UsageType.INDIRECT)
+direct_deps = my_class.dependencies(UsageType.DIRECT)
+chained_deps = my_class.dependencies(UsageType.CHAINED)
+indirect_deps = my_class.dependencies(UsageType.INDIRECT)
 ```
 
 ### Combining Usage Types
@@ -143,10 +143,10 @@ You can combine usage types using the bitwise OR operator:
 
 ```python
 # Get both direct and indirect dependencies
-deps = my_class.get_dependencies(UsageType.DIRECT | UsageType.INDIRECT)
+deps = my_class.dependencies(UsageType.DIRECT | UsageType.INDIRECT)
 
 # Get all types of dependencies
-deps = my_class.get_dependencies(
+deps = my_class.dependencies(
     UsageType.DIRECT | UsageType.CHAINED |
     UsageType.INDIRECT | UsageType.ALIASED
 )
@@ -178,7 +178,83 @@ class_imports = [dep for dep in my_class.dependencies if isinstance(dep, Import)
 
 # Get all imports used by a function, including indirect ones
 all_function_imports = [
-    dep for dep in my_function.get_dependencies(UsageType.DIRECT | UsageType.INDIRECT)
+    dep for dep in my_function.dependencies(UsageType.DIRECT | UsageType.INDIRECT)
     if isinstance(dep, Import)
 ]
 ```
+## Traversing the Dependency Graph
+
+Sometimes you need to analyze not just direct dependencies, but the entire dependency graph up to a certain depth. The `dependencies` method allows you to traverse the dependency graph and collect all dependencies up to a specified depth level.
+
+### Basic Usage
+
+```python
+
+# Get only direct dependencies
+deps = symbol.dependencies(max_depth=1)
+
+# Get deep dependencies (up to 5 levels)
+deps = symbol.dependencies(max_depth=5)
+```
+
+The method returns a dictionary mapping each symbol to its list of direct dependencies. This makes it easy to analyze the dependency structure:
+
+```python
+# Print the dependency tree
+for sym, direct_deps in deps.items():
+    print(f"{sym.name} depends on: {[d.name for d in direct_deps]}")
+```
+
+### Example: Analyzing Class Inheritance
+
+Here's an example of using `dependencies` to analyze a class inheritance chain:
+
+```python
+class A:
+    def method_a(self): pass
+
+class B(A):
+    def method_b(self): 
+        self.method_a()
+
+class C(B):
+    def method_c(self):
+        self.method_b()
+
+# Get the full inheritance chain
+symbol = codebase.get_class("C")
+deps = symbol.dependencies(
+    max_depth=3
+)
+
+# Will show:
+# C depends on: [B]
+# B depends on: [A]
+# A depends on: []
+```
+
+### Handling Cyclic Dependencies
+
+The method properly handles cyclic dependencies in the codebase:
+
+```python
+class A:
+    def method_a(self):
+        return B()
+
+class B:
+    def method_b(self):
+        return A()
+
+# Get dependencies including cycles
+symbol = codebase.get_class("A")
+deps = symbol.dependencies()
+
+# Will show:
+# A depends on: [B]
+# B depends on: [A]
+```
+
+<Tip>
+  The `max_depth` parameter helps prevent excessive recursion in large codebases or when there are cycles in the dependency graph.
+</Tip>

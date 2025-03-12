@@ -3,7 +3,7 @@ from abc import ABC
 import networkx as nx
 
 from codegen.sdk.core.codebase import CodebaseType
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 from tests.shared.skills.decorators import skill, skill_impl
 from tests.shared.skills.skill import Skill
 from tests.shared.skills.skill_test import SkillTestCase, SkillTestCasePyFile

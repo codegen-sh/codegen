@@ -13,8 +13,8 @@ Parent = TypeVar("Parent", bound="Editable")
 class TSTernaryExpression(TernaryExpression[Parent]):
     """Any ternary expression in the code where a condition will determine branched execution"""
 
-    def __init__(self, ts_node, file_node_id, G, parent: Parent) -> None:
-        super().__init__(ts_node, file_node_id, G, parent=parent)
+    def __init__(self, ts_node, file_node_id, ctx, parent: Parent) -> None:
+        super().__init__(ts_node, file_node_id, ctx, parent=parent)
         self.condition = self.child_by_field_name("condition")
         self.consequence = self.child_by_field_name("consequence")
         self.alternative = self.child_by_field_name("alternative")

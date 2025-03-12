@@ -1,6 +1,6 @@
 from codegen.sdk.core.codebase import Codebase
-from codegen.sdk.enums import ProgrammingLanguage
 from codegen.sdk.writer_decorators import canonical
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 from codemods.codemod import Codemod
 from tests.shared.skills.decorators import skill, skill_impl
 from tests.shared.skills.skill import Skill
@@ -46,4 +46,4 @@ class SplitLargeFiles(Codemod, Skill):
                             # Move the symbol to the new file
                             symbol.move_to_file(new_file)
                             # Add a back edge to the original file
-                            file.add_symbol_import(symbol)
+                            file.add_import(symbol)

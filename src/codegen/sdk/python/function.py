@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 import re
 from typing import TYPE_CHECKING, override
 
@@ -17,27 +16,28 @@ from codegen.sdk.python.interfaces.has_block import PyHasBlock
 from codegen.sdk.python.placeholder.placeholder_return_type import PyReturnTypePlaceholder
 from codegen.sdk.python.symbol import PySymbol
 from codegen.shared.decorators.docs import noapidoc, py_apidoc
+from codegen.shared.logging.get_logger import get_logger
 
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
 
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.import_resolution import Import, WildcardImport
     from codegen.sdk.core.interfaces.has_name import HasName
     from codegen.sdk.core.node_id_factory import NodeId
     from codegen.sdk.core.symbol import Symbol
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @py_apidoc
-class PyFunction(Function["PyFunction", PyDecorator, PyCodeBlock, PyParameter, PyType], PyHasBlock, PySymbol):
+class PyFunction(Function[PyDecorator, PyCodeBlock, PyParameter, PyType], PyHasBlock, PySymbol):
     """Extends Function for Python codebases."""
 
     _decorated_node: TSNode | None
 
-    def __init__(self, ts_node: TSNode, file_id: NodeId, G: CodebaseGraph, parent: PyHasBlock, decorated_node: TSNode | None = None) -> None:
-        super().__init__(ts_node, file_id, G, parent)
+    def __init__(self, ts_node: TSNode, file_id: NodeId, ctx: CodebaseContext, parent: PyHasBlock, decorated_node: TSNode | None = None) -> None:
+        super().__init__(ts_node, file_id, ctx, parent)
         self._decorated_node = decorated_node
 
     @cached_property
@@ -131,8 +131,8 @@ class PyFunction(Function["PyFunction", PyDecorator, PyCodeBlock, PyParameter, P
 
     @noapidoc
     @commiter
-    def parse(self, G: CodebaseGraph) -> None:
-        super().parse(G)
+    def parse(self, ctx: CodebaseContext) -> None:
+        super().parse(ctx)
         self.return_type = self.child_by_field_name("return_type", placeholder=PyReturnTypePlaceholder)
         if parameters_node := self.ts_node.child_by_field_name("parameters"):
             params = [
@@ -148,7 +148,7 @@ class PyFunction(Function["PyFunction", PyDecorator, PyCodeBlock, PyParameter, P
                     "dictionary_splat_pattern",
                 )
             ]
-            self._parameters = Collection(parameters_node, self.file_node_id, self.G, self)
+            self._parameters = Collection(parameters_node, self.file_node_id, self.ctx, self)
             self._parameters._init_children([PyParameter(x, i, self._parameters) for (i, x) in enumerate(params)])
         else:
             logger.warning(f"Couldn't find parameters for {self!r}")

@@ -10,8 +10,8 @@ class ExampleUserUpload(Resource):
     def post(self, user_uuid: str):
         ...
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, files={"decorator.py": content}) as G:
-        file = G.get_file("decorator.py")
+    with get_codebase_graph_session(tmpdir=tmpdir, files={"decorator.py": content}) as ctx:
+        file = ctx.get_file("decorator.py")
         cls = file.get_class("ExampleUserUpload")
         assert len(cls.decorators) == 1
         decorator = cls.decorators[0]
@@ -31,8 +31,8 @@ class DocumentUpload(Resource):
     def post(self, document_uuid: str):
         ...
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, files={"decorator.py": content}) as G:
-        file = G.get_file("decorator.py")
+    with get_codebase_graph_session(tmpdir=tmpdir, files={"decorator.py": content}) as ctx:
+        file = ctx.get_file("decorator.py")
         cls = file.get_class("DocumentUpload")
         assert len(cls.decorators) == 1
         decorator = cls.decorators[0]
@@ -49,8 +49,8 @@ class GetUserData(Resource):
     def post(self) -> Response:
         ...
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, files={"decorator.py": content}) as G:
-        file = G.get_file("decorator.py")
+    with get_codebase_graph_session(tmpdir=tmpdir, files={"decorator.py": content}) as ctx:
+        file = ctx.get_file("decorator.py")
         cls = file.get_class("GetUserData")
         assert len(cls.decorators) == 1
         decorator = cls.decorators[0]

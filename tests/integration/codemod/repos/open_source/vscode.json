@@ -1,6 +1,6 @@
 {
 	"name": "vscode",
-	"commit": "9c79e7322af656155bbc9b64341334d3a8269bc8",
+	"commit": "32a41e158d04c9777522dc567574f2a74b8f2bf9",
 	"url": "https://github.com/microsoft/vscode",
 	"language": "TYPESCRIPT",
 	"size": "large",

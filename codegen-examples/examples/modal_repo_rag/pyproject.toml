@@ -1,0 +1,11 @@
+[project]
+name = "codegen-rag-qa"
+version = "0.1.0"
+description = "Modal API endpoint for embeddings-based RAG & Q&A on Codegen"
+requires-python = ">=3.13"
+dependencies = [
+  "modal>=0.73.25",
+  "fastapi[standard]",
+  "codegen>=0.5.30",
+  "openai>=1.1.0",
+]

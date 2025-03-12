@@ -10,7 +10,7 @@ from codegen.shared.decorators.docs import apidoc, noapidoc
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
 
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.node_id_factory import NodeId
     from codegen.sdk.core.statements.export_statement import ExportStatement
     from codegen.sdk.core.symbol_groups.collection import Collection
@@ -29,13 +29,13 @@ class Export(Exportable[Parent], Generic[Parent]):
 
     export_statement: ExportStatement
 
-    def __init__(self, ts_node: TSNode, file_node_id: NodeId, G: CodebaseGraph, parent: Parent) -> None:
+    def __init__(self, ts_node: TSNode, file_node_id: NodeId, ctx: CodebaseContext, parent: Parent) -> None:
         self.to_file_id = file_node_id
-        super().__init__(ts_node=ts_node, file_node_id=file_node_id, G=G, parent=parent)
+        super().__init__(ts_node=ts_node, file_node_id=file_node_id, ctx=ctx, parent=parent)
 
     @noapidoc
     @abstractmethod
-    def parse(self, G: CodebaseGraph) -> None:
+    def parse(self, ctx: CodebaseContext) -> None:
         """Add self to the graph and SYMBOL_USAGE edges from export to exported symbol."""
 
     @property

@@ -1,4 +1,4 @@
-from enum import IntEnum, StrEnum, auto
+from enum import IntEnum, auto
 from typing import NamedTuple
 
 from codegen.sdk.core.dataclasses.usage import Usage
@@ -78,12 +78,6 @@ class ImportType(IntEnum):
     # Resolves to the file.
     SIDE_EFFECT = auto()
     UNKNOWN = auto()  # TODO: get rid of this - mostly used to set default value. we should just set to None.
-
-
-class ProgrammingLanguage(StrEnum):
-    PYTHON = "PYTHON"
-    TYPESCRIPT = "TYPESCRIPT"
-    UNSUPPORTED = "UNSUPPORTED"
 
 
 class Edge(NamedTuple):

@@ -23,7 +23,7 @@ class TSCodeBlock(CodeBlock[Parent, "TSAssignment"], Generic[Parent]):
     @noapidoc
     @reader
     def _parse_statements(self) -> MultiLineCollection[Statement, Self]:
-        statements: list[Statement] = self.G.parser.parse_ts_statements(self.ts_node, self.file_node_id, self.G, self)
+        statements: list[Statement] = self.ctx.parser.parse_ts_statements(self.ts_node, self.file_node_id, self.ctx, self)
         line_nodes = find_line_start_and_end_nodes(self.ts_node)
         start_node = line_nodes[1][0] if len(line_nodes) > 1 else line_nodes[0][0]
         end_node = line_nodes[-2][1] if len(line_nodes) > 1 else line_nodes[-1][1]
@@ -31,7 +31,7 @@ class TSCodeBlock(CodeBlock[Parent, "TSAssignment"], Generic[Parent]):
         collection = MultiLineCollection(
             children=statements,
             file_node_id=self.file_node_id,
-            G=self.G,
+            ctx=self.ctx,
             parent=self,
             node=self.ts_node,
             indent_size=indent_size,

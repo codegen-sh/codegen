@@ -57,7 +57,7 @@ def test():
     assert len(foo_calls) == 2
     foo_calls = sorted(foo_calls, key=lambda x: x.ts_node.start_byte)
     foo_calls[1].args[2].remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     # language=python
     assert (
         file2.content
@@ -73,7 +73,7 @@ def test():
     """
     )
     foo_calls[1].args[0].remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     # language=python
     assert (
         file2.content
@@ -89,11 +89,11 @@ def test():
     )
 
     foo_calls[0].args[2].remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert "foo(1, 2)" in file2.content
     foo_calls[0].args[1].remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert "foo(1)" in file2.content
     foo_calls[0].args[0].remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert "foo()" in file2.content

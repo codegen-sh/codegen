@@ -1,12 +1,12 @@
-import logging
-
 from github import Consts
 from github.GithubException import UnknownObjectException
 from github.MainClass import Github
 from github.Organization import Organization
 from github.Repository import Repository
 
-logger = logging.getLogger(__name__)
+from codegen.shared.logging.get_logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class GithubClient:
@@ -15,7 +15,7 @@ class GithubClient:
     base_url: str
     _client: Github
 
-    def __init__(self, token: str, base_url: str = Consts.DEFAULT_BASE_URL):
+    def __init__(self, token: str | None = None, base_url: str = Consts.DEFAULT_BASE_URL):
         self.base_url = base_url
         self._client = Github(token, base_url=base_url)
 

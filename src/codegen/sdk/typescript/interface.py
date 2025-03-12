@@ -17,7 +17,7 @@ from codegen.shared.decorators.docs import noapidoc, ts_apidoc
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
 
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.detached_symbols.code_block import CodeBlock
     from codegen.sdk.core.interfaces.has_name import HasName
     from codegen.sdk.core.node_id_factory import NodeId
@@ -39,12 +39,12 @@ class TSInterface(Interface[TSCodeBlock, TSAttribute, TSFunction, TSType], TSSym
         self,
         ts_node: TSNode,
         file_id: NodeId,
-        G: CodebaseGraph,
+        ctx: CodebaseContext,
         parent: Statement[CodeBlock[Parent, ...]],
     ) -> None:
         from codegen.sdk.typescript.detached_symbols.code_block import TSCodeBlock
 
-        super().__init__(ts_node, file_id, G, parent)
+        super().__init__(ts_node, file_id, ctx, parent)
         body_node = ts_node.child_by_field_name("body")
 
         # Find the nearest parent with a code_block
@@ -57,12 +57,12 @@ class TSInterface(Interface[TSCodeBlock, TSAttribute, TSFunction, TSType], TSSym
 
     @commiter
     @noapidoc
-    def parse(self, G: CodebaseGraph) -> None:
+    def parse(self, ctx: CodebaseContext) -> None:
         # =====[ Extends ]=====
         # Look for parent interfaces in the "extends" clause
         if extends_clause := self.child_by_field_types("extends_type_clause"):
-            self.parent_interfaces = Parents(extends_clause.ts_node, self.file_node_id, self.G, self)
-        super().parse(G)
+            self.parent_interfaces = Parents(extends_clause.ts_node, self.file_node_id, self.ctx, self)
+        super().parse(ctx)
 
     @noapidoc
     @commiter

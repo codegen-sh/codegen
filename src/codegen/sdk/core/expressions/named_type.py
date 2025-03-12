@@ -16,7 +16,7 @@ from codegen.sdk.core.node_id_factory import NodeId
 from codegen.shared.decorators.docs import apidoc, noapidoc
 
 if TYPE_CHECKING:
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.interfaces.editable import Editable
 
 Parent = TypeVar("Parent", bound="Editable")
@@ -26,8 +26,8 @@ Parent = TypeVar("Parent", bound="Editable")
 class NamedType(Resolvable, Type[Parent], HasName, Generic[Parent]):
     """An abstract representation of a named type."""
 
-    def __init__(self, ts_node: TSNode, file_node_id: NodeId, G: "CodebaseGraph", parent: Parent):
-        super().__init__(ts_node, file_node_id, G, parent)
+    def __init__(self, ts_node: TSNode, file_node_id: NodeId, ctx: "CodebaseContext", parent: Parent):
+        super().__init__(ts_node, file_node_id, ctx, parent)
         self._name_node = self._parse_expression(self._get_name_node(), default=Name)
 
     def __eq__(self, other: object) -> bool:

@@ -1,9 +1,9 @@
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
 from codegen.sdk.core.detached_symbols.function_call import FunctionCall
 from codegen.sdk.core.expressions.number import Number
-from codegen.sdk.enums import ProgrammingLanguage
 from codegen.sdk.typescript.statements.assignment_statement import TSAssignmentStatement
 from codegen.sdk.typescript.statements.attribute import TSAttribute
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def test_attribute(tmpdir) -> None:
@@ -95,7 +95,7 @@ class MyClass {
         assert isinstance(b, TSAttribute)
         assert isinstance(b, TSAssignmentStatement)
         assert b.file_node_id == cls.file_node_id
-        assert b.G == cls.G
+        assert b.ctx == cls.ctx
 
 
 def test_attribute_from_parent_symbol(tmpdir) -> None:
@@ -116,7 +116,7 @@ type MyType = {
         assert isinstance(b, TSAttribute)
         assert isinstance(b, TSAssignmentStatement)
         assert b.file_node_id == type.file_node_id
-        assert b.G == type.G
+        assert b.ctx == type.ctx
 
 
 def test_ts_attributes_within_function(tmpdir) -> None:

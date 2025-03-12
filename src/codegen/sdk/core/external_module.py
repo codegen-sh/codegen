@@ -13,7 +13,7 @@ from codegen.visualizations.enums import VizNode
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
 
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.dataclasses.usage import UsageKind
     from codegen.sdk.core.detached_symbols.parameter import Parameter
     from codegen.sdk.core.expressions.name import Name
@@ -39,13 +39,13 @@ class ExternalModule(
     node_type: Literal[NodeType.EXTERNAL] = NodeType.EXTERNAL
     _import: Import | None = None
 
-    def __init__(self, ts_node: TSNode, file_node_id: NodeId, G: CodebaseGraph, import_name: Name, import_node: Import | None = None) -> None:
-        self.node_id = G.add_node(self)
-        super().__init__(ts_node, file_node_id, G, None)
+    def __init__(self, ts_node: TSNode, file_node_id: NodeId, ctx: CodebaseContext, import_name: Name, import_node: Import | None = None) -> None:
+        self.node_id = ctx.add_node(self)
+        super().__init__(ts_node, file_node_id, ctx, None)
         self._name_node = import_name
         self.return_type = StubPlaceholder(parent=self)
-        assert self._idx_key not in self.G._ext_module_idx
-        self.G._ext_module_idx[self._idx_key] = self.node_id
+        assert self._idx_key not in self.ctx._ext_module_idx
+        self.ctx._ext_module_idx[self._idx_key] = self.node_id
         self._import = import_node
 
     @property
@@ -54,7 +54,7 @@ class ExternalModule(
 
     @noapidoc
     @commiter
-    def parse(self, G: CodebaseGraph) -> None:
+    def parse(self, ctx: CodebaseContext) -> None:
         msg = f"{type(self)} is not part of the graph at the moment"
         raise NotImplementedError(msg)
 
@@ -72,7 +72,7 @@ class ExternalModule(
         Returns:
             ExternalModule: A new ExternalModule instance representing the external module.
         """
-        return cls(imp.ts_node, imp.file_node_id, imp.G, imp._unique_node, imp)
+        return cls(imp.ts_node, imp.file_node_id, imp.ctx, imp._unique_node, imp)
 
     @property
     @reader

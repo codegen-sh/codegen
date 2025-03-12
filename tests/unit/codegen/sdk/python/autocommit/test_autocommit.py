@@ -138,10 +138,10 @@ def a():
     pass
 """
     with get_codebase_session(tmpdir=tmpdir, files={file1_name: content1}) as codebase:
-        autocommit = codebase.G._autocommit
+        autocommit = codebase.ctx._autocommit
         file1 = codebase.get_file(file1_name)
         fun = file1.get_function("a")
-        file1.add_import_from_import_string("import os")
+        file1.add_import("import os")
         assert fun.node_id not in autocommit._nodes
         if edit_block:
             block = fun.code_block
@@ -167,7 +167,7 @@ def a(a: int):
     pass
 """
     with get_codebase_session(tmpdir=tmpdir, files={file1_name: content1}) as codebase:
-        autocommit = codebase.G._autocommit
+        autocommit = codebase.ctx._autocommit
         file1 = codebase.get_file(file1_name)
         fun = file1.get_function("a")
         param = fun.parameters[0]
@@ -194,13 +194,13 @@ def a(a: int):
     pass
 """
     with get_codebase_session(tmpdir=tmpdir, files={file1_name: content1}) as codebase:
-        autocommit = codebase.G._autocommit
+        autocommit = codebase.ctx._autocommit
         file1 = codebase.get_file(file1_name)
         fun = file1.get_function("a")
         param = fun.parameters[0]
         assert fun.node_id not in autocommit._nodes
         param.edit("try_to_break_this: str")
-        file1.add_import_from_import_string("import os")
+        file1.add_import("import os")
         assert fun.node_id in autocommit._nodes
         if edit_block:
             block = fun.code_block
@@ -223,14 +223,14 @@ def b(a: int):
     pass
 """
     with get_codebase_session(tmpdir=tmpdir, files={file1_name: content1}) as codebase:
-        autocommit = codebase.G._autocommit
+        autocommit = codebase.ctx._autocommit
         file1 = codebase.get_file(file1_name)
         fun = file1.get_function("a")
         funb = file1.get_function("b")
         param = fun.parameters[0]
         assert fun.node_id not in autocommit._nodes
         param.edit("try_to_break_this: str")
-        file1.add_import_from_import_string("import os")
+        file1.add_import("import os")
         assert fun.node_id in autocommit._nodes
         block = funb.code_block
         block.insert_before("a", fix_indentation=True)

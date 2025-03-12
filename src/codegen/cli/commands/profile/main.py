@@ -13,9 +13,10 @@ from codegen.cli.workspace.decorators import requires_init
 @requires_init
 def profile_command(session: CodegenSession):
     """Display information about the currently authenticated user."""
+    repo_config = session.config.repository
     rich.print(
         Panel(
-            f"[cyan]Name:[/cyan]  {session.profile.name}\n[cyan]Email:[/cyan] {session.profile.email}\n[cyan]Repo:[/cyan]  {session.repo_name}",
+            f"[cyan]Name:[/cyan]  {repo_config.user_name}\n[cyan]Email:[/cyan] {repo_config.user_email}\n[cyan]Repo:[/cyan]  {repo_config.repo_name}",
             title="🔑 [bold]Current Profile[/bold]",
             border_style="cyan",
             box=box.ROUNDED,

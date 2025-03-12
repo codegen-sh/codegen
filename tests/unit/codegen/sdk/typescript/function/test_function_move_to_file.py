@@ -4,7 +4,7 @@ import pytest
 
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
 from codegen.sdk.core.function import Function
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 from tests.shared.utils.normalize import normalize_imports
 
 # All the diff types of JS/TS imports:

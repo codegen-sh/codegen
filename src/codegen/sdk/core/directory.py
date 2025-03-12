@@ -1,43 +1,38 @@
 import os
-from itertools import chain
+from collections.abc import Iterator
 from pathlib import Path
-from typing import TYPE_CHECKING, Generic, Self, TypeVar
+from typing import TYPE_CHECKING, Generic, Literal, Self
 
-from codegen.shared.decorators.docs import apidoc, py_noapidoc
+from codegen.sdk._proxy import proxy_property
+from codegen.sdk.core.interfaces.has_symbols import (
+    FilesParam,
+    HasSymbols,
+    TClass,
+    TFile,
+    TFunction,
+    TGlobalVar,
+    TImport,
+    TImportStatement,
+    TSymbol,
+)
+from codegen.sdk.core.utils.cache_utils import cached_generator
+from codegen.sdk.enums import NodeType
+from codegen.sdk.extensions.sort import sort_editables
+from codegen.shared.decorators.docs import apidoc, noapidoc
+from codegen.shared.logging.get_logger import get_logger
+
+logger = get_logger(__name__)
+
 
 if TYPE_CHECKING:
-    from codegen.sdk.core.assignment import Assignment
-    from codegen.sdk.core.class_definition import Class
-    from codegen.sdk.core.file import File
-    from codegen.sdk.core.function import Function
-    from codegen.sdk.core.import_resolution import Import, ImportStatement
-    from codegen.sdk.core.symbol import Symbol
-    from codegen.sdk.typescript.class_definition import TSClass
-    from codegen.sdk.typescript.export import TSExport
-    from codegen.sdk.typescript.file import TSFile
-    from codegen.sdk.typescript.function import TSFunction
-    from codegen.sdk.typescript.import_resolution import TSImport
-    from codegen.sdk.typescript.statements.import_statement import TSImportStatement
-    from codegen.sdk.typescript.symbol import TSSymbol
-
-import logging
-
-logger = logging.getLogger(__name__)
-
-
-TFile = TypeVar("TFile", bound="File")
-TSymbol = TypeVar("TSymbol", bound="Symbol")
-TImportStatement = TypeVar("TImportStatement", bound="ImportStatement")
-TGlobalVar = TypeVar("TGlobalVar", bound="Assignment")
-TClass = TypeVar("TClass", bound="Class")
-TFunction = TypeVar("TFunction", bound="Function")
-TImport = TypeVar("TImport", bound="Import")
-
-TSGlobalVar = TypeVar("TSGlobalVar", bound="Assignment")
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
 
 
 @apidoc
-class Directory(Generic[TFile, TSymbol, TImportStatement, TGlobalVar, TClass, TFunction, TImport]):
+class Directory(
+    HasSymbols[TFile, TSymbol, TImportStatement, TGlobalVar, TClass, TFunction, TImport],
+    Generic[TFile, TSymbol, TImportStatement, TGlobalVar, TClass, TFunction, TImport],
+):
     """Directory representation for codebase.
 
     GraphSitter abstraction of a file directory that can be used to look for files and symbols within a specific directory.
@@ -49,42 +44,63 @@ class Directory(Generic[TFile, TSymbol, TImportStatement, TGlobalVar, TClass, TF
         items: A dictionary containing files and subdirectories within the directory.
     """
 
+    ctx: "CodebaseContext"
     path: Path  # Absolute Path
     dirpath: str  # Relative Path
-    parent: Self | None
-    items: dict[str, TFile | Self]
+    _files: list[str]  # List of file names
+    _subdirectories: list[str]  # List of subdirectory names
 
-    def __init__(self, path: Path, dirpath: str, parent: Self | None):
+    def __init__(self, ctx: "CodebaseContext", path: Path, dirpath: str):
+        self.ctx = ctx
         self.path = path
         self.dirpath = dirpath
-        self.parent = parent
-        self.items = dict()
+        self._files = []
+        self._subdirectories = []
 
     def __iter__(self):
-        return iter(self.items.values())
+        return iter(self.items)
+
+    def _is_a_subdirectory_of(self, target_directory: Self):
+        """Checks whether this directory is a subdirectory of another directory"""
+        if self.parent == target_directory:
+            return True
+        if self.parent is None:
+            return False
+        return self.parent._is_a_subdirectory_of(target_directory=target_directory)
 
     def __contains__(self, item: str | TFile | Self) -> bool:
+        from codegen.sdk.core.file import File
+
+        # Try to match all file and subdirectory names
         if isinstance(item, str):
-            return item in self.items
-        else:
-            return item in self.items.values()
+            if item in self.item_names:
+                return True
+        # Try to match all subdirectories
+        elif isinstance(item, Directory):
+            if item.name in [directory.name for directory in self.subdirectories]:
+                return True
+        # Try to match all files
+        elif isinstance(item, File):
+            if item.name in [file.name for file in self.files(extensions="*")]:
+                return True
+
+        # Attempt to match recursively
+        for directory in self.subdirectories(recursive=False):
+            if item in directory:
+                return True
+
+        # If no match, return False
+        return False
 
     def __len__(self) -> int:
-        return len(self.items)
+        # Using item names here as items will cause an infinite loop
+        return len(self.item_names)
 
     def __getitem__(self, item_name: str) -> TFile | Self:
-        return self.items[item_name]
-
-    def __setitem__(self, item_name: str, item: TFile | Self) -> None:
-        self.items[item_name] = item
-
-    def __delitem__(self, item_name: str) -> None:
-        del self.items[item_name]
-        msg = f"Item {item_name} not found in directory {self.dirpath}"
-        raise KeyError(msg)
+        return next((item for item in self.items if item.name == item_name), None)
 
     def __repr__(self) -> str:
-        return f"Directory({self.dirpath}, {self.items.keys()})"
+        return f"Directory(name='{self.name}', items={self.item_names})"
 
     @property
     def name(self) -> str:
@@ -97,158 +113,152 @@ class Directory(Generic[TFile, TSymbol, TImportStatement, TGlobalVar, TClass, TF
         """
         return os.path.basename(self.dirpath)
 
-    @property
-    def files(self) -> list[TFile]:
-        """Get a recursive list of all files in the directory and its subdirectories."""
+    @proxy_property
+    def files(self, *, extensions: list[str] | Literal["*"] | None = None, recursive: bool = False) -> list[TFile]:
+        """Gets a list of all top level files in the directory.
+
+        Set `recursive=True` to get all files recursively.
+
+        By default, this only returns source files. Setting `extensions='*'` will return all files, and
+        `extensions=[...]` will return all files with the specified extensions.
+
+        For Python and Typescript repos WITH file parsing enabled,
+        `extensions='*'` is REQUIRED for listing all non source code files.
+        Or else, codebase.files will ONLY return source files (e.g. .py, .ts).
+
+        For repos with file parsing disabled or repos with other languages, this will return all files in the codebase.
+
+        Returns all Files in the codebase, sorted alphabetically. For Python codebases, returns PyFiles (python files).
+        For Typescript codebases, returns TSFiles (typescript files).
+
+        Returns:
+            list[TSourceFile]: A sorted list of source files in the codebase.
+        """
+        # If there are no source files, return ALL files
+        if len(self.ctx.get_nodes(NodeType.FILE)) == 0:
+            extensions = "*"
+        # If extensions is not set, use the extensions from the codebase
+        elif extensions is None:
+            extensions = self.ctx.extensions
+
         files = []
+        for file_name in self._files:
+            if extensions == "*":
+                files.append(self.get_file(file_name))
+            elif extensions is not None:
+                if any(file_name.endswith(ext) for ext in extensions):
+                    files.append(self.get_file(file_name))
 
-        def _get_files(directory: Directory):
-            for item in directory.items.values():
-                if isinstance(item, Directory):
-                    _get_files(item)
-                else:
-                    files.append(item)
+        if recursive:
+            for directory in self.subdirectories:
+                files.extend(directory.files(extensions=extensions, recursive=True))
 
-        _get_files(self)
-        return files
+        return sort_editables(files, alphabetical=True, dedupe=False)
 
-    @property
-    def subdirectories(self) -> list[Self]:
-        """Get a recursive list of all subdirectories in the directory and its subdirectories."""
+    @proxy_property
+    def subdirectories(self, recursive: bool = False) -> list[Self]:
+        """Get a list of all top level subdirectories in the directory.
+
+        Set `recursive=True` to get all subdirectories recursively.
+
+        Returns:
+            list[Directory]: A sorted list of subdirectories in the directory.
+        """
         subdirectories = []
+        for directory_name in self._subdirectories:
+            subdirectories.append(self.get_subdirectory(directory_name))
 
-        def _get_subdirectories(directory: Directory):
-            for item in directory.items.values():
-                if isinstance(item, Directory):
-                    subdirectories.append(item)
-                    _get_subdirectories(item)
+        if recursive:
+            for directory in self.subdirectories:
+                subdirectories.extend(directory.subdirectories(recursive=True))
 
-        _get_subdirectories(self)
-        return subdirectories
+        return sorted(subdirectories, key=lambda x: x.name)
 
-    @property
-    def symbols(self) -> list[TSymbol]:
-        """Get a recursive list of all symbols in the directory and its subdirectories."""
-        return list(chain.from_iterable(f.symbols for f in self.files))
+    @proxy_property
+    def items(self, recursive: bool = False) -> list[Self | TFile]:
+        """Get a list of all files and subdirectories in the directory.
 
-    @property
-    def import_statements(self) -> list[TImportStatement]:
-        """Get a recursive list of all import statements in the directory and its subdirectories."""
-        return list(chain.from_iterable(f.import_statements for f in self.files))
+        Set `recursive=True` to get all files and subdirectories recursively.
 
-    @property
-    def global_vars(self) -> list[TGlobalVar]:
-        """Get a recursive list of all global variables in the directory and its subdirectories."""
-        return list(chain.from_iterable(f.global_vars for f in self.files))
+        Returns:
+            list[Self | TFile]: A sorted list of files and subdirectories in the directory.
+        """
+        return self.files(extensions="*", recursive=recursive) + self.subdirectories(recursive=recursive)
 
     @property
-    def classes(self) -> list[TClass]:
-        """Get a recursive list of all classes in the directory and its subdirectories."""
-        return list(chain.from_iterable(f.classes for f in self.files))
+    def item_names(self, recursive: bool = False) -> list[str]:
+        """Get a list of all file and subdirectory names in the directory.
+
+        Set `recursive=True` to get all file and subdirectory names recursively.
+
+        Returns:
+            list[str]: A list of file and subdirectory names in the directory.
+        """
+        return self._files + self._subdirectories
 
     @property
-    def functions(self) -> list[TFunction]:
-        """Get a recursive list of all functions in the directory and its subdirectories."""
-        return list(chain.from_iterable(f.functions for f in self.files))
+    def tree(self) -> list[Self | TFile]:
+        """Get a recursive list of all files and subdirectories in the directory.
+
+        Returns:
+            list[Self | TFile]: A recursive list of files and subdirectories in the directory.
+        """
+        return self.items(recursive=True)
 
     @property
-    @py_noapidoc
-    def exports(self: "Directory[TSFile, TSSymbol, TSImportStatement, TSGlobalVar, TSClass, TSFunction, TSImport]") -> "list[TSExport]":
-        """Get a recursive list of all exports in the directory and its subdirectories."""
-        return list(chain.from_iterable(f.exports for f in self.files))
+    def parent(self) -> Self | None:
+        """Get the parent directory of the current directory."""
+        return self.ctx.get_directory(self.path.parent)
 
-    @property
-    def imports(self) -> list[TImport]:
-        """Get a recursive list of all imports in the directory and its subdirectories."""
-        return list(chain.from_iterable(f.imports for f in self.files))
-
-    def get_symbol(self, name: str) -> TSymbol | None:
-        """Get a symbol by name in the directory and its subdirectories."""
-        return next((s for s in self.symbols if s.name == name), None)
-
-    def get_import_statement(self, name: str) -> TImportStatement | None:
-        """Get an import statement by name in the directory and its subdirectories."""
-        return next((s for s in self.import_statements if s.name == name), None)
-
-    def get_global_var(self, name: str) -> TGlobalVar | None:
-        """Get a global variable by name in the directory and its subdirectories."""
-        return next((s for s in self.global_vars if s.name == name), None)
-
-    def get_class(self, name: str) -> TClass | None:
-        """Get a class by name in the directory and its subdirectories."""
-        return next((s for s in self.classes if s.name == name), None)
-
-    def get_function(self, name: str) -> TFunction | None:
-        """Get a function by name in the directory and its subdirectories."""
-        return next((s for s in self.functions if s.name == name), None)
-
-    def add_file(self, file: TFile) -> None:
-        """Add a file to the directory."""
-        rel_path = os.path.relpath(file.file_path, self.dirpath)
-        self.items[rel_path] = file
-
-    def remove_file(self, file: TFile) -> None:
-        """Remove a file from the directory."""
-        rel_path = os.path.relpath(file.file_path, self.dirpath)
-        del self.items[rel_path]
-
-    def remove_file_by_path(self, file_path: os.PathLike) -> None:
-        """Remove a file from the directory by its path."""
-        rel_path = str(Path(file_path).relative_to(self.dirpath))
-        del self.items[rel_path]
+    @noapidoc
+    @cached_generator()
+    def files_generator(self, *args: FilesParam.args, **kwargs: FilesParam.kwargs) -> Iterator[TFile]:
+        """Yield files recursively from the directory."""
+        yield from self.files(*args, extensions="*", **kwargs, recursive=True)
 
     def get_file(self, filename: str, ignore_case: bool = False) -> TFile | None:
         """Get a file by its name relative to the directory."""
-        from codegen.sdk.core.file import File
-
-        if ignore_case:
-            return next((f for name, f in self.items.items() if name.lower() == filename.lower() and isinstance(f, File)), None)
-        return self.items.get(filename, None)
-
-    @py_noapidoc
-    def get_export(self: "Directory[TSFile, TSSymbol, TSImportStatement, TSGlobalVar, TSClass, TSFunction, TSImport]", name: str) -> "TSExport | None":
-        """Get an export by name in the directory and its subdirectories (supports only typescript)."""
-        return next((s for s in self.exports if s.name == name), None)
-
-    def get_import(self, name: str) -> TImport | None:
-        """Get an import by name in the directory and its subdirectories."""
-        return next((s for s in self.imports if s.name == name), None)
-
-    def add_subdirectory(self, subdirectory: Self) -> None:
-        """Add a subdirectory to the directory."""
-        rel_path = os.path.relpath(subdirectory.dirpath, self.dirpath)
-        self.items[rel_path] = subdirectory
-
-    def remove_subdirectory(self, subdirectory: Self) -> None:
-        """Remove a subdirectory from the directory."""
-        rel_path = os.path.relpath(subdirectory.dirpath, self.dirpath)
-        del self.items[rel_path]
-
-    def remove_subdirectory_by_path(self, subdirectory_path: str) -> None:
-        """Remove a subdirectory from the directory by its path."""
-        rel_path = os.path.relpath(subdirectory_path, self.dirpath)
-        del self.items[rel_path]
+        file_path = os.path.join(self.dirpath, filename)
+        absolute_path = self.ctx.to_absolute(file_path)
+        # Try to get the file from the graph first
+        file = self.ctx.get_file(file_path, ignore_case=ignore_case)
+        if file is not None:
+            return file
+        # If the file is not in the graph, check the filesystem
+        for file in absolute_path.parent.iterdir():
+            if ignore_case and str(absolute_path).lower() == str(file).lower():
+                return self.ctx._get_raw_file_from_path(file)
+            elif not ignore_case and str(absolute_path) == str(file):
+                return self.ctx._get_raw_file_from_path(file)
+        return None
 
     def get_subdirectory(self, subdirectory_name: str) -> Self | None:
-        """Get a subdirectory by its path relative to the directory."""
-        return self.items.get(subdirectory_name, None)
-
-    def remove(self) -> None:
-        """Remove the directory and all its files and subdirectories."""
-        for f in self.files:
-            f.remove()
+        """Get a subdirectory by its name (relative to the directory)."""
+        return self.ctx.get_directory(os.path.join(self.dirpath, subdirectory_name))
 
     def update_filepath(self, new_filepath: str) -> None:
-        """Update the filepath of the directory."""
+        """Update the filepath of the directory and its contained files."""
         old_path = self.dirpath
         new_path = new_filepath
-
-        for file in self.files:
+        for file in self.files(recursive=True):
             new_file_path = os.path.join(new_path, os.path.relpath(file.file_path, old_path))
             file.update_filepath(new_file_path)
+
+    def remove(self) -> None:
+        """Remove all the files in the files container."""
+        for f in self.files(recursive=True):
+            f.remove()
 
     def rename(self, new_name: str) -> None:
         """Rename the directory."""
         parent_dir, _ = os.path.split(self.dirpath)
         new_path = os.path.join(parent_dir, new_name)
         self.update_filepath(new_path)
+
+    def _add_file(self, file_name: str) -> None:
+        """Add a file to the directory."""
+        self._files.append(file_name)
+
+    def _add_subdirectory(self, subdirectory_name: str) -> None:
+        """Add a subdirectory to the directory."""
+        self._subdirectories.append(subdirectory_name)

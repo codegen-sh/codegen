@@ -16,5 +16,5 @@ class PyChainedAttribute(ChainedAttribute[Expression, Name, Parent], Generic[Par
     This includes methods of python classes and module functions.
     """
 
-    def __init__(self, ts_node, file_node_id, G, parent: Parent):
-        super().__init__(ts_node, file_node_id, G, parent=parent, object=ts_node.child_by_field_name("object"), attribute=ts_node.child_by_field_name("attribute"))
+    def __init__(self, ts_node, file_node_id, ctx, parent: Parent):
+        super().__init__(ts_node, file_node_id, ctx, parent=parent, object=ts_node.child_by_field_name("object"), attribute=ts_node.child_by_field_name("attribute"))

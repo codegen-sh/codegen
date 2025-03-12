@@ -25,7 +25,7 @@ class Value(Expression[Parent], Generic[Parent]):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.G.parser.log_unparsed(self.ts_node)
+        self.ctx.parser.log_unparsed(self.ts_node)
 
     @noapidoc
     @commiter

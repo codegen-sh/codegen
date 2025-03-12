@@ -1,5 +1,5 @@
 from codegen.sdk.codebase.factory.get_session import get_codebase_graph_session
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def test_function_call_extended_source_in_chain(tmpdir) -> None:
@@ -21,8 +21,8 @@ function baz() {
 }
     """
 
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as ctx:
+        file = ctx.get_file("test.ts")
 
         # Check foo
         foo = file.get_function("foo")
@@ -108,8 +108,8 @@ function foo() {
 }
     """
 
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as ctx:
+        file = ctx.get_file("test.ts")
 
         # Check foo
         foo = file.get_function("foo")

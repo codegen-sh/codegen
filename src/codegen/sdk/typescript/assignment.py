@@ -11,7 +11,7 @@ from codegen.shared.decorators.docs import noapidoc, ts_apidoc
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
 
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.node_id_factory import NodeId
     from codegen.sdk.core.statements.export_statement import ExportStatement
     from codegen.sdk.typescript.statements.assignment_statement import TSAssignmentStatement
@@ -30,18 +30,18 @@ class TSAssignment(Assignment["TSAssignmentStatement | ExportStatement"], TSSymb
 
     @noapidoc
     @classmethod
-    def from_assignment(cls, ts_node: TSNode, file_node_id: NodeId, G: CodebaseGraph, parent: TSAssignmentStatement) -> MultiExpression[TSAssignmentStatement, TSAssignment]:
+    def from_assignment(cls, ts_node: TSNode, file_node_id: NodeId, ctx: CodebaseContext, parent: TSAssignmentStatement) -> MultiExpression[TSAssignmentStatement, TSAssignment]:
         if ts_node.type not in ["assignment_expression", "augmented_assignment_expression"]:
             msg = f"Unknown assignment type: {ts_node.type}"
             raise ValueError(msg)
 
         left_node = ts_node.child_by_field_name("left")
         right_node = ts_node.child_by_field_name("right")
-        assignments = cls._from_left_and_right_nodes(ts_node, file_node_id, G, parent, left_node, right_node)
-        return MultiExpression(ts_node, file_node_id, G, parent, assignments)
+        assignments = cls._from_left_and_right_nodes(ts_node, file_node_id, ctx, parent, left_node, right_node)
+        return MultiExpression(ts_node, file_node_id, ctx, parent, assignments)
 
     @classmethod
-    def from_named_expression(cls, ts_node: TSNode, file_node_id: NodeId, G: CodebaseGraph, parent: TSAssignmentStatement) -> MultiExpression[TSAssignmentStatement, TSAssignment]:
+    def from_named_expression(cls, ts_node: TSNode, file_node_id: NodeId, ctx: CodebaseContext, parent: TSAssignmentStatement) -> MultiExpression[TSAssignmentStatement, TSAssignment]:
         """Creates a MultiExpression object from a TypeScript named expression node.
 
         Constructs assignments from a TypeScript named expression node (variable declarator, public field definition, or property signature) by extracting the left (name) and right (value) nodes.
@@ -49,7 +49,7 @@ class TSAssignment(Assignment["TSAssignmentStatement | ExportStatement"], TSSymb
         Args:
             ts_node (TSNode): The TypeScript node representing the named expression.
             file_node_id (NodeId): The unique identifier for the file containing this node.
-            G (CodebaseGraph): The graph representation of the codebase.
+            ctx (CodebaseContext): The graph representation of the codebase.
             parent (Parent): The parent node containing this expression.
 
         Returns:
@@ -64,8 +64,8 @@ class TSAssignment(Assignment["TSAssignmentStatement | ExportStatement"], TSSymb
 
         left_node = ts_node.child_by_field_name("name")
         right_node = ts_node.child_by_field_name("value")
-        assignments = cls._from_left_and_right_nodes(ts_node, file_node_id, G, parent, left_node, right_node)
-        return MultiExpression(ts_node, file_node_id, G, parent, assignments)
+        assignments = cls._from_left_and_right_nodes(ts_node, file_node_id, ctx, parent, left_node, right_node)
+        return MultiExpression(ts_node, file_node_id, ctx, parent, assignments)
 
     @writer
     def set_inline_comment(self, comment: str, auto_format: bool = True, clean_format: bool = True) -> None:

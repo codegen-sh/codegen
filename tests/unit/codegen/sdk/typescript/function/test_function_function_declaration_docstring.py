@@ -1,5 +1,5 @@
 from codegen.sdk.codebase.factory.get_session import get_codebase_graph_session
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def test_function_signature(tmpdir) -> None:
@@ -29,8 +29,8 @@ function* numberGenerator(start: number, end: number): IterableIterator<number> 
 }
 """
     # =====[ Dependencies ]=====
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as ctx:
+        file = ctx.get_file("test.ts")
         add_function = file.get_function("add")
         func_dec_str = add_function.function_signature
         assert func_dec_str == "function add(a: number, b: number): number"

@@ -3,8 +3,8 @@ from abc import ABC
 from pathlib import Path
 
 from codegen.sdk.core.codebase import CodebaseType
-from codegen.sdk.enums import ProgrammingLanguage
 from codegen.sdk.python import PyFunction
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 from tests.shared.skills.decorators import skill, skill_impl
 from tests.shared.skills.skill import Skill
 from tests.shared.skills.skill_test import SkillTestCase
@@ -84,7 +84,7 @@ class AddDecoratorToFooFunctionsSkill(Skill, ABC):
                     # if the decorator is not imported or declared in the file
                     if not file.has_import("decorator_function") and decorator_symbol.file != file:
                         # add an import for the decorator function
-                        file.add_symbol_import(decorator_symbol)
+                        file.add_import(decorator_symbol)
                     # add the decorator to the function
                     function.add_decorator(f"@{decorator_symbol.name}")
 
@@ -370,7 +370,7 @@ class MoveNonDefaultExportedJSXComponentsSkill(Skill, ABC):
                     # if the file does not exist create it
                     new_file = codebase.create_file(str(new_file_path))
                     # add an import for React
-                    new_file.add_import_from_import_string('import React from "react";')
+                    new_file.add_import('import React from "react";')
                     # move the component to the new file
                     component.move_to_file(new_file)
 

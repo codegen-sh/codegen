@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
     from tree_sitter import Node as TSNode
 
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.codebase.resolution_stack import ResolutionStack
     from codegen.sdk.core.expressions.chained_attribute import ChainedAttribute
     from codegen.sdk.core.expressions.name import Name
@@ -29,8 +29,8 @@ Parent = TypeVar("Parent", bound="Inherits")
 class Parents(Collection["TType", Parent], Generic[TType, Parent]):
     type_arguments: list[Type]
 
-    def __init__(self, ts_node: TSNode, file_node_id: NodeId, G: CodebaseGraph, parent: Parent) -> None:
-        super().__init__(ts_node, file_node_id, G, parent)
+    def __init__(self, ts_node: TSNode, file_node_id: NodeId, ctx: CodebaseContext, parent: Parent) -> None:
+        super().__init__(ts_node, file_node_id, ctx, parent)
         self._init_children([self._parse_type(child) for child in ts_node.named_children if child.type != "type_arguments"])
         self.type_arguments = [self._parse_type(child) for child in ts_node.children if child.type == "type_arguments"]
 
@@ -42,8 +42,8 @@ class Parents(Collection["TType", Parent], Generic[TType, Parent]):
         dest = self.parent
         for superclass in self:
             resolution: list[ResolutionStack] = superclass.resolved_types
-            if len(resolution) == 1 and self.G.has_node(getattr(resolution[0], "node_id", None)):
-                self.G.add_edge(dest.node_id, resolution[0].node_id, type=EdgeType.SUBCLASS)
+            if len(resolution) == 1 and self.ctx.has_node(getattr(resolution[0], "node_id", None)):
+                self.ctx.add_edge(dest.node_id, resolution[0].node_id, type=EdgeType.SUBCLASS)
             else:
                 self._log_parse("%r is ambiguous with possibilities: %r.", superclass, resolution)
         self.parent.__dict__.pop("superclasses", None)

@@ -30,6 +30,7 @@ supabase/config.toml
 **/scripts/*.md
 **/scripts/Personal/*
 **/infrastructure/aws_infra/.terraform/*
+pyrightconfig.json
 Edwards Scratchpad.ipynb
 
 # Allowing .env files to exist in repository, but not allowing updates
@@ -65,3 +66,9 @@ graph-sitter-types/typings/**
 coverage.json
 tests/integration/verified_codemods/codemod_data/repo_commits.json
 .benchmarks/*
+
+# SWE Bench results
+results.*.json
+codegen-examples/examples/swebench_agent_run/results/*
+codegen-examples/examples/swebench_agent_run/predictions/*
+codegen-examples/examples/swebench_agent_run/logs/*

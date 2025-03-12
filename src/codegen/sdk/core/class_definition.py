@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Generic, Literal, Self, TypeVar, overload, override
+from typing import TYPE_CHECKING, Generic, Literal, Self, overload, override
+
+from typing_extensions import TypeVar
 
 from codegen.sdk._proxy import proxy_property
 from codegen.sdk.core.autocommit import commiter, reader, writer
@@ -16,12 +18,13 @@ from codegen.sdk.core.symbol import Symbol
 from codegen.sdk.enums import SymbolType
 from codegen.sdk.extensions.utils import cached_property
 from codegen.shared.decorators.docs import apidoc, noapidoc
+from codegen.shared.logging.get_logger import get_logger
 from codegen.visualizations.enums import VizNode
 
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
 
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.detached_symbols.code_block import CodeBlock
     from codegen.sdk.core.detached_symbols.decorator import Decorator
     from codegen.sdk.core.detached_symbols.parameter import Parameter
@@ -37,16 +40,15 @@ if TYPE_CHECKING:
     from codegen.sdk.core.symbol_groups.multi_line_collection import MultiLineCollection
     from codegen.sdk.core.symbol_groups.parents import Parents
 
-import logging
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
-TFunction = TypeVar("TFunction", bound="Function")
-TDecorator = TypeVar("TDecorator", bound="Decorator")
-TCodeBlock = TypeVar("TCodeBlock", bound="CodeBlock")
-TParameter = TypeVar("TParameter", bound="Parameter")
-TType = TypeVar("TType", bound="Type")
+TFunction = TypeVar("TFunction", bound="Function", default="Function")
+TDecorator = TypeVar("TDecorator", bound="Decorator", default="Decorator")
+TCodeBlock = TypeVar("TCodeBlock", bound="CodeBlock", default="CodeBlock")
+TParameter = TypeVar("TParameter", bound="Parameter", default="Parameter")
+TType = TypeVar("TType", bound="Type", default="Type")
 
 
 @apidoc
@@ -64,8 +66,8 @@ class Class(Inherits[TType], HasBlock[TCodeBlock, TDecorator], Callable[TParamet
     parent_classes: Parents[TType, Self] | None = None
     _methods: MultiLineCollection[TFunction, Self] | None = None
 
-    def __init__(self, ts_node: TSNode, file_id: NodeId, G: CodebaseGraph, parent: SymbolStatement) -> None:
-        super().__init__(ts_node, file_id, G, parent)
+    def __init__(self, ts_node: TSNode, file_id: NodeId, ctx: CodebaseContext, parent: SymbolStatement) -> None:
+        super().__init__(ts_node, file_id, ctx, parent)
         self._methods = self._parse_methods()
         self._parameters = []
 
@@ -376,9 +378,9 @@ class Class(Inherits[TType], HasBlock[TCodeBlock, TDecorator], Callable[TParamet
             file = self.file
             for d in deps:
                 if isinstance(d, Import):
-                    file.add_symbol_import(d.imported_symbol)
+                    file.add_import(d.imported_symbol)
                 elif isinstance(d, Symbol):
-                    file.add_symbol_import(d)
+                    file.add_import(d)
 
     @property
     @noapidoc

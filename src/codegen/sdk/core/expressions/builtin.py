@@ -25,4 +25,4 @@ class Builtin(Chainable, HasAttribute):
     def resolve_attribute(self, name: str) -> "ExternalModule | None":
         # HACK/TODO
         return None
-        # return ExternalModule(self.ts_node, self.file_node_id, self.G, name)
+        # return ExternalModule(self.ts_node, self.file_node_id, self.ctx, name)

@@ -1,4 +1,3 @@
-import logging
 from typing import TYPE_CHECKING, Self, TypeVar, override
 
 from tree_sitter import Node as TSNode
@@ -12,14 +11,15 @@ from codegen.sdk.core.node_id_factory import NodeId
 from codegen.sdk.core.symbol_groups.dict import Dict, Pair
 from codegen.sdk.extensions.autocommit import reader
 from codegen.shared.decorators.docs import apidoc, noapidoc, ts_apidoc
+from codegen.shared.logging.get_logger import get_logger
 
 if TYPE_CHECKING:
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
 
 Parent = TypeVar("Parent", bound="Editable")
 TExpression = TypeVar("TExpression", bound=Expression)
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @ts_apidoc
@@ -37,8 +37,8 @@ class TSPair(Pair):
 
     shorthand: bool
 
-    def __init__(self, ts_node: TSNode, file_node_id: NodeId, G: "CodebaseGraph", parent: Parent) -> None:
-        super().__init__(ts_node, file_node_id, G, parent)
+    def __init__(self, ts_node: TSNode, file_node_id: NodeId, ctx: "CodebaseContext", parent: Parent) -> None:
+        super().__init__(ts_node, file_node_id, ctx, parent)
         self.shorthand = ts_node.type == "shorthand_property_identifier"
 
     def _get_key_value(self) -> tuple[Expression[Self] | None, Expression[Self] | None]:
@@ -65,7 +65,7 @@ class TSPair(Pair):
         """Reduces an editable to the following condition"""
         if self.shorthand and node == self.value:
             # Object shorthand
-            self.parent[self.key.source] = self.G.node_classes.bool_conversion[bool_condition]
+            self.parent[self.key.source] = self.ctx.node_classes.bool_conversion[bool_condition]
         else:
             super().reduce_condition(bool_condition, node)
 
@@ -74,8 +74,8 @@ class TSPair(Pair):
 class TSDict(Dict, HasAttribute):
     """A typescript dict object. You can use standard operations to operate on this dict (IE len, del, set, get, etc)"""
 
-    def __init__(self, ts_node: TSNode, file_node_id: NodeId, G: "CodebaseGraph", parent: Parent, delimiter: str = ",", pair_type: type[Pair] = TSPair) -> None:
-        super().__init__(ts_node, file_node_id, G, parent, delimiter=delimiter, pair_type=pair_type)
+    def __init__(self, ts_node: TSNode, file_node_id: NodeId, ctx: "CodebaseContext", parent: Parent, delimiter: str = ",", pair_type: type[Pair] = TSPair) -> None:
+        super().__init__(ts_node, file_node_id, ctx, parent, delimiter=delimiter, pair_type=pair_type)
 
     def __getitem__(self, __key: str) -> TExpression:
         for pair in self._underlying:
@@ -126,7 +126,7 @@ class TSDict(Dict, HasAttribute):
                     break
         # CASE: {}
         else:
-            if not self.G.node_classes.int_dict_key:
+            if not self.ctx.node_classes.int_dict_key:
                 try:
                     int(__key)
                     __key = f"'{__key}'"

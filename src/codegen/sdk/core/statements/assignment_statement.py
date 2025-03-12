@@ -13,7 +13,7 @@ from codegen.shared.decorators.docs import apidoc, noapidoc
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
 
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.assignment import Assignment
     from codegen.sdk.core.detached_symbols.code_block import CodeBlock
     from codegen.sdk.core.expressions import Expression
@@ -47,15 +47,15 @@ class AssignmentStatement(Statement[TCodeBlock], HasValue, Generic[TCodeBlock, T
     left: Expression[TAssignment]
     right: Expression[TAssignment] | None
 
-    def __init__(self, ts_node: TSNode, file_node_id: NodeId, G: CodebaseGraph, parent: TCodeBlock, pos: int, assignment_node: TSNode) -> None:
-        super().__init__(ts_node, file_node_id, G, parent, pos=pos)
+    def __init__(self, ts_node: TSNode, file_node_id: NodeId, ctx: CodebaseContext, parent: TCodeBlock, pos: int, assignment_node: TSNode) -> None:
+        super().__init__(ts_node, file_node_id, ctx, parent, pos=pos)
         self.assignments = self._DEPRECATED_parse_assignments().expressions
         if len(self.assignments) == 0:
             msg = f"No assignments found: {self.ts_node}\n\n{self.source}"
             raise ValueError(msg)
 
         first_assignment: TAssignment = self.assignments[0]
-        self._name_node = self.G.parser.parse_expression(first_assignment.ts_node, self.file_node_id, self.G, parent, default=Name)
+        self._name_node = self.ctx.parser.parse_expression(first_assignment.ts_node, self.file_node_id, self.ctx, parent, default=Name)
         self.left = first_assignment.left
         self.right = first_assignment.value
         self._value_node = self.right

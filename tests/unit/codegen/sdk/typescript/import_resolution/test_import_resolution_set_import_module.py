@@ -1,5 +1,5 @@
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def test_set_import_module_updates_source(tmpdir) -> None:
@@ -16,20 +16,20 @@ def test_set_import_module_updates_source(tmpdir) -> None:
 
         # =====[ Rename a ]=====
         file.get_import("a").set_import_module("z")
-        codebase.G.commit_transactions()
+        codebase.ctx.commit_transactions()
 
     assert "    import a from 'z';  // test one" in file.content
     assert file.get_import("a").module.source == "'z'"
 
     # =====[ Rename b/c ]=====
     file.get_import("d").set_import_module("x/y/z")
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert "    import { d } from 'x/y/z';  // test two" in file.content
     assert file.get_import("d").module.source == "'x/y/z'"
 
     # =====[ Rename d/f ]=====
     file.get_import("g").set_import_module('"x/y/z"')
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert '    import { h as g, j as i } from "x/y/z";  // test three' in file.content
     assert file.get_import("g").module.source == '"x/y/z"'
 
@@ -52,24 +52,24 @@ def test_set_import_module_quote_handling(tmpdir) -> None:
 
         # Test 1: Normal path should use single quotes (TypeScript standard)
         file.get_import("normal").set_import_module("new/standard/path")
-        codebase.G.commit_transactions()
+        codebase.ctx.commit_transactions()
         assert "import normal from 'new/standard/path';  // should convert to single quotes" in file.content
         assert file.get_import("normal").module.source == "'new/standard/path'"
 
         # Test 2: Path with single quote should use double quotes
         file.get_import("singleQuote").set_import_module("new/don't/break/path")
-        codebase.G.commit_transactions()
+        codebase.ctx.commit_transactions()
         assert 'import singleQuote from "new/don\'t/break/path";  // should use double quotes' in file.content
         assert file.get_import("singleQuote").module.source == '"new/don\'t/break/path"'
 
         # Test 3: Already quoted path (single quotes) should work
         file.get_import("alreadyQuoted").set_import_module("'new/quoted/path'")
-        codebase.G.commit_transactions()
+        codebase.ctx.commit_transactions()
         assert "import alreadyQuoted from 'new/quoted/path';  // should preserve quotes" in file.content
         assert file.get_import("alreadyQuoted").module.source == "'new/quoted/path'"
 
         # Test 4: Already quoted path (double quotes) should work
         file.get_import("doubleQuoted").set_import_module('"another/quoted/path"')
-        codebase.G.commit_transactions()
+        codebase.ctx.commit_transactions()
         assert '    import doubleQuoted from "another/quoted/path";  // should convert to single quotes' in file.content
         assert file.get_import("doubleQuoted").module.source == '"another/quoted/path"'

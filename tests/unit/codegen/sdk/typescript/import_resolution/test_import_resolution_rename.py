@@ -1,5 +1,5 @@
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def test_rename_import_updates_source(tmpdir) -> None:
@@ -25,7 +25,7 @@ import { h as g, j as i } from 'd/f';  // test three
     # =====[ Rename b/c ]=====
     imp = file.get_import("d")
     imp.rename("ABC")
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     imp = file.get_import("d")
     assert "import { ABC } from 'b/c';  // test two" in file.content
     assert file.get_import("ABC").symbol_name.source == "ABC"
@@ -33,6 +33,6 @@ import { h as g, j as i } from 'd/f';  // test three
     # =====[ Rename a ]=====
     imp = file.get_import("a")
     imp.rename("z")
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert "import z from 'b';  // test one" in file.content
     assert file.get_import("z").symbol_name.source == "z"

@@ -35,7 +35,7 @@ class Exportable(Usable[Parent], Generic[Parent]):
     def export(self) -> Export | None:
         """Returns the export object that exports this symbol.
 
-        Retrieves the export object by examining incoming EXPORT edges in the CodebaseGraph.
+        Retrieves the export object by examining incoming EXPORT edges in the CodebaseContext.
 
         Args:
             None
@@ -46,7 +46,7 @@ class Exportable(Usable[Parent], Generic[Parent]):
         try:
             if self.node_id is None:
                 return None
-            return self.G.predecessor(self.node_id, edge_type=EdgeType.EXPORT)
+            return self.ctx.predecessor(self.node_id, edge_type=EdgeType.EXPORT)
         except NoSuitableNeighbors:
             return None
 

@@ -1,7 +1,7 @@
 from abc import ABC
 
 from codegen.sdk.core.codebase import CodebaseType
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 from tests.shared.skills.decorators import skill, skill_impl
 from tests.shared.skills.skill import Skill
 from tests.shared.skills.skill_test import SkillTestCase, SkillTestCasePyFile, SkillTestCaseTSFile
@@ -318,7 +318,7 @@ class ModifyReturnTypeSkill(Skill, ABC):
 
         # import c from module
         c = codebase.get_file("path/to/module.py").get_symbol("c")
-        target_file.add_symbol_import(c)
+        target_file.add_import(c)
 
         # Add a new option to the return type
         function.return_type.append("c")
@@ -331,7 +331,7 @@ class ModifyReturnTypeSkill(Skill, ABC):
         function = target_file.get_function("functionName")
         # function functionName(): a | b: ...
         c = codebase.get_file("path/to/module.ts").get_symbol("c")
-        target_file.add_symbol_import(c)
+        target_file.add_import(c)
 
         # Add a new option to the return type
         function.return_type.append("c")

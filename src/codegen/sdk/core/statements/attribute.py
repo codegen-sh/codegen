@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
     from tree_sitter import Node as TSNode
 
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.assignment import Assignment
     from codegen.sdk.core.detached_symbols.code_block import CodeBlock
     from codegen.sdk.core.interfaces.importable import Importable
@@ -39,8 +39,8 @@ class Attribute(AssignmentStatement[TCodeBlock, TAssignment], Usable, Chainable,
     statement_type = StatementType.CLASS_ATTRIBUTE
     assignment: TAssignment
 
-    def __init__(self, ts_node: TSNode, file_node_id: NodeId, G: CodebaseGraph, parent: TCodeBlock, pos: int, assignment_node: TSNode) -> None:
-        super().__init__(ts_node, file_node_id, G, parent, pos=pos, assignment_node=assignment_node)
+    def __init__(self, ts_node: TSNode, file_node_id: NodeId, ctx: CodebaseContext, parent: TCodeBlock, pos: int, assignment_node: TSNode) -> None:
+        super().__init__(ts_node, file_node_id, ctx, parent, pos=pos, assignment_node=assignment_node)
         self.assignment = self.assignments[0]
         self._name_node = self.assignment.get_name()
 

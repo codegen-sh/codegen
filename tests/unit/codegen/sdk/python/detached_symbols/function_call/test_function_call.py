@@ -502,8 +502,8 @@ def baz():
 
         # Check call chain
         assert c.call_chain == [a, b, c]
-        assert b.call_chain == [a, b]
-        assert a.call_chain == [a]
+        assert b.call_chain == [a, b, c]
+        assert a.call_chain == [a, b, c]
 
         # Check base
         assert c.base == a.get_name()
@@ -530,13 +530,101 @@ def baz():
 
         # Check call chain
         assert c.call_chain == [a, b, c]
-        assert b.call_chain == [a, b]
-        assert a.call_chain == [a]
+        assert b.call_chain == [a, b, c]
+        assert a.call_chain == [a, b, c]
 
         # Check base
         assert c.base.source == "x"
         assert b.base.source == "x"
         assert a.base.source == "x"
+
+
+def test_function_call_chain_nested(tmpdir) -> None:
+    # language=python
+    content = """
+def foo():
+    # Nested function calls - each call should be independent
+    a(b(c()))
+"""
+    with get_codebase_session(tmpdir=tmpdir, files={"test.py": content}) as codebase:
+        file = codebase.get_file("test.py")
+        foo = file.get_function("foo")
+        calls = foo.function_calls
+        assert len(calls) == 3
+        a = calls[0]
+        b = calls[1]
+        c = calls[2]
+
+        # Each call should be independent - no predecessors
+        assert a.predecessor is None
+        assert b.predecessor is None
+        assert c.predecessor is None
+
+        # No successors since they're nested, not chained
+        assert a.successor is None
+        assert b.successor is None
+        assert c.successor is None
+
+        # Call chain for each should only include itself
+        assert a.call_chain == [a]
+        assert b.call_chain == [b]
+        assert c.call_chain == [c]
+
+        # Verify source strings are correct
+        assert a.source == "a(b(c()))"
+        assert b.source == "b(c())"
+        assert c.source == "c()"
+
+
+def test_function_call_chain_successor(tmpdir) -> None:
+    # language=python
+    content = """
+def foo():
+    a().b().c()
+
+def bat():
+    x.y.z.func()
+
+def baz():
+    x.a().y.b().z.c()
+"""
+    with get_codebase_session(tmpdir=tmpdir, files={"test.py": content}) as codebase:
+        file = codebase.get_file("test.py")
+
+        # Check foo
+        foo = file.get_function("foo")
+        calls = foo.function_calls
+        assert len(calls) == 3
+        c = calls[0]
+        b = calls[1]
+        a = calls[2]
+
+        # Check successors
+        assert a.successor == b
+        assert b.successor == c
+        assert c.successor is None
+
+        # Check bat
+        bat = file.get_function("bat")
+        calls = bat.function_calls
+        assert len(calls) == 1
+        func = calls[0]
+
+        # No successor since it's a single function call
+        assert func.successor is None
+
+        # Check baz
+        baz = file.get_function("baz")
+        calls = baz.function_calls
+        assert len(calls) == 3
+        c = calls[0]
+        b = calls[1]
+        a = calls[2]
+
+        # Check successors
+        assert a.successor == b
+        assert b.successor == c
+        assert c.successor is None
 
 
 def test_function_call_chain_hard(tmpdir) -> None:

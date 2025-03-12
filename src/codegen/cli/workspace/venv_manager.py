@@ -2,14 +2,12 @@ import os
 import subprocess
 from pathlib import Path
 
-from codegen.cli.auth.constants import CODEGEN_DIR
-
 
 class VenvManager:
     """Manages the virtual environment for codegen."""
 
-    def __init__(self):
-        self.codegen_dir = Path.cwd() / CODEGEN_DIR
+    def __init__(self, codegen_dir: Path):
+        self.codegen_dir = codegen_dir
         self.venv_dir = self.codegen_dir / ".venv"
 
     def is_initialized(self) -> bool:

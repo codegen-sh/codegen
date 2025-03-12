@@ -57,7 +57,7 @@ class ResolutionStack(Generic[NodeType]):
         match: "Editable",
         usage_type: UsageKind,
         dest: "HasName",
-        G: "CodebaseGraph",
+        codebase_context: "CodebaseContext",
         *,
         direct: bool = True,
         aliased: bool = False,
@@ -67,7 +67,7 @@ class ResolutionStack(Generic[NodeType]):
         """Get usage edges for a given node."""
         # Only add nodes that are already on the graph
         edge_usage_type = self.usage_type(direct, aliased, chained)
-        if hasattr(self.node, "node_id") and G.has_node(getattr(self.node, "node_id")):
+        if hasattr(self.node, "node_id") and codebase_context.has_node(getattr(self.node, "node_id")):
             usage = Usage(kind=usage_type, match=match, usage_type=edge_usage_type, usage_symbol=dest.parent_symbol, imported_by=imported_by)
             yield dest.node_id, self.node.node_id, Edge(type=EdgeType.SYMBOL_USAGE, usage=usage)
         if self.parent_frame is not None:
@@ -78,12 +78,12 @@ class ResolutionStack(Generic[NodeType]):
             aliased = self.aliased or aliased
             direct = self.direct and direct
             chained = self.chained or (chained and self.direct)
-            yield from self.parent_frame.get_edges(match, usage_type, dest, G, direct=direct, aliased=aliased, chained=chained, imported_by=imported_by)
+            yield from self.parent_frame.get_edges(match, usage_type, dest, codebase_context, direct=direct, aliased=aliased, chained=chained, imported_by=imported_by)
 
-    def add_usage(self, match: "Editable", usage_type: UsageKind, dest: "HasName", G: "CodebaseGraph", *, direct: bool = True, aliased: bool = False, chained: bool = False) -> None:
+    def add_usage(self, match: "Editable", usage_type: UsageKind, dest: "HasName", codebase_context: "CodebaseContext", *, direct: bool = True, aliased: bool = False, chained: bool = False) -> None:
         """Add the resolved type to the graph. Also adds any intermediate nodes as usages as well if they are on the graph."""
         # Only add nodes that are already on the graph
-        G.add_edges(list(self.get_edges(match, usage_type, dest, G, direct=direct, aliased=aliased, chained=chained)))
+        codebase_context.add_edges(list(self.get_edges(match, usage_type, dest, codebase_context, direct=direct, aliased=aliased, chained=chained)))
 
     @cached_property
     def top(self) -> ResolutionStack:

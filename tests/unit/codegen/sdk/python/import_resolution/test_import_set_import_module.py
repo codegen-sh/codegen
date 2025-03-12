@@ -24,20 +24,20 @@ from m import m  # test four
     # =====[ Rename b.c ]=====
     imp = file.get_import("d")
     imp.set_import_module("x.y.z")
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert "from x.y.z import d  # test two" in file.content
     assert file.get_import("d").module.source == "x.y.z"
 
     # =====[ Rename d.f ]=====
     imp = file.get_import("h")
     imp.set_import_module("x.y.z")
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert "from x.y.z import (g as h, i as j)  # test three" in file.content
     assert file.get_import("h").module.source == "x.y.z"
 
     # ===== [ Rename m ]=====
     imp = file.get_import("m")
     imp.set_import_module("z")
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert "from z import m  # test four" in file.content
     assert file.get_import("m").module.source == "z"

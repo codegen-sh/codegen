@@ -276,6 +276,39 @@ if base_class:
   references](/building-with-codegen/dependencies-and-usages) or [imports](/building-with-codegen/imports) and [exports](/building-with-codegen/exports).
 </Note>
 
+## Advanced Settings
+
+Codegen also supports a number of advanced settings that can be used to customize the behavior of the graph construction process.
+
+These flags are helpful for debugging problematic repos, optimizing Codegen’s performance, or testing unreleased or experimental (potentially backwards-breaking) features.
+
+```python
+from codegen import Codebase
+from codegen.configs import CodebaseConfig
+
+# Initialize a Codebase with custom configuration
+codebase = Codebase(
+    "path/to/git/repo"",
+    config=CodebaseConfig(
+        verify_graph=True,
+        method_usages=False,
+        sync_enabled=True,
+        generics=False,
+        import_resolution_overrides={
+          "old_module": "new_module"
+        },
+        ts_language_engine=True,
+        v8_ts_engine=True
+    )
+)
+```
+
+To learn more about available settings, see the [Advanced Settings](/introduction/advanced-settings) page.
+
+<Warning>
+These are considered experimental and unstable features that may be removed or changed in the future.
+</Warning>
+
 ## What's Next?
 
 <CardGroup cols={2}>

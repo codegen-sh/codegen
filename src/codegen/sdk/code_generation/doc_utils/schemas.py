@@ -32,7 +32,6 @@ class ClassDoc(BaseModel):
     content: str = Field(..., description="The content of the class")
     path: str = Field(..., description="The path of the class")
     inherits_from: list[str] = Field(..., description="The classes that the class inherits from")
-    language: Literal["PYTHON", "TYPESCRIPT", "ALL", "NONE"] = Field(..., description="The language of the class")
     version: str = Field(..., description="The commit hash of the git commit that generated the docs")
     methods: list[MethodDoc] = Field(default=[], description="The methods of the class")
     attributes: list[MethodDoc] = Field(default=[], description="The attributes of the class")

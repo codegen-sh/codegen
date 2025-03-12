@@ -11,6 +11,7 @@ from codegen.cli.api.endpoints import (
     DOCS_ENDPOINT,
     EXPERT_ENDPOINT,
     IDENTIFY_ENDPOINT,
+    IMPROVE_ENDPOINT,
     LOOKUP_ENDPOINT,
     PR_LOOKUP_ENDPOINT,
     RUN_ENDPOINT,
@@ -27,11 +28,12 @@ from codegen.cli.api.schemas import (
     DocsInput,
     DocsResponse,
     IdentifyResponse,
+    ImproveCodemodInput,
+    ImproveCodemodResponse,
     LookupInput,
     LookupOutput,
     PRLookupInput,
     PRLookupResponse,
-    PRSchema,
     RunCodemodInput,
     RunCodemodOutput,
     RunOnPRInput,
@@ -43,6 +45,7 @@ from codegen.cli.env.global_env import global_env
 from codegen.cli.errors import InvalidTokenError, ServerError
 from codegen.cli.utils.codemods import Codemod
 from codegen.cli.utils.function_finder import DecoratedFunction
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 InputT = TypeVar("InputT", bound=BaseModel)
 OutputT = TypeVar("OutputT", bound=BaseModel)
@@ -53,7 +56,7 @@ class RestAPI:
 
     _session: ClassVar[requests.Session] = requests.Session()
 
-    auth_token: str | None = None
+    auth_token: str
 
     def __init__(self, auth_token: str):
         self.auth_token = auth_token
@@ -129,11 +132,10 @@ class RestAPI:
             template_context: Context variables to pass to the codemod
 
         """
-        session = CodegenSession()
-
+        session = CodegenSession.from_active_session()
         base_input = {
             "codemod_name": function.name,
-            "repo_full_name": session.repo_name,
+            "repo_full_name": session.config.repository.full_name,
             "codemod_run_type": run_type,
         }
 
@@ -154,13 +156,13 @@ class RestAPI:
             RunCodemodOutput,
         )
 
-    def get_docs(self) -> dict:
+    def get_docs(self) -> DocsResponse:
         """Search documentation."""
-        session = CodegenSession()
+        session = CodegenSession.from_active_session()
         return self._make_request(
             "GET",
             DOCS_ENDPOINT,
-            DocsInput(docs_input=DocsInput.BaseDocsInput(repo_full_name=session.repo_name)),
+            DocsInput(docs_input=DocsInput.BaseDocsInput(repo_full_name=session.config.repository.full_name)),
             DocsResponse,
         )
 
@@ -175,11 +177,12 @@ class RestAPI:
 
     def create(self, name: str, query: str) -> CreateResponse:
         """Get AI-generated starter code for a codemod."""
-        session = CodegenSession()
+        session = CodegenSession.from_active_session()
+        language = ProgrammingLanguage(session.config.repository.language)
         return self._make_request(
             "GET",
             CREATE_ENDPOINT,
-            CreateInput(input=CreateInput.BaseCreateInput(name=name, query=query, language=session.language)),
+            CreateInput(input=CreateInput.BaseCreateInput(name=name, query=query, language=language)),
             CreateResponse,
         )
 
@@ -193,10 +196,16 @@ class RestAPI:
         )
 
     def deploy(
-        self, codemod_name: str, codemod_source: str, lint_mode: bool = False, lint_user_whitelist: list[str] | None = None, message: str | None = None, arguments_schema: dict | None = None
+        self,
+        codemod_name: str,
+        codemod_source: str,
+        lint_mode: bool = False,
+        lint_user_whitelist: list[str] | None = None,
+        message: str | None = None,
+        arguments_schema: dict | None = None,
     ) -> DeployResponse:
         """Deploy a codemod to the Modal backend."""
-        session = CodegenSession()
+        session = CodegenSession.from_active_session()
         return self._make_request(
             "POST",
             DEPLOY_ENDPOINT,
@@ -204,7 +213,7 @@ class RestAPI:
                 input=DeployInput.BaseDeployInput(
                     codemod_name=codemod_name,
                     codemod_source=codemod_source,
-                    repo_full_name=session.repo_name,
+                    repo_full_name=session.config.repository.full_name,
                     lint_mode=lint_mode,
                     lint_user_whitelist=lint_user_whitelist or [],
                     message=message,
@@ -216,11 +225,11 @@ class RestAPI:
 
     def lookup(self, codemod_name: str) -> LookupOutput:
         """Look up a codemod by name."""
-        session = CodegenSession()
+        session = CodegenSession.from_active_session()
         return self._make_request(
             "GET",
             LOOKUP_ENDPOINT,
-            LookupInput(input=LookupInput.BaseLookupInput(codemod_name=codemod_name, repo_full_name=session.repo_name)),
+            LookupInput(input=LookupInput.BaseLookupInput(codemod_name=codemod_name, repo_full_name=session.config.repository.full_name)),
             LookupOutput,
         )
 
@@ -240,11 +249,20 @@ class RestAPI:
             RunOnPRResponse,
         )
 
-    def lookup_pr(self, repo_full_name: str, github_pr_number: int) -> PRSchema:
+    def lookup_pr(self, repo_full_name: str, github_pr_number: int) -> PRLookupResponse:
         """Look up a PR by repository and PR number."""
         return self._make_request(
             "GET",
             PR_LOOKUP_ENDPOINT,
             PRLookupInput(input=PRLookupInput.BasePRLookupInput(repo_full_name=repo_full_name, github_pr_number=github_pr_number)),
             PRLookupResponse,
+        )
+
+    def improve_codemod(self, codemod: str, task: str, concerns: list[str], context: dict[str, str], language: ProgrammingLanguage) -> ImproveCodemodResponse:
+        """Improve a codemod."""
+        return self._make_request(
+            "GET",
+            IMPROVE_ENDPOINT,
+            ImproveCodemodInput(input=ImproveCodemodInput.BaseImproveCodemodInput(codemod=codemod, task=task, concerns=concerns, context=context, language=language)),
+            ImproveCodemodResponse,
         )

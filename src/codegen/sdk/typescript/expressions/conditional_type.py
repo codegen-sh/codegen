@@ -12,7 +12,7 @@ from codegen.sdk.core.node_id_factory import NodeId
 from codegen.shared.decorators.docs import noapidoc, ts_apidoc
 
 if TYPE_CHECKING:
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.typescript.expressions.type import TSType
 
 
@@ -38,8 +38,8 @@ class TSConditionalType(Type[Parent], Generic[Parent]):
     consequence: "TSType[Self]"
     alternative: "TSType[Self]"
 
-    def __init__(self, ts_node: TSNode, file_node_id: NodeId, G: "CodebaseGraph", parent: Parent):
-        super().__init__(ts_node, file_node_id, G, parent)
+    def __init__(self, ts_node: TSNode, file_node_id: NodeId, ctx: "CodebaseContext", parent: Parent):
+        super().__init__(ts_node, file_node_id, ctx, parent)
         self.left = self.child_by_field_name("left")
         self.right = self.child_by_field_name("right")
         self.consequence = self.child_by_field_name("consequence")

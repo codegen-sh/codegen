@@ -10,7 +10,7 @@ from codegen.shared.decorators.docs import apidoc, noapidoc
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
 
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.dataclasses.usage import UsageKind
     from codegen.sdk.core.detached_symbols.code_block import CodeBlock
     from codegen.sdk.core.detached_symbols.function_call import FunctionCall
@@ -32,8 +32,8 @@ class RaiseStatement(Statement[Parent], HasValue, Generic[Parent]):
 
     statement_type = StatementType.RAISE_STATEMENT
 
-    def __init__(self, ts_node: TSNode, file_node_id: NodeId, G: CodebaseGraph, parent: Parent, pos: int | None = None) -> None:
-        super().__init__(ts_node, file_node_id, G, parent, pos)
+    def __init__(self, ts_node: TSNode, file_node_id: NodeId, ctx: CodebaseContext, parent: Parent, pos: int | None = None) -> None:
+        super().__init__(ts_node, file_node_id, ctx, parent, pos)
         value_node = self._get_value_node()
         self._value_node = self._parse_expression(value_node) if value_node else None
 

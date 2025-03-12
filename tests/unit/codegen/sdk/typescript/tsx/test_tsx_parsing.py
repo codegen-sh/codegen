@@ -1,6 +1,6 @@
 from codegen.sdk.codebase.factory.get_session import get_codebase_graph_session
-from codegen.sdk.enums import ProgrammingLanguage
 from codegen.sdk.typescript.detached_symbols.jsx.element import JSXElement
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def test_basic_component_parsing(tmpdir) -> None:
@@ -23,8 +23,8 @@ function TestComponent({ prop1 }: ComponentProps): React.ReactElement {
 
 export default TestComponent;
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as G:
-        file = G.get_file("test.tsx")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as ctx:
+        file = ctx.get_file("test.tsx")
         component = file.get_symbol("TestComponent")
         assert len(component.parameters) == 1
 
@@ -57,8 +57,8 @@ function TestComponent(props: {
     )
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, files={"test.tsx": content}, programming_language=ProgrammingLanguage.TYPESCRIPT) as G:
-        file = G.get_file("test.tsx")
+    with get_codebase_graph_session(tmpdir=tmpdir, files={"test.tsx": content}, programming_language=ProgrammingLanguage.TYPESCRIPT) as ctx:
+        file = ctx.get_file("test.tsx")
         component = file.get_function("TestComponent")
         assert component.is_jsx
 
@@ -90,10 +90,10 @@ function TestComponent(props: {
 }
 """
     files = {ts_file_name: "", tsx_file_name: "", origin_file_name: origin_file_content}
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files=files) as G:
-        ts_file = G.get_file(ts_file_name)
-        tsx_file = G.get_file(tsx_file_name)
-        origin_file = G.get_file(origin_file_name)
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files=files) as ctx:
+        ts_file = ctx.get_file(ts_file_name)
+        tsx_file = ctx.get_file(tsx_file_name)
+        origin_file = ctx.get_file(origin_file_name)
 
         test_component = origin_file.get_symbol("TestComponent")
 
@@ -128,8 +128,8 @@ function TestComponent({ prop1, prop2 }: ComponentProps): React.ReactElement {
 }
 """
 
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as G:
-        file = G.get_file("test.tsx")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as ctx:
+        file = ctx.get_file("test.tsx")
         assert len(file.jsx_elements) == 3
 
         component = file.get_symbol("TestComponent")
@@ -187,8 +187,8 @@ const TestComponent: React.FC<ComponentProps> = ({ prop1, prop2, prop3 }) => {
 export default TestComponent;
 """
 
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as G:
-        file = G.get_file("test.tsx")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as ctx:
+        file = ctx.get_file("test.tsx")
         component = file.get_symbol("TestComponent")
         assert len(component.jsx_elements) == 7
 
@@ -243,8 +243,8 @@ function TestComponent(): React.ReactElement {
   );
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as G:
-        file = G.get_file("test.tsx")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as ctx:
+        file = ctx.get_file("test.tsx")
         component = file.get_symbol("TestComponent")
 
         assert len(component.jsx_elements) == 3

@@ -1,5 +1,5 @@
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def test_remove_import_removes_from_file_imports(tmpdir) -> None:
@@ -22,14 +22,14 @@ import { h as g, j as i } from 'd/f';  // test three
     # =====[ Remove b/c ]=====
     imp = file.get_import("d")
     imp.remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert "import { d } from 'b/c';  // test two" not in imp.to_file.content
     assert imp not in imp.to_file.imports
 
     # =====[ Remove d/f ]=====
     imp = file.get_import("g")
     imp.remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert "import { j as i } from 'd/f';  // test three" in file.content
     assert imp not in file.imports
 

@@ -1,12 +1,11 @@
-import logging
-
 from codeowners import CodeOwners
 from github.PullRequest import PullRequest
 
 from codegen.git.clients.git_repo_client import GitRepoClient
 from codegen.git.configs.constants import CODEOWNERS_FILEPATHS
+from codegen.shared.logging.get_logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def get_filepath_owners(codeowners: CodeOwners, filepath: str) -> set[str]:
@@ -31,14 +30,14 @@ def create_codeowners_parser_for_repo(py_github_repo: GitRepoClient) -> CodeOwne
                 return codeowners
         except Exception as e:
             continue
-    logger.info(f"Failed to create CODEOWNERS parser for repo: {py_github_repo.repo_config.id}. Returning None.")
+    logger.info(f"Failed to create CODEOWNERS parser for repo: {py_github_repo.repo_config.name}. Returning None.")
     return None
 
 
 def get_codeowners_for_pull(repo: GitRepoClient, pull: PullRequest) -> list[str]:
     codeowners_parser = create_codeowners_parser_for_repo(repo)
     if not codeowners_parser:
-        logger.warning(f"Failed to create codeowners parser for repo: {repo.repo_config.id}. Returning empty list.")
+        logger.warning(f"Failed to create codeowners parser for repo: {repo.repo_config.name}. Returning empty list.")
         return []
     codeowners_for_pull_set = set()
     pull_files = pull.get_files()

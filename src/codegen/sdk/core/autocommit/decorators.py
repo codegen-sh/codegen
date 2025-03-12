@@ -1,3 +1,4 @@
+from codegen.shared.logging.get_logger import get_logger
 import functools
 from collections.abc import Callable
 from typing import TYPE_CHECKING, ParamSpec, TypeVar, Union, overload
@@ -11,9 +12,8 @@ if TYPE_CHECKING:
     from codegen.sdk.core.interfaces.editable import Editable
     from codegen.sdk.core.symbol import Symbol
 
-import logging
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 P = ParamSpec("P")
 T = TypeVar("T")
 
@@ -47,7 +47,7 @@ def writer(
             instance = args[0]
         if instance.removed:
             logger.warning("Editing a removed node")
-        autocommit = instance.G._autocommit
+        autocommit = instance.ctx._autocommit
         logger.debug("Writing node %r,%r", instance, wrapped)
         with autocommit.write_state(instance, commit=commit):
             return wrapped(*args, **kwargs)
@@ -69,9 +69,9 @@ def remover(
     if instance is None:
         instance = args[0]
     logger.debug("Removing node %r, %r", instance, wrapped)
-    with instance.G._autocommit.write_state(instance):
+    with instance.ctx._autocommit.write_state(instance):
         ret = wrapped(*args, **kwargs)
-    # instance.G._autocommit.set_pending(instance, REMOVED)
+    # instance.ctx._autocommit.set_pending(instance, REMOVED)
     instance.removed = True
     return ret
 
@@ -86,7 +86,7 @@ def repr_func(
     """Indicates the method is use in debugging/logs."""
     if instance is None:
         instance = args[0]
-    autocommit = instance.G._autocommit
+    autocommit = instance.ctx._autocommit
     old_state = autocommit.enter_state(AutoCommitState.Special)
     try:
         ret = wrapped(*args, **kwargs)
@@ -108,8 +108,8 @@ def mover(
     """
     if instance is None:
         instance = args[0]
-    with instance.G._autocommit.write_state(instance, move=True):
+    with instance.ctx._autocommit.write_state(instance, move=True):
         file_node_id, node_id = wrapped(*args, **kwargs)
-    instance.G._autocommit.set_pending(instance, node_id, file_node_id)
+    instance.ctx._autocommit.set_pending(instance, node_id, file_node_id)
     instance.removed = False
     return None

@@ -38,10 +38,10 @@ class Name(Expression[Parent], Resolvable, Generic[Parent]):
         """Compute the dependencies of the export object."""
         edges = []
         for used_frame in self.resolved_type_frames:
-            edges.extend(used_frame.get_edges(self, usage_type, dest, self.G))
-        if self.G.config.feature_flags.debug:
+            edges.extend(used_frame.get_edges(self, usage_type, dest, self.ctx))
+        if self.ctx.config.debug:
             edges = list(dict.fromkeys(edges))
-        self.G.add_edges(edges)
+        self.ctx.add_edges(edges)
 
     @noapidoc
     @writer

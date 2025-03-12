@@ -1,5 +1,5 @@
 from codegen.sdk.codebase.factory.get_session import get_codebase_graph_session
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def test_class_without_parents(tmpdir) -> None:
@@ -8,8 +8,8 @@ class MyClass {
   constructor() {}
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file_content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file_content}) as ctx:
+        file = ctx.get_file("test.ts")
         my_class = file.get_class("MyClass")
         assert not my_class.is_jsx
 
@@ -21,8 +21,8 @@ class MyClass extends BaseClass {
   constructor() {}
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file_content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file_content}) as ctx:
+        file = ctx.get_file("test.ts")
         my_class = file.get_class("MyClass")
         assert not my_class.is_jsx
 
@@ -34,8 +34,8 @@ class MyComponent extends React.Component {
   constructor() {}
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file_content}) as G:
-        file = G.get_file("test.tsx")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file_content}) as ctx:
+        file = ctx.get_file("test.tsx")
         my_component = file.get_class("MyComponent")
         assert my_component.is_jsx
 
@@ -47,8 +47,8 @@ class MyComponent extends Component {
   constructor() {}
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file_content}) as G:
-        file = G.get_file("test.tsx")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file_content}) as ctx:
+        file = ctx.get_file("test.tsx")
         my_component = file.get_class("MyComponent")
         assert my_component.is_jsx
 
@@ -60,8 +60,8 @@ class MyComponent extends React.PureComponent {
   constructor() {}
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file_content}) as G:
-        file = G.get_file("test.tsx")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file_content}) as ctx:
+        file = ctx.get_file("test.tsx")
         my_component = file.get_class("MyComponent")
         assert my_component.is_jsx
 
@@ -74,8 +74,8 @@ class MyComponent extends React.Component, Interface1, Interface2 {
   constructor() {}
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file_content}) as G:
-        file = G.get_file("test.tsx")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file_content}) as ctx:
+        file = ctx.get_file("test.tsx")
         my_component = file.get_class("MyComponent")
         assert my_component.is_jsx
 
@@ -87,8 +87,8 @@ class MyComponent extends React.Component implements MyInterface {
   constructor() {}
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file_content}) as G:
-        file = G.get_file("test.tsx")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file_content}) as ctx:
+        file = ctx.get_file("test.tsx")
         my_component = file.get_class("MyComponent")
         assert my_component.is_jsx
 
@@ -106,7 +106,7 @@ class MyComponent extends mixin(React.Component) {
   constructor() {}
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file_content}) as G:
-        file = G.get_file("test.tsx")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file_content}) as ctx:
+        file = ctx.get_file("test.tsx")
         my_component = file.get_class("MyComponent")
         assert my_component.is_jsx

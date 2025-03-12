@@ -105,3 +105,32 @@ def bar():
         assert c.filepath != new_file
     assert os.path.exists(tmpdir / foo_filepath)
     assert not os.path.exists(tmpdir / new_file)
+
+
+def test_rename_file_nullifies_old_file(tmpdir) -> None:
+    # language=python
+    foo_content = """
+def foo():
+    return 1
+"""
+    foo_filepath = "foo_file.py"
+    new_filepath = "new_file.py"
+
+    with get_codebase_session(tmpdir=tmpdir, files={foo_filepath: foo_content}, commit=True) as codebase:
+        file = codebase.get_file(foo_filepath)
+        file.update_filepath(new_filepath)
+        codebase.commit()
+
+        new_file = codebase.get_file(new_filepath, optional=True)
+
+        # Check that old file reference is None
+        old_file = codebase.get_file(foo_filepath, optional=True)
+        new_file = codebase.get_file(new_filepath)
+
+        assert old_file is None
+        assert new_file is not None
+        assert new_file.content == foo_content
+
+        # Verify file system state
+        assert not os.path.exists(tmpdir / foo_filepath)
+        assert os.path.exists(tmpdir / new_filepath)

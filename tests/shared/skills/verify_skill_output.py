@@ -7,7 +7,7 @@ import isort
 import jsbeautifier
 
 from codegen.sdk.core.codebase import Codebase
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def get_jsbeautifier_options() -> jsbeautifier.default_options:

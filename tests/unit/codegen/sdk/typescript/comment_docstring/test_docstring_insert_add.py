@@ -1,13 +1,13 @@
 from codegen.sdk.codebase.factory.get_session import get_codebase_graph_session
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def test_set_docstring(tmpdir) -> None:
     content = """
 export function symbol() {}
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as ctx:
+        file = ctx.get_file("test.ts")
 
         symbol = file.get_symbol("symbol")
         assert symbol.docstring is None
@@ -21,8 +21,8 @@ def test_set_docstring_with_formatting(tmpdir) -> None:
     content = """
 export function symbol() {}
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as ctx:
+        file = ctx.get_file("test.ts")
 
         symbol = file.get_symbol("symbol")
         assert symbol.docstring is None
@@ -36,8 +36,8 @@ def test_set_docstring_multiline(tmpdir) -> None:
     content = """
 function symbol() {}
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as ctx:
+        file = ctx.get_file("test.ts")
 
         symbol = file.get_symbol("symbol")
         assert symbol.docstring is None
@@ -53,8 +53,8 @@ class A {
     foo() {}
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as ctx:
+        file = ctx.get_file("test.ts")
 
         symbol = file.get_symbol("A")
         foo = symbol.get_method("foo")
@@ -71,8 +71,8 @@ class A {
     foo() {}
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as ctx:
+        file = ctx.get_file("test.ts")
 
         symbol = file.get_symbol("A")
         foo = symbol.get_method("foo")
@@ -88,8 +88,8 @@ def test_insert_docstring_block(tmpdir) -> None:
 /* this is a test docstring */
 function symbol() {}
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as ctx:
+        file = ctx.get_file("test.ts")
 
         symbol = file.get_symbol("symbol")
         assert symbol.docstring.source == "/* this is a test docstring */"
@@ -108,8 +108,8 @@ that spans multiple lines
 */
 function symbol() {}
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as ctx:
+        file = ctx.get_file("test.ts")
 
         symbol = file.get_symbol("symbol")
         assert symbol.docstring.source == "/*\nthis is a test docstring\nthat spans multiple lines\n*/"
@@ -128,8 +128,8 @@ def test_docstring_multiline_block_starred(tmpdir) -> None:
  */
 function symbol() {}
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as ctx:
+        file = ctx.get_file("test.ts")
 
         symbol = file.get_symbol("symbol")
         assert symbol.docstring.source == "/**\n * this is a test docstring\n * that spans multiple lines\n */"
@@ -149,8 +149,8 @@ def test_docstring_surrounded_by_comments(tmpdir) -> None:
 // this is another test comment
 function symbol() {}
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as ctx:
+        file = ctx.get_file("test.ts")
 
         symbol = file.get_symbol("symbol")
         assert symbol.docstring.source == "/**\n * this is a test docstring\n */"
@@ -167,8 +167,8 @@ def test_docstring_arrow_function(tmpdir) -> None:
     content = """
 export const foo = () => {}
     """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as ctx:
+        file = ctx.get_file("test.ts")
         foo = file.get_symbol("foo")
         foo.set_docstring("this is a new docstring")
         print(foo.extended.source)

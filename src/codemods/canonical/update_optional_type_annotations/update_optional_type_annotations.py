@@ -2,8 +2,8 @@ from codegen.sdk.core.codebase import Codebase
 from codegen.sdk.core.expressions import Type
 from codegen.sdk.core.expressions.generic_type import GenericType
 from codegen.sdk.core.expressions.union_type import UnionType
-from codegen.sdk.enums import ProgrammingLanguage
 from codegen.sdk.writer_decorators import canonical
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 from codemods.codemod import Codemod
 from tests.shared.skills.decorators import skill, skill_impl
 from tests.shared.skills.skill import Skill
@@ -51,5 +51,5 @@ class UpdateOptionalTypeAnnotations(Codemod, Skill):
                             new_type = update_type_annotation(parameter.type)
                             if parameter.type != new_type:
                                 # Add the future annotations import
-                                file.add_import_from_import_string("from __future__ import annotations\n")
+                                file.add_import("from __future__ import annotations\n")
                                 parameter.type.edit(new_type)

@@ -40,7 +40,7 @@ class Inherits(SupportsGenerics, Generic[TType]):
                 return
             next_level = []
             for node in classes:
-                for result in self.G.successors(node.node_id, edge_type=EdgeType.SUBCLASS):
+                for result in self.ctx.successors(node.node_id, edge_type=EdgeType.SUBCLASS):
                     if result.node_id not in seen:
                         seen.add(result.node_id)
                         yield result
@@ -62,7 +62,7 @@ class Inherits(SupportsGenerics, Generic[TType]):
                 return
             next_level = []
             for node in classes:
-                for result in self.G.predecessors(node.node_id, edge_type=EdgeType.SUBCLASS):
+                for result in self.ctx.predecessors(node.node_id, edge_type=EdgeType.SUBCLASS):
                     if result.node_id not in seen:
                         seen.add(result.node_id)
                         yield result

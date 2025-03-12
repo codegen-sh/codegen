@@ -1,0 +1,133 @@
+---
+title: "Semantic Code Search"
+sidebarTitle: "Semantic Code Search"
+icon: "magnifying-glass"
+iconType: "solid"
+---
+
+Codegen provides semantic code search capabilities using embeddings. This allows you to search codebases using natural language queries and find semantically related code, even when the exact terms aren't present.
+
+<Warning>This is under active development. Interested in an application? [Reach out to the team!](/introduction/about.tsx)</Warning>
+
+## Basic Usage
+
+Here's how to create and use a semantic code search index:
+
+```python
+# Parse a codebase
+codebase = Codebase.from_repo('fastapi/fastapi', language='python')
+
+# Create index
+index = FileIndex(codebase)
+index.create() # computes per-file embeddings
+
+# Save index to .pkl
+index.save('index.pkl')
+
+# Load index into memory
+index.load('index.pkl')
+
+# Update index after changes
+codebase.files[0].edit('# 🌈 Replacing File Content 🌈')
+codebase.commit()
+index.update() # re-computes 1 embedding
+```
+
+
+## Searching Code
+
+Once you have an index, you can perform semantic searches:
+
+```python
+# Search with natural language
+results = index.similarity_search(
+    "How does FastAPI handle dependency injection?",
+    k=5  # number of results
+)
+
+# Print results
+for file, score in results:
+    print(f"\nScore: {score:.3f} | File: {file.filepath}")
+    print(f"Preview: {file.content[:200]}...")
+```
+<Tip>The `FileIndex` returns tuples of ([File](/api-reference/core/SourceFile), `score`)</Tip>
+
+<Note>
+The search uses cosine similarity between embeddings to find the most semantically related files, regardless of exact keyword matches.
+</Note>
+
+## Available Indices
+
+Codegen provides two types of semantic indices:
+
+### FileIndex
+
+The `FileIndex` operates at the file level:
+- Indexes entire files, splitting large files into chunks
+- Best for finding relevant files or modules
+- Simpler and faster to create/update
+
+```python
+from codegen.extensions.index.file_index import FileIndex
+
+index = FileIndex(codebase)
+index.create()
+```
+
+### SymbolIndex (Experimental)
+
+The `SymbolIndex` operates at the symbol level:
+- Indexes individual functions, classes, and methods
+- Better for finding specific code elements
+- More granular search results
+
+```python
+from codegen.extensions.index.symbol_index import SymbolIndex
+
+index = SymbolIndex(codebase)
+index.create()
+```
+
+## How It Works
+
+The semantic indices:
+1. Process code at either file or symbol level
+2. Split large content into chunks that fit within token limits
+3. Use OpenAI's text-embedding-3-small model to create embeddings
+4. Store embeddings efficiently for similarity search
+5. Support incremental updates when code changes
+
+When searching:
+1. Your query is converted to an embedding
+2. Cosine similarity is computed with all stored embeddings
+3. The most similar items are returned with their scores
+
+<Warning>
+Creating embeddings requires an OpenAI API key with access to the embeddings endpoint.
+</Warning>
+
+## Example Searches
+
+Here are some example semantic searches:
+
+```python
+# Find authentication-related code
+results = index.similarity_search(
+    "How is user authentication implemented?",
+    k=3
+)
+
+# Find error handling patterns
+results = index.similarity_search(
+    "Show me examples of error handling and custom exceptions",
+    k=3
+)
+
+# Find configuration management
+results = index.similarity_search(
+    "Where is the application configuration and settings handled?",
+    k=3
+)
+```
+
+The semantic search can understand concepts and return relevant results even when the exact terms aren't present in the code.

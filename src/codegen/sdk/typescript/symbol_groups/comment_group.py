@@ -66,7 +66,7 @@ class TSCommentGroup(CommentGroup):
         comment_nodes = cls._get_sibbling_comments(symbol)
         if not comment_nodes:
             return None
-        return cls(comment_nodes, symbol.file_node_id, symbol.G, symbol)
+        return cls(comment_nodes, symbol.file_node_id, symbol.ctx, symbol)
 
     @classmethod
     @noapidoc
@@ -99,7 +99,7 @@ class TSCommentGroup(CommentGroup):
         if not comment_nodes:
             return None
 
-        return cls(comment_nodes, symbol.file_node_id, symbol.G, symbol)
+        return cls(comment_nodes, symbol.file_node_id, symbol.ctx, symbol)
 
     @classmethod
     @noapidoc
@@ -112,7 +112,7 @@ class TSCommentGroup(CommentGroup):
         docstring_nodes = [comment for comment in comment_nodes if comment.comment_type == TSCommentType.SLASH_STAR]
         if not docstring_nodes:
             return None
-        return cls(docstring_nodes, symbol.file_node_id, symbol.G, symbol)
+        return cls(docstring_nodes, symbol.file_node_id, symbol.ctx, symbol)
 
     @classmethod
     @noapidoc
@@ -124,4 +124,4 @@ class TSCommentGroup(CommentGroup):
         docstring_nodes = [comment for comment in comment_nodes if comment.comment_type == TSCommentType.SLASH_STAR]
         if not docstring_nodes:
             return None
-        return cls(docstring_nodes, symbol.file_node_id, symbol.G, symbol)
+        return cls(docstring_nodes, symbol.file_node_id, symbol.ctx, symbol)

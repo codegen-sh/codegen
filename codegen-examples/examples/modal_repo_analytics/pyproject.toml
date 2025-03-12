@@ -1,0 +1,6 @@
+[project]
+name = "codegen-repo-analyzer"
+version = "0.1.0"
+description = "Modal API endpoint for analyzing GitHub repositories using Codegen"
+requires-python = ">=3.13"
+dependencies = ["modal>=0.73.25", "fastapi[standard]", "codegen>=0.5.30"]

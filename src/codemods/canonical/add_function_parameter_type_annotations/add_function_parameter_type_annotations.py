@@ -1,6 +1,6 @@
 from codegen.sdk.core.codebase import Codebase
-from codegen.sdk.enums import ProgrammingLanguage
 from codegen.sdk.writer_decorators import canonical
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 from codemods.codemod import Codemod
 from tests.shared.skills.decorators import skill, skill_impl
 from tests.shared.skills.skill import Skill
@@ -48,4 +48,4 @@ class AddFunctionParameterTypeAnnotations(Codemod, Skill):
                     # Ensure the necessary import is present
                     file = function.file
                     if "SessionLocal" not in [imp.name for imp in file.imports]:
-                        file.add_import_from_import_string("from app.db import SessionLocal")
+                        file.add_import("from app.db import SessionLocal")

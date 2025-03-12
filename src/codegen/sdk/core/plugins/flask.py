@@ -2,7 +2,7 @@ from logging import getLogger
 from typing import TYPE_CHECKING
 
 from codegen.sdk.core.plugins.plugin import Plugin
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 if TYPE_CHECKING:
     from codegen.sdk.core.codebase import PyCodebaseType

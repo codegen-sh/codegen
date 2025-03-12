@@ -42,7 +42,7 @@ from d.f import (g as h, i as j)  # test three
         imp = file.get_import("d")
         imp.set_import_symbol_alias("ABC")
         file = imp.to_file
-        codebase.G.commit_transactions()
+        codebase.ctx.commit_transactions()
         imp = file.get_import("ABC")
         assert "from b.c import ABC  # test two" in file.content
         assert imp.alias.source == "ABC"
@@ -52,7 +52,7 @@ from d.f import (g as h, i as j)  # test three
         imp = file.get_import("h")
         imp.set_import_symbol_alias("XYZ")
         file = imp.to_file
-        codebase.G.commit_transactions()
+        codebase.ctx.commit_transactions()
         imp = file.get_import("XYZ")
         assert "from d.f import (g as XYZ, i as j)  # test three" in file.content
         assert imp.symbol_name.source == "g"

@@ -47,6 +47,8 @@ ignore = [
 exclude = [
   "*.ipynb",
 ] # disable just linting for notebooks (allow for formatting)
+[lint.per-file-ignores]
+"src/codegen/cli/mcp/resources/system_prompt.py" = ["E501"]
 [lint.pydocstyle]
 convention = "google"
 [lint.pyflakes]
@@ -57,6 +59,7 @@ extend-generics = [
   "codegen.sdk.core.assignment.Assignment",
   "codegen.sdk.core.class_definition.Class",
   "codegen.sdk.core.codebase.Codebase",
+  "codegen.sdk.core.codeowner.CodeOwner",
   "codegen.sdk.core.dataclasses.usage.Usage",
   "codegen.sdk.core.dataclasses.usage.UsageType",
   "codegen.sdk.core.dataclasses.usage.UsageKind",

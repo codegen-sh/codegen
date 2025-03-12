@@ -1,5 +1,5 @@
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def test_get_and_edit_variable_usages(tmpdir) -> None:
@@ -40,7 +40,7 @@ function foo(x: number, y: string): MyClass {
     assert len(obj_usages) == 1
     assert obj_usages[0].source == "obj"
     obj_usages[0].edit("renamed_obj")
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert "renamed_obj.attr1 = renamed_attribute.obj" in file.content
 
 

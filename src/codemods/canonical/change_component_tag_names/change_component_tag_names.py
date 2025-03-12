@@ -1,6 +1,6 @@
 from codegen.sdk.core.codebase import Codebase
-from codegen.sdk.enums import ProgrammingLanguage
 from codegen.sdk.writer_decorators import canonical
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 from codemods.codemod import Codemod
 from tests.shared.skills.decorators import skill, skill_impl
 from tests.shared.skills.skill import Skill
@@ -56,4 +56,4 @@ class ChangeJSXElementName(Codemod, Skill):
                             element.set_name("PrivateRoutesContainer")
                             # Add the import if it doesn't exist
                             if not file.has_import("PrivateRoutesContainer"):
-                                file.add_symbol_import(PrivateRoutesContainer)
+                                file.add_import(PrivateRoutesContainer)

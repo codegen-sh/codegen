@@ -30,7 +30,7 @@ def test_post_init_validation_missing_files(tmpdir) -> None:
         },
     ) as codebase:
         assert len(codebase.files) == 2
-        codebase.G.remove_node(codebase.files[0].node_id)
+        codebase.ctx.remove_node(codebase.files[0].node_id)
         uncache_all()  # Clear codebase.files cache
         assert post_init_validation(codebase) == PostInitValidationStatus.MISSING_FILES
 

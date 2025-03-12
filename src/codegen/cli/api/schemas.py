@@ -4,8 +4,8 @@ from typing import TypeVar
 from pydantic import BaseModel
 from pydantic.fields import Field
 
-from codegen.cli.utils.constants import ProgrammingLanguage
 from codegen.cli.utils.schema import SafeBaseModel
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 T = TypeVar("T")
 
@@ -234,3 +234,24 @@ class RunOnPRResponse(BaseModel):
     codemod_id: int = Field(..., description="ID of the codemod")
     codemod_run_id: int = Field(..., description="ID of the codemod run")
     web_url: str = Field(..., description="URL to view the test results")
+
+
+###########################################################################
+# IMPROVE
+###########################################################################
+
+
+class ImproveCodemodInput(BaseModel):
+    class BaseImproveCodemodInput(BaseModel):
+        codemod: str = Field(..., description="Source code of the codemod to improve")
+        task: str = Field(..., description="Task to which the codemod should implement to solve")
+        concerns: list[str] = Field(..., description="A list of issues that were discovered with the current codemod that need to be considered in the next iteration")
+        context: dict[str, str] = Field(..., description="Additional context for the codemod this can be a list of files that are related, additional information about the task, etc.")
+        language: ProgrammingLanguage = Field(..., description="Language of the codemod")
+
+    input: BaseImproveCodemodInput = Field(..., description="Input data for improvement")
+
+
+class ImproveCodemodResponse(BaseModel):
+    success: bool = Field(..., description="Whether the improvement was successful")
+    codemod_source: str = Field(..., description="Source code of the improved codemod")

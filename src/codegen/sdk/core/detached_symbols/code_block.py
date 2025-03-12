@@ -56,7 +56,7 @@ class CodeBlock(Expression[Parent], Generic[Parent, TAssignment]):
     _statements: MultiLineCollection[Statement, Self]
 
     def __init__(self, ts_node: TSNode, level: int, parent_block: CodeBlock | None, parent: Parent) -> None:
-        super().__init__(ts_node, parent.file_node_id, parent.G, parent)
+        super().__init__(ts_node, parent.file_node_id, parent.ctx, parent)
         self.parent_block = parent_block
         self.level = level
         # self.parse()
@@ -492,7 +492,7 @@ class CodeBlock(Expression[Parent], Generic[Parent, TAssignment]):
         for comment in self.get_statements(statement_type=StatementType.COMMENT, max_level=self.level):
             if comment.start_byte < self.start_byte:
                 starts.append(comment)
-        starts.extend([Value(x[0], self.file_node_id, self.G, self) for x in find_line_start_and_end_nodes(self.ts_node)])
+        starts.extend([Value(x[0], self.file_node_id, self.ctx, self) for x in find_line_start_and_end_nodes(self.ts_node)])
         return starts
 
     @reader
@@ -513,7 +513,7 @@ class CodeBlock(Expression[Parent], Generic[Parent, TAssignment]):
         for comment in self.get_statements(statement_type=StatementType.COMMENT, max_level=self.level):
             if comment.start_byte < self.start_byte:
                 ends.append(comment)
-        ends.extend([Value(x[1], self.file_node_id, self.G, self) for x in find_line_start_and_end_nodes(self.ts_node)])
+        ends.extend([Value(x[1], self.file_node_id, self.ctx, self) for x in find_line_start_and_end_nodes(self.ts_node)])
         return ends
 
     def _compute_dependencies(self, usage_type: UsageKind | None = None, dest: HasName | None = None) -> None:

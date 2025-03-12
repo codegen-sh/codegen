@@ -2,43 +2,54 @@
 
 import codecs
 import json
-import logging
 import os
 import re
+import tempfile
 from collections.abc import Generator
 from contextlib import contextmanager
+from functools import cached_property
 from pathlib import Path
-from typing import TYPE_CHECKING, Generic, Literal, TypeVar, Unpack, overload
+from typing import Generic, Literal, Unpack, overload
 
 import plotly.graph_objects as go
 import rich.repr
 from git import Commit as GitCommit
 from git import Diff
 from git.remote import PushInfoList
+from github.PullRequest import PullRequest
 from networkx import Graph
+from openai import OpenAI
 from rich.console import Console
-from typing_extensions import deprecated
+from typing_extensions import TypeVar, deprecated
 
-from codegen.git.repo_operator.local_repo_operator import LocalRepoOperator
-from codegen.git.repo_operator.remote_repo_operator import RemoteRepoOperator
+from codegen.configs.models.codebase import CodebaseConfig
+from codegen.configs.models.secrets import SecretsConfig
 from codegen.git.repo_operator.repo_operator import RepoOperator
-from codegen.git.schemas.enums import CheckoutResult
+from codegen.git.schemas.enums import CheckoutResult, SetupOption
+from codegen.git.schemas.repo_config import RepoConfig
 from codegen.git.utils.pr_review import CodegenPR
 from codegen.sdk._proxy import proxy_property
-from codegen.sdk.ai.helpers import AbstractAIHelper, MultiProviderAIHelper
+from codegen.sdk.ai.client import get_openai_client
 from codegen.sdk.codebase.codebase_ai import generate_system_prompt, generate_tools
-from codegen.sdk.codebase.codebase_graph import GLOBAL_FILE_IGNORE_LIST, CodebaseGraph
-from codegen.sdk.codebase.config import CodebaseConfig, DefaultConfig, ProjectConfig, SessionOptions
+from codegen.sdk.codebase.codebase_context import (
+    GLOBAL_FILE_IGNORE_LIST,
+    CodebaseContext,
+)
+from codegen.sdk.codebase.config import ProjectConfig, SessionOptions
 from codegen.sdk.codebase.diff_lite import DiffLite
 from codegen.sdk.codebase.flagging.code_flag import CodeFlag
 from codegen.sdk.codebase.flagging.enums import FlagKwargs
 from codegen.sdk.codebase.flagging.group import Group
+from codegen.sdk.codebase.io.io import IO
+from codegen.sdk.codebase.progress.progress import Progress
 from codegen.sdk.codebase.span import Span
 from codegen.sdk.core.assignment import Assignment
 from codegen.sdk.core.class_definition import Class
+from codegen.sdk.core.codeowner import CodeOwner
 from codegen.sdk.core.detached_symbols.code_block import CodeBlock
 from codegen.sdk.core.detached_symbols.parameter import Parameter
 from codegen.sdk.core.directory import Directory
+from codegen.sdk.core.export import Export
 from codegen.sdk.core.external_module import ExternalModule
 from codegen.sdk.core.file import File, SourceFile
 from codegen.sdk.core.function import Function
@@ -48,7 +59,7 @@ from codegen.sdk.core.interfaces.editable import Editable
 from codegen.sdk.core.interfaces.has_name import HasName
 from codegen.sdk.core.symbol import Symbol
 from codegen.sdk.core.type_alias import TypeAlias
-from codegen.sdk.enums import NodeType, ProgrammingLanguage, SymbolType
+from codegen.sdk.enums import NodeType, SymbolType
 from codegen.sdk.extensions.sort import sort_editables
 from codegen.sdk.extensions.utils import uncache_all
 from codegen.sdk.output.constants import ANGULAR_STYLE
@@ -74,37 +85,50 @@ from codegen.sdk.typescript.statements.import_statement import TSImportStatement
 from codegen.sdk.typescript.symbol import TSSymbol
 from codegen.sdk.typescript.type_alias import TSTypeAlias
 from codegen.shared.decorators.docs import apidoc, noapidoc, py_noapidoc
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 from codegen.shared.exceptions.control_flow import MaxAIRequestsError
+from codegen.shared.logging.get_logger import get_logger
 from codegen.shared.performance.stopwatch_utils import stopwatch
 from codegen.visualizations.visualization_manager import VisualizationManager
 
-if TYPE_CHECKING:
-    from codegen.sdk.core.export import Export
-
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 MAX_LINES = 10000  # Maximum number of lines of text allowed to be logged
 
 
-TSourceFile = TypeVar("TSourceFile", bound="SourceFile")
-TDirectory = TypeVar("TDirectory", bound="Directory")
-TSymbol = TypeVar("TSymbol", bound="Symbol")
-TClass = TypeVar("TClass", bound="Class")
-TFunction = TypeVar("TFunction", bound="Function")
-TImport = TypeVar("TImport", bound="Import")
-TGlobalVar = TypeVar("TGlobalVar", bound="Assignment")
-TInterface = TypeVar("TInterface", bound="Interface")
-TTypeAlias = TypeVar("TTypeAlias", bound="TypeAlias")
-TParameter = TypeVar("TParameter", bound="Parameter")
-TCodeBlock = TypeVar("TCodeBlock", bound="CodeBlock")
-TExport = TypeVar("TExport", bound="Export")
-TSGlobalVar = TypeVar("TSGlobalVar", bound="Assignment")
-PyGlobalVar = TypeVar("PyGlobalVar", bound="Assignment")
+TSourceFile = TypeVar("TSourceFile", bound="SourceFile", default=SourceFile)
+TDirectory = TypeVar("TDirectory", bound="Directory", default=Directory)
+TSymbol = TypeVar("TSymbol", bound="Symbol", default=Symbol)
+TClass = TypeVar("TClass", bound="Class", default=Class)
+TFunction = TypeVar("TFunction", bound="Function", default=Function)
+TImport = TypeVar("TImport", bound="Import", default=Import)
+TGlobalVar = TypeVar("TGlobalVar", bound="Assignment", default=Assignment)
+TInterface = TypeVar("TInterface", bound="Interface", default=Interface)
+TTypeAlias = TypeVar("TTypeAlias", bound="TypeAlias", default=TypeAlias)
+TParameter = TypeVar("TParameter", bound="Parameter", default=Parameter)
+TCodeBlock = TypeVar("TCodeBlock", bound="CodeBlock", default=CodeBlock)
+TExport = TypeVar("TExport", bound="Export", default=Export)
+TSGlobalVar = TypeVar("TSGlobalVar", bound="Assignment", default=Assignment)
+PyGlobalVar = TypeVar("PyGlobalVar", bound="Assignment", default=Assignment)
 TSDirectory = Directory[TSFile, TSSymbol, TSImportStatement, TSGlobalVar, TSClass, TSFunction, TSImport]
 PyDirectory = Directory[PyFile, PySymbol, PyImportStatement, PyGlobalVar, PyClass, PyFunction, PyImport]
 
 
 @apidoc
-class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImport, TGlobalVar, TInterface, TTypeAlias, TParameter, TCodeBlock]):
+class Codebase(
+    Generic[
+        TSourceFile,
+        TDirectory,
+        TSymbol,
+        TClass,
+        TFunction,
+        TImport,
+        TGlobalVar,
+        TInterface,
+        TTypeAlias,
+        TParameter,
+        TCodeBlock,
+    ]
+):
     """This class provides the main entrypoint for most programs to analyzing and manipulating codebases.
 
     Attributes:
@@ -113,7 +137,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         console: Manages console output for the codebase.
     """
 
-    _op: RepoOperator | RemoteRepoOperator | LocalRepoOperator
+    _op: RepoOperator
     viz: VisualizationManager
     repo_path: Path
     console: Console
@@ -123,9 +147,12 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         self,
         repo_path: None = None,
         *,
-        programming_language: None = None,
+        language: None = None,
         projects: list[ProjectConfig] | ProjectConfig,
-        config: CodebaseConfig = DefaultConfig,
+        config: CodebaseConfig | None = None,
+        secrets: SecretsConfig | None = None,
+        io: IO | None = None,
+        progress: Progress | None = None,
     ) -> None: ...
 
     @overload
@@ -133,18 +160,24 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         self,
         repo_path: str,
         *,
-        programming_language: ProgrammingLanguage | None = None,
+        language: Literal["python", "typescript"] | ProgrammingLanguage | None = None,
         projects: None = None,
-        config: CodebaseConfig = DefaultConfig,
+        config: CodebaseConfig | None = None,
+        secrets: SecretsConfig | None = None,
+        io: IO | None = None,
+        progress: Progress | None = None,
     ) -> None: ...
 
     def __init__(
         self,
         repo_path: str | None = None,
         *,
-        programming_language: ProgrammingLanguage | None = None,
+        language: Literal["python", "typescript"] | ProgrammingLanguage | None = None,
         projects: list[ProjectConfig] | ProjectConfig | None = None,
-        config: CodebaseConfig = DefaultConfig,
+        config: CodebaseConfig | None = None,
+        secrets: SecretsConfig | None = None,
+        io: IO | None = None,
+        progress: Progress | None = None,
     ) -> None:
         # Sanity check inputs
         if repo_path is not None and projects is not None:
@@ -155,8 +188,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             msg = "Must specify either repo_path or projects"
             raise ValueError(msg)
 
-        if projects is not None and programming_language is not None:
-            msg = "Cannot specify both projects and programming_language. Use ProjectConfig.from_path() to create projects with a custom programming_language."
+        if projects is not None and language is not None:
+            msg = "Cannot specify both projects and language. Use ProjectConfig.from_path() to create projects with a custom language."
             raise ValueError(msg)
 
         # If projects is a single ProjectConfig, convert it to a list
@@ -165,7 +198,10 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
 
         # Initialize project with repo_path if projects is None
         if repo_path is not None:
-            main_project = ProjectConfig.from_path(repo_path, programming_language=programming_language)
+            main_project = ProjectConfig.from_path(
+                repo_path,
+                programming_language=ProgrammingLanguage(language.upper()) if language else None,
+            )
             projects = [main_project]
         else:
             main_project = projects[0]
@@ -174,7 +210,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         self._op = main_project.repo_operator
         self.viz = VisualizationManager(op=self._op)
         self.repo_path = Path(self._op.repo_path)
-        self.G = CodebaseGraph(projects, config=config)
+        self.ctx = CodebaseContext(projects, config=config, secrets=secrets, io=io, progress=progress)
         self.console = Console(record=True, soft_wrap=True)
 
     @noapidoc
@@ -186,9 +222,9 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         return str(self)
 
     def __rich_repr__(self) -> rich.repr.Result:
-        yield "repo", self.G.repo_name
-        yield "nodes", len(self.G.nodes)
-        yield "edges", len(self.G.edges)
+        yield "repo", self.ctx.repo_name
+        yield "nodes", len(self.ctx.nodes)
+        yield "edges", len(self.ctx.edges)
 
     __rich_repr__.angular = ANGULAR_STYLE
 
@@ -198,6 +234,20 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
     def op(self) -> RepoOperator:
         return self._op
 
+    @property
+    def github(self) -> RepoOperator:
+        """Access GitHub operations through the repo operator.
+
+        This property provides access to GitHub operations like creating PRs,
+        working with branches, commenting on PRs, etc. The implementation is built
+        on top of PyGitHub (python-github library) and provides a simplified interface
+        for common GitHub operations.
+
+        Returns:
+            RepoOperator: The repo operator instance that handles GitHub operations.
+        """
+        return self._op
+
     ####################################################################################################################
     # SIMPLE META
     ####################################################################################################################
@@ -205,12 +255,12 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
     @property
     def name(self) -> str:
         """The name of the repository."""
-        return self.G.repo_name
+        return self.ctx.repo_name
 
     @property
     def language(self) -> ProgrammingLanguage:
         """The programming language of the repository."""
-        return self.G.programming_language
+        return self.ctx.programming_language
 
     ####################################################################################################################
     # NODES
@@ -218,7 +268,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
 
     @noapidoc
     def _symbols(self, symbol_type: SymbolType | None = None) -> list[TSymbol | TClass | TFunction | TGlobalVar]:
-        matches: list[Symbol] = self.G.get_nodes(NodeType.SYMBOL)
+        matches: list[Symbol] = self.ctx.get_nodes(NodeType.SYMBOL)
         return [x for x in matches if x.is_top_level and (symbol_type is None or x.symbol_type == symbol_type)]
 
     # =====[ Node Types ]=====
@@ -235,7 +285,11 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         By default, this only returns source files. Setting `extensions='*'` will return all files in the codebase, and
         `extensions=[...]` will return all files with the specified extensions.
 
-        `extensions='*'` is REQUIRED for listing all non source code files. Or else, codebase.files will ONLY return source files (e.g. .py, .ts).
+        For Python and Typescript repos WITH file parsing enabled,
+        `extensions='*'` is REQUIRED for listing all non source code files.
+        Or else, codebase.files will ONLY return source files (e.g. .py, .ts).
+
+        For repos with file parsing disabled or repos with other languages, this will return all files in the codebase.
 
         Returns all Files in the codebase, sorted alphabetically. For Python codebases, returns PyFiles (python files).
         For Typescript codebases, returns TSFiles (typescript files).
@@ -243,19 +297,37 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         Returns:
             list[TSourceFile]: A sorted list of source files in the codebase.
         """
-        if extensions is None:
+        if extensions is None and len(self.ctx.get_nodes(NodeType.FILE)) > 0:
+            # If extensions is None AND there is at least one file in the codebase (This checks for unsupported languages or parse-off repos),
             # Return all source files
-            files = self.G.get_nodes(NodeType.FILE)
+            files = self.ctx.get_nodes(NodeType.FILE)
         elif isinstance(extensions, str) and extensions != "*":
             msg = "extensions must be a list of extensions or '*'"
             raise ValueError(msg)
         else:
             files = []
             # Get all files with the specified extensions
-            for filepath, _ in self._op.iter_files(extensions=None if extensions == "*" else extensions, ignore_list=GLOBAL_FILE_IGNORE_LIST):
+            for filepath, _ in self._op.iter_files(
+                extensions=None if extensions == "*" else extensions,
+                ignore_list=GLOBAL_FILE_IGNORE_LIST,
+            ):
                 files.append(self.get_file(filepath, optional=False))
         # Sort files alphabetically
         return sort_editables(files, alphabetical=True, dedupe=False)
+
+    @cached_property
+    def codeowners(self) -> list["CodeOwner[TSourceFile]"]:
+        """List all CodeOnwers in the codebase.
+
+        Returns:
+            list[CodeOwners]: A list of CodeOwners objects in the codebase.
+        """
+        if self.ctx.codeowners_parser is None:
+            return []
+        return CodeOwner.from_parser(
+            self.ctx.codeowners_parser,
+            lambda *args, **kwargs: self.files(*args, **kwargs),
+        )
 
     @property
     def directories(self) -> list[TDirectory]:
@@ -267,7 +339,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         Returns:
             list[TDirectory]: A list of Directory objects in the codebase.
         """
-        return list(self.G.directories.values())
+        return list(self.ctx.directories.values())
 
     @property
     def imports(self) -> list[TImport]:
@@ -283,7 +355,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             list[TImport]: A list of Import nodes representing all imports in the codebase.
             TImport can be PyImport for Python codebases or TSImport for TypeScript codebases.
         """
-        return self.G.get_nodes(NodeType.IMPORT)
+        return self.ctx.get_nodes(NodeType.IMPORT)
 
     @property
     @py_noapidoc
@@ -305,7 +377,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             msg = "Exports are not supported for Python codebases since Python does not have an export mechanism."
             raise NotImplementedError(msg)
 
-        return self.G.get_nodes(NodeType.EXPORT)
+        return self.ctx.get_nodes(NodeType.EXPORT)
 
     @property
     def external_modules(self) -> list[ExternalModule]:
@@ -316,7 +388,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         Returns:
             list[ExternalModule]: List of external module nodes from the codebase graph.
         """
-        return self.G.get_nodes(NodeType.EXTERNAL)
+        return self.ctx.get_nodes(NodeType.EXTERNAL)
 
     @property
     def symbols(self) -> list[TSymbol]:
@@ -417,17 +489,17 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         # if os.path.exists(filepath):
         #     raise ValueError(f"File {filepath} already exists on disk.")
 
-        file_exts = self.G.extensions
+        file_exts = self.ctx.extensions
         # Create file as source file if it has a registered extension
         if any(filepath.endswith(ext) for ext in file_exts):
-            file_cls = self.G.node_classes.file_cls
-            file = file_cls.from_content(filepath, content, self.G, sync=sync)
+            file_cls = self.ctx.node_classes.file_cls
+            file = file_cls.from_content(filepath, content, self.ctx, sync=sync)
             if file is None:
                 msg = f"Failed to parse file with content {content}. Please make sure the content syntax is valid with respect to the filepath extension."
                 raise ValueError(msg)
         else:
             # Create file as non-source file
-            file = File.from_content(filepath, content, self.G, sync=False)
+            file = File.from_content(filepath, content, self.ctx, sync=False)
 
         # This is to make sure we keep track of this file for diff purposes
         uncache_all()
@@ -444,7 +516,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         Raises:
             FileExistsError: If the directory already exists and exist_ok is False.
         """
-        self.G.to_absolute(dir_path).mkdir(parents=parents, exist_ok=exist_ok)
+        self.ctx.to_absolute(dir_path).mkdir(parents=parents, exist_ok=exist_ok)
 
     def has_file(self, filepath: str, ignore_case: bool = False) -> bool:
         """Determines if a file exists in the codebase.
@@ -478,35 +550,24 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         Raises:
             ValueError: If file not found and optional=False.
         """
-
-        def get_file_from_path(path: Path) -> File | None:
-            try:
-                return File.from_content(path, path.read_text(), self.G, sync=False)
-            except UnicodeDecodeError:
-                # Handle when file is a binary file
-                return File.from_content(path, path.read_bytes(), self.G, sync=False, binary=True)
-
         # Try to get the file from the graph first
-        file = self.G.get_file(filepath, ignore_case=ignore_case)
+        file = self.ctx.get_file(filepath, ignore_case=ignore_case)
         if file is not None:
             return file
-        absolute_path = self.G.to_absolute(filepath)
-        if absolute_path.exists():
-            return get_file_from_path(absolute_path)
-        elif ignore_case:
-            parent = absolute_path.parent
-            if parent == Path(self.G.repo_path):
-                for file in self.G.to_absolute(self.G.repo_path).iterdir():
-                    if str(absolute_path).lower() == str(file).lower():
-                        return get_file_from_path(file)
-            else:
-                dir = self.G.get_directory(parent, ignore_case=ignore_case)
-                if dir is None:
-                    return None
-                for file in dir.path.iterdir():
-                    if str(absolute_path).lower() == str(file).lower():
-                        return get_file_from_path(file)
-        elif not optional:
+        # If the file is not in the graph, check the filesystem
+        absolute_path = self.ctx.to_absolute(filepath)
+        if self.ctx.io.file_exists(absolute_path):
+            return self.ctx._get_raw_file_from_path(absolute_path)
+        # If the file is not in the graph, check the filesystem
+        if absolute_path.parent.exists():
+            for file in absolute_path.parent.iterdir():
+                if ignore_case and str(absolute_path).lower() == str(file).lower():
+                    return self.ctx._get_raw_file_from_path(file)
+                elif not ignore_case and str(absolute_path) == str(file):
+                    return self.ctx._get_raw_file_from_path(file)
+
+        # If we get here, the file is not found
+        if not optional:
             msg = f"File {filepath} not found in codebase. Use optional=True to return None instead."
             raise ValueError(msg)
         return None
@@ -540,7 +601,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         # Sanitize the path
         dir_path = os.path.normpath(dir_path)
         dir_path = "" if dir_path == "." else dir_path
-        directory = self.G.get_directory(self.G.to_absolute(dir_path), ignore_case=ignore_case)
+        directory = self.ctx.get_directory(self.ctx.to_absolute(dir_path), ignore_case=ignore_case)
         if directory is None and not optional:
             msg = f"Directory {dir_path} not found in codebase. Use optional=True to return None instead."
             raise ValueError(msg)
@@ -700,8 +761,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
     # State/Git
     ####################################################################################################################
 
-    def git_commit(self, message: str, *, verify: bool = False) -> GitCommit | None:
-        """Commits all staged changes to the codebase and git.
+    def git_commit(self, message: str, *, verify: bool = False, exclude_paths: list[str] | None = None) -> GitCommit | None:
+        """Stages + commits all changes to the codebase and git.
 
         Args:
             message (str): The commit message
@@ -710,10 +771,12 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         Returns:
             GitCommit | None: The commit object if changes were committed, None otherwise.
         """
-        self.G.commit_transactions(sync_graph=False)
-        if self._op.stage_and_commit_all_changes(message, verify):
+        self.ctx.commit_transactions(sync_graph=False)
+        if self._op.stage_and_commit_all_changes(message, verify, exclude_paths):
             logger.info(f"Commited repository to {self._op.head_commit} on {self._op.get_active_branch_or_commit()}")
             return self._op.head_commit
+        else:
+            logger.info("No changes to commit")
         return None
 
     def commit(self, sync_graph: bool = True) -> None:
@@ -728,7 +791,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         Returns:
             None
         """
-        self.G.commit_transactions(sync_graph=sync_graph and self.G.config.feature_flags.sync_enabled)
+        self.ctx.commit_transactions(sync_graph=sync_graph and self.ctx.config.sync_enabled)
 
     @noapidoc
     def git_push(self, *args, **kwargs) -> PushInfoList:
@@ -776,9 +839,16 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             self._op.discard_changes()  # Discard any changes made to the raw file state
         self._num_ai_requests = 0
         self.reset_logs()
-        self.G.undo_applied_diffs()
+        self.ctx.undo_applied_diffs()
 
-    def checkout(self, *, commit: str | GitCommit | None = None, branch: str | None = None, create_if_missing: bool = False, remote: bool = False) -> CheckoutResult:
+    def checkout(
+        self,
+        *,
+        commit: str | GitCommit | None = None,
+        branch: str | None = None,
+        create_if_missing: bool = False,
+        remote: bool = False,
+    ) -> CheckoutResult:
         """Checks out a git branch or commit and syncs the codebase graph to the new state.
 
         This method discards any pending changes, performs a git checkout of the specified branch or commit,
@@ -816,11 +886,11 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
     @noapidoc
     def sync_to_commit(self, target_commit: GitCommit) -> None:
         """Updates the current base to a new commit."""
-        origin_commit = self.G.synced_commit
+        origin_commit = self.ctx.synced_commit
         if origin_commit.hexsha == target_commit.hexsha:
             logger.info(f"Codebase is already synced to {target_commit.hexsha}. Skipping sync_to_commit.")
             return
-        if not self.G.config.feature_flags.sync_enabled:
+        if not self.ctx.config.sync_enabled:
             logger.info(f"Syncing codebase is disabled for repo {self._op.repo_name}. Skipping sync_to_commit.")
             return
 
@@ -829,8 +899,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         diff_lites = []
         for diff in diff_index:
             diff_lites.append(DiffLite.from_git_diff(diff))
-        self.G.apply_diffs(diff_lites)
-        self.G.save_commit(target_commit)
+        self.ctx.apply_diffs(diff_lites)
+        self.ctx.save_commit(target_commit)
 
     @noapidoc
     def get_diffs(self, base: str | None = None) -> list[Diff]:
@@ -873,6 +943,44 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         self._op.stash_pop()
 
     ####################################################################################################################
+    # GITHUB
+    ####################################################################################################################
+
+    def create_pr(self, title: str, body: str) -> PullRequest:
+        """Creates a pull request from the current branch to the repository's default branch.
+
+        This method will:
+        1. Stage and commit any pending changes with the PR title as the commit message
+        2. Push the current branch to the remote repository
+        3. Create a pull request targeting the default branch
+
+        Args:
+            title (str): The title for the pull request
+            body (str): The description/body text for the pull request
+
+        Returns:
+            PullRequest: The created GitHub pull request object
+
+        Raises:
+            ValueError: If attempting to create a PR while in a detached HEAD state
+            ValueError: If the current branch is the default branch
+        """
+        if self._op.git_cli.head.is_detached:
+            msg = "Cannot make a PR from a detached HEAD"
+            raise ValueError(msg)
+        if self._op.git_cli.active_branch.name == self._op.default_branch:
+            msg = "Cannot make a PR from the default branch"
+            raise ValueError(msg)
+        self._op.stage_and_commit_all_changes(message=title)
+        self._op.push_changes()
+        return self._op.remote_git_repo.create_pull(
+            head_branch_name=self._op.git_cli.active_branch.name,
+            base_branch_name=self._op.default_branch,
+            title=title,
+            body=body,
+        )
+
+    ####################################################################################################################
     # GRAPH VISUALIZATION
     ####################################################################################################################
 
@@ -902,7 +1010,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         Returns:
             list[CodeFlag]: A list of all flags in the codebase.
         """
-        return self.G.flags._flags
+        return self.ctx.flags._flags
 
     @noapidoc
     def flag_instance(
@@ -922,7 +1030,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         Returns:
             CodeFlag: A flag object representing the flagged entity.
         """
-        return self.G.flags.flag_instance(symbol, **kwargs)
+        return self.ctx.flags.flag_instance(symbol, **kwargs)
 
     def should_fix(self, flag: CodeFlag) -> bool:
         """Returns True if the flag should be fixed based on the current mode and active group.
@@ -938,17 +1046,17 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             Returns True if no active group is set.
             Returns True if the flag's hash exists in the active group hashes.
         """
-        return self.G.flags.should_fix(flag)
+        return self.ctx.flags.should_fix(flag)
 
     @noapidoc
     def set_find_mode(self, find_mode: bool) -> None:
-        self.G.flags.set_find_mode(find_mode)
+        self.ctx.flags.set_find_mode(find_mode)
 
     @noapidoc
     def set_active_group(self, group: Group) -> None:
         """Will only fix these flags."""
         # TODO - flesh this out more with Group datatype and GroupBy
-        self.G.flags.set_active_group(group)
+        self.ctx.flags.set_active_group(group)
 
     ####################################################################################################################
     # LOGGING
@@ -965,7 +1073,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
 
         At the end, we will save a tail of these logs on the CodemodRun
         """
-        self.G.transaction_manager.check_max_preview_time()
+        self.ctx.transaction_manager.check_max_preview_time()
         if self.console.export_text(clear=False).count("\n") >= MAX_LINES:
             return  # if max lines has been reached, skip logging
         for arg in args:
@@ -995,55 +1103,78 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
 
     @contextmanager
     @noapidoc
-    def session(self, sync_graph: bool = True, commit: bool = True, session_options: SessionOptions = SessionOptions()) -> Generator[None, None, None]:
-        with self.G.session(sync_graph=sync_graph, commit=commit, session_options=session_options):
+    def session(
+        self,
+        sync_graph: bool = True,
+        commit: bool = True,
+        session_options: SessionOptions = SessionOptions(),
+    ) -> Generator[None, None, None]:
+        with self.ctx.session(sync_graph=sync_graph, commit=commit, session_options=session_options):
             yield None
 
     @noapidoc
-    def _enable_experimental_language_engine(self, async_start: bool = False, install_deps: bool = False, use_v8: bool = False) -> None:
+    def _enable_experimental_language_engine(
+        self,
+        async_start: bool = False,
+        install_deps: bool = False,
+        use_v8: bool = False,
+    ) -> None:
         """Debug option to enable experimental language engine for the current codebase."""
-        if install_deps and not self.G.language_engine:
-            from codegen.sdk.core.external.dependency_manager import get_dependency_manager
+        if install_deps and not self.ctx.language_engine:
+            from codegen.sdk.core.external.dependency_manager import (
+                get_dependency_manager,
+            )
 
             logger.info("Cold installing dependencies...")
             logger.info("This may take a while for large repos...")
-            self.G.dependency_manager = get_dependency_manager(self.G.projects[0].programming_language, self.G, enabled=True)
-            self.G.dependency_manager.start(async_start=False)
+            self.ctx.dependency_manager = get_dependency_manager(self.ctx.projects[0].programming_language, self.ctx, enabled=True)
+            self.ctx.dependency_manager.start(async_start=False)
             # Wait for the dependency manager to be ready
-            self.G.dependency_manager.wait_until_ready(ignore_error=False)
+            self.ctx.dependency_manager.wait_until_ready(ignore_error=False)
             logger.info("Dependencies ready")
-        if not self.G.language_engine:
+        if not self.ctx.language_engine:
             from codegen.sdk.core.external.language_engine import get_language_engine
 
             logger.info("Cold starting language engine...")
             logger.info("This may take a while for large repos...")
-            self.G.language_engine = get_language_engine(self.G.projects[0].programming_language, self.G, use_ts=True, use_v8=use_v8)
-            self.G.language_engine.start(async_start=async_start)
+            self.ctx.language_engine = get_language_engine(
+                self.ctx.projects[0].programming_language,
+                self.ctx,
+                use_ts=True,
+                use_v8=use_v8,
+            )
+            self.ctx.language_engine.start(async_start=async_start)
             # Wait for the language engine to be ready
-            self.G.language_engine.wait_until_ready(ignore_error=False)
+            self.ctx.language_engine.wait_until_ready(ignore_error=False)
             logger.info("Language engine ready")
 
     ####################################################################################################################
     # AI
     ####################################################################################################################
 
-    _ai_helper: AbstractAIHelper = None
+    _ai_helper: OpenAI = None
     _num_ai_requests: int = 0
 
     @property
     @noapidoc
-    def ai_client(self) -> AbstractAIHelper:
+    def ai_client(self) -> OpenAI:
         """Enables calling AI/LLM APIs - re-export of the initialized `openai` module"""
         # Create a singleton AIHelper instance
         if self._ai_helper is None:
-            if self.G.config.secrets.openai_key is None:
+            if self.ctx.secrets.openai_api_key is None:
                 msg = "OpenAI key is not set"
                 raise ValueError(msg)
 
-            self._ai_helper = MultiProviderAIHelper(openai_key=self.G.config.secrets.openai_key, use_openai=True, use_claude=False)
+            self._ai_helper = get_openai_client(key=self.ctx.secrets.openai_api_key)
         return self._ai_helper
 
-    def ai(self, prompt: str, target: Editable | None = None, context: Editable | list[Editable] | dict[str, Editable | list[Editable]] | None = None, model: str = "gpt-4o") -> str:
+    def ai(
+        self,
+        prompt: str,
+        target: Editable | None = None,
+        context: Editable | list[Editable] | dict[str, Editable | list[Editable]] | None = None,
+        model: str = "gpt-4o",
+    ) -> str:
         """Generates a response from the AI based on the provided prompt, target, and context.
 
         A method that sends a prompt to the AI client along with optional target and context information to generate a response.
@@ -1064,13 +1195,16 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         # Check max transactions
         logger.info("Creating call to OpenAI...")
         self._num_ai_requests += 1
-        if self.G.session_options.max_ai_requests is not None and self._num_ai_requests > self.G.session_options.max_ai_requests:
-            logger.info(f"Max AI requests reached: {self.G.session_options.max_ai_requests}. Stopping codemod.")
-            msg = f"Maximum number of AI requests reached: {self.G.session_options.max_ai_requests}"
-            raise MaxAIRequestsError(msg, threshold=self.G.session_options.max_ai_requests)
+        if self.ctx.session_options.max_ai_requests is not None and self._num_ai_requests > self.ctx.session_options.max_ai_requests:
+            logger.info(f"Max AI requests reached: {self.ctx.session_options.max_ai_requests}. Stopping codemod.")
+            msg = f"Maximum number of AI requests reached: {self.ctx.session_options.max_ai_requests}"
+            raise MaxAIRequestsError(msg, threshold=self.ctx.session_options.max_ai_requests)
 
         params = {
-            "messages": [{"role": "system", "content": generate_system_prompt(target, context)}, {"role": "user", "content": prompt}],
+            "messages": [
+                {"role": "system", "content": generate_system_prompt(target, context)},
+                {"role": "user", "content": prompt},
+            ],
             "model": model,
             "functions": generate_tools(),
             "temperature": 0,
@@ -1079,7 +1213,13 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             params["tool_choice"] = "required"
 
         # Make the AI request
-        response = self.ai_client.llm_query_functions(**params)
+        response = self.ai_client.chat.completions.create(
+            model=model,
+            messages=params["messages"],
+            tools=params["functions"],  # type: ignore
+            temperature=params["temperature"],
+            tool_choice=params["tool_choice"],
+        )
 
         # Handle finish reasons
         # First check if there is a response
@@ -1123,7 +1263,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         self._ai_helper = None
 
         # Set the AI key
-        self.G.config.secrets.openai_key = key
+        self.ctx.secrets.openai_api_key = key
 
     def find_by_span(self, span: Span) -> list[Editable]:
         """Finds editable objects that overlap with the given source code span.
@@ -1158,20 +1298,22 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             - max_ai_requests (int, optional): The maximum number of AI requests
               allowed in a session.
         """
-        self.G.session_options = self.G.session_options.model_copy(update=kwargs)
-        self.G.transaction_manager.set_max_transactions(self.G.session_options.max_transactions)
-        self.G.transaction_manager.reset_stopwatch(self.G.session_options.max_seconds)
+        self.ctx.session_options = self.ctx.session_options.model_copy(update=kwargs)
+        self.ctx.transaction_manager.set_max_transactions(self.ctx.session_options.max_transactions)
+        self.ctx.transaction_manager.reset_stopwatch(self.ctx.session_options.max_seconds)
 
     @classmethod
     def from_repo(
         cls,
-        repo_name: str,
+        repo_full_name: str,
         *,
-        tmp_dir: str | None = None,
+        tmp_dir: str | None = "/tmp/codegen",
         commit: str | None = None,
-        shallow: bool = True,
-        programming_language: ProgrammingLanguage | None = None,
-        config: CodebaseConfig = DefaultConfig,
+        language: Literal["python", "typescript"] | ProgrammingLanguage | None = None,
+        config: CodebaseConfig | None = None,
+        secrets: SecretsConfig | None = None,
+        setup_option: SetupOption | None = None,
+        full_history: bool = False,
     ) -> "Codebase":
         """Fetches a codebase from GitHub and returns a Codebase instance.
 
@@ -1180,60 +1322,262 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             tmp_dir (Optional[str]): The directory to clone the repo into. Defaults to /tmp/codegen
             commit (Optional[str]): The specific commit hash to clone. Defaults to HEAD
             shallow (bool): Whether to do a shallow clone. Defaults to True
-            programming_language (ProgrammingLanguage | None): The programming language of the repo. Defaults to None.
-            config (CodebaseConfig): Configuration for the codebase. Defaults to DefaultConfig.
+            language (Literal["python", "typescript"] | ProgrammingLanguage | None): The programming language of the repo. Defaults to None.
+            config (CodebaseConfig): Configuration for the codebase. Defaults to pre-defined defaults if None.
+            secrets (SecretsConfig): Configuration for the secrets. Defaults to empty values if None.
 
         Returns:
             Codebase: A Codebase instance initialized with the cloned repository
         """
-        logger.info(f"Fetching codebase for {repo_name}")
+        logger.info(f"Fetching codebase for {repo_full_name}")
 
         # Parse repo name
-        if "/" not in repo_name:
+        if "/" not in repo_full_name:
             msg = "repo_name must be in format 'owner/repo'"
             raise ValueError(msg)
-        owner, repo = repo_name.split("/")
+        owner, repo = repo_full_name.split("/")
 
         # Setup temp directory
-        if tmp_dir is None:
-            tmp_dir = "/tmp/codegen"
         os.makedirs(tmp_dir, exist_ok=True)
         logger.info(f"Using directory: {tmp_dir}")
 
         # Setup repo path and URL
         repo_path = os.path.join(tmp_dir, repo)
-        repo_url = f"https://github.com/{repo_name}.git"
+        repo_url = f"https://github.com/{repo_full_name}.git"
         logger.info(f"Will clone {repo_url} to {repo_path}")
+        access_token = secrets.github_token if secrets else None
 
         try:
-            # Use LocalRepoOperator to fetch the repository
+            # Use RepoOperator to fetch the repository
             logger.info("Cloning repository...")
             if commit is None:
-                repo_operator = LocalRepoOperator.create_from_repo(repo_path=repo_path, url=repo_url, github_api_key=config.secrets.github_api_key if config.secrets else None)
+                repo_config = RepoConfig.from_repo_path(repo_path)
+                repo_config.full_name = repo_full_name
+                repo_operator = RepoOperator.create_from_repo(repo_path=repo_path, url=repo_url, access_token=access_token, full_history=full_history)
             else:
                 # Ensure the operator can handle remote operations
-                repo_operator = LocalRepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url, github_api_key=config.secrets.github_api_key if config.secrets else None)
+                repo_operator = RepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url, full_name=repo_full_name, access_token=access_token)
             logger.info("Clone completed successfully")
 
             # Initialize and return codebase with proper context
             logger.info("Initializing Codebase...")
-            project = ProjectConfig.from_repo_operator(repo_operator=repo_operator, programming_language=programming_language)
-            codebase = Codebase(projects=[project], config=config)
+            project = ProjectConfig.from_repo_operator(
+                repo_operator=repo_operator,
+                programming_language=ProgrammingLanguage(language.upper()) if language else None,
+            )
+            codebase = Codebase(projects=[project], config=config, secrets=secrets)
             logger.info("Codebase initialization complete")
             return codebase
         except Exception as e:
             logger.exception(f"Failed to initialize codebase: {e}")
             raise
 
-    def get_modified_symbols_in_pr(self, pr_id: int) -> list[Symbol]:
+    @classmethod
+    def from_string(
+        cls,
+        code: str,
+        *,
+        language: Literal["python", "typescript"] | ProgrammingLanguage,
+    ) -> "Codebase":
+        """Creates a Codebase instance from a string of code.
+
+        Args:
+            code: String containing code
+            language: Language of the code. Defaults to Python.
+
+        Returns:
+            Codebase: A Codebase instance initialized with the provided code
+
+        Example:
+            >>> # Python code
+            >>> code = "def add(a, b): return a + b"
+            >>> codebase = Codebase.from_string(code, language="python")
+
+            >>> # TypeScript code
+            >>> code = "function add(a: number, b: number): number { return a + b; }"
+            >>> codebase = Codebase.from_string(code, language="typescript")
+        """
+        if not language:
+            msg = "missing required argument language"
+            raise TypeError(msg)
+
+        logger.info("Creating codebase from string")
+
+        # Determine language and filename
+        prog_lang = ProgrammingLanguage(language.upper()) if isinstance(language, str) else language
+        filename = "test.ts" if prog_lang == ProgrammingLanguage.TYPESCRIPT else "test.py"
+
+        # Create codebase using factory
+        from codegen.sdk.codebase.factory.codebase_factory import CodebaseFactory
+
+        files = {filename: code}
+
+        with tempfile.TemporaryDirectory(prefix="codegen_") as tmp_dir:
+            logger.info(f"Using directory: {tmp_dir}")
+            codebase = CodebaseFactory.get_codebase_from_files(repo_path=tmp_dir, files=files, programming_language=prog_lang)
+            logger.info("Codebase initialization complete")
+            return codebase
+
+    @classmethod
+    def from_files(
+        cls,
+        files: dict[str, str],
+        *,
+        language: Literal["python", "typescript"] | ProgrammingLanguage | None = None,
+    ) -> "Codebase":
+        """Creates a Codebase instance from multiple files.
+
+        Args:
+            files: Dictionary mapping filenames to their content, e.g. {"main.py": "print('hello')"}
+            language: Optional language override. If not provided, will be inferred from file extensions.
+                     All files must have extensions matching the same language.
+
+        Returns:
+            Codebase: A Codebase instance initialized with the provided files
+
+        Raises:
+            ValueError: If file extensions don't match a single language or if explicitly provided
+                       language doesn't match the extensions
+
+        Example:
+            >>> # Language inferred as Python
+            >>> files = {"main.py": "print('hello')", "utils.py": "def add(a, b): return a + b"}
+            >>> codebase = Codebase.from_files(files)
+
+            >>> # Language inferred as TypeScript
+            >>> files = {"index.ts": "console.log('hello')", "utils.tsx": "export const App = () => <div>Hello</div>"}
+            >>> codebase = Codebase.from_files(files)
+        """
+        # Create codebase using factory
+        from codegen.sdk.codebase.factory.codebase_factory import CodebaseFactory
+
+        if not files:
+            msg = "No files provided"
+            raise ValueError(msg)
+
+        logger.info("Creating codebase from files")
+
+        prog_lang = ProgrammingLanguage.PYTHON  # Default language
+
+        if files:
+            py_extensions = {".py"}
+            ts_extensions = {".ts", ".tsx", ".js", ".jsx"}
+
+            extensions = {os.path.splitext(f)[1].lower() for f in files}
+            inferred_lang = None
+
+            # all check to ensure that the from_files method is being used for small testing purposes only.
+            # If parsing an actual repo, it should not be used. Instead do Codebase("path/to/repo")
+            if all(ext in py_extensions for ext in extensions):
+                inferred_lang = ProgrammingLanguage.PYTHON
+            elif all(ext in ts_extensions for ext in extensions):
+                inferred_lang = ProgrammingLanguage.TYPESCRIPT
+            else:
+                msg = f"Cannot determine single language from extensions: {extensions}. Files must all be Python (.py) or TypeScript (.ts, .tsx, .js, .jsx)"
+                raise ValueError(msg)
+
+            if language is not None:
+                explicit_lang = ProgrammingLanguage(language.upper()) if isinstance(language, str) else language
+                if explicit_lang != inferred_lang:
+                    msg = f"Provided language {explicit_lang} doesn't match inferred language {inferred_lang} from file extensions"
+                    raise ValueError(msg)
+
+            prog_lang = inferred_lang
+        else:
+            # Default to Python if no files provided
+            prog_lang = ProgrammingLanguage.PYTHON if language is None else (ProgrammingLanguage(language.upper()) if isinstance(language, str) else language)
+
+        logger.info(f"Using language: {prog_lang}")
+
+        with tempfile.TemporaryDirectory(prefix="codegen_") as tmp_dir:
+            logger.info(f"Using directory: {tmp_dir}")
+
+            # Initialize git repo to avoid "not in a git repository" error
+            import subprocess
+
+            subprocess.run(["git", "init"], cwd=tmp_dir, check=True, capture_output=True)
+
+            codebase = CodebaseFactory.get_codebase_from_files(repo_path=tmp_dir, files=files, programming_language=prog_lang)
+            logger.info("Codebase initialization complete")
+            return codebase
+
+    def get_modified_symbols_in_pr(self, pr_id: int) -> tuple[str, dict[str, str], list[str]]:
         """Get all modified symbols in a pull request"""
         pr = self._op.get_pull_request(pr_id)
         cg_pr = CodegenPR(self._op, self, pr)
-        return cg_pr.modified_symbols
+        patch = cg_pr.get_pr_diff()
+        commit_sha = cg_pr.get_file_commit_shas()
+        return patch, commit_sha, cg_pr.modified_symbols
+
+    def create_pr_comment(self, pr_number: int, body: str) -> None:
+        """Create a comment on a pull request"""
+        return self._op.create_pr_comment(pr_number, body)
+
+    def create_pr_review_comment(
+        self,
+        pr_number: int,
+        body: str,
+        commit_sha: str,
+        path: str,
+        line: int | None = None,
+        side: str = "RIGHT",
+        start_line: int | None = None,
+    ) -> None:
+        """Create a review comment on a pull request.
+
+        Args:
+            pr_number: The number of the pull request
+            body: The body of the comment
+            commit_sha: The SHA of the commit to comment on
+            path: The path of the file to comment on
+            line: The line number to comment on
+            side: The side of the comment to create
+            start_line: The start line number to comment on
+
+        Returns:
+            None
+        """
+        return self._op.create_pr_review_comment(pr_number, body, commit_sha, path, line, side, start_line)
 
 
 # The last 2 lines of code are added to the runner. See codegen-backend/cli/generate/utils.py
 # Type Aliases
-CodebaseType = Codebase[SourceFile, Directory, Symbol, Class, Function, Import, Assignment, Interface, TypeAlias, Parameter, CodeBlock]
-PyCodebaseType = Codebase[PyFile, PyDirectory, PySymbol, PyClass, PyFunction, PyImport, PyAssignment, Interface, TypeAlias, PyParameter, PyCodeBlock]
-TSCodebaseType = Codebase[TSFile, TSDirectory, TSSymbol, TSClass, TSFunction, TSImport, TSAssignment, TSInterface, TSTypeAlias, TSParameter, TSCodeBlock]
+CodebaseType = Codebase[
+    SourceFile,
+    Directory,
+    Symbol,
+    Class,
+    Function,
+    Import,
+    Assignment,
+    Interface,
+    TypeAlias,
+    Parameter,
+    CodeBlock,
+]
+PyCodebaseType = Codebase[
+    PyFile,
+    PyDirectory,
+    PySymbol,
+    PyClass,
+    PyFunction,
+    PyImport,
+    PyAssignment,
+    Interface,
+    TypeAlias,
+    PyParameter,
+    PyCodeBlock,
+]
+TSCodebaseType = Codebase[
+    TSFile,
+    TSDirectory,
+    TSSymbol,
+    TSClass,
+    TSFunction,
+    TSImport,
+    TSAssignment,
+    TSInterface,
+    TSTypeAlias,
+    TSParameter,
+    TSCodeBlock,
+]

@@ -12,7 +12,7 @@ from codegen.shared.decorators.docs import noapidoc, py_apidoc
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
 
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.codebase.flagging.code_flag import CodeFlag
     from codegen.sdk.codebase.flagging.enums import FlagKwargs
     from codegen.sdk.core.interfaces.has_block import HasBlock
@@ -27,9 +27,9 @@ class PySymbol(Symbol["PyHasBlock", "PyCodeBlock"]):
 
     @classmethod
     @noapidoc
-    def from_decorated_definition(cls, ts_node: TSNode, file_id: NodeId, G: CodebaseGraph, parent: HasBlock) -> Symbol:
+    def from_decorated_definition(cls, ts_node: TSNode, file_id: NodeId, ctx: CodebaseContext, parent: HasBlock) -> Symbol:
         definition = ts_node.child_by_field_name("definition")
-        return G.parser.parse_expression(definition, file_id, G, parent, decorated_node=ts_node)
+        return ctx.parser.parse_expression(definition, file_id, ctx, parent, decorated_node=ts_node)
 
     @property
     @reader

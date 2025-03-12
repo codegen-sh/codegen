@@ -2,6 +2,7 @@ from unidiff import PatchSet
 
 from codegen.cli.api.client import RestAPI
 from codegen.cli.auth.session import CodegenSession
+from codegen.cli.auth.token_manager import get_current_token
 
 
 class CodegenPullRequest:
@@ -33,9 +34,9 @@ class CodegenPullRequest:
             A CodegenPullRequest instance representing the PR
 
         """
-        session = CodegenSession()
-        api_client = RestAPI(session.token)
-        response = api_client.lookup_pr(repo_full_name=session.repo_name, github_pr_number=number)
+        session = CodegenSession.from_active_session()
+        api_client = RestAPI(get_current_token())
+        response = api_client.lookup_pr(repo_full_name=session.config.repository.full_name, github_pr_number=number)
         pr = response.pr
 
         return cls(

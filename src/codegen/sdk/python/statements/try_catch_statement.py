@@ -11,7 +11,7 @@ from codegen.shared.decorators.docs import noapidoc, py_apidoc
 if TYPE_CHECKING:
     from tree_sitter import Node as PyNode
 
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.dataclasses.usage import UsageKind
     from codegen.sdk.core.detached_symbols.function_call import FunctionCall
     from codegen.sdk.core.interfaces.has_name import HasName
@@ -30,14 +30,14 @@ class PyTryCatchStatement(TryCatchStatement["PyCodeBlock"], PyBlockStatement):
 
     except_clauses: list[PyCatchStatement[Self]]
 
-    def __init__(self, ts_node: PyNode, file_node_id: NodeId, G: CodebaseGraph, parent: PyCodeBlock, pos: int | None = None) -> None:
-        super().__init__(ts_node, file_node_id, G, parent, pos)
+    def __init__(self, ts_node: PyNode, file_node_id: NodeId, ctx: CodebaseContext, parent: PyCodeBlock, pos: int | None = None) -> None:
+        super().__init__(ts_node, file_node_id, ctx, parent, pos)
         self.except_clauses = []
         for node in self.ts_node.named_children:
             if node.type == "finally_clause":
-                self.finalizer = PyBlockStatement(node, file_node_id, G, self, self.index)
+                self.finalizer = PyBlockStatement(node, file_node_id, ctx, self, self.index)
             elif node.type == "except_clause":
-                self.except_clauses.append(PyCatchStatement(node, file_node_id, G, self, self.index))
+                self.except_clauses.append(PyCatchStatement(node, file_node_id, ctx, self, self.index))
 
     @property
     @reader

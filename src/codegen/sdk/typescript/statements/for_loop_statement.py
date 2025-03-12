@@ -10,7 +10,7 @@ from codegen.shared.decorators.docs import noapidoc, ts_apidoc
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
 
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.dataclasses.usage import UsageKind
     from codegen.sdk.core.detached_symbols.function_call import FunctionCall
     from codegen.sdk.core.expressions import Expression
@@ -42,8 +42,8 @@ class TSForLoopStatement(ForLoopStatement["TSCodeBlock"], TSBlockStatement["TSCo
     condition: Expression[TSForLoopStatement] | None = None
     increment: Expression[TSForLoopStatement] | None = None
 
-    def __init__(self, ts_node: TSNode, file_node_id: NodeId, G: CodebaseGraph, parent: TSCodeBlock, pos: int | None = None) -> None:
-        super().__init__(ts_node, file_node_id, G, parent, pos)
+    def __init__(self, ts_node: TSNode, file_node_id: NodeId, ctx: CodebaseContext, parent: TSCodeBlock, pos: int | None = None) -> None:
+        super().__init__(ts_node, file_node_id, ctx, parent, pos)
         if ts_node.type == "for_statement":
             self.initializer = self.child_by_field_name("initializer")
             self.condition = self.child_by_field_name("condition")

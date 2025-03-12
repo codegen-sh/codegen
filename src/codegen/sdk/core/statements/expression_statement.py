@@ -11,7 +11,7 @@ from codegen.shared.decorators.docs import apidoc, noapidoc
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
 
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.dataclasses.usage import UsageKind
     from codegen.sdk.core.detached_symbols.code_block import CodeBlock
     from codegen.sdk.core.detached_symbols.function_call import FunctionCall
@@ -45,8 +45,8 @@ class ExpressionStatement(Statement, HasValue, IWrapper, Generic[Parent, TCodeBl
 
     statement_type = StatementType.EXPRESSION_STATEMENT
 
-    def __init__(self, ts_node: TSNode, file_node_id: NodeId, G: CodebaseGraph, parent: Parent, pos: int, expression_node: TSNode) -> None:
-        super().__init__(ts_node, file_node_id, G, parent, pos=pos)
+    def __init__(self, ts_node: TSNode, file_node_id: NodeId, ctx: CodebaseContext, parent: Parent, pos: int, expression_node: TSNode) -> None:
+        super().__init__(ts_node, file_node_id, ctx, parent, pos=pos)
         self._value_node = self._parse_expression(expression_node)
 
     @property

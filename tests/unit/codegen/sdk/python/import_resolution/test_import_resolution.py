@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 
+from codegen.sdk.codebase.config import TestFlags
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
 
 if TYPE_CHECKING:
@@ -191,7 +192,7 @@ def update():
             "consumer.py": """
 from a.b.c import src as operations
 
-def func_1():
+def func():
     operations.update()
 """,
         },
@@ -213,6 +214,430 @@ def func_1():
         assert len(call_sites) == 1
         call_site = call_sites[0]
         assert call_site.file == consumer_file
+
+
+def test_import_resolution_file_syspath_inactive(tmpdir: str, monkeypatch) -> None:
+    """Tests function.usages returns usages from file imports"""
+    # language=python
+    with get_codebase_session(
+        tmpdir,
+        files={
+            "a/b/c/src.py": """
+def update():
+    pass
+""",
+            "consumer.py": """
+from b.c import src as operations
+
+def func():
+    operations.update()
+""",
+        },
+    ) as codebase:
+        src_file: SourceFile = codebase.get_file("a/b/c/src.py")
+        consumer_file: SourceFile = codebase.get_file("consumer.py")
+
+        # Disable resolution via sys.path
+        codebase.ctx.config.py_resolve_syspath = False
+
+        # =====[ Imports cannot be found without sys.path being set and not active ]=====
+        assert len(consumer_file.imports) == 1
+        src_import: Import = consumer_file.imports[0]
+        src_import_resolution: ImportResolution = src_import.resolve_import()
+        assert src_import_resolution is None
+
+        # Modify sys.path for this test only
+        monkeypatch.syspath_prepend("a")
+
+        # =====[ Imports cannot be found with sys.path set but not active ]=====
+        src_import_resolution = src_import.resolve_import()
+        assert src_import_resolution is None
+
+
+def test_import_resolution_file_syspath_active(tmpdir: str, monkeypatch) -> None:
+    """Tests function.usages returns usages from file imports"""
+    # language=python
+    with get_codebase_session(
+        tmpdir,
+        files={
+            "a/b/c/src.py": """
+def update():
+    pass
+""",
+            "consumer.py": """
+from b.c import src as operations
+
+def func():
+    operations.update()
+""",
+        },
+    ) as codebase:
+        src_file: SourceFile = codebase.get_file("a/b/c/src.py")
+        consumer_file: SourceFile = codebase.get_file("consumer.py")
+
+        # Enable resolution via sys.path
+        codebase.ctx.config.py_resolve_syspath = True
+
+        # =====[ Imports cannot be found without sys.path being set ]=====
+        assert len(consumer_file.imports) == 1
+        src_import: Import = consumer_file.imports[0]
+        src_import_resolution: ImportResolution = src_import.resolve_import()
+        assert src_import_resolution is None
+
+        # Modify sys.path for this test only
+        monkeypatch.syspath_prepend("a")
+
+        # =====[ Imports can be found with sys.path set and active ]=====
+        codebase.ctx.config.py_resolve_syspath = True
+        src_import_resolution = src_import.resolve_import()
+        assert src_import_resolution
+        assert src_import_resolution.from_file is src_file
+        assert src_import_resolution.imports_file is True
+
+
+def test_import_resolution_file_custom_resolve_path(tmpdir: str) -> None:
+    """Tests function.usages returns usages from file imports"""
+    # language=python
+    with get_codebase_session(
+        tmpdir,
+        files={
+            "a/b/c/src.py": """
+def update():
+    pass
+""",
+            "consumer.py": """
+from b.c import src as operations
+from c import src as operations2
+
+def func():
+    operations.update()
+""",
+        },
+    ) as codebase:
+        src_file: SourceFile = codebase.get_file("a/b/c/src.py")
+        consumer_file: SourceFile = codebase.get_file("consumer.py")
+
+        # =====[ Imports cannot be found without custom resolve path being set ]=====
+        assert len(consumer_file.imports) == 2
+        src_import: Import = consumer_file.imports[0]
+        src_import_resolution: ImportResolution = src_import.resolve_import()
+        assert src_import_resolution is None
+
+        # =====[ Imports cannot be found with custom resolve path set to invalid path ]=====
+        codebase.ctx.config.import_resolution_paths = ["x"]
+        src_import_resolution = src_import.resolve_import()
+        assert src_import_resolution is None
+
+        # =====[ Imports can be found with custom resolve path set ]=====
+        codebase.ctx.config.import_resolution_paths = ["a"]
+        src_import_resolution = src_import.resolve_import()
+        assert src_import_resolution
+        assert src_import_resolution.from_file is src_file
+        assert src_import_resolution.imports_file is True
+
+        # =====[ Imports can be found with custom resolve multi-path set ]=====
+        src_import = consumer_file.imports[1]
+        codebase.ctx.config.import_resolution_paths = ["a/b"]
+        src_import_resolution = src_import.resolve_import()
+        assert src_import_resolution
+        assert src_import_resolution.from_file is src_file
+        assert src_import_resolution.imports_file is True
+
+
+def test_import_resolution_file_custom_resolve_and_syspath_precedence(tmpdir: str, monkeypatch) -> None:
+    """Tests function.usages returns usages from file imports"""
+    # language=python
+    with get_codebase_session(
+        tmpdir,
+        files={
+            "a/c/src.py": """
+def update1():
+    pass
+""",
+            "a/b/c/src.py": """
+def update2():
+    pass
+""",
+            "consumer.py": """
+from c import src as operations
+
+def func():
+    operations.update2()
+""",
+        },
+    ) as codebase:
+        src_file: SourceFile = codebase.get_file("a/b/c/src.py")
+        consumer_file: SourceFile = codebase.get_file("consumer.py")
+
+        # Ensure we don't have overrites and enable syspath resolution
+        codebase.ctx.config.import_resolution_paths = []
+        codebase.ctx.config.py_resolve_syspath = True
+
+        # =====[ Import with sys.path set can be found ]=====
+        assert len(consumer_file.imports) == 1
+        # Modify sys.path for this test only
+        monkeypatch.syspath_prepend("a")
+        src_import: Import = consumer_file.imports[0]
+        src_import_resolution = src_import.resolve_import()
+        assert src_import_resolution
+        assert src_import_resolution.from_file.file_path == "a/c/src.py"
+
+        # =====[ Imports can be found with custom resolve over sys.path ]=====
+        codebase.ctx.config.import_resolution_paths = ["a/b"]
+        src_import_resolution = src_import.resolve_import()
+        assert src_import_resolution
+        assert src_import_resolution.from_file is src_file
+        assert src_import_resolution.imports_file is True
+
+
+def test_import_resolution_default_conflicts_overrite(tmpdir: str, monkeypatch) -> None:
+    """Tests function.usages returns usages from file imports"""
+    # language=python
+    with get_codebase_session(
+        tmpdir,
+        files={
+            "a/src.py": """
+def update1():
+    pass
+""",
+            "b/a/src.py": """
+def update2():
+    pass
+""",
+            "consumer.py": """
+from a import src as operations
+
+def func():
+    operations.update2()
+""",
+        },
+    ) as codebase:
+        src_file: SourceFile = codebase.get_file("a/src.py")
+        src_file_overrite: SourceFile = codebase.get_file("b/a/src.py")
+        consumer_file: SourceFile = codebase.get_file("consumer.py")
+
+        # Ensure we don't have overrites and enable syspath resolution
+        codebase.ctx.config.import_resolution_paths = []
+        codebase.ctx.config.py_resolve_syspath = True
+
+        # =====[ Default import works ]=====
+        assert len(consumer_file.imports) == 1
+        src_import: Import = consumer_file.imports[0]
+        src_import_resolution = src_import.resolve_import()
+        assert src_import_resolution
+        assert src_import_resolution.from_file is src_file
+
+        # =====[ Sys.path overrite has precedence ]=====
+        monkeypatch.syspath_prepend("b")
+        src_import_resolution = src_import.resolve_import()
+        assert src_import_resolution
+        assert src_import_resolution.from_file is not src_file
+        assert src_import_resolution.from_file is src_file_overrite
+
+        # =====[ Custom overrite has precedence ]=====
+        codebase.ctx.config.import_resolution_paths = ["b"]
+        src_import_resolution = src_import.resolve_import()
+        assert src_import_resolution
+        assert src_import_resolution.from_file is not src_file
+        assert src_import_resolution.from_file is src_file_overrite
+
+
+def test_import_resolution_init_wildcard(tmpdir: str) -> None:
+    """Tests that named import from a file with wildcard resolves properly"""
+    # language=python
+    content1 = """TEST_CONST=2
+    foo=9
+    """
+    content2 = """from testdir.test1 import *
+    bar=foo
+    test=TEST_CONST"""
+    content3 = """from testdir import TEST_CONST
+    test3=TEST_CONST"""
+    with get_codebase_session(tmpdir=tmpdir, files={"testdir/test1.py": content1, "testdir/__init__.py": content2, "test3.py": content3}) as codebase:
+        file1: SourceFile = codebase.get_file("testdir/test1.py")
+        file2: SourceFile = codebase.get_file("testdir/__init__.py")
+        file3: SourceFile = codebase.get_file("test3.py")
+
+        symb = file1.get_symbol("TEST_CONST")
+        test = file2.get_symbol("test")
+        test3 = file3.get_symbol("test3")
+        test3_import = file3.get_import("TEST_CONST")
+
+        assert len(symb.usages) == 3
+        assert symb.symbol_usages == [test, test3, test3_import]
+
+
+def test_import_resolution_wildcard_func(tmpdir: str) -> None:
+    """Tests that named import from a file with wildcard resolves properly"""
+    # language=python
+    content1 = """
+    def foo():
+        pass
+    def bar():
+        pass
+    """
+    content2 = """
+    from testa import *
+
+    foo()
+    """
+
+    with get_codebase_session(tmpdir=tmpdir, files={"testa.py": content1, "testb.py": content2}) as codebase:
+        testa: SourceFile = codebase.get_file("testa.py")
+        testb: SourceFile = codebase.get_file("testb.py")
+
+        foo = testa.get_symbol("foo")
+        bar = testa.get_symbol("bar")
+        assert len(foo.usages) == 1
+        assert len(foo.call_sites) == 1
+
+        assert len(bar.usages) == 0
+        assert len(bar.call_sites) == 0
+        assert len(testb.function_calls) == 1
+
+
+def test_import_resolution_chaining_wildcards(tmpdir: str) -> None:
+    """Tests that chaining wildcard imports resolves properly"""
+    # language=python
+    content1 = """TEST_CONST=2
+    foo=9
+    """
+    content2 = """from testdir.test1 import *
+    bar=foo
+    test=TEST_CONST"""
+    content3 = """from testdir import *
+    test3=TEST_CONST"""
+    with get_codebase_session(tmpdir=tmpdir, files={"testdir/test1.py": content1, "testdir/__init__.py": content2, "test3.py": content3}) as codebase:
+        file1: SourceFile = codebase.get_file("testdir/test1.py")
+        file2: SourceFile = codebase.get_file("testdir/__init__.py")
+        file3: SourceFile = codebase.get_file("test3.py")
+
+        symb = file1.get_symbol("TEST_CONST")
+        test = file2.get_symbol("test")
+        bar = file2.get_symbol("bar")
+        mid_import = file2.get_import("testdir.test1")
+        test3 = file3.get_symbol("test3")
+
+        assert len(symb.usages) == 2
+        assert symb.symbol_usages == [test, test3]
+        assert mid_import.symbol_usages == [test, bar, test3]
+
+
+def test_import_resolution_init_deep_nested_wildcards(tmpdir: str) -> None:
+    """Tests that chaining wildcard imports resolves properly"""
+    # language=python
+
+    files = {
+        "test/nest/nest2/test1.py": """test_const=5
+           test_not_used=2
+           test_used_parent=5
+           """,
+        "test/nest/nest2/__init__.py": """from .test1 import *
+           t1=test_used_parent
+           """,
+        "test/nest/__init__.py": """from .nest2 import *""",
+        "test/__init__.py": """from .nest import *""",
+        "main.py": """
+            from test import *
+            main_test=test_const
+           """,
+    }
+    with get_codebase_session(tmpdir=tmpdir, files=files) as codebase:
+        deepest_layer: SourceFile = codebase.get_file("test/nest/nest2/test1.py")
+        main: SourceFile = codebase.get_file("main.py")
+        parent_file: SourceFile = codebase.get_file("test/nest/nest2/__init__.py")
+
+        main_test = main.get_symbol("main_test")
+        t1 = parent_file.get_symbol("t1")
+        test_const = deepest_layer.get_symbol("test_const")
+        test_not_used = deepest_layer.get_symbol("test_not_used")
+        test_used_parent = deepest_layer.get_symbol("test_used_parent")
+
+        assert len(test_const.usages) == 1
+        assert test_const.usages[0].usage_symbol == main_test
+        assert len(test_not_used.usages) == 0
+        assert len(test_used_parent.usages) == 1
+        assert test_used_parent.usages[0].usage_symbol == t1
+
+
+def test_import_resolution_chaining_many_wildcards(tmpdir: str) -> None:
+    """Tests that chaining wildcard imports resolves properly"""
+    # language=python
+
+    files = {
+        "test1.py": """
+           test_const=5
+           test_not_used=2
+           test_used_parent=5
+           """,
+        "test2.py": """from test1 import *
+           t1=test_used_parent
+           """,
+        "test3.py": """from test2 import *""",
+        "test4.py": """from test3 import *""",
+        "main.py": """
+            from test4 import *
+            main_test=test_const
+           """,
+    }
+    with get_codebase_session(tmpdir=tmpdir, files=files) as codebase:
+        furthest_layer: SourceFile = codebase.get_file("test1.py")
+        main: SourceFile = codebase.get_file("main.py")
+        parent_file: SourceFile = codebase.get_file("test2.py")
+
+        main_test = main.get_symbol("main_test")
+        t1 = parent_file.get_symbol("t1")
+        test_const = furthest_layer.get_symbol("test_const")
+        test_not_used = furthest_layer.get_symbol("test_not_used")
+        test_used_parent = furthest_layer.get_symbol("test_used_parent")
+
+        assert len(test_const.usages) == 1
+        assert test_const.usages[0].usage_symbol == main_test
+        assert len(test_not_used.usages) == 0
+        assert len(test_used_parent.usages) == 1
+        assert test_used_parent.usages[0].usage_symbol == t1
+
+
+def test_import_resolution_init_deep_nested_wildcards_named(tmpdir: str) -> None:
+    """Tests that chaining wildcard imports resolves properly"""
+    # language=python
+
+    files = {
+        "test/nest/nest2/test1.py": """test_const=5
+           test_not_used=2
+           test_used_parent=5
+           """,
+        "test/nest/nest2/__init__.py": """from .test1 import *
+           t1=test_used_parent
+           """,
+        "test/nest/__init__.py": """from .nest2 import *""",
+        "test/__init__.py": """from .nest import *""",
+        "main.py": """
+            from test import test_const
+            main_test=test_const
+           """,
+    }
+    with get_codebase_session(tmpdir=tmpdir, files=files) as codebase:
+        deepest_layer: SourceFile = codebase.get_file("test/nest/nest2/test1.py")
+        main: SourceFile = codebase.get_file("main.py")
+        parent_file: SourceFile = codebase.get_file("test/nest/nest2/__init__.py")
+        test_nest: SourceFile = codebase.get_file("test/__init__.py")
+
+        main_test = main.get_symbol("main_test")
+        t1 = parent_file.get_symbol("t1")
+        test_const = deepest_layer.get_symbol("test_const")
+        test_not_used = deepest_layer.get_symbol("test_not_used")
+        test_used_parent = deepest_layer.get_symbol("test_used_parent")
+
+        test_const_imp = main.get_import("test_const")
+
+        assert len(test_const.usages) == 2
+        assert test_const.usages[0].usage_symbol == main_test
+        assert test_const.usages[1].usage_symbol == test_const_imp
+
+        assert len(test_not_used.usages) == 0
+        assert len(test_used_parent.usages) == 1
+        assert test_used_parent.usages[0].usage_symbol == t1
 
 
 def test_import_resolution_circular(tmpdir: str) -> None:
@@ -341,3 +766,145 @@ module.some_func()
         # Verify usages are detected
         assert len(some_func.usages) > 0
         assert len(some_func.symbol_usages) > 0
+
+
+def test_import_wildcard_preserves_import_resolution(tmpdir: str) -> None:
+    """Tests importing from a file that contains a wildcard import doesn't break further resolution.
+    This could occur depending on to_resolve ordering, if the outer file is processed first _wildcards will not be filled in time.
+    """
+    # language=python
+    with get_codebase_session(
+        tmpdir,
+        files={
+            "testdir/sub/file.py": """
+                test_const=5
+                b=2
+            """,
+            "testdir/file.py": """
+            from testdir.sub.file import *
+            c=b
+            """,
+            "file.py": """
+            from testdir.file import test_const
+            test = test_const
+            """,
+        },
+    ) as codebase:
+        mainfile: SourceFile = codebase.get_file("file.py")
+
+        assert len(mainfile.ctx.edges) == 10
+
+
+def test_import_resolution_init_wildcard_no_dupe(tmpdir: str) -> None:
+    """Tests that named import from a file with wildcard resolves properly and doesn't
+    result in duplicate usages
+    """
+    # language=python
+    content1 = """TEST_CONST=2
+    foo=9
+    """
+    content2 = """from testdir.test1 import *
+    bar=foo
+    test=TEST_CONST"""
+    content3 = """from testdir import TEST_CONST
+    test3=TEST_CONST"""
+    content4 = """from testdir import  foo
+    test4=foo"""
+    with get_codebase_session(tmpdir=tmpdir, files={"testdir/test1.py": content1, "testdir/__init__.py": content2, "test3.py": content3, "test4.py": content4}) as codebase:
+        file1: SourceFile = codebase.get_file("testdir/test1.py")
+        file2: SourceFile = codebase.get_file("testdir/__init__.py")
+        file3: SourceFile = codebase.get_file("test3.py")
+
+        symb = file1.get_symbol("TEST_CONST")
+        test = file2.get_symbol("test")
+        test3 = file3.get_symbol("test3")
+        test3_import = file3.get_import("TEST_CONST")
+
+        assert len(symb.usages) == 3
+        assert symb.symbol_usages == [test, test3, test3_import]
+
+
+def test_import_resolution_init_wildcard_chainging_deep(tmpdir: str) -> None:
+    """Tests that named import from a file with wildcard resolves properly and doesn't
+    result in duplicate usages
+    """
+    # language=python
+    content1 = """TEST_CONST=2
+    """
+    content2 = """from .file1 import *"""
+    content3 = """from .dir import *"""
+    content4 = """from .dir import  TEST_CONST
+    test1=TEST_CONST"""
+    with get_codebase_session(
+        tmpdir=tmpdir,
+        files={
+            "dir/dir/dir/dir/file1.py": content1,
+            "dir/dir/dir/dir/__init__.py": content2,
+            "dir/dir/dir/__init__.py": content3,
+            "dir/dir/__init__.py": content3,
+            "dir/__init__.py": content3,
+            "file2.py": content4,
+        },
+    ) as codebase:
+        file1: SourceFile = codebase.get_file("dir/dir/dir/dir/file1.py")
+        file2: SourceFile = codebase.get_file("file2.py")
+
+        symb = file1.get_symbol("TEST_CONST")
+        test1 = file2.get_symbol("test1")
+        imp = file2.get_import("TEST_CONST")
+
+        assert len(symb.usages) == 2
+        assert symb.symbol_usages == [test1, imp]
+
+
+def test_import_resolution_paths_init(tmpdir: str) -> None:
+    cfg = TestFlags.model_copy()
+    cfg.debug = False  ##Disable to ignore binary expression edge duplicate
+    cfg.import_resolution_paths = ["package"]
+
+    # language=python
+    content1 = """
+    COMMON_AVAILABLE_STREAMS = [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+    ]
+
+    PLAN_MODEL_AVAILABLE_STREAMS = COMMON_AVAILABLE_STREAMS + [
+        4,
+        2
+    ]
+"""
+    content2 = """
+        from main.dir.dir2 import PLAN_MODEL_AVAILABLE_STREAMS
+        def do_smth():
+            foo=PLAN_MODEL_AVAILABLE_STREAMS
+            print(foo)
+
+        do_smth()
+    """
+    with get_codebase_session(
+        tmpdir=tmpdir,
+        config=cfg,
+        files={
+            "package/main/dir/dir2/file1.py": "bar=2",
+            "package/main/dir/dir2/__init__.py": content1,
+            "package/main/dir/__init__.py": content2,
+            "package/main/__init__.py": "",
+            "start.py": """from main.dir.dir2.file1 import bar
+            print(bar)
+            """,
+        },
+    ) as codebase:
+        file1: SourceFile = codebase.get_file("package/main/dir/dir2/__init__.py")
+        p_m = file1.get_symbol("PLAN_MODEL_AVAILABLE_STREAMS")
+        file2: SourceFile = codebase.get_file("package/main/dir/__init__.py")
+        dosmth = file2.get_symbol("do_smth")
+        import_pm = file2.get_import("PLAN_MODEL_AVAILABLE_STREAMS")
+
+        assert len(p_m.usages) == 3
+        assert p_m.symbol_usages == [dosmth, import_pm]
+        assert len(file1.symbols) != 1

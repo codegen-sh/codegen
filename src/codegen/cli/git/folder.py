@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 
+# TODO: move to codegen.git module
 def get_git_folder(path: os.PathLike | None = None) -> Path | None:
     if path is None:
         path = Path.cwd()

@@ -1,6 +1,6 @@
 from codegen.sdk.core.codebase import Codebase
-from codegen.sdk.enums import ProgrammingLanguage
 from codegen.sdk.writer_decorators import canonical
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 from codemods.codemod import Codemod
 from tests.shared.skills.decorators import skill, skill_impl
 from tests.shared.skills.skill import Skill
@@ -41,7 +41,7 @@ class PivotReturnTypes(Codemod, Skill):
                 function.set_return_type("FastStr")
 
                 # Add import for 'FastStr' if it doesn't exist
-                function.file.add_import_from_import_string("from app.models.fast_str import FastStr")
+                function.file.add_import("from app.models.fast_str import FastStr")
 
                 # Modify all return statements within the function
                 for return_stmt in function.code_block.return_statements:

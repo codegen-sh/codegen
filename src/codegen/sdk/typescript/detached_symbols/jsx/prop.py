@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, override
 
 from tree_sitter import Node as TSNode
 
-from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+from codegen.sdk.codebase.codebase_context import CodebaseContext
 from codegen.sdk.core.autocommit import reader, writer
 from codegen.sdk.core.dataclasses.usage import UsageKind
 from codegen.sdk.core.expressions import Expression
@@ -26,8 +26,8 @@ class JSXProp(Expression["Function | JSXElement | JSXProp"], HasName, HasValue):
     _name_node: Name | None
     _expression_node: JSXExpression | None
 
-    def __init__(self, ts_node: TSNode, file_node_id: NodeId, G: CodebaseGraph, parent: "Function | JSXElement | JSXProp") -> None:
-        super().__init__(ts_node, file_node_id, G, parent)
+    def __init__(self, ts_node: TSNode, file_node_id: NodeId, ctx: CodebaseContext, parent: "Function | JSXElement | JSXProp") -> None:
+        super().__init__(ts_node, file_node_id, ctx, parent)
         self._name_node = self._parse_expression(self.ts_node.children[0], default=Name)
         if len(self.ts_node.children) > 2:
             self._value_node = self._parse_expression(self.ts_node.children[2])

@@ -1,9 +1,11 @@
+import os
 import sys
 
 import pytest
 
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
 from codegen.sdk.core.file import File, SourceFile
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def test_file(tmpdir) -> None:
@@ -48,6 +50,28 @@ def test_codebase_files(tmpdir) -> None:
 
         assert len(codebase.files) == 2
         assert {f for f in codebase.files} == {file1, file2}
+
+        assert len(codebase.files(extensions="*")) == 4
+        assert {f for f in codebase.files(extensions="*")} == {file1, file2, file3, file4}
+
+        assert len(codebase.files(extensions=[".py"])) == 2
+        assert {f for f in codebase.files(extensions=[".py"])} == {file1, file2}
+
+        assert len(codebase.files(extensions=[".bin"])) == 1
+        assert {f for f in codebase.files(extensions=[".bin"])} == {file3}
+
+
+def test_codebase_files_other_language(tmpdir) -> None:
+    with get_codebase_session(
+        tmpdir=tmpdir, files={"file1.py": "print(123)", "file2.py": "print(456)", "file3.bin": b"\x89PNG", "file4": "Hello world!"}, programming_language=ProgrammingLanguage.OTHER
+    ) as codebase:
+        file1 = codebase.get_file("file1.py")
+        file2 = codebase.get_file("file2.py")
+        file3 = codebase.get_file("file3.bin")
+        file4 = codebase.get_file("file4")
+
+        assert len(codebase.files) == 4  # Match all files if the language is OTHER
+        assert {f for f in codebase.files} == {file1, file2, file3, file4}
 
         assert len(codebase.files(extensions="*")) == 4
         assert {f for f in codebase.files(extensions="*")} == {file1, file2, file3, file4}
@@ -188,3 +212,21 @@ def test_files_in_subdirectories_case_sensitivity(tmpdir) -> None:
         assert codebase.has_file("SubDir3/File3.py", ignore_case=False)
         assert not codebase.has_file("SUBDIR3/FILE3.py", ignore_case=False)
         assert not codebase.has_file("subdir3/file3.py", ignore_case=False)
+
+
+def test_minified_file(tmpdir) -> None:
+    with get_codebase_session(
+        tmpdir=tmpdir,
+        files={
+            "file1.min.js": "console.log(123)",
+            "file2.js": open(f"{os.path.dirname(__file__)}/example.min.js").read(),
+        },
+        programming_language=ProgrammingLanguage.TYPESCRIPT,
+    ) as codebase:
+        # This should match the `*.min.js` pattern
+        file1 = codebase.ctx.get_file("file1.min.js")
+        assert file1 is None
+
+        # This should match the maximum line length threshold
+        file2 = codebase.ctx.get_file("file2.js")
+        assert file2 is None

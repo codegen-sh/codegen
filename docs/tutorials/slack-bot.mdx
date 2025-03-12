@@ -1,0 +1,217 @@
+---
+title: "Building a RAG-powered Slack Bot"
+sidebarTitle: "Slack Bot"
+icon: "slack"
+iconType: "solid"
+---
+
+This tutorial demonstrates how to build a Slack bot that can answer code questions using simple RAG (Retrieval Augmented Generation) over a codebase. The bot uses semantic search to find relevant code snippets and generates detailed answers using OpenAI's APIs.
+
+<Info>View the full code and setup instructions in our [examples repository](https://github.com/codegen-sh/codegen-sdk/tree/develop/codegen-examples/examples/slack_chatbot)</Info>
+
+<Tip>While this example uses the Codegen codebase, you can adapt it to any repository by changing the repository URL</Tip>
+
+## Overview
+
+The process involves three main steps:
+
+1. Initializing and indexing the codebase
+2. Finding relevant code snippets for a query
+3. Generating answers using RAG
+
+Let's walk through each step using Codegen.
+
+## Step 1: Initializing the Codebase
+
+First, we initialize the codebase and create a vector index for semantic search:
+
+```python
+from codegen import Codebase
+from codegen.extensions import VectorIndex
+
+def initialize_codebase():
+    """Initialize and index the codebase."""
+    # Initialize codebase with smart caching
+    codebase = Codebase.from_repo(
+        "codegen-sh/codegen-sdk",
+        language="python",
+        tmp_dir="/root"
+    )
+
+    # Initialize vector index
+    index = VectorIndex(codebase)
+
+    # Try to load existing index or create new one
+    index_path = "/root/E.pkl"
+    try:
+        index.load(index_path)
+    except FileNotFoundError:
+        # Create new index if none exists
+        index.create()
+        index.save(index_path)
+
+    return codebase, index
+```
+
+<Note>
+The vector index is persisted to disk, so subsequent queries will be much faster.
+See [semantic code search](/building-with-codegen/semantic-code-search) to learn more about VectorIndex.
+</Note>
+
+## Step 2: Finding Relevant Code
+
+Next, we use the vector index to find code snippets relevant to a query:
+
+```python
+def find_relevant_code(index: VectorIndex, query: str) -> list[tuple[str, float]]:
+    """Find code snippets relevant to the query."""
+    # Get top 10 most relevant files
+    results = index.similarity_search(query, k=10)
+
+    # Clean up chunk references from index
+    cleaned_results = []
+    for filepath, score in results:
+        if "#chunk" in filepath:
+            filepath = filepath.split("#chunk")[0]
+        cleaned_results.append((filepath, score))
+
+    return cleaned_results
+```
+
+<Tip>
+VectorIndex automatically chunks large files for better search results. We clean up the chunk references to show clean file paths.
+</Tip>
+
+## Step 3: Generating Answers
+
+Finally, we use GPT-4 to generate answers based on the relevant code:
+
+```python
+from openai import OpenAI
+
+def generate_answer(query: str, context: str) -> str:
+    """Generate an answer using RAG."""
+    prompt = f"""You are a code expert. Given the following code context and question,
+provide a clear and accurate answer.
+
+Note: Keep it short and sweet - 2 paragraphs max.
+
+Question: {query}
+
+Relevant code:
+{context}
+
+Answer:"""
+
+    client = OpenAI()
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": "You are a code expert. Answer questions about the given repo based on RAG'd results."},
+            {"role": "user", "content": prompt},
+        ],
+        temperature=0,
+    )
+
+    return response.choices[0].message.content
+```
+
+## Putting It All Together
+
+Here's how the components work together to answer questions:
+
+```python
+def answer_question(query: str) -> tuple[str, list[tuple[str, float]]]:
+    """Answer a question about the codebase using RAG."""
+    # Initialize or load codebase and index
+    codebase, index = initialize_codebase()
+
+    # Find relevant files
+    results = find_relevant_code(index, query)
+
+    # Collect context from relevant files
+    context = ""
+    for filepath, score in results:
+        file = codebase.get_file(filepath)
+        context += f"File: {filepath}\n```\n{file.content}\n```\n\n"
+
+    # Generate answer
+    answer = generate_answer(query, context)
+
+    return answer, results
+```
+
+This will:
+1. Load or create the vector index
+2. Find relevant code snippets
+3. Generate a detailed answer
+4. Return both the answer and file references
+
+## Example Usage
+
+Here's what the output looks like:
+
+```python
+answer, files = answer_question("How does VectorIndex handle large files?")
+
+print("Answer:", answer)
+print("\nRelevant files:")
+for filepath, score in files:
+    print(f"• {filepath} (score: {score:.2f})")
+```
+
+Output:
+```
+Answer:
+VectorIndex handles large files by automatically chunking them into smaller pieces
+using tiktoken. Each chunk is embedded separately and can be searched independently,
+allowing for more precise semantic search results.
+
+Relevant files:
+• src/codegen/extensions/vector_index.py (score: 0.92)
+• src/codegen/extensions/tools/semantic_search.py (score: 0.85)
+```
+
+## Extensions
+
+While this example demonstrates a simple RAG-based bot, you can extend it to build a more powerful code agent that can:
+- Do more sophisticated code retrieval
+- Make code changes using Codegen's edit APIs
+- Gather further context from Slack channels
+- ... etc.
+
+<Tip>Check out our [Code Agent tutorial](/tutorials/build-code-agent) to learn how to build an intelligent agent with access to Codegen's full suite of tools</Tip>
+
+
+## Learn More
+
+<CardGroup cols={2}>
+  <Card
+    title="Semantic Code Search"
+    icon="magnifying-glass"
+    href="/building-with-codegen/semantic-code-search"
+  >
+    Learn how to use VectorIndex for semantic code search and embeddings.
+  </Card>
+  <Card
+    title="Build a Code Agent"
+    icon="robot"
+    href="/tutorials/build-code-agent"
+  >
+    Create a more powerful agent with multi-step reasoning and code manipulation.
+  </Card>
+  <Card
+    title="OpenAI Embeddings"
+    icon="brain"
+    href="https://platform.openai.com/docs/guides/embeddings"
+  >
+    Learn about OpenAI's text embeddings and how they work.
+  </Card>
+  <Card
+    title="RAG Best Practices"
+    icon="book"
+    href="https://www.pinecone.io/learn/retrieval-augmented-generation"
+  >
+    Understand RAG patterns and best practices for better results.
+  </Card>
+</CardGroup>

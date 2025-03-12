@@ -10,13 +10,13 @@ from codegen.sdk.core.interfaces.importable import Importable
 from codegen.sdk.core.node_id_factory import NodeId
 from codegen.sdk.typescript.symbol_groups.dict import TSDict, TSPair
 from codegen.shared.decorators.docs import ts_apidoc
+from codegen.shared.logging.get_logger import get_logger
 
 if TYPE_CHECKING:
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
 
-import logging
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 Parent = TypeVar("Parent")
@@ -38,12 +38,12 @@ class TSObjectPair(TSPair, Generic[Parent]):
             value = self._parse_expression(type_node)
             key = self._parse_expression(self.ts_node.child_by_field_name("name"))
         elif self.ts_node_type == "call_signature":
-            value = TSFunctionType(self.ts_node, self.file_node_id, self.G, self)
+            value = TSFunctionType(self.ts_node, self.file_node_id, self.ctx, self)
         elif self.ts_node_type == "index_signature":
             value = self._parse_expression(self.ts_node.child_by_field_name("type"))
             key = self._parse_expression(self.ts_node.named_children[0])
         elif self.ts_node_type == "method_signature":
-            value = TSFunctionType(self.ts_node, self.file_node_id, self.G, self)
+            value = TSFunctionType(self.ts_node, self.file_node_id, self.ctx, self)
             key = self._parse_expression(self.ts_node.child_by_field_name("name"))
         elif self.ts_node_type == "method_definition":
             key = self._parse_expression(self.ts_node.child_by_field_name("mapped_clause_type"))
@@ -72,8 +72,8 @@ class TSObjectType(TSDict, Type[Parent], Generic[Parent]):
     in TypeScript code.
     """
 
-    def __init__(self, ts_node: TSNode, file_node_id: NodeId, G: "CodebaseGraph", parent: Parent) -> None:
-        super().__init__(ts_node, file_node_id, G, parent, delimiter=";", pair_type=TSObjectPair)
+    def __init__(self, ts_node: TSNode, file_node_id: NodeId, ctx: "CodebaseContext", parent: Parent) -> None:
+        super().__init__(ts_node, file_node_id, ctx, parent, delimiter=";", pair_type=TSObjectPair)
 
     def _compute_dependencies(self, usage_type: UsageKind, dest: Importable):
         for child in self.values():

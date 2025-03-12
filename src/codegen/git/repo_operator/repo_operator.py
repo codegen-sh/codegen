@@ -1,47 +1,79 @@
+import codecs
 import fnmatch
 import glob
-import logging
 import os
-from abc import ABC, abstractmethod
 from collections.abc import Generator
 from datetime import UTC, datetime
 from functools import cached_property
 from time import perf_counter
+from typing import Self
 
 from codeowners import CodeOwners as CodeOwnersParser
 from git import Commit as GitCommit
 from git import Diff, GitCommandError, InvalidGitRepositoryError, Remote
 from git import Repo as GitCLI
 from git.remote import PushInfoList
+from github.IssueComment import IssueComment
+from github.PullRequest import PullRequest
 
+from codegen.configs.models.secrets import SecretsConfig
+from codegen.git.clients.git_repo_client import GitRepoClient
 from codegen.git.configs.constants import CODEGEN_BOT_EMAIL, CODEGEN_BOT_NAME
-from codegen.git.schemas.enums import CheckoutResult, FetchResult
-from codegen.git.schemas.repo_config import BaseRepoConfig
+from codegen.git.repo_operator.local_git_repo import LocalGitRepo
+from codegen.git.schemas.enums import CheckoutResult, FetchResult, RepoVisibility, SetupOption
+from codegen.git.schemas.repo_config import RepoConfig
+from codegen.git.utils.clone import clone_or_pull_repo, clone_repo, pull_repo
+from codegen.git.utils.clone_url import add_access_token_to_url, get_authenticated_clone_url_for_repo_config, get_clone_url_for_repo_config, url_to_github
+from codegen.git.utils.codeowner_utils import create_codeowners_parser_for_repo
+from codegen.git.utils.file_utils import create_files
+from codegen.git.utils.remote_progress import CustomRemoteProgress
+from codegen.shared.logging.get_logger import get_logger
 from codegen.shared.performance.stopwatch_utils import stopwatch
 from codegen.shared.performance.time_utils import humanize_duration
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
-class RepoOperator(ABC):
+class RepoOperator:
     """A wrapper around GitPython to make it easier to interact with a repo."""
 
-    repo_config: BaseRepoConfig
+    repo_config: RepoConfig
     base_dir: str
     bot_commit: bool = True
+    access_token: str | None = None
+
+    # lazy attributes
     _codeowners_parser: CodeOwnersParser | None = None
     _default_branch: str | None = None
+    _remote_git_repo: GitRepoClient | None = None
+    _local_git_repo: LocalGitRepo | None = None
 
     def __init__(
         self,
-        repo_config: BaseRepoConfig,
-        base_dir: str = "/tmp",
-        bot_commit: bool = True,
+        repo_config: RepoConfig,
+        access_token: str | None = None,
+        bot_commit: bool = False,
+        setup_option: SetupOption | None = None,
+        shallow: bool | None = None,
     ) -> None:
         assert repo_config is not None
         self.repo_config = repo_config
-        self.base_dir = base_dir
+        self.access_token = access_token or SecretsConfig().github_token
+        self.base_dir = repo_config.base_dir
         self.bot_commit = bot_commit
+
+        if setup_option:
+            if shallow is not None:
+                self.setup_repo_dir(setup_option=setup_option, shallow=shallow)
+            else:
+                self.setup_repo_dir(setup_option=setup_option)
+
+        else:
+            os.makedirs(self.repo_path, exist_ok=True)
+            GitCLI.init(self.repo_path)
+            self._local_git_repo = LocalGitRepo(repo_path=repo_config.repo_path)
+            if self.repo_config.full_name is None:
+                self.repo_config.full_name = self._local_git_repo.full_name
 
     ####################################################################################################################
     # PROPERTIES
@@ -56,7 +88,19 @@ class RepoOperator(ABC):
         return os.path.join(self.base_dir, self.repo_name)
 
     @property
+    def remote_git_repo(self) -> GitRepoClient:
+        if not self.access_token and self.repo_config.visibility != RepoVisibility.PUBLIC:
+            msg = "Must initialize with access_token to get remote"
+            raise ValueError(msg)
+
+        if not self._remote_git_repo:
+            self._remote_git_repo = GitRepoClient(self.repo_config, access_token=self.access_token)
+        return self._remote_git_repo
+
+    @property
     def clone_url(self) -> str:
+        if self.access_token:
+            return get_authenticated_clone_url_for_repo_config(repo=self.repo_config, token=self.access_token)
         return f"https://github.com/{self.repo_config.full_name}.git"
 
     @property
@@ -100,31 +144,25 @@ class RepoOperator(ABC):
         for level in levels:
             with git_cli.config_reader(level) as reader:
                 if reader.has_option("user", "name") and not username:
-                    username = reader.get("user", "name")
-                    user_level = level
+                    username = username or reader.get("user", "name")
+                    user_level = user_level or level
                 if reader.has_option("user", "email") and not email:
-                    email = reader.get("user", "email")
-                    email_level = level
-        if self.bot_commit:
-            self._set_bot_email(git_cli)
-            self._set_bot_username(git_cli)
-        else:
-            # we need a username and email to commit, so if they're not set, set them to the bot's
-            # Case 1: username is not set: set it to the bot's
-            if not username:
-                self._set_bot_username(git_cli)
-            # Case 2: username is set to the bot's at the repo level, but something else is set at the user level: unset it
-            elif username != CODEGEN_BOT_NAME and user_level != "repository":
-                self._unset_bot_username(git_cli)
-            # Case 3: username is only set at the repo level: do nothing
-            else:
-                pass  # no-op to make the logic clearer
-            # Repeat for email
-            if not email:
-                self._set_bot_email(git_cli)
+                    email = email or reader.get("user", "email")
+                    email_level = email_level or level
 
-            elif email != CODEGEN_BOT_EMAIL and email_level != "repository":
+        # We need a username and email to commit, so if they're not set, set them to the bot's
+        if not username or self.bot_commit:
+            self._set_bot_username(git_cli)
+        if not email or self.bot_commit:
+            self._set_bot_email(git_cli)
+
+        # If user config is set at a level above the repo level: unset it
+        if not self.bot_commit:
+            if username and username != CODEGEN_BOT_NAME and user_level != "repository":
+                self._unset_bot_username(git_cli)
+            if email and email != CODEGEN_BOT_EMAIL and email_level != "repository":
                 self._unset_bot_email(git_cli)
+
         return git_cli
 
     @property
@@ -138,14 +176,45 @@ class RepoOperator(ABC):
 
     @property
     def default_branch(self) -> str:
-        return self._default_branch or self.git_cli.active_branch.name
+        # Priority 1: If default branch has been set
+        if self._default_branch:
+            if self._default_branch is None:
+                self._default_branch = self.remote_git_repo.default_branch
+                return self._default_branch
+            return self._default_branch
 
-    @abstractmethod
-    def codeowners_parser(self) -> CodeOwnersParser | None: ...
+        # Priority 2: If origin/HEAD ref exists
+        origin_prefix = "origin"
+        if f"{origin_prefix}/HEAD" in self.git_cli.refs:
+            return self.git_cli.refs[f"{origin_prefix}/HEAD"].reference.name.removeprefix(f"{origin_prefix}/")
+
+        # Priority 3: Fallback to the active branch
+        return self.git_cli.active_branch.name
+
+    @property
+    def codeowners_parser(self) -> CodeOwnersParser | None:
+        if not self._codeowners_parser:
+            if not self._remote_git_repo:
+                return None
+            self._codeowners_parser = create_codeowners_parser_for_repo(self.remote_git_repo)
+        return self._codeowners_parser
 
     ####################################################################################################################
     # SET UP
     ####################################################################################################################
+    def setup_repo_dir(self, setup_option: SetupOption = SetupOption.PULL_OR_CLONE, shallow: bool = True) -> None:
+        os.makedirs(self.base_dir, exist_ok=True)
+        os.chdir(self.base_dir)
+        if setup_option is SetupOption.CLONE:
+            # if repo exists delete, then clone, else clone
+            clone_repo(shallow=shallow, repo_path=self.repo_path, clone_url=self.clone_url)
+        elif setup_option is SetupOption.PULL_OR_CLONE:
+            # if repo exists, pull changes, else clone
+            self.clone_or_pull_repo(shallow=shallow)
+        elif setup_option is SetupOption.SKIP:
+            if not self.repo_exists():
+                logger.warning(f"Valid git repo does not exist at {self.repo_path}. Cannot skip setup with SetupOption.SKIP.")
+        os.chdir(self.repo_path)
 
     def repo_exists(self) -> bool:
         if not os.path.exists(self.repo_path):
@@ -167,7 +236,7 @@ class RepoOperator(ABC):
         """
         logger.info(f"Cleaning repo at {self.repo_path} ...")
         self.discard_changes()
-        self.checkout_branch(self.default_branch)  # TODO(CG-9440): add back remote=True
+        self.checkout_branch(self.default_branch, remote=True)
         self.clean_branches()
         self.clean_remotes()
 
@@ -199,13 +268,29 @@ class RepoOperator(ABC):
             logger.info(f"Deleting branch {branch.name} ...")
             self.git_cli.delete_head(branch.name, force=True)
 
-    @abstractmethod
     def pull_repo(self) -> None:
         """Pull the latest commit down to an existing local repo"""
+        pull_repo(repo_path=self.repo_path, clone_url=self.clone_url)
+
+    def clone_repo(self, shallow: bool = True) -> None:
+        clone_repo(repo_path=self.repo_path, clone_url=self.clone_url, shallow=shallow)
+
+    def clone_or_pull_repo(self, shallow: bool = True) -> None:
+        """If repo exists, pulls changes. otherwise, clones the repo."""
+        # TODO(CG-7804): if repo is not valid we should delete it and re-clone. maybe we can create a pull_repo util + use the existing clone_repo util
+        if self.repo_exists():
+            self.clean_repo()
+        clone_or_pull_repo(repo_path=self.repo_path, clone_url=self.clone_url, shallow=shallow)
 
     ####################################################################################################################
     # CHECKOUT, BRANCHES & COMMITS
     ####################################################################################################################
+    @stopwatch
+    def checkout_remote_branch(self, branch_name: str | None = None, remote_name: str = "origin") -> CheckoutResult:
+        """Checks out a branch from a Remote + tracks the Remote.
+        If the branch_name is already checked out, does nothing
+        """
+        return self.checkout_branch(branch_name, remote_name=remote_name, remote=True, create_if_missing=False)
 
     def safe_get_commit(self, commit: str) -> GitCommit | None:
         """Gets commit if it exists, else returns None"""
@@ -215,7 +300,6 @@ class RepoOperator(ABC):
             logger.warning(f"Failed to get commit {commit}:\n\t{e}")
             return None
 
-    @abstractmethod
     def fetch_remote(self, remote_name: str = "origin", refspec: str | None = None, force: bool = True) -> FetchResult:
         """Fetches and updates a ref from a remote repository.
 
@@ -235,6 +319,17 @@ class RepoOperator(ABC):
         Note:
             This force fetches by default b/c by default we prefer the remote branch over our local branch.
         """
+        logger.info(f"Fetching {remote_name} with refspec {refspec}")
+        progress = CustomRemoteProgress()
+
+        try:
+            self.git_cli.remotes[remote_name].fetch(refspec=refspec, force=force, progress=progress, no_tags=True)
+            return FetchResult.SUCCESS
+        except GitCommandError as e:
+            if progress.fetch_result == FetchResult.REFSPEC_NOT_FOUND:
+                return FetchResult.REFSPEC_NOT_FOUND
+            else:
+                raise e
 
     def delete_remote(self, remote_name: str) -> None:
         remote = self.git_cli.remote(remote_name)
@@ -276,20 +371,6 @@ class RepoOperator(ABC):
         if self.git_cli.head.is_detached:
             return False
         return self.git_cli.active_branch.name == branch_name
-
-    def delete_local_branch(self, branch_name: str) -> None:
-        if branch_name not in self.git_cli.branches:
-            logger.info(f"Branch {branch_name} does not exist locally. Skipping delete_local_branch.")
-            return
-        if branch_name is self.default_branch:
-            msg = "Deleting the default branch is not implemented yet."
-            raise NotImplementedError(msg)
-
-        if self.is_branch_checked_out(branch_name):
-            self.checkout_branch(self.default_branch)
-
-        logger.info(f"Deleting local branch: {branch_name} ...")
-        self.git_cli.delete_head(branch_name, force=True)  # force deletes even if the branch has unmerged changes
 
     def checkout_branch(self, branch_name: str | None, *, remote: bool = False, remote_name: str = "origin", create_if_missing: bool = True) -> CheckoutResult:
         """Attempts to check out the branch in the following order:
@@ -364,9 +445,11 @@ class RepoOperator(ABC):
                 logger.exception(f"Error with Git operations: {e}")
                 raise
 
-    def get_diff_files_from_ref(self, ref: str):
-        diff_from_ref_files = self.git_cli.git.diff(ref, name_only=True).split("\n")
-        return diff_from_ref_files
+    def get_modified_files(self, ref: str | GitCommit) -> list[str]:
+        """Returns a list of modified files in the repo"""
+        self.git_cli.git.add(A=True)
+        diff = self.git_cli.git.diff(ref, "--name-only")
+        return diff.splitlines()
 
     def get_diffs(self, ref: str | GitCommit, reverse: bool = True) -> list[Diff]:
         """Gets all staged diffs"""
@@ -374,12 +457,18 @@ class RepoOperator(ABC):
         return [diff for diff in self.git_cli.index.diff(ref, R=reverse)]
 
     @stopwatch
-    def stage_and_commit_all_changes(self, message: str, verify: bool = False) -> bool:
+    def stage_and_commit_all_changes(self, message: str, verify: bool = False, exclude_paths: list[str] | None = None) -> bool:
         """TODO: rename to stage_and_commit_changes
         Stage all changes and commit them with the given message.
         Returns True if a commit was made and False otherwise.
         """
         self.git_cli.git.add(A=True)
+        # Unstage the excluded paths
+        for path in exclude_paths or []:
+            try:
+                self.git_cli.git.reset("HEAD", "--", path)
+            except GitCommandError as e:
+                logger.warning(f"Failed to exclude path {path}: {e}")
         return self.commit_changes(message, verify)
 
     def commit_changes(self, message: str, verify: bool = False) -> bool:
@@ -387,6 +476,8 @@ class RepoOperator(ABC):
         staged_changes = self.git_cli.git.diff("--staged")
         if staged_changes:
             commit_args = ["-m", message]
+            if self.bot_commit:
+                commit_args.append(f"--author='{CODEGEN_BOT_NAME} <{CODEGEN_BOT_EMAIL}>'")
             if not verify:
                 commit_args.append("--no-verify")
             self.git_cli.git.commit(*commit_args)
@@ -395,20 +486,42 @@ class RepoOperator(ABC):
             logger.info("No changes to commit. Do nothing.")
             return False
 
-    def stage_and_commit_file(self, message: str, filepath: str) -> None:
-        """Stage all changes and commit them with the given message."""
-        logger.info(f"Staging and committing changes to {filepath}...")
-        self.git_cli.git.add(filepath)
-        self.git_cli.git.commit("-m", message)
-
-    @abstractmethod
+    @stopwatch
     def push_changes(self, remote: Remote | None = None, refspec: str | None = None, force: bool = False) -> PushInfoList:
-        """Push the changes to the given refspec of the remote repository.
+        """Push the changes to the given refspec of the remote.
 
         Args:
             refspec (str | None): refspec to push. If None, the current active branch is used.
             remote (Remote | None): Remote to push too. Defaults to 'origin'.
+            force (bool): If True, force push the changes. Defaults to False.
         """
+        # Use default remote if not provided
+        if not remote:
+            remote = self.git_cli.remote(name="origin")
+
+        # Use the current active branch if no branch is specified
+        if not refspec:
+            # TODO: doesn't work with detached HEAD state
+            refspec = self.git_cli.active_branch.name
+
+        res = remote.push(refspec=refspec, force=force, progress=CustomRemoteProgress())
+        for push_info in res:
+            if push_info.flags & push_info.ERROR:
+                # Handle the error case
+                logger.warning(f"Error pushing {refspec}: {push_info.summary}")
+            elif push_info.flags & push_info.FAST_FORWARD:
+                # Successful fast-forward push
+                logger.info(f"{refspec} pushed successfully (fast-forward).")
+            elif push_info.flags & push_info.NEW_HEAD:
+                # Successful push of a new branch
+                logger.info(f"{refspec} pushed successfully as a new branch.")
+            elif push_info.flags & push_info.NEW_TAG:
+                # Successful push of a new tag (if relevant)
+                logger.info("New tag pushed successfully.")
+            else:
+                # Successful push, general case
+                logger.info(f"{refspec} pushed successfully.")
+        return res
 
     def relpath(self, abspath) -> str:
         # TODO: check if the path is an abspath (i.e. contains self.repo_path)
@@ -462,12 +575,48 @@ class RepoOperator(ABC):
         if os.listdir(self.abspath(os.path.dirname(path))) == []:
             os.rmdir(self.abspath(os.path.dirname(path)))
 
+    def get_filepaths_for_repo(self, ignore_list):
+        # Get list of files to iterate over based on gitignore setting
+        if self.repo_config.respect_gitignore:
+            # ls-file flags:
+            # -c: show cached files
+            # -o: show other / untracked files
+            # --exclude-standard: exclude standard gitignore rules
+            filepaths = self.git_cli.git.ls_files("-co", "--exclude-standard").split("\n")
+        else:
+            filepaths = glob.glob("**", root_dir=self.repo_path, recursive=True, include_hidden=True)
+            # Filter filepaths by ignore list.
+        if ignore_list:
+            filepaths = [f for f in filepaths if not any(fnmatch.fnmatch(f, pattern) or f.startswith(pattern) for pattern in ignore_list)]
+
+        # Fix bug where unicode characters are not handled correctly
+        for i, filepath in enumerate(filepaths):
+            # Check if it is one of the broken cases
+            if filepath.startswith('"'):
+                # Step 1: Strip the quotes
+                filepath = filepath.strip('"').strip("'")
+
+                # Step 2: Convert the Python string to raw ASCII bytes (so \\ stays as two 0x5C).
+                raw_filepath = filepath.encode("ascii")
+
+                # Step 3: Use escape_decode to process backslash escapes like \346 -> 0xE6
+                decoded_filepath, _ = codecs.escape_decode(raw_filepath)
+
+                # Step 4: Decode those bytes as UTF-8 to get the actual Unicode text
+                filepath = decoded_filepath.decode("utf-8")
+
+                # Step 5: Replace the original filepath with the decoded filepath
+                filepaths[i] = filepath
+
+        return filepaths
+
     # TODO: unify param naming i.e. subdirectories vs subdirs probably use subdirectories since that's in the DB
     def iter_files(
         self,
         subdirs: list[str] | None = None,
         extensions: list[str] | None = None,
         ignore_list: list[str] | None = None,
+        skip_content: bool = False,
     ) -> Generator[tuple[str, str]]:
         """Iterates over all files in the codebase, yielding the filepath and its content.
 
@@ -482,16 +631,7 @@ class RepoOperator(ABC):
             tuple: A tuple containing the relative filepath and the content of the file.
 
         """
-        # Get list of files to iterate over based on gitignore setting
-        if self.repo_config.respect_gitignore:
-            filepaths = self.git_cli.git.ls_files().split("\n")
-        else:
-            filepaths = glob.glob("**", root_dir=self.repo_path, recursive=True, include_hidden=True)
-
-        # Filter filepaths by ignore list.
-        if ignore_list:
-            filepaths = [f for f in filepaths if not any(fnmatch.fnmatch(f, pattern) or f.startswith(pattern) for pattern in ignore_list)]
-
+        filepaths = self.get_filepaths_for_repo(ignore_list)
         # Iterate through files and yield contents
         for rel_filepath in filepaths:
             rel_filepath: str
@@ -503,10 +643,16 @@ class RepoOperator(ABC):
 
             if extensions is None or any(filepath.endswith(e) for e in extensions):
                 try:
-                    content = self.get_file(filepath)
-                    yield rel_filepath, content
+                    if os.path.isfile(filepath):
+                        if not skip_content:
+                            content = self.get_file(filepath)
+                            yield rel_filepath, content
+                        else:
+                            yield rel_filepath, ""
+                    else:
+                        logger.warning(f"Skipping {filepath} because it does not exist or is not a valid file.")
                 except Exception as e:
-                    print(f"Error reading file {filepath}: {e}")
+                    logger.warning(f"Error reading file {filepath}: {e}")
 
     def list_files(self, subdirs: list[str] | None = None, extensions: list[str] | None = None) -> list[str]:
         """List files matching subdirs + extensions in a repo.
@@ -569,11 +715,190 @@ class RepoOperator(ABC):
                         modified_files.append(file)
         return modified_files, deleted_files
 
-    @abstractmethod
-    def base_url(self) -> str | None: ...
+    @cached_property
+    def base_url(self) -> str | None:
+        repo_config = self.repo_config
+        clone_url = get_clone_url_for_repo_config(repo_config)
+        branch = self.get_active_branch_or_commit()
+        return url_to_github(clone_url, branch)
 
     def stash_push(self) -> None:
         self.git_cli.git.stash("push")
 
     def stash_pop(self) -> None:
         self.git_cli.git.stash("pop")
+
+    ####################################################################################################################
+    # PR UTILITIES
+    ####################################################################################################################
+
+    def get_pr_data(self, pr_number: int) -> dict:
+        """Returns the data associated with a PR"""
+        return self.remote_git_repo.get_pr_data(pr_number)
+
+    def create_pr_comment(self, pr_number: int, body: str) -> IssueComment:
+        """Create a general comment on a pull request.
+
+        Args:
+            pr_number (int): The PR number to comment on
+            body (str): The comment text
+        """
+        pr = self.remote_git_repo.get_pull_safe(pr_number)
+        if pr:
+            comment = self.remote_git_repo.create_issue_comment(pr, body)
+            return comment
+
+    def create_pr_review_comment(
+        self,
+        pr_number: int,
+        body: str,
+        commit_sha: str,
+        path: str,
+        line: int | None = None,
+        side: str = "RIGHT",
+        start_line: int | None = None,
+    ) -> None:
+        """Create an inline review comment on a specific line in a pull request.
+
+        Args:
+            pr_number (int): The PR number to comment on
+            body (str): The comment text
+            commit_sha (str): The commit SHA to attach the comment to
+            path (str): The file path to comment on
+            line (int | None, optional): The line number to comment on. Defaults to None.
+            side (str | None, optional): Which version of the file to comment on ('LEFT' or 'RIGHT'). Defaults to None.
+            start_line (int | None, optional): For multi-line comments, the starting line. Defaults to None.
+        """
+        pr = self.remote_git_repo.get_pull_safe(pr_number)
+        if pr:
+            commit = self.remote_git_repo.get_commit_safe(commit_sha)
+            if commit:
+                self.remote_git_repo.create_review_comment(
+                    pull=pr,
+                    body=body,
+                    commit=commit,
+                    path=path,
+                    line=line,
+                    side=side,
+                )
+
+    def get_pull_request(self, pr_number: int) -> PullRequest | None:
+        """Get a GitHub Pull Request object for the given PR number.
+
+        Args:
+            pr_number (int): The PR number to fetch
+
+        Returns:
+            PullRequest | None: The PyGitHub PullRequest object if found, None otherwise
+
+        Note:
+            This requires a GitHub API key to be set when creating the RepoOperator
+        """
+        try:
+            # Create GitHub client and get the PR
+            repo = self.remote_git_repo
+            if repo is None:
+                logger.warning("GitHub API key is required to fetch pull requests")
+                return None
+            return repo.get_pull_safe(pr_number)
+        except Exception as e:
+            logger.warning(f"Failed to get PR {pr_number}: {e!s}")
+            return None
+
+    ####################################################################################################################
+    # CLASS METHODS
+    ####################################################################################################################
+    @classmethod
+    def create_from_files(cls, repo_path: str, files: dict[str, str], bot_commit: bool = True) -> Self:
+        """Used when you want to create a directory from a set of files and then create a RepoOperator that points to that directory.
+        Use cases:
+        - Unit testing
+        - Playground
+        - Codebase eval
+
+        Args:
+            repo_path (str): The path to the directory to create.
+            files (dict[str, str]): A dictionary of file names and contents to create in the directory.
+        """
+        # Step 1: Create dir (if not exists) + files
+        os.makedirs(repo_path, exist_ok=True)
+        create_files(base_dir=repo_path, files=files)
+
+        # Step 2: Init git repo
+        op = cls(repo_config=RepoConfig.from_repo_path(repo_path), bot_commit=bot_commit)
+        if op.stage_and_commit_all_changes("[Codegen] initial commit"):
+            op.checkout_branch(None, create_if_missing=True)
+        return op
+
+    @classmethod
+    def create_from_commit(cls, repo_path: str, commit: str, url: str, access_token: str | None = None, full_name: str | None = None) -> Self:
+        """Do a shallow checkout of a particular commit to get a repository from a given remote URL.
+
+        Args:
+            repo_path (str): Path where the repo should be cloned
+            commit (str): The commit hash to checkout
+            url (str): Git URL of the repository
+            access_token (str | None): Optional GitHub API key for operations that need GitHub access
+        """
+        op = cls(repo_config=RepoConfig.from_repo_path(repo_path, full_name=full_name), bot_commit=False, access_token=access_token)
+
+        op.discard_changes()
+        if op.get_active_branch_or_commit() != commit:
+            op.create_remote("origin", url)
+            op.git_cli.remotes["origin"].fetch(commit, depth=1)
+            op.checkout_commit(commit)
+        return op
+
+    @classmethod
+    def create_from_repo(cls, repo_path: str, url: str, access_token: str | None = None, full_history: bool = False) -> Self | None:
+        """Create a fresh clone of a repository or use existing one if up to date.
+
+        Args:
+            repo_path (str): Path where the repo should be cloned
+            url (str): Git URL of the repository
+            access_token (str | None): Optional GitHub API key for operations that need GitHub access
+            full_history (bool): If True, clones the complete repository history. If False, performs a shallow clone. Defaults to False.
+        """
+        access_token = access_token or SecretsConfig().github_token
+        if access_token:
+            url = add_access_token_to_url(url=url, token=access_token)
+
+        # Check if repo already exists
+        if os.path.exists(repo_path):
+            try:
+                # Try to initialize git repo from existing path
+                git_cli = GitCLI(repo_path)
+                # Check if it has our remote URL
+                if any(remote.url == url for remote in git_cli.remotes):
+                    # Fetch to check for updates
+                    git_cli.remotes.origin.fetch()
+                    # Get current and remote HEADs
+                    local_head = git_cli.head.commit
+                    remote_head = git_cli.remotes.origin.refs[git_cli.active_branch.name].commit
+                    # If up to date, use existing repo
+                    if local_head.hexsha == remote_head.hexsha:
+                        return cls(repo_config=RepoConfig.from_repo_path(repo_path), bot_commit=False, access_token=access_token)
+            except Exception:
+                # If any git operations fail, fallback to fresh clone
+                pass
+
+            # If we get here, repo exists but is not up to date or valid
+            # Remove the existing directory to do a fresh clone
+            import shutil
+
+            shutil.rmtree(repo_path)
+
+        try:
+            # Clone the repository with or without full history
+            if full_history:
+                GitCLI.clone_from(url=url, to_path=repo_path)
+            else:
+                GitCLI.clone_from(url=url, to_path=repo_path, depth=1)
+
+            # Initialize with the cloned repo
+            git_cli = GitCLI(repo_path)
+        except (GitCommandError, ValueError) as e:
+            logger.exception("Failed to initialize Git repository:")
+            logger.exception("Please authenticate with a valid token and ensure the repository is properly initialized.")
+            return None
+        return cls(repo_config=RepoConfig.from_repo_path(repo_path), bot_commit=False, access_token=access_token)

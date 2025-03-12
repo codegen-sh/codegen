@@ -1,5 +1,5 @@
 from codegen.sdk.codebase.factory.get_session import get_codebase_graph_session
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def test_interfaces_inheritance(tmpdir) -> None:
@@ -35,8 +35,8 @@ export class Labrador implements Dog {
   }
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as ctx:
+        file = ctx.get_file("test.ts")
         symbols = file.symbols
         assert len(symbols) == 3
         assert symbols[0].parent_interfaces is None

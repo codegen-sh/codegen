@@ -1,4 +1,3 @@
-import logging
 import os
 from functools import cache
 from pathlib import Path
@@ -9,12 +8,13 @@ import pyjson5
 from codegen.sdk.core.directory import Directory
 from codegen.sdk.core.file import File
 from codegen.shared.decorators.docs import ts_apidoc
+from codegen.shared.logging.get_logger import get_logger
 
 if TYPE_CHECKING:
     from codegen.sdk.typescript.config_parser import TSConfigParser
     from codegen.sdk.typescript.file import TSFile
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @ts_apidoc
@@ -134,12 +134,12 @@ class TSConfig:
         if references is not None:
             for reference in references:
                 if ref_path := reference.get("path", None):
-                    abs_ref_path = str(self.config_file.G.to_relative(self._relative_to_absolute_directory_path(ref_path)))
-                    if directory := self.config_file.G.get_directory(self.config_file.G.to_absolute(abs_ref_path)):
+                    abs_ref_path = str(self.config_file.ctx.to_relative(self._relative_to_absolute_directory_path(ref_path)))
+                    if directory := self.config_file.ctx.get_directory(self.config_file.ctx.to_absolute(abs_ref_path)):
                         self_references.append((ref_path, directory))
                     elif ts_config := self.config_parser.get_config(abs_ref_path):
                         self_references.append((ref_path, ts_config.config_file))
-                    elif file := self.config_file.G.get_file(abs_ref_path):
+                    elif file := self.config_file.ctx.get_file(abs_ref_path):
                         self_references.append((ref_path, file))
         self._references = [*self_references]  # MAYBE add base references here? This breaks the reference chain though.
         self._self_references = self_references
@@ -163,7 +163,11 @@ class TSConfig:
                 cleaned_relative_path = relative_path.replace("*", "").rstrip("/").replace("//", "/")
                 if self._self_base_url:
                     cleaned_relative_path = os.path.join(self._self_base_url, cleaned_relative_path)
-                formatted_relative_path = str(self.config_file.G.to_relative(self._relative_to_absolute_directory_path(cleaned_relative_path)))
+                formatted_absolute_path = self._relative_to_absolute_directory_path(cleaned_relative_path)
+                formatted_relative_path = str(self.config_file.ctx.to_relative(formatted_absolute_path))
+                # Fix absolute path if its base
+                if formatted_relative_path == ".":
+                    formatted_relative_path = ""
                 formatted_relative_paths.append(formatted_relative_path)
             self_path_import_aliases[formatted_pattern] = formatted_relative_paths
         self._path_import_aliases = {**base_path_import_aliases, **self_path_import_aliases}
@@ -176,7 +180,7 @@ class TSConfig:
             # TODO: THIS ENTIRE PROCESS IS KINDA HACKY.
             # If the reference is a file, get its directory.
             if isinstance(reference, File):
-                reference_dir = self.config_file.G.get_directory(os.path.dirname(reference.filepath))
+                reference_dir = self.config_file.ctx.get_directory(os.path.dirname(reference.filepath))
             elif isinstance(reference, Directory):
                 reference_dir = reference
             else:
@@ -184,14 +188,14 @@ class TSConfig:
                 continue
 
             # With the directory, try to grab the next available file and get its tsconfig.
-            if reference_dir and reference_dir.files:
-                next_file: TSFile = reference_dir.files[0]
+            if reference_dir and reference_dir.files(recursive=True):
+                next_file: TSFile = reference_dir.files(recursive=True)[0]
             else:
-                logger.warning(f"No next file found for reference during self_reference_import_aliases computation in _precompute_import_aliases: {reference.filepath}")
+                logger.warning(f"No next file found for reference during self_reference_import_aliases computation in _precompute_import_aliases: {reference.dirpath}")
                 continue
             target_ts_config = next_file.ts_config
             if target_ts_config is None:
-                logger.warning(f"No tsconfig found for reference during self_reference_import_aliases computation in _precompute_import_aliases: {reference.filepath}")
+                logger.warning(f"No tsconfig found for reference during self_reference_import_aliases computation in _precompute_import_aliases: {reference.dirpath}")
                 continue
 
             # With the tsconfig, grab its rootDirs and outDir
@@ -237,7 +241,7 @@ class TSConfig:
         """
         # TODO: This could also use its parent config to resolve the path
         relative = self.config_file.path.parent / relative_path.strip('"')
-        return self.config_file.G.to_absolute(relative)
+        return self.config_file.ctx.to_absolute(relative)
 
     def translate_import_path(self, import_path: str) -> str:
         """Translates an import path to an absolute path using the tsconfig paths.
@@ -258,9 +262,9 @@ class TSConfig:
             return import_path
 
         # Step 1: Try to resolve with import_resolution_overrides
-        if self.config_file.G.config.feature_flags.import_resolution_overrides:
-            if path_check := TSConfig._find_matching_path(frozenset(self.config_file.G.config.feature_flags.import_resolution_overrides.keys()), import_path):
-                to_base = self.config_file.G.config.feature_flags.import_resolution_overrides[path_check]
+        if self.config_file.ctx.config.import_resolution_overrides:
+            if path_check := TSConfig._find_matching_path(frozenset(self.config_file.ctx.config.import_resolution_overrides.keys()), import_path):
+                to_base = self.config_file.ctx.config.import_resolution_overrides[path_check]
 
                 # Get the remaining path after the matching prefix
                 remaining_path = import_path[len(path_check) :].lstrip("/")
@@ -478,4 +482,4 @@ class TSConfig:
             dict[str, list[str]]: A dictionary where keys are formatted reference paths (e.g. 'module/dist') and values
                 are lists of absolute target paths derived from the referenced tsconfig's rootDirs and outDir settings.
         """
-        return {k: [str(self.config_file.G.to_relative(v)) for v in vs] for k, vs in self._reference_import_aliases.items()}
+        return {k: [str(self.config_file.ctx.to_relative(v)) for v in vs] for k, vs in self._reference_import_aliases.items()}

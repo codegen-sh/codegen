@@ -22,7 +22,7 @@ def foo():
 
     # Test remove decorator2
     foo.decorators[0].remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert "@decorator2" not in file.source
 
 

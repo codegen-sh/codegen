@@ -1,13 +1,13 @@
 from codegen.sdk.codebase.factory.get_session import get_codebase_graph_session
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def test_file_imports_default_import(tmpdir) -> None:
     file = """
 import a from './some_file.js';
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as ctx:
+        file = ctx.get_file("test.ts")
         imports = file.imports
         assert len(imports) == 1
         assert imports[0].symbol_name.source == "a"
@@ -19,8 +19,8 @@ def test_file_imports_named_import(tmpdir) -> None:
     file = """
 import { b, c } from './some_other_file.js';
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as ctx:
+        file = ctx.get_file("test.ts")
         imports = file.imports
         assert len(imports) == 2
         assert imports[0].symbol_name.source == "b"
@@ -35,8 +35,8 @@ def test_file_imports_exports(tmpdir) -> None:
     file = """
 export {a, b} from './some_random_file.js'
     """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as ctx:
+        file = ctx.get_file("test.ts")
         exports = file.imports  # TODO: shouldn't this be called export?
         assert len(exports) == 2
         assert exports[0].symbol_name.source == "a"
@@ -51,8 +51,8 @@ def test_file_imports_aliased_import(tmpdir) -> None:
     file = """
 import { a as b } from './some_file.js';
         """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as ctx:
+        file = ctx.get_file("test.ts")
         imports = file.imports
         assert len(imports) == 1
         assert imports[0].symbol_name.source == "a"
@@ -65,8 +65,8 @@ def test_file_imports_aliased_exports(tmpdir) -> None:
     file = """
 export { a as b } from './some_file.js';
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as ctx:
+        file = ctx.get_file("test.ts")
         exports = file.imports
         assert len(exports) == 1
         assert exports[0].symbol_name.source == "a"
@@ -79,8 +79,8 @@ def test_file_imports_namespace_import(tmpdir) -> None:
     file = """
 import * as React from 'react';
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as ctx:
+        file = ctx.get_file("test.ts")
         exports = file.imports
         assert exports[0].symbol_name.source == "* as React"
         assert exports[0].alias.source == "React"
@@ -93,8 +93,8 @@ def test_file_imports_namespace_export(tmpdir) -> None:
 export * as React from 'react';
 """
     # TODO: @edward @edo is this correct?
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as ctx:
+        file = ctx.get_file("test.ts")
         exports = file.imports
         assert len(exports) == 1
         assert exports[0].symbol_name.source == "* as React"
@@ -115,8 +115,8 @@ router.get('/path', import1, pkg3.method);
 
 module.exports = router;
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as ctx:
+        file = ctx.get_file("test.ts")
         assert "router" not in [x.name for x in file.imports]
         assert "pkg1" in [x.name for x in file.imports]
         assert "pkg3" in [x.name for x in file.imports]
@@ -136,8 +136,8 @@ const module3 = await import('package5').then(
     module => module.default,
 )
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as ctx:
+        file = ctx.get_file("test.ts")
         assert "module2" in [x.name for x in file.imports]
         assert "import1" in [x.name for x in file.imports]
         assert "import2" in [x.name for x in file.imports]

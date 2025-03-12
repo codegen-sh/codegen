@@ -1,7 +1,7 @@
 from collections.abc import Generator
 from typing import Generic, Self, TypeVar, override
 
-from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+from codegen.sdk.codebase.codebase_context import CodebaseContext
 from codegen.sdk.core.autocommit import writer
 from codegen.sdk.core.dataclasses.usage import UsageKind
 from codegen.sdk.core.expressions.expression import Expression
@@ -27,8 +27,8 @@ class UnaryExpression(Expression[Parent], Chainable, Generic[Parent]):
 
     argument: Expression[Self]
 
-    def __init__(self, ts_node: TSNode, file_node_id: NodeId, G: CodebaseGraph, parent: Parent) -> None:
-        super().__init__(ts_node, file_node_id, G, parent)
+    def __init__(self, ts_node: TSNode, file_node_id: NodeId, ctx: CodebaseContext, parent: Parent) -> None:
+        super().__init__(ts_node, file_node_id, ctx, parent)
         self.argument = self._parse_expression(ts_node.child_by_field_name("argument"))
 
     @reader

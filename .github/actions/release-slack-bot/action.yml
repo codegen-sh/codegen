@@ -1,0 +1,27 @@
+name: "Release Slack Bot"
+description: "Release Slack Bot"
+inputs:
+  release-tag:
+    required: true
+    description: "Release tag"
+  slack-token:
+    required: true
+    description: "Slack token"
+runs:
+  using: "composite"
+  steps:
+    # TODO: use python exec instead
+    - uses: slackapi/slack-github-action@v2.0.0
+      with:
+        method: chat.postMessage
+        token: ${{ inputs.slack-token }}
+        payload: |
+          username: ${{ job.status == 'success' && format('Released codegen@{0}', inputs.release-tag) || format('Failed to release codegen@{0}', inputs.release-tag) }}
+          channel: "#release"
+          icon_emoji: "${{ job.status == 'success' && ':white_check_mark:' || ':x:' }}"
+          text: |
+            Actor: `${{ github.triggering_actor }}`
+            Author: `${{ github.event.head_commit.author.username }}`
+            ${{ format('Commit: <{0}/{1}/commit/{2}|{1}@{2}>', github.server_url, github.repository, github.sha) || ''}}
+            View <${{ format('{0}/{1}/releases/tag/{2}', github.server_url, github.repository, inputs.release-tag) }}|Github Release>
+            View <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|GHA logs>

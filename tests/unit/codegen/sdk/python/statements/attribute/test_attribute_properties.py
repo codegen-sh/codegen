@@ -86,4 +86,4 @@ class MyClass(ma.Schema):
         assert isinstance(b, PyAttribute)
         assert isinstance(b, PyAssignmentStatement)
         assert b.file_node_id == cls.file_node_id
-        assert b.G == cls.G
+        assert b.ctx == cls.ctx

@@ -1,5 +1,5 @@
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def test_graph_has_node_for_existing_file(tmpdir) -> None:
@@ -12,7 +12,7 @@ function foo(bar: number): number {
     with get_codebase_session(tmpdir=tmpdir, files={"test.ts": content}, programming_language=ProgrammingLanguage.TYPESCRIPT) as codebase:
         file = codebase.get_file("test.ts")
 
-        G = codebase.G
-        assert G.has_node(file.node_id)
-        assert G.get_node(file.node_id) == file
-        assert G.has_node(file.node_id)
+        ctx = codebase.ctx
+        assert ctx.has_node(file.node_id)
+        assert ctx.get_node(file.node_id) == file
+        assert ctx.has_node(file.node_id)

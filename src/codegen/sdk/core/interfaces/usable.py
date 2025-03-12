@@ -66,7 +66,7 @@ class Usable(Importable[Parent], Generic[Parent]):
 
         assert self.node_id is not None
         usages_to_return = []
-        in_edges = self.G.in_edges(self.node_id)
+        in_edges = self.ctx.in_edges(self.node_id)
         for edge in in_edges:
             meta_data = edge[2]
             if meta_data.type == EdgeType.SYMBOL_USAGE:

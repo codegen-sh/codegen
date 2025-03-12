@@ -1,0 +1,7 @@
+click>=8.0.0
+rich>=10.0.0
+rich-click>=1.7.0
+langchain-core>=0.1.0
+langchain-openai>=0.0.5
+langchain>=0.1.0
+codegen-sdk>=0.1.0

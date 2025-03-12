@@ -26,11 +26,11 @@ class PyCodeBlock(CodeBlock[Parent, "PyAssignment"], Generic[Parent]):
     @noapidoc
     @reader
     def _parse_statements(self) -> MultiLineCollection[Statement, Self]:
-        statements: list[Statement] = self.G.parser.parse_py_statements(self.ts_node, self.file_node_id, self.G, self)
+        statements: list[Statement] = self.ctx.parser.parse_py_statements(self.ts_node, self.file_node_id, self.ctx, self)
         collection = MultiLineCollection(
             children=statements,
             file_node_id=self.file_node_id,
-            G=self.G,
+            ctx=self.ctx,
             parent=self,
             node=self.ts_node,
             indent_size=self.start_point[1],

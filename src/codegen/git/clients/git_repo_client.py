@@ -1,4 +1,3 @@
-import logging
 import time
 from datetime import datetime
 
@@ -8,17 +7,21 @@ from github.CheckSuite import CheckSuite
 from github.Commit import Commit
 from github.GithubException import GithubException, UnknownObjectException
 from github.GithubObject import NotSet, Opt
+from github.Issue import Issue
+from github.IssueComment import IssueComment
 from github.Label import Label
 from github.PullRequest import PullRequest
 from github.Repository import Repository
 from github.Tag import Tag
 from github.Workflow import Workflow
 
+from codegen.configs.models.secrets import SecretsConfig
 from codegen.git.clients.github_client import GithubClient
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.git.utils.format import format_comparison
+from codegen.shared.logging.get_logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class GitRepoClient:
@@ -28,9 +31,9 @@ class GitRepoClient:
     gh_client: GithubClient
     _repo: Repository
 
-    def __init__(self, repo_config: RepoConfig, access_token: str) -> None:
+    def __init__(self, repo_config: RepoConfig, access_token: str | None = None) -> None:
         self.repo_config = repo_config
-        self.gh_client = self._create_github_client(token=access_token)
+        self.gh_client = self._create_github_client(token=access_token or SecretsConfig().github_token)
         self._repo = self._create_client()
 
     def _create_github_client(self, token: str) -> GithubClient:
@@ -50,10 +53,6 @@ class GitRepoClient:
     ####################################################################################################################
     # PROPERTIES
     ####################################################################################################################
-
-    @property
-    def id(self) -> int:
-        return self.repo_config.id
 
     @property
     def default_branch(self) -> str:
@@ -130,10 +129,10 @@ class GitRepoClient:
         self,
         pull: PullRequest,
         body: str,
-    ) -> None:
+    ) -> IssueComment:
         # TODO: add protections (ex: can write to PR)
         writeable_pr = self.repo.get_pull(pull.number)
-        writeable_pr.create_issue_comment(body=body)
+        return writeable_pr.create_issue_comment(body=body)
 
     ####################################################################################################################
     # PULL REQUESTS
@@ -433,3 +432,13 @@ class GitRepoClient:
         post_parameters = {"branch": branch_name}
         status, _, _ = self.repo._requester.requestJson("POST", f"{self.repo.url}/merge-upstream", input=post_parameters)
         return status == 200
+
+    ####################################################################################################################
+    # SEARCH
+    ####################################################################################################################
+
+    def search_issues(self, query: str, **kwargs) -> list[Issue]:
+        return self.gh_client.client.search_issues(query, **kwargs)
+
+    def search_prs(self, query: str, **kwargs) -> list[PullRequest]:
+        return self.gh_client.client.search_issues(query, **kwargs)

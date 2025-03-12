@@ -6,17 +6,17 @@ from codegen.sdk.core.autocommit import reader, writer
 from codegen.sdk.core.statements.if_block_statement import IfBlockStatement
 from codegen.sdk.core.statements.statement import StatementType
 from codegen.shared.decorators.docs import apidoc
+from codegen.shared.logging.get_logger import get_logger
 
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
 
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.node_id_factory import NodeId
     from codegen.sdk.typescript.detached_symbols.code_block import TSCodeBlock
 
-import logging
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 Parent = TypeVar("Parent", bound="TSCodeBlock")
@@ -43,13 +43,13 @@ class TSIfBlockStatement(IfBlockStatement[Parent, "TSIfBlockStatement"], Generic
         self,
         ts_node: TSNode,
         file_node_id: NodeId,
-        G: CodebaseGraph,
+        ctx: CodebaseContext,
         parent: Parent,
         pos: int,
         else_clause_node: TSNode | None = None,
         main_if_block: TSIfBlockStatement | None = None,
     ) -> None:
-        super().__init__(ts_node, file_node_id, G, parent, pos)
+        super().__init__(ts_node, file_node_id, ctx, parent, pos)
         self._else_clause_node = else_clause_node
         self._main_if_block = main_if_block
         # Call .value to unwrap the parenthesis
@@ -79,10 +79,10 @@ class TSIfBlockStatement(IfBlockStatement[Parent, "TSIfBlockStatement"], Generic
         while alt_node := alt_block.ts_node.child_by_field_name("alternative"):
             if (if_node := alt_node.named_children[0]).type == "if_statement":
                 # Elif statements are represented as if statements with an else clause as the parent node
-                alt_block = TSIfBlockStatement(if_node, self.file_node_id, self.G, self.parent, self.index, else_clause_node=alt_node, main_if_block=self._main_if_block or self)
+                alt_block = TSIfBlockStatement(if_node, self.file_node_id, self.ctx, self.parent, self.index, else_clause_node=alt_node, main_if_block=self._main_if_block or self)
             else:
                 # Else clause
-                alt_block = TSIfBlockStatement(alt_node, self.file_node_id, self.G, self.parent, self.index, main_if_block=self._main_if_block or self)
+                alt_block = TSIfBlockStatement(alt_node, self.file_node_id, self.ctx, self.parent, self.index, main_if_block=self._main_if_block or self)
             if_blocks.append(alt_block)
         return if_blocks
 

@@ -35,7 +35,7 @@ def bar():
 
     codebase.reset()
     file.get_function("bar").remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     # language=python
     assert (
         file.content

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from functools import cached_property
 from typing import TYPE_CHECKING
 
@@ -17,11 +16,12 @@ from codegen.sdk.typescript.placeholder.placeholder_return_type import TSReturnT
 from codegen.sdk.typescript.symbol import TSSymbol
 from codegen.sdk.utils import find_all_descendants
 from codegen.shared.decorators.docs import noapidoc, ts_apidoc
+from codegen.shared.logging.get_logger import get_logger
 
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
 
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.import_resolution import Import, WildcardImport
     from codegen.sdk.core.interfaces.has_name import HasName
     from codegen.sdk.core.node_id_factory import NodeId
@@ -29,22 +29,23 @@ if TYPE_CHECKING:
     from codegen.sdk.core.statements.symbol_statement import SymbolStatement
     from codegen.sdk.core.symbol import Symbol
     from codegen.sdk.typescript.detached_symbols.code_block import TSCodeBlock
+    from codegen.sdk.typescript.detached_symbols.promise_chain import TSPromiseChain
 _VALID_TYPE_NAMES = {function_type.value for function_type in TSFunctionTypeNames}
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 @ts_apidoc
-class TSFunction(Function["TSFunction", TSDecorator, "TSCodeBlock", TSParameter, TSType], TSHasBlock, TSSymbol):
+class TSFunction(Function[TSDecorator, "TSCodeBlock", TSParameter, TSType], TSHasBlock, TSSymbol):
     """Representation of a Function in JavaScript/TypeScript"""
 
     @noapidoc
     @commiter
-    def parse(self, G: CodebaseGraph) -> None:
-        super().parse(G)
+    def parse(self, ctx: CodebaseContext) -> None:
+        super().parse(ctx)
 
         self.return_type = self.child_by_field_name("return_type", placeholder=TSReturnTypePlaceholder)
         if parameters_node := self.ts_node.child_by_field_name("parameters"):
-            self._parameters = Collection(parameters_node, self.file_node_id, self.G, self)
+            self._parameters = Collection(parameters_node, self.file_node_id, self.ctx, self)
             params = [x for x in parameters_node.children if x.type in ("required_parameter", "optional_parameter")]
             symbols = None
             # Deconstructed object parameters
@@ -61,7 +62,7 @@ class TSFunction(Function["TSFunction", TSDecorator, "TSCodeBlock", TSParameter,
                 symbols = [TSParameter(x, i, self._parameters) for (i, x) in enumerate(params)]
             self._parameters._init_children(symbols)
         elif parameters_node := self.ts_node.child_by_field_name("parameter"):
-            self._parameters = Collection(parameters_node, self.file_node_id, self.G, self)
+            self._parameters = Collection(parameters_node, self.file_node_id, self.ctx, self)
             self._parameters._init_children([TSParameter(parameters_node, 0, self._parameters)])
         else:
             logger.warning(f"Couldn't find parameters for {self!r}")
@@ -110,15 +111,15 @@ class TSFunction(Function["TSFunction", TSDecorator, "TSCodeBlock", TSParameter,
 
     @classmethod
     @noapidoc
-    def from_function_type(cls, ts_node: TSNode, file_node_id: NodeId, G: CodebaseGraph, parent: SymbolStatement | ExportStatement) -> TSFunction:
+    def from_function_type(cls, ts_node: TSNode, file_node_id: NodeId, ctx: CodebaseContext, parent: SymbolStatement | ExportStatement) -> TSFunction:
         """Creates a TSFunction object from a function declaration."""
         if ts_node.type not in [function_type.value for function_type in TSFunctionTypeNames]:
             msg = f"Node type={ts_node.type} is not a function declaration"
             raise ValueError(msg)
-        file = G.get_node(file_node_id)
+        file = ctx.get_node(file_node_id)
         if canonical := file._range_index.get_canonical_for_range(ts_node.range, ts_node.kind_id):
             return canonical
-        return cls(ts_node, file_node_id, G, parent=parent)
+        return cls(ts_node, file_node_id, ctx, parent=parent)
 
     @staticmethod
     @noapidoc
@@ -427,3 +428,22 @@ class TSFunction(Function["TSFunction", TSDecorator, "TSCodeBlock", TSParameter,
                     self.parameters[0].edit(interface_name)
                 else:
                     self.insert_at(self.parameters.ts_node.end_byte - 1, f": {interface_name}")
+
+    @property
+    @reader
+    def promise_chains(self) -> list[TSPromiseChain]:
+        """Returns a list of promise chains in the function.
+
+        Returns:
+            list[TSPromiseChain]: A list of promise chains in the function.
+        """
+        promise_chains = []
+        visited_base_functions = set()
+        function_calls = self.function_calls
+
+        for function_call in function_calls:
+            if function_call.name == "then" and function_call.base not in visited_base_functions:
+                promise_chains.append(function_call.promise_chain)
+                visited_base_functions.add(function_call.base)
+
+        return promise_chains

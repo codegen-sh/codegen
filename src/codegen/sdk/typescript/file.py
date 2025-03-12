@@ -3,10 +3,10 @@ from __future__ import annotations
 import os
 from typing import TYPE_CHECKING
 
-from codegen.sdk.core.autocommit import commiter, mover, reader, writer
+from codegen.sdk.core.autocommit import mover, reader, writer
 from codegen.sdk.core.file import SourceFile
 from codegen.sdk.core.interfaces.exportable import Exportable
-from codegen.sdk.enums import ImportType, NodeType, ProgrammingLanguage, SymbolType
+from codegen.sdk.enums import ImportType, NodeType, SymbolType
 from codegen.sdk.extensions.sort import sort_editables
 from codegen.sdk.extensions.utils import cached_property
 from codegen.sdk.typescript.assignment import TSAssignment
@@ -18,14 +18,15 @@ from codegen.sdk.typescript.import_resolution import TSImport
 from codegen.sdk.typescript.interface import TSInterface
 from codegen.sdk.typescript.interfaces.has_block import TSHasBlock
 from codegen.sdk.typescript.namespace import TSNamespace
-from codegen.sdk.typescript.statements.import_statement import TSImportStatement
-from codegen.sdk.utils import calculate_base_path, find_all_descendants
+from codegen.sdk.utils import calculate_base_path
 from codegen.shared.decorators.docs import noapidoc, ts_apidoc
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 if TYPE_CHECKING:
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.statements.export_statement import ExportStatement
     from codegen.sdk.core.symbol import Symbol
+    from codegen.sdk.typescript.detached_symbols.promise_chain import TSPromiseChain
     from codegen.sdk.typescript.symbol import TSSymbol
     from codegen.sdk.typescript.ts_config import TSConfig
     from codegen.sdk.typescript.type_alias import TSTypeAlias
@@ -226,18 +227,6 @@ class TSFile(SourceFile[TSImport, TSFunction, TSClass, TSAssignment, TSInterface
         # TODO: this should be in symbol.py class. Rename as `add_export`
         symbol.add_keyword("export")
 
-    @noapidoc
-    @commiter
-    def _parse_imports(self) -> None:
-        import_nodes = find_all_descendants(self.ts_node, {"import_statement", "call_expression"})
-        for import_node in import_nodes:
-            if import_node.type == "import_statement":
-                TSImportStatement(import_node, self.node_id, self.G, self.code_block, 0)
-            elif import_node.type == "call_expression":
-                function = import_node.child_by_field_name("function")
-                if function.type == "import" or (function.type == "identifier" and function.text.decode("utf-8") == "require"):
-                    TSImportStatement(import_node, self.node_id, self.G, self.code_block, 0)
-
     @writer
     def remove_unused_exports(self) -> None:
         """Removes unused exports from the file.
@@ -356,7 +345,7 @@ class TSFile(SourceFile[TSImport, TSFunction, TSClass, TSAssignment, TSInterface
         return None
 
     @noapidoc
-    def get_import_module_name_for_file(self, filepath: str, G: CodebaseGraph) -> str:
+    def get_import_module_name_for_file(self, filepath: str, ctx: CodebaseContext) -> str:
         """Returns the module name that this file gets imported as"""
         # TODO: support relative and absolute module path
         import_path = filepath
@@ -418,7 +407,7 @@ class TSFile(SourceFile[TSImport, TSFunction, TSClass, TSAssignment, TSInterface
             None
         """
         # =====[ Add the new filepath as a new file node in the graph ]=====
-        new_file = self.G.node_classes.file_cls.from_content(new_filepath, self.content, self.G)
+        new_file = self.ctx.node_classes.file_cls.from_content(new_filepath, self.content, self.ctx)
         # =====[ Change the file on disk ]=====
         self.transaction_manager.add_file_rename_transaction(self, new_filepath)
         # =====[ Update all the inbound imports to point to the new module ]=====
@@ -426,7 +415,7 @@ class TSFile(SourceFile[TSImport, TSFunction, TSClass, TSAssignment, TSInterface
             existing_imp = imp.module.source.strip("'")
             new_module_name = new_file.import_module_name.strip("'")
             # Web specific hacks
-            if self.G.repo_name == "web":
+            if self.ctx.repo_name == "web":
                 if existing_imp.startswith("./"):
                     relpath = calculate_base_path(new_filepath, existing_imp)
                     new_module_name = new_module_name.replace(relpath, ".")
@@ -445,3 +434,17 @@ class TSFile(SourceFile[TSImport, TSFunction, TSClass, TSAssignment, TSInterface
             TSNamespace | None: The namespace with the specified name if found, None otherwise.
         """
         return next((x for x in self.symbols if isinstance(x, TSNamespace) and x.name == name), None)
+
+    @property
+    @reader
+    def promise_chains(self) -> list[TSPromiseChain]:
+        """Returns all promise chains in the file.
+
+        Returns:
+            list[TSPromiseChain]: A list of promise chains in the file.
+        """
+        promise_chains = []
+        for function in self.functions:
+            for promise_chain in function.promise_chains:
+                promise_chains.append(promise_chain)
+        return promise_chains

@@ -11,7 +11,7 @@ from codegen.shared.decorators.docs import noapidoc, ts_apidoc
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
 
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.dataclasses.usage import UsageKind
     from codegen.sdk.core.detached_symbols.function_call import FunctionCall
     from codegen.sdk.core.interfaces.has_name import HasName
@@ -30,12 +30,12 @@ class TSTryCatchStatement(TryCatchStatement["TSCodeBlock"], TSBlockStatement):
 
     catch: TSCatchStatement[Self] | None = None
 
-    def __init__(self, ts_node: TSNode, file_node_id: NodeId, G: CodebaseGraph, parent: TSCodeBlock, pos: int | None = None) -> None:
-        super().__init__(ts_node, file_node_id, G, parent, pos)
+    def __init__(self, ts_node: TSNode, file_node_id: NodeId, ctx: CodebaseContext, parent: TSCodeBlock, pos: int | None = None) -> None:
+        super().__init__(ts_node, file_node_id, ctx, parent, pos)
         if handler_node := self.ts_node.child_by_field_name("handler"):
-            self.catch = TSCatchStatement(handler_node, file_node_id, G, self.code_block)
+            self.catch = TSCatchStatement(handler_node, file_node_id, ctx, self.code_block)
         if finalizer_node := self.ts_node.child_by_field_name("finalizer"):
-            self.finalizer = TSBlockStatement(finalizer_node, file_node_id, G, self.code_block)
+            self.finalizer = TSBlockStatement(finalizer_node, file_node_id, ctx, self.code_block)
 
     @property
     @reader

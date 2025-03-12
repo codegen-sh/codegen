@@ -45,11 +45,11 @@ Write code that transforms code. Codegen combines the parsing power of [Tree-sit
 
 We support
 
-- Running Codegen in Python 3.12 – 3.13 (recommended: Python 3.13)
+- Running Codegen in Python 3.12 - 3.13 (recommended: Python 3.13+)
 - macOS and Linux
-  - macOS is supported on Apple Silicon
+  - macOS is supported
   - Linux is supported on x86_64 and aarch64 with glibc 2.34+
-  - Windows is not supported
+  - Windows is supported via WSL. See [here](https://docs.codegen.com/building-with-codegen/codegen-with-wsl) for more details.
 - Python, Typescript, Javascript and React codebases
 
 ```
@@ -57,7 +57,7 @@ We support
 uv pip install codegen
 
 # Install global CLI
-uv tool install codegen
+uv tool install codegen --python 3.13
 
 # Create a codemod for a given repo
 cd path/to/repo
@@ -78,6 +78,16 @@ See [Getting Started](https://docs.codegen.com/introduction/getting-started) for
 ```
 from codegen import Codebase
 ```
+
+## Troubleshooting
+
+Having issues? Here are some common problems and their solutions:
+
+- **I'm hitting an UV error related to `[[ packages ]]`**: This means you're likely using an outdated version of UV. Try updating to the latest version with: `uv self update`.
+- **I'm hitting an error about `No module named 'codegen.sdk.extensions.utils'`**: The compiled cython extensions are out of sync. Update them with `uv sync --reinstall-package codegen`.
+- **I'm hitting a `RecursionError: maximum recursion depth exceeded` error while parsing my codebase**: If you are using python 3.12, try upgrading to 3.13. If you are already on 3.13, try upping the recursion limit with `sys.setrecursionlimit(10000)`.
+
+If you run into additional issues not listed here, please [join our slack community](https://community.codegen.com) and we'll help you out!
 
 ## Resources
 

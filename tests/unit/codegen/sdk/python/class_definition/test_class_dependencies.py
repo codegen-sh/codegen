@@ -60,13 +60,13 @@ def g(tmpdir):
         assert len(edges) == 4
 
         # =====[ Edge Test ] =====
-        edge_data = codebase.G.get_edge_data(f.node_id, A.node_id)
+        edge_data = codebase.ctx.get_edge_data(f.node_id, A.node_id)
         types = [edge.usage.kind for edge in edge_data]
         assert len(types) == 1
         assert types[0] == UsageKind.TYPE_ANNOTATION
 
         f_body_assignment = f.code_block.statements[0].assignments[0]
-        edge_data = codebase.G.get_edge_data(f_body_assignment.node_id, A.node_id)
+        edge_data = codebase.ctx.get_edge_data(f_body_assignment.node_id, A.node_id)
         types = [edge.usage.kind for edge in edge_data]
         assert len(types) == 1
         assert UsageKind.BODY in types
@@ -250,18 +250,18 @@ class ClassB:
         method = local_class.get_method("method")
 
         # Test DIRECT dependencies (RenamedClass and file2)
-        direct_deps = method.get_dependencies(UsageType.DIRECT)
+        direct_deps = method.dependencies(UsageType.DIRECT)
         assert len(direct_deps) == 2
         assert any(dep.name == "RenamedClass" for dep in direct_deps)
         assert any(dep.name == "file2" for dep in direct_deps)
 
         # Test CHAINED dependencies (ClassB accessed through file2)
-        chained_deps = method.get_dependencies(UsageType.CHAINED)
+        chained_deps = method.dependencies(UsageType.CHAINED)
         assert len(chained_deps) == 1
         assert any(dep.name == "ClassB" for dep in chained_deps)
 
         # Test combined DIRECT | CHAINED
-        all_deps = method.get_dependencies(UsageType.DIRECT | UsageType.CHAINED)
+        all_deps = method.dependencies(UsageType.DIRECT | UsageType.CHAINED)
         assert len(all_deps) == 3
 
 
@@ -288,14 +288,14 @@ class HelperClass:
         my_class = file1.get_class("MyClass")
 
         # Test class DIRECT dependencies (both base class and helper used in method)
-        direct_deps = my_class.get_dependencies(UsageType.DIRECT)
+        direct_deps = my_class.dependencies(UsageType.DIRECT)
         assert len(direct_deps) == 2  # Both AliasedBase and AliasedHelper
         assert any(dep.name == "AliasedBase" for dep in direct_deps)
         assert any(dep.name == "AliasedHelper" for dep in direct_deps)
 
         # Test method dependencies (only helper used directly in method)
         method = my_class.get_method("method")
-        method_deps = method.get_dependencies(UsageType.DIRECT)
+        method_deps = method.dependencies(UsageType.DIRECT)
         assert len(method_deps) == 1  # Just AliasedHelper
         assert any(dep.name == "AliasedHelper" for dep in method_deps)
 
@@ -322,14 +322,14 @@ class BaseClass:
         my_class = file1.get_class("MyClass")
 
         # Test MyClass dependencies
-        my_class_deps = my_class.get_dependencies(UsageType.INDIRECT)
+        my_class_deps = my_class.dependencies(UsageType.INDIRECT)
         assert len(my_class_deps) == 1  # BaseClass through import
         assert any(dep.name == "BaseClass" for dep in my_class_deps)
 
         # Test AnotherClass dependencies
-        direct_deps = another_class.get_dependencies(UsageType.DIRECT)
+        direct_deps = another_class.dependencies(UsageType.DIRECT)
         assert len(direct_deps) == 1  # MyClass in same file
         assert any(dep.name == "MyClass" for dep in direct_deps)
 
-        indirect_deps = another_class.get_dependencies(UsageType.INDIRECT)
+        indirect_deps = another_class.dependencies(UsageType.INDIRECT)
         assert len(indirect_deps) == 0  # BaseClass through import

@@ -1,7 +1,7 @@
 from abc import ABC
 
 from codegen.sdk.core.codebase import CodebaseType
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 from tests.shared.skills.decorators import skill, skill_impl
 from tests.shared.skills.skill import Skill
 from tests.shared.skills.skill_test import SkillTestCase, SkillTestCasePyFile, SkillTestCaseTSFile
@@ -54,7 +54,7 @@ class AddDecoratorToFunction(Skill, ABC):
             # if the file does not have the decorator symbol and the decorator symbol is not in the same file
             if not file.has_import(decorator_symbol.name) and decorator_symbol.file != file:
                 # import the decorator symbol
-                file.add_symbol_import(decorator_symbol)
+                file.add_import(decorator_symbol)
 
             # iterate through each function in the file
             for function in file.functions:

@@ -10,7 +10,7 @@ from codegen.shared.decorators.docs import apidoc
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
 
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.node_id_factory import NodeId
     from codegen.sdk.python.detached_symbols.code_block import PyCodeBlock
 
@@ -34,8 +34,8 @@ class PyIfBlockStatement(IfBlockStatement[Parent, "PyIfBlockStatement"], Generic
 
     statement_type = StatementType.IF_BLOCK_STATEMENT
 
-    def __init__(self, ts_node: TSNode, file_node_id: NodeId, G: CodebaseGraph, parent: Parent, pos: int, main_if_block: PyIfBlockStatement | None = None) -> None:
-        super().__init__(ts_node, file_node_id, G, parent, pos)
+    def __init__(self, ts_node: TSNode, file_node_id: NodeId, ctx: CodebaseContext, parent: Parent, pos: int, main_if_block: PyIfBlockStatement | None = None) -> None:
+        super().__init__(ts_node, file_node_id, ctx, parent, pos)
         self._main_if_block = main_if_block
         self.condition = self.child_by_field_name("condition")
         self.consequence_block = self._parse_consequence_block()
@@ -55,7 +55,7 @@ class PyIfBlockStatement(IfBlockStatement[Parent, "PyIfBlockStatement"], Generic
         alt_blocks = []
         if self.is_if_statement:
             for alt_node in self.ts_node.children_by_field_name("alternative"):
-                alt_block = PyIfBlockStatement(alt_node, self.file_node_id, self.G, self.parent, self.index, main_if_block=self._main_if_block or self)
+                alt_block = PyIfBlockStatement(alt_node, self.file_node_id, self.ctx, self.parent, self.index, main_if_block=self._main_if_block or self)
                 alt_blocks.append(alt_block)
         return alt_blocks
 

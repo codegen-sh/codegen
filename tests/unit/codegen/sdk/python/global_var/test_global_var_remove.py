@@ -62,7 +62,7 @@ e = 5
     # Test remove a
     a = file.get_symbol("a")
     a.remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert "a = 1" not in file.source
     assert "b = func()" in file.source
     assert "d = do_something()" in file.source
@@ -71,7 +71,7 @@ e = 5
     # Test remove e
     e = file.get_symbol("e")
     e.remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert "a = 1" not in file.source
     assert "b = func()" in file.source
     assert "d = do_something()" in file.source

@@ -24,7 +24,7 @@ def test_codemods_diffs(_codebase: Codebase, expected: Path) -> None:
 def verify_diffs(_codebase):
     modified = gather_modified_files(_codebase)
     diffs = [DiffLite.from_git_diff(diff) for diff in _codebase.get_diffs()]
-    _codebase.G.apply_diffs(diffs)
+    _codebase.ctx.apply_diffs(diffs)
     for file in _codebase.files:
         print_errors(file.filepath, file.content)
         assert not file.ts_node.has_error

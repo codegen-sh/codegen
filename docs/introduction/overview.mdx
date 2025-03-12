@@ -9,7 +9,8 @@ iconType: "solid"
 
 It provides a scriptable interface to a powerful, multi-lingual language server built on top of [Tree-sitter](https://tree-sitter.github.io/tree-sitter/).
 
-export const metaCode = `from codegen import Codebase
+```python
+from codegen import Codebase
 
 # Codegen builds a complete graph connecting
 # functions, classes, imports and their relationships
@@ -24,51 +25,76 @@ for function in codebase.functions:
 
 # Fast, in-memory code index
 codebase.commit()
-`
-
-export const code = `def foo():
-  pass
-
-def bar():
-  foo()
-
-def baz():
-  pass
-`
-
-<iframe
-  width="100%"
-  height="370px"
-  scrolling="no"
-  src={`https://codegen.sh/embedded/codemod/?code=${encodeURIComponent(
-    metaCode
-  )}&input=${encodeURIComponent(code)}`}
-  style={{
-    backgroundColor: "#15141b",
-  }}
-  className="rounded-xl"
-></iframe>
+```
 
 
 <Note>
-Codegen handles complex refactors while maintaining correctness, enabling a broad set of advanced code manipulation programs. 
+Codegen handles complex refactors while maintaining correctness, enabling a broad set of advanced code manipulation programs.
 </Note>
 
 <Tip>Codegen works with both Python and Typescript/JSX codebases. Learn more about language support [here](/building-with-codegen/language-support).</Tip>
 
-## Installation
+## Quick Started
+
+<Note>
+Codegen requires Python 3.12 - 3.13 (recommended: Python 3.13+).
+</Note>
+
+### Using UV (Recommended)
+```bash
+uv tool install codegen --python 3.13
+```
+
+### Using Pipx
+
+<Warning>
+Pipx is not officially supported by Codegen, but it should still work.
+</Warning>
 
 ```bash
-# Install CLI
-uv tool install codegen
-
-# Install inside existing project
-pip install codegen
+pipx install codegen
 ```
+
+<Note>
+For further & more in depth installation instructions, see the [installation guide](/introduction/installation).
+</Note>
 
 ## What can I do with Codegen?
 
-Codegen enables you to programmatically manipulate code with scale and precision.
+Codegen's simple yet powerful APIs enable a range of applications, including:
+
+<CardGroup cols={2}>
+  <Card
+    title="Build a Code Agent"
+    icon="robot"
+    href="/tutorials/build-code-agent"
+  >
+    Create an intelligent agent that can analyze and manipulate your codebase using natural language.
+  </Card>
+  <Card
+    title="Visualize Your Codebase"
+    icon="diagram-project"
+    href="/tutorials/codebase-visualization"
+  >
+    Generate interactive visualizations of your codebase's structure, dependencies, and relationships.
+  </Card>
+  <Card
+    title="Mine Codebase Data"
+    icon="database"
+    href="/tutorials/training-data"
+  >
+    Create high-quality training data for fine-tuning LLMs on your codebase.
+  </Card>
+  <Card
+    title="Build Codemods"
+    icon="wand-magic-sparkles"
+    href="/tutorials/at-a-glance#api-migrations"
+  >
+    Create powerful code transformations to automate large-scale changes.
+  </Card>
+</CardGroup>
+
+See below for an example call graph visualization generated with Codegen.
 
 <Frame caption="Call graph visualization for modal/modal-client/_Client">
 <iframe
@@ -85,40 +111,6 @@ Codegen enables you to programmatically manipulate code with scale and precision
 <Info>
 View source code on [modal/modal-client](https://github.com/modal-labs/modal-client/blob/cbac0d80dfd98588027ecd21850152776be3ab82/modal/client.py#L70). View codemod on [codegen.sh](https://www.codegen.sh/codemod/66e2e195-ceec-4935-876a-ed4cfc1731c7/public/diff)
 </Info>
-
-Common use cases include:
-
-<CardGroup cols={2}>
-  <Card
-    title="Visualize Your Codebase"
-    icon="diagram-project"
-    href="/tutorials/codebase-visualization"
-  >
-    Generate interactive visualizations of your codebase's structure, dependencies, and relationships.
-  </Card>
-  <Card
-    title="Mine Codebase Data"
-    icon="robot"
-    href="/tutorials/training-data"
-  >
-    Create high-quality training data for fine-tuning LLMs on your codebase.
-  </Card>
-  <Card
-    title="Eliminate Feature Flags"
-    icon="flag"
-    href="/tutorials/manage-feature-flags"
-  >
-    Add, remove, and update feature flags across your application.
-  </Card>
-  <Card
-    title="Organize Your Codebase"
-    icon="folder-tree"
-    href="/tutorials/organize-your-codebase"
-  >
-    Restructure files, enforce naming conventions, and improve project layout.
-  </Card>
-</CardGroup>
-
 
 ## Get Started
 

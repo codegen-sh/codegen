@@ -1,9 +1,9 @@
-import logging
-
 import rustworkx as nx
 from rustworkx import DAGHasCycle, PyDiGraph
 
-logger = logging.getLogger(__name__)
+from codegen.shared.logging.get_logger import get_logger
+
+logger = get_logger(__name__)
 
 
 def pseudo_topological_sort(graph: PyDiGraph, flatten: bool = True):

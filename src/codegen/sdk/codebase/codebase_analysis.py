@@ -9,7 +9,7 @@ from codegen.sdk.enums import EdgeType, SymbolType
 
 
 def get_codebase_summary(codebase: Codebase) -> str:
-    node_summary = f"""Contains {len(codebase.G.get_nodes())} nodes
+    node_summary = f"""Contains {len(codebase.ctx.get_nodes())} nodes
 - {len(list(codebase.files))} files
 - {len(list(codebase.imports))} imports
 - {len(list(codebase.external_modules))} external_modules
@@ -19,10 +19,10 @@ def get_codebase_summary(codebase: Codebase) -> str:
 \t- {len(list(codebase.global_vars))} global_vars
 \t- {len(list(codebase.interfaces))} interfaces
 """
-    edge_summary = f"""Contains {len(codebase.G.edges)} edges
-- {len([x for x in codebase.G.edges if x[2].type == EdgeType.SYMBOL_USAGE])} symbol -> used symbol
-- {len([x for x in codebase.G.edges if x[2].type == EdgeType.IMPORT_SYMBOL_RESOLUTION])} import -> used symbol
-- {len([x for x in codebase.G.edges if x[2].type == EdgeType.EXPORT])} export -> exported symbol
+    edge_summary = f"""Contains {len(codebase.ctx.edges)} edges
+- {len([x for x in codebase.ctx.edges if x[2].type == EdgeType.SYMBOL_USAGE])} symbol -> used symbol
+- {len([x for x in codebase.ctx.edges if x[2].type == EdgeType.IMPORT_SYMBOL_RESOLUTION])} import -> used symbol
+- {len([x for x in codebase.ctx.edges if x[2].type == EdgeType.EXPORT])} export -> exported symbol
     """
 
     return f"{node_summary}\n{edge_summary}"

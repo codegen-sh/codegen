@@ -28,6 +28,7 @@ from codegen.sdk.core.codebase import Codebase
 from codegen.sdk.core.codebase import CodebaseType
 from codegen.sdk.core.codebase import PyCodebaseType
 from codegen.sdk.core.codebase import TSCodebaseType
+from codegen.sdk.core.codeowner import CodeOwner
 from codegen.sdk.core.dataclasses.usage import Usage
 from codegen.sdk.core.dataclasses.usage import UsageKind
 from codegen.sdk.core.dataclasses.usage import UsageType

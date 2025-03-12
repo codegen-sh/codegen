@@ -27,4 +27,4 @@ class TSGenericType(GenericType["TSType", Parent]):
     def _get_parameters(self) -> Collection[Self, Self] | Dict[Self, Self] | None:
         type_parameter = self.child_by_field_types("type_arguments").ts_node
         types = [self._parse_type(child) for child in type_parameter.named_children]
-        return Collection(node=type_parameter, file_node_id=self.file_node_id, G=self.G, parent=self, children=types)
+        return Collection(node=type_parameter, file_node_id=self.file_node_id, ctx=self.ctx, parent=self, children=types)

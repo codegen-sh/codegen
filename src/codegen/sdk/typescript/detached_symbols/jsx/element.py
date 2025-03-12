@@ -15,7 +15,7 @@ from codegen.shared.decorators.docs import noapidoc, ts_apidoc
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
 
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.dataclasses.usage import UsageKind
     from codegen.sdk.core.interfaces.editable import Editable
     from codegen.sdk.core.node_id_factory import NodeId
@@ -30,8 +30,8 @@ class JSXElement(Expression[Parent], HasName, Generic[Parent]):
 
     _name_node: Name | None
 
-    def __init__(self, ts_node: TSNode, file_node_id: NodeId, G: CodebaseGraph, parent: Parent) -> None:
-        super().__init__(ts_node, file_node_id, G, parent)
+    def __init__(self, ts_node: TSNode, file_node_id: NodeId, ctx: CodebaseContext, parent: Parent) -> None:
+        super().__init__(ts_node, file_node_id, ctx, parent)
         open_tag = self.ts_node.child_by_field_name("open_tag") or self.ts_node
         name_node = open_tag.child_by_field_name("name")
         self._name_node = self._parse_expression(name_node, default=Name)
@@ -80,7 +80,7 @@ class JSXElement(Expression[Parent], HasName, Generic[Parent]):
         """Returns all attribute nodes of the element"""
         open_tag = self.ts_node.child_by_field_name("open_tag") or self.ts_node
         attribute_nodes = open_tag.children_by_field_name("attribute")
-        return [Value(x, self.file_node_id, self.G, self) for x in attribute_nodes]
+        return [Value(x, self.file_node_id, self.ctx, self) for x in attribute_nodes]
 
     @property
     @reader

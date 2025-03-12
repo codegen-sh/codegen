@@ -3,27 +3,78 @@ on:
   push:
     branches:
       - develop
-  workflow_dispatch:
-
-permissions:
-  contents: read
 
 jobs:
-  release:
-    name: Release
+  semantic-version:
+    name: Semantic version
     runs-on: ubuntu-latest
+    outputs:
+      release-tag: ${{ steps.semantic.outputs.git-tag }}
     permissions:
+      checks: read # to wait for required checks
       contents: write # to be able to publish a GitHub release
       issues: write # to be able to comment on released issues
       pull-requests: write # to be able to comment on released pull requests
-      id-token: write # to enable use of OIDC for npm provenance
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          lfs: true
+
+      # TODO(CG-10743): clean-up once we remove LFS
+      - name: Remove pre-push hook
+        run: rm -f .git/hooks/pre-push
+
+      - name: Wait for required checks
+        uses: poseidon/wait-for-status-checks@v0.6.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          match_pattern: "(unit-tests|integration-tests)"
 
       - uses: codfish/semantic-release-action@v3
         id: semantic
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  generate-changelog:
+    if: ${{ needs.semantic-version.outputs.release-tag }}
+    needs: semantic-version
+    name: Generate Changelog
+    runs-on: ubuntu-latest
+    environment: auto-release
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GHA_TOKEN }}
+
+      - name: Setup backend
+        uses: ./.github/actions/setup-environment
+
+      - name: Generate changelog
+        env:
+          OPEN_AI_TOKEN: ${{ secrets.OPEN_AI_TOKEN }}
+        run: uv run python src/codegen/gscli/cli.py generate changelog --openai-key ${{ secrets.OPEN_AI_TOKEN }}
+
+      - name: Commit changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add docs/changelog/changelog.mdx
+          git diff --staged --quiet || git commit -m "update changelog"
+
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          branch: ${{ github.ref }}
+
+  release:
+    if: ${{ needs.semantic-version.outputs.release-tag }}
+    needs: semantic-version
+    uses: ./.github/workflows/release.yml
+    permissions:
+      contents: write
+    secrets: inherit
+    with:
+      release-tag: ${{ needs.semantic-version.outputs.release-tag }}

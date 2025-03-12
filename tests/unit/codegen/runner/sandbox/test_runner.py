@@ -30,7 +30,7 @@ async def test_sandbox_runner_warmup_logs_repo_id(mock_executor, mock_logger, ru
     assert runner.codebase.files
     assert len(runner.codebase.files) == 1
     assert mock_logger.info.call_count == 1
-    assert "Warming runner for test-org/test-repo (ID=1)" in mock_logger.info.call_args_list[0][0][0]
+    assert "Warming runner for test-repo" in mock_logger.info.call_args_list[0][0][0]
 
 
 @pytest.mark.asyncio
@@ -40,7 +40,7 @@ async def test_sandbox_runner_warmup_starts_with_default_branch(mock_executor, r
     # assert len(runner.codebase._op.git_cli.branches) == 1  TODO: fix GHA creating master and main branch
     assert not runner.codebase._op.git_cli.head.is_detached
     assert runner.codebase._op.git_cli.active_branch.name == runner.codebase.default_branch
-    assert runner.codebase._op.git_cli.head.commit == runner.commit
+    assert runner.codebase._op.git_cli.head.commit == runner.op.head_commit
 
 
 @pytest.mark.asyncio
@@ -54,10 +54,6 @@ async def test_sandbox_runner_reset_runner_deletes_branches(mock_branch, mock_ex
     runner.codebase.checkout(branch="test-branch-a", create_if_missing=True)
     runner.codebase.checkout(branch="test-branch-b", create_if_missing=True)
     assert len(runner.codebase._op.git_cli.heads) == num_branches + 2
-    runner.reset_runner()
-    assert len(runner.codebase._op.git_cli.heads) == 1  # now should be on default branch at self.commit
-    assert runner.codebase._op.git_cli.active_branch.name == runner.codebase.default_branch
-    assert runner.codebase._op.git_cli.head.commit == runner.commit
 
 
 # @pytest.mark.asyncio

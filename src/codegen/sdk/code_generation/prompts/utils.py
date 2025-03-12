@@ -1,7 +1,8 @@
 from codegen.sdk.code_generation.enums import DocumentationDecorators
 from codegen.sdk.core.codebase import Codebase
-from codegen.sdk.enums import NodeType, ProgrammingLanguage
+from codegen.sdk.enums import NodeType
 from codegen.sdk.python.class_definition import PyClass
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def get_decorator_for_language(

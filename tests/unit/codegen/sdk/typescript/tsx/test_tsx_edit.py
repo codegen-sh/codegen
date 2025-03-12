@@ -1,5 +1,5 @@
 from codegen.sdk.codebase.factory.get_session import get_codebase_graph_session
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def test_tsx_component_edit(tmpdir) -> None:
@@ -20,8 +20,8 @@ function FooBar({ name }: FooBarProps): React.ReactElement {
   );
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as G:
-        file = G.get_file("test.tsx")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as ctx:
+        file = ctx.get_file("test.tsx")
         greeting = file.get_symbol("FooBar")
 
         # Edit the component
@@ -29,7 +29,7 @@ function FooBar({ name }: FooBarProps): React.ReactElement {
         p.insert_before("<h2>My new paragraph</h2>")
         p.insert_after("<h3>My new paragraph</h3>")
         p.edit("<h4>My new paragraph</h4>")
-        G.commit_transactions()
+        ctx.commit_transactions()
 
         # Assert the changes
         assert "<h1>Hello, {name}!</h1>" in file.source
@@ -57,8 +57,8 @@ function FooBar({ name }: FooBarProps): React.ReactElement {
   );
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as G:
-        file = G.get_file("test.tsx")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as ctx:
+        file = ctx.get_file("test.tsx")
         greeting = file.get_symbol("FooBar")
 
         # Edit the component
@@ -68,7 +68,7 @@ function FooBar({ name }: FooBarProps): React.ReactElement {
         p.set_name("h2")
         img = greeting.get_component("img")
         img.set_name("a")
-        G.commit_transactions()
+        ctx.commit_transactions()
 
         # Assert the changes
         assert "<div_2>" in file.source
@@ -100,8 +100,8 @@ function FooBar({ name }: FooBarProps): React.ReactElement {
   );
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as G:
-        file = G.get_file("test.tsx")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as ctx:
+        file = ctx.get_file("test.tsx")
         greeting = file.get_symbol("FooBar")
 
         # Edit the component
@@ -114,7 +114,7 @@ function FooBar({ name }: FooBarProps): React.ReactElement {
         p = greeting.get_component("p")
         expression = p.expressions[0]
         expression.statement.edit("1 + name + 2")
-        G.commit_transactions()
+        ctx.commit_transactions()
 
         # Assert the changes
         assert "<p>Goodbye, {1 + name + 2}!</p>" in file.source
@@ -141,14 +141,14 @@ function FooBar({ name }: FooBarProps): React.ReactElement {
   );
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as G:
-        file = G.get_file("test.tsx")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as ctx:
+        file = ctx.get_file("test.tsx")
         greeting = file.get_symbol("FooBar")
 
         # Edit the param
         name = greeting.get_parameter("name")
         name.rename("newName")
-        G.commit_transactions()
+        ctx.commit_transactions()
 
         # Assert the changes
         assert "newName" in file.source
@@ -176,8 +176,8 @@ function FooBar({ name }: FooBarProps): React.ReactElement {
   );
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as G:
-        file = G.get_file("test.tsx")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as ctx:
+        file = ctx.get_file("test.tsx")
         greeting = file.get_symbol("FooBar")
 
         # Edit the prop
@@ -188,7 +188,7 @@ function FooBar({ name }: FooBarProps): React.ReactElement {
         prop2 = h1.props[1]
         prop2.set_name("test2")
         prop2.set_value("{doAnotherThing()}")
-        G.commit_transactions()
+        ctx.commit_transactions()
 
         # Assert the changes
         assert '<h1 key2="value2" test2={doAnotherThing()}>Hello, {name}!</h1>' in file.source
@@ -211,8 +211,8 @@ function FooBar({ name }: FooBarProps): React.ReactElement {
   );
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as G:
-        file = G.get_file("test.tsx")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as ctx:
+        file = ctx.get_file("test.tsx")
         greeting = file.get_symbol("FooBar")
 
         # Edit the prop
@@ -222,7 +222,7 @@ function FooBar({ name }: FooBarProps): React.ReactElement {
         prop2 = h1.props[1]
         prop2.insert_after("test2={doAnotherThing()}", newline=False)
         h1.add_prop("key3", "{123}")
-        G.commit_transactions()
+        ctx.commit_transactions()
 
         # Assert the changes
         assert '<h1 key2="value2" key="value" test={doAThing()} test2={doAnotherThing()} key3={123}>Hello, {name}!</h1>' in file.source
@@ -245,15 +245,15 @@ function FooBar({ name }: FooBarProps): React.ReactElement {
   );
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as G:
-        file = G.get_file("test.tsx")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as ctx:
+        file = ctx.get_file("test.tsx")
         greeting = file.get_symbol("FooBar")
 
         # Edit the prop
         h1 = greeting.get_component("h1")
         h1.add_prop("key", '"value"')
         h1.add_prop("test", "{doAThing()}")
-        G.commit_transactions()
+        ctx.commit_transactions()
 
         # Assert the changes
         assert '<h1 key="value" test={doAThing()}>Hello, {name}!</h1>' in file.source
@@ -276,8 +276,8 @@ function FooBar({ name }: FooBarProps): React.ReactElement {
   );
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as G:
-        file = G.get_file("test.tsx")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as ctx:
+        file = ctx.get_file("test.tsx")
         greeting = file.get_symbol("FooBar")
 
         # Edit the prop
@@ -286,7 +286,7 @@ function FooBar({ name }: FooBarProps): React.ReactElement {
         prop1.remove()
         prop2 = h1.props[1]
         prop2.remove()
-        G.commit_transactions()
+        ctx.commit_transactions()
 
         # Assert the changes
         assert "<h1>Hello, {name}!</h1>" in file.source
@@ -324,13 +324,13 @@ function FooBar({ component }: FooBarProps) {
 """
     new_file_name = "new.tsx"
     new_file_content = ""
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={original_file_name: original_file_content, new_file_name: new_file_content}) as G:
-        original_file = G.get_file(original_file_name)
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={original_file_name: original_file_content, new_file_name: new_file_content}) as ctx:
+        original_file = ctx.get_file(original_file_name)
         foo_bar = original_file.get_symbol("FooBar")
 
-        new_file = G.get_file(new_file_name)
+        new_file = ctx.get_file(new_file_name)
         foo_bar.move_to_file(new_file)
-        G.commit_transactions()
+        ctx.commit_transactions()
 
         assert "export function FooBar" in new_file.content
         assert "export function MyFooBar" in new_file.content
@@ -351,17 +351,17 @@ function FooBar(): React.ReactElement {
   );
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as G:
-        file = G.get_file("test.tsx")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as ctx:
+        file = ctx.get_file("test.tsx")
         foo_bar = file.get_symbol("FooBar")
 
         # Wrap the div element
         div = foo_bar.get_component("div")
         div.wrap('<section className="wrapper">', "</section>")
-        G.commit_transactions()
+        ctx.commit_transactions()
 
         # Assert the changes
-        new_file = G.get_file("test.tsx")
+        new_file = ctx.get_file("test.tsx")
         expected_result = """
 <section className="wrapper">
 <div>

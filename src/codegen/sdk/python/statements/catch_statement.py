@@ -10,7 +10,7 @@ from codegen.shared.decorators.docs import py_apidoc
 if TYPE_CHECKING:
     from tree_sitter import Node as PyNode
 
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.node_id_factory import NodeId
 
 
@@ -23,6 +23,6 @@ class PyCatchStatement(CatchStatement[PyCodeBlock], PyBlockStatement):
         condition: The condition which triggers this clause
     """
 
-    def __init__(self, ts_node: PyNode, file_node_id: NodeId, G: CodebaseGraph, parent: PyCodeBlock, pos: int | None = None) -> None:
-        super().__init__(ts_node, file_node_id, G, parent, pos)
+    def __init__(self, ts_node: PyNode, file_node_id: NodeId, ctx: CodebaseContext, parent: PyCodeBlock, pos: int | None = None) -> None:
+        super().__init__(ts_node, file_node_id, ctx, parent, pos)
         self.condition = self.children[0]

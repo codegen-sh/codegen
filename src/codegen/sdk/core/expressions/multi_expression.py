@@ -9,7 +9,7 @@ from codegen.shared.decorators.docs import apidoc, noapidoc
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
 
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.dataclasses.usage import UsageKind
     from codegen.sdk.core.interfaces.has_name import HasName
     from codegen.sdk.core.node_id_factory import NodeId
@@ -29,8 +29,8 @@ class MultiExpression(Expression[Parent], Generic[Parent, TExpression]):
 
     expressions: list[TExpression]
 
-    def __init__(self, ts_node: TSNode, file_node_id: NodeId, G: CodebaseGraph, parent: Parent, expressions: list[TExpression]) -> None:
-        super().__init__(ts_node, file_node_id, G, parent)
+    def __init__(self, ts_node: TSNode, file_node_id: NodeId, ctx: CodebaseContext, parent: Parent, expressions: list[TExpression]) -> None:
+        super().__init__(ts_node, file_node_id, ctx, parent)
         self.expressions = expressions
 
     @noapidoc

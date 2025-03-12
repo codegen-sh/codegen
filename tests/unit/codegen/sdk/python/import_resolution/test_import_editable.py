@@ -36,7 +36,7 @@ def bar(a, b):
     )
 
     file1.insert_before("import numpy as np\n", fix_indentation=True)
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     # language=python
     assert (
         file1.content

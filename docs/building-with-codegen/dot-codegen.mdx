@@ -46,12 +46,12 @@ The environment is created during `codegen init` and used by commands like `code
 
 ### Configuration
 
-The `config.toml` file stores your project settings:
+The `.env` file stores your project settings:
 
-```toml
-organization_name = "your-org"
-repo_name = "your-repo"
-programming_language = "python"  # or other supported language
+```env
+REPOSITORY_OWNER = "your-org"
+REPOSITORY_PATH = "/root/git/your-repo"
+REPOSITORY_LANGUAGE = "python"  # or other supported language
 ```
 
 This configuration is used by Codegen to provide language-specific features and proper repository context.

@@ -10,9 +10,9 @@ import pytest
 from _pytest.python import Metafunc
 from pyinstrument import Profiler
 
-from codegen.git.repo_operator.local_repo_operator import LocalRepoOperator
+from codegen.configs.models.codebase import CodebaseConfig
 from codegen.git.repo_operator.repo_operator import RepoOperator
-from codegen.sdk.codebase.config import CodebaseConfig, GSFeatureFlags, ProjectConfig
+from codegen.sdk.codebase.config import ProjectConfig
 from codegen.sdk.core.codebase import Codebase
 from tests.shared.codemod.constants import DIFF_FILEPATH
 from tests.shared.codemod.models import BASE_PATH, BASE_TMP_DIR, VERIFIED_CODEMOD_DIFFS, CodemodMetadata, Repo, Size
@@ -57,18 +57,6 @@ def pytest_generate_tests(metafunc: Metafunc) -> None:
     size = list(map(Size, metafunc.config.getoption("--size")))
 
     match metafunc.definition.name:
-        # case "test_codemods_diffs":
-        #     cases = []
-        #     for case in find_codemod_test_cases(repos):
-        #         cases.append(case)
-
-        #     metafunc.parametrize(
-        #         "raw_codemod,repo,expected",
-        #         [pytest.param(i.codemod_metadata.codemod, i.repo, i.test_dir, marks=pytest.mark.xdist_group(i.repo.name)) for i in cases],
-        #         indirect=["repo", "expected"],
-        #         ids=[f"{i.codemod_metadata.name}-{i.repo.name}" for i in cases],
-        #         scope="session",
-        #     )
         case "test_codemods_cloned_repos":
             cases = []
             for case in find_codemod_test_cases(repos):
@@ -141,7 +129,7 @@ def token(request):
 
 
 @pytest.fixture(scope="session")
-def op(repo: Repo, token: str | None) -> YieldFixture[LocalRepoOperator]:
+def op(repo: Repo, token: str | None) -> YieldFixture[RepoOperator]:
     with filelock.FileLock(BASE_TMP_DIR / "locks" / repo.name):
         op = repo.to_op(repo.name, token)
         yield op
@@ -154,10 +142,10 @@ Codebases: dict[str, Codebase] = {}
 def _codebase(repo: Repo, op: RepoOperator, request) -> YieldFixture[Codebase]:
     sync = request.config.getoption("sync-graph").lower() == "true"
     log_parse = request.config.getoption("log-parse").lower() == "true"
-    feature_flags = GSFeatureFlags(verify_graph=sync, debug=log_parse)
+    configs = CodebaseConfig(verify_graph=sync, debug=log_parse)
     if repo.name not in Codebases:
         projects = [ProjectConfig(repo_operator=op, programming_language=repo.language, subdirectories=repo.subdirectories, base_path=repo.base_path)]
-        Codebases[repo.name] = Codebase(projects=projects, config=CodebaseConfig(feature_flags=feature_flags))
+        Codebases[repo.name] = Codebase(projects=projects, config=configs)
     codebase = Codebases[repo.name]
     codebase.reset(git_reset=True)
     yield codebase

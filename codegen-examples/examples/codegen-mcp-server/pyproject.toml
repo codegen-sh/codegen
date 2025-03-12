@@ -1,0 +1,20 @@
+[project]
+name = "codegen-mcp-server"
+version = "0.1.0"
+description = "MCP server implementation adding tools for the Codegen SDK"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+  "codegen>=0.14.5",
+  "uvicorn>=0.27.1",
+  "fastapi>=0.110.0",
+  "pydantic>=2.6.3",
+  "rich>=13.7.1",
+  "click>=8.1.7",
+  "mcp[cli]>=1.2.1",
+]
+
+[tool.poetry.scripts]
+codegen-mcp-server = "server:main"
+[project.scripts]
+codegen-mcp-server = "server:main"

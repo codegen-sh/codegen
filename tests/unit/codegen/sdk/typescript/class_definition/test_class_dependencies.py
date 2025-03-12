@@ -1,7 +1,7 @@
 import pytest
 
 from codegen.sdk.codebase.factory.get_session import get_codebase_graph_session
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 @pytest.mark.skip(reason="CG-9539 TODO @caroljung")
@@ -40,8 +40,8 @@ export class ExampleClass extends Component<Props> {
     }
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": content}) as G:
-        file = G.get_file("test.tsx")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": content}) as ctx:
+        file = ctx.get_file("test.tsx")
         cls = file.get_class("ExampleClass")
         deps = cls.dependencies
 

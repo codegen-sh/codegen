@@ -13,18 +13,18 @@ def foo(bar):
         file = codebase.get_file("test.py")
         filepath = file.filepath
         new_filepath = "new_file.py"
-        new_file = file.create_from_filepath(new_filepath, codebase.G)
+        new_file = file.create_from_filepath(new_filepath, codebase.ctx)
 
-    G = codebase.G
-    assert G.get_node(file.node_id) == file
-    assert G.get_node(new_file.node_id) == new_file
-    assert G.has_node(file.node_id)
-    assert G.has_node(new_file.node_id)
+    ctx = codebase.ctx
+    assert ctx.get_node(file.node_id) == file
+    assert ctx.get_node(new_file.node_id) == new_file
+    assert ctx.has_node(file.node_id)
+    assert ctx.has_node(new_file.node_id)
     assert os.path.exists(tmpdir / file.filepath)
     assert os.path.exists(tmpdir / new_file.filepath)
 
     # Delete the original
     file.remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert not os.path.exists(tmpdir / filepath)
     assert os.path.exists(tmpdir / new_filepath)

@@ -54,7 +54,7 @@ class JSXExpression(Unwrappable["Function | JSXElement | JSXProp"]):
 
         """
         if self.ts_node.parent.type == "jsx_attribute" and not bool_condition:
-            node.edit(self.G.node_classes.bool_conversion[bool_condition])
+            node.edit(self.ctx.node_classes.bool_conversion[bool_condition])
         else:
             self.remove()
 

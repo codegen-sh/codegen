@@ -2,7 +2,7 @@ import pytest
 
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
 from codegen.sdk.codebase.validation import get_edges
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def test_codebase_reset_exception(tmpdir, caplog) -> None:
@@ -50,7 +50,7 @@ def test_reset_exception(tmpdir) -> None:
             path: str = "mypath"
 
         mm = mockme()
-        codebase.G.all_syncs = [mm]
+        codebase.ctx.all_syncs = [mm]
         try:
             codebase.reset()
         except Exception as e:
@@ -86,8 +86,8 @@ def bar(x):
         file0 = codebase.get_file("dir/file0.py", optional=True)
         file2 = codebase.get_file("dir/file2.py", optional=True)
 
-        init_nodes = codebase.G.get_nodes()
-        init_edges = codebase.G.get_edges()
+        init_nodes = codebase.ctx.get_nodes()
+        init_edges = codebase.ctx.get_edges()
 
         file0.update_filepath("dir/file0_updated.py")
         codebase.create_file("dir/new_file.py", "some_var = 1")
@@ -111,11 +111,11 @@ def bar(x):
     assert file1.source == file1_content[file0.ts_node.start_byte :]
     assert file2.source == file2_content[file0.ts_node.start_byte :]
 
-    assert len(codebase.G.get_nodes()) == len(init_nodes)
-    assert set(codebase.G.get_nodes()) == set(init_nodes)
-    assert set(codebase.G.get_nodes()) == set(codebase.G.old_graph.nodes())
-    assert len(codebase.G.get_edges()) == len(init_edges)
-    assert set(get_edges(codebase.G._graph)) == set(get_edges(codebase.G.old_graph))
+    assert len(codebase.ctx.get_nodes()) == len(init_nodes)
+    assert set(codebase.ctx.get_nodes()) == set(init_nodes)
+    assert set(codebase.ctx.get_nodes()) == set(codebase.ctx.old_graph.nodes())
+    assert len(codebase.ctx.get_edges()) == len(init_edges)
+    assert set(get_edges(codebase.ctx._graph)) == set(get_edges(codebase.ctx.old_graph))
 
 
 def test_codebase_reset_gitignore(tmpdir: str) -> None:
@@ -129,8 +129,23 @@ a = 1
 def square(x: a):
     return x * x
     """
-    with get_codebase_session(tmpdir=tmpdir, files={"dir/file0.py": file0_content, ".gitignore": gitignore_content}, programming_language=ProgrammingLanguage.PYTHON) as codebase:
-        assert len(codebase.files) == 0
+    file1_content = """
+from dir.file0 import square
+
+class MyClass:
+    def foo(self, arg1, arg2):
+        return arg1 + square(arg2)
+    """
+    with get_codebase_session(
+        tmpdir=tmpdir,
+        files={
+            "dir/file0.py": file0_content,
+            "dir/file1.py": file1_content,
+            ".gitignore": gitignore_content,
+        },
+        programming_language=ProgrammingLanguage.PYTHON,
+    ) as codebase:
+        assert len(codebase.files) == 1
         codebase.reset()
         codebase.checkout(branch="test-branch", create_if_missing=True)
         codebase.commit(sync_graph=True)

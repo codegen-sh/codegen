@@ -1,8 +1,0 @@
-{
-	"name": "plone",
-	"commit": "5456ebf27b3348704e67350d25991c61c6f678ea",
-	"url": "https://github.com/plone/Products.CMFPlone",
-	"language": "PYTHON",
-	"size": "small",
-	"extra_repo": false
-}

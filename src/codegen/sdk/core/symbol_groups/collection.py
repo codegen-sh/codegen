@@ -12,7 +12,7 @@ from codegen.sdk.core.symbol_group import SymbolGroup
 from codegen.shared.decorators.docs import noapidoc
 
 if TYPE_CHECKING:
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
 
 
 Child = TypeVar("Child", bound="Editable")
@@ -36,8 +36,8 @@ class Collection(SymbolGroup[Child, Parent], MutableSequence[Child], Generic[Chi
     _container_start_byte: int
     _container_end_byte: int
 
-    def __init__(self, node: TSNode, file_node_id: NodeId, G: "CodebaseGraph", parent: Parent, delimiter: str = ",", children: list[Child] | None = None, *, bracket_size: int = 1) -> None:
-        super().__init__(file_node_id, G, parent, node)
+    def __init__(self, node: TSNode, file_node_id: NodeId, ctx: "CodebaseContext", parent: Parent, delimiter: str = ",", children: list[Child] | None = None, *, bracket_size: int = 1) -> None:
+        super().__init__(file_node_id, ctx, parent, node)
         self._delimiter = delimiter
         self._reversed = set()
         self._inserts = defaultdict(lambda: 0)

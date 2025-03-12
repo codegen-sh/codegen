@@ -1,6 +1,6 @@
 from codegen.sdk.codebase.factory.get_session import get_codebase_graph_session, get_codebase_session
 from codegen.sdk.core.function import Function
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def test_function_parameters_multiline(tmpdir) -> None:
@@ -95,8 +95,8 @@ const Parent = ({ renderChild = Child }) => {
     return null;
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as G:
-        file = G.get_file("test.tsx")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as ctx:
+        file = ctx.get_file("test.tsx")
         child = file.get_symbol("Child")
         assert child is not None
         assert child.is_jsx
@@ -145,8 +145,8 @@ export function AsyncComponent<TData>({
   }
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as G:
-        file = G.get_file("test.tsx")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.tsx": file}) as ctx:
+        file = ctx.get_file("test.tsx")
         component = file.get_symbol("DefaultLoading")
         assert component is not None
         assert component.is_jsx

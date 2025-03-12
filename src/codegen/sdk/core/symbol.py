@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     import rich.repr
     from tree_sitter import Node as TSNode
 
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.detached_symbols.code_block import CodeBlock
     from codegen.sdk.core.export import Export
     from codegen.sdk.core.file import SourceFile
@@ -54,19 +54,19 @@ class Symbol(Usable[Statement["CodeBlock[Parent, ...]"]], Generic[Parent, TCodeB
         self,
         ts_node: TSNode,
         file_id: NodeId,
-        G: CodebaseGraph,
+        ctx: CodebaseContext,
         parent: Statement[CodeBlock[Parent, ...]],
         name_node: TSNode | None = None,
         name_node_type: type[Name] = DefinedName,
     ) -> None:
-        super().__init__(ts_node, file_id, G, parent)
+        super().__init__(ts_node, file_id, ctx, parent)
         name_node = self._get_name_node(ts_node) if name_node is None else name_node
         self._name_node = self._parse_expression(name_node, default=name_node_type)
         from codegen.sdk.core.interfaces.has_block import HasBlock
 
         if isinstance(self, HasBlock):
             self.code_block = self._parse_code_block()
-        self.parse(G)
+        self.parse(ctx)
         if isinstance(self, HasBlock):
             self.code_block.parse()
 
@@ -117,7 +117,7 @@ class Symbol(Usable[Statement["CodeBlock[Parent, ...]"]], Generic[Parent, TCodeB
         if isinstance(self, HasBlock) and self.is_decorated:
             new_ts_node = self.ts_node.parent
 
-        extended_nodes = [(Value(new_ts_node, self.file_node_id, self.G, self.parent) if node.ts_node == self.ts_node else node) for node in nodes]
+        extended_nodes = [(Value(new_ts_node, self.file_node_id, self.ctx, self.parent) if node.ts_node == self.ts_node else node) for node in nodes]
         return sort_editables(extended_nodes)
 
     @writer
@@ -233,7 +233,7 @@ class Symbol(Usable[Statement["CodeBlock[Parent, ...]"]], Generic[Parent, TCodeB
 
     @noapidoc
     @commiter
-    def parse(self, G: CodebaseGraph) -> None:
+    def parse(self, ctx: CodebaseContext) -> None:
         """Adds itself as a symbol node in the graph, and an edge from the parent file to itself."""
 
     ####################################################################################################################
@@ -329,19 +329,19 @@ class Symbol(Usable[Statement["CodeBlock[Parent, ...]"]], Generic[Parent, TCodeB
                 # =====[ Imports - copy over ]=====
                 elif isinstance(dep, Import):
                     if dep.imported_symbol:
-                        file.add_symbol_import(dep.imported_symbol, alias=dep.alias.source)
+                        file.add_import(imp=dep.imported_symbol, alias=dep.alias.source)
                     else:
-                        file.add_import_from_import_string(dep.source)
+                        file.add_import(imp=dep.source)
         else:
             for dep in self.dependencies:
                 # =====[ Symbols - add back edge ]=====
                 if isinstance(dep, Symbol) and dep.is_top_level:
-                    file.add_symbol_import(symbol=dep, alias=dep.name, import_type=ImportType.NAMED_EXPORT, is_type_import=False)
+                    file.add_import(imp=dep, alias=dep.name, import_type=ImportType.NAMED_EXPORT, is_type_import=False)
                 elif isinstance(dep, Import):
                     if dep.imported_symbol:
-                        file.add_symbol_import(dep.imported_symbol, alias=dep.alias.source)
+                        file.add_import(imp=dep.imported_symbol, alias=dep.alias.source)
                     else:
-                        file.add_import_from_import_string(dep.source)
+                        file.add_import(imp=dep.source)
 
         # =====[ Make a new symbol in the new file ]=====
         file.add_symbol(self)
@@ -364,7 +364,7 @@ class Symbol(Usable[Statement["CodeBlock[Parent, ...]"]], Generic[Parent, TCodeB
         # Here, we will add a "back edge" to the old file importing the symbol
         elif strategy == "add_back_edge":
             if is_used_in_file or any(usage.kind is UsageKind.IMPORTED and usage.usage_symbol not in encountered_symbols for usage in self.usages):
-                self.file.add_import_from_import_string(import_line)
+                self.file.add_import(imp=import_line)
             # Delete the original symbol
             self.remove()
 
@@ -374,7 +374,7 @@ class Symbol(Usable[Statement["CodeBlock[Parent, ...]"]], Generic[Parent, TCodeB
             for usage in self.usages:
                 if isinstance(usage.usage_symbol, Import) and usage.usage_symbol.file != file:
                     # Add updated import
-                    usage.usage_symbol.file.add_import_from_import_string(import_line)
+                    usage.usage_symbol.file.add_import(import_line)
                     usage.usage_symbol.remove()
                 elif usage.usage_type == UsageType.CHAINED:
                     # Update all previous usages of import * to the new import name
@@ -383,11 +383,11 @@ class Symbol(Usable[Statement["CodeBlock[Parent, ...]"]], Generic[Parent, TCodeB
                             usage.match.get_name().edit(self.name)
                         if isinstance(usage.match, ChainedAttribute):
                             usage.match.edit(self.name)
-                        usage.usage_symbol.file.add_import_from_import_string(import_line)
+                        usage.usage_symbol.file.add_import(imp=import_line)
 
             # Add the import to the original file
             if is_used_in_file:
-                self.file.add_import_from_import_string(import_line)
+                self.file.add_import(imp=import_line)
             # Delete the original symbol
             self.remove()
 
@@ -418,11 +418,11 @@ class Symbol(Usable[Statement["CodeBlock[Parent, ...]"]], Generic[Parent, TCodeB
         Raises:
             AssertionError: If the provided keyword is not in the language's valid keywords list.
         """
-        assert keyword in self.G.node_classes.keywords
+        assert keyword in self.ctx.node_classes.keywords
         to_insert_onto = None
-        to_insert_idx = self.G.node_classes.keywords.index(keyword)
-        for node in self.children_by_field_types(self.G.node_classes.keywords):
-            idx = self.G.node_classes.keywords.index(node)
+        to_insert_idx = self.ctx.node_classes.keywords.index(keyword)
+        for node in self.children_by_field_types(self.ctx.node_classes.keywords):
+            idx = self.ctx.node_classes.keywords.index(node)
             if node == keyword:
                 return
             if idx < to_insert_idx:

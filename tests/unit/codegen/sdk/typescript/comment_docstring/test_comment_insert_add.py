@@ -1,13 +1,13 @@
 from codegen.sdk.codebase.factory.get_session import get_codebase_graph_session
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def test_set_comment(tmpdir) -> None:
     content = """
 const symbol = 1
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as ctx:
+        file = ctx.get_file("test.ts")
 
         symbol = file.get_symbol("symbol")
         assert symbol.comment is None
@@ -21,8 +21,8 @@ def test_set_comment_with_formatting(tmpdir) -> None:
     content = """
 const symbol = 1
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as ctx:
+        file = ctx.get_file("test.ts")
 
         symbol = file.get_symbol("symbol")
         assert symbol.comment is None
@@ -38,8 +38,8 @@ def test_set_comment_with_block_formatting(tmpdir) -> None:
     content = """
 const symbol = 1
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as ctx:
+        file = ctx.get_file("test.ts")
 
         symbol = file.get_symbol("symbol")
         assert symbol.comment is None
@@ -55,8 +55,8 @@ def test_set_comment_multiline(tmpdir) -> None:
     content = """
 const symbol = 1
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as ctx:
+        file = ctx.get_file("test.ts")
 
         symbol = file.get_symbol("symbol")
         assert symbol.comment is None
@@ -72,8 +72,8 @@ class MyClass {
     foo() {}
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as ctx:
+        file = ctx.get_file("test.ts")
 
         my_class = file.get_symbol("MyClass")
         foo = my_class.get_method("foo")
@@ -88,8 +88,8 @@ def test_add_comment(tmpdir) -> None:
 // this is an existing comment
 const symbol = 1
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as ctx:
+        file = ctx.get_file("test.ts")
 
         symbol = file.get_symbol("symbol")
         symbol.add_comment("this is a new comment")
@@ -102,8 +102,8 @@ def test_add_comment_new(tmpdir) -> None:
     content = """
 const symbol = 1
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as ctx:
+        file = ctx.get_file("test.ts")
 
         symbol = file.get_symbol("symbol")
         symbol.add_comment("this is a new comment")
@@ -117,8 +117,8 @@ def test_add_comment_with_formatting(tmpdir) -> None:
 // this is an existing comment
 const symbol = 1
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as ctx:
+        file = ctx.get_file("test.ts")
 
         symbol = file.get_symbol("symbol")
         symbol.add_comment("// this is a new comment")
@@ -134,8 +134,8 @@ def test_add_comment_with_block_formatting(tmpdir) -> None:
 // this is an existing comment
 const symbol = 1
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as ctx:
+        file = ctx.get_file("test.ts")
 
         symbol = file.get_symbol("symbol")
         symbol.add_comment("/* this is a new comment */")
@@ -152,8 +152,8 @@ def test_add_comment_multiline(tmpdir) -> None:
 // that spans multiple lines
 const symbol = 1
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as ctx:
+        file = ctx.get_file("test.ts")
 
         symbol = file.get_symbol("symbol")
         symbol.add_comment("this is a new comment\nthat spans multiple lines")
@@ -169,8 +169,8 @@ class MyClass {
     foo() {}
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as ctx:
+        file = ctx.get_file("test.ts")
 
         my_class = file.get_symbol("MyClass")
         foo = my_class.get_method("foo")
@@ -185,8 +185,8 @@ def test_insert_comment(tmpdir) -> None:
 // this is a test comment
 const symbol = 1
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as ctx:
+        file = ctx.get_file("test.ts")
 
         symbol = file.get_symbol("symbol")
         assert symbol.comment.source == "// this is a test comment"
@@ -202,8 +202,8 @@ def test_insert_comment_block(tmpdir) -> None:
 /* this is a test comment */
 const symbol = 1
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as ctx:
+        file = ctx.get_file("test.ts")
 
         symbol = file.get_symbol("symbol")
         assert symbol.comment.source == "/* this is a test comment */"
@@ -220,8 +220,8 @@ def test_insert_comment_multiline(tmpdir) -> None:
 // that spans multiple lines
 const symbol = 1
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as ctx:
+        file = ctx.get_file("test.ts")
 
         symbol = file.get_symbol("symbol")
         assert symbol.comment.source == "// this is a test comment\n// that spans multiple lines"
@@ -238,8 +238,8 @@ def test_insert_comment_weird_spacing(tmpdir) -> None:
 //that has weird spacing
 const symbol = 1
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as ctx:
+        file = ctx.get_file("test.ts")
 
         symbol = file.get_symbol("symbol")
         assert symbol.comment.source == "// this is a test comment\n//that has weird spacing"
@@ -257,8 +257,8 @@ class MyClass {
     foo() {}
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": content}) as ctx:
+        file = ctx.get_file("test.ts")
 
         my_class = file.get_symbol("MyClass")
         foo = my_class.get_method("foo")

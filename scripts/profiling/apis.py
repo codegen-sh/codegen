@@ -7,7 +7,7 @@ import networkx as nx
 from tabulate import tabulate
 
 from codegen.sdk.codebase.factory.get_dev_customer_codebase import get_codebase_codegen
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 logging.basicConfig(level=logging.INFO)
 codegen = get_codebase_codegen("../codegen", ".")
@@ -62,7 +62,7 @@ graph_pickle = pickle.dumps(G)
 # Convert to base64
 graph_base64 = base64.b64encode(graph_pickle).decode("utf-8")
 
-print(f"Base64 encoded graph size: {len(graph_base64)} bytes")
+print(f"Base64 encoded graph size: {len(graph_base64)} bytes 🌈")
 print(f"Base64 string: {graph_base64}")
 Path("out.txt").write_text(graph_base64)
 print()

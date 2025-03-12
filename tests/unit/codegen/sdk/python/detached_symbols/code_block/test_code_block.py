@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
 from codegen.sdk.core.statements.statement import StatementType
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 if TYPE_CHECKING:
     from codegen.sdk.python import PyFile
@@ -188,7 +188,7 @@ def foo(x: int, y: str) -> MyClass:
     assert len(obj_usages) == 1
     assert obj_usages[0].source == "obj"
     obj_usages[0].edit("renamed_obj")
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert "renamed_obj.attr1 = renamed_attribute.obj" in file.content
 
     random = code_block.get_local_var_assignment("random")

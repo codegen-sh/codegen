@@ -4,14 +4,14 @@ sidebarTitle: "Git Operations"
 icon: "code-branch"
 ---
 
-Many workflows require Git operations. Codegen provides a high-level API for common Git operations through the [`Codebase`](/api-reference/core/Codebase) class, including:
+Many workflows require Git operations. Codegen provides a high-level API for common Git operations through the [Codebase](/api-reference/core/Codebase) class, including:
 
-- [`Codebase.git_commit(...)`](/api-reference/core/Codebase#git_commit)
-- [`Codebase.checkout(...)`](/api-reference/core/Codebase#checkout)
+- [Codebase.git_commit(...)](/api-reference/core/Codebase#git_commit)
+- [Codebase.checkout(...)](/api-reference/core/Codebase#checkout)
 
 ## Committing Changes to Git
 
-You can commit changes to Git using the [`Codebase.git_commit(...)`](/api-reference/core/Codebase#git_commit):
+You can commit changes to Git using the [Codebase.git_commit(...)](/api-reference/core/Codebase#git_commit):
 
 ```python
 # Make some changes and call `commit()` to sync them to disk
@@ -31,8 +31,8 @@ if commit:
 
 <Note>
   `git_commit` will only commit changes that have been synced to the filesystem
-  by calling [`Codebase.commit()`](/api-reference/core/Codebase#commit). See
-  [`Commit and Reset`](/building-with-codegen/commit-and-reset) for more
+  by calling [Codebase.commit()](/api-reference/core/Codebase#commit). See
+  [Commit and Reset](/building-with-codegen/commit-and-reset) for more
   details.
 </Note>
 
@@ -53,7 +53,7 @@ if current:
 
 ## Checking Out Branches and Commits
 
-The [`Codebase.checkout(...)`](/api-reference/core/Codebase#checkout) method allows you to switch between branches and commits.
+The [Codebase.checkout(...)](/api-reference/core/Codebase#checkout) method allows you to switch between branches and commits.
 
 This will automatically re-parse the codebase to reflect the new state.
 

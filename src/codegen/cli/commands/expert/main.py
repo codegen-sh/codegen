@@ -4,7 +4,7 @@ from rich.status import Status
 
 from codegen.cli.api.client import RestAPI
 from codegen.cli.auth.decorators import requires_auth
-from codegen.cli.auth.session import CodegenSession
+from codegen.cli.auth.token_manager import get_current_token
 from codegen.cli.errors import ServerError
 from codegen.cli.workspace.decorators import requires_init
 
@@ -13,13 +13,13 @@ from codegen.cli.workspace.decorators import requires_init
 @click.option("--query", "-q", help="The question to ask the expert.")
 @requires_auth
 @requires_init
-def expert_command(session: CodegenSession, query: str):
+def expert_command(query: str):
     """Asks a codegen expert a question."""
     status = Status("Asking expert...", spinner="dots", spinner_style="purple")
     status.start()
 
     try:
-        response = RestAPI(session.token).ask_expert(query)
+        response = RestAPI(get_current_token()).ask_expert(query)
         status.stop()
         rich.print("[bold green]✓ Response received[/bold green]")
         rich.print(response.response)

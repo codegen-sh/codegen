@@ -14,7 +14,7 @@ from codegen.shared.decorators.docs import apidoc, noapidoc
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
 
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.detached_symbols.code_block import CodeBlock
     from codegen.sdk.core.interfaces.importable import Importable
     from codegen.sdk.core.node_id_factory import NodeId
@@ -45,10 +45,10 @@ class TypeAlias(SupportsGenerics, HasValue, HasBlock, HasAttribute[TAttribute], 
         self,
         ts_node: TSNode,
         file_node_id: NodeId,
-        G: CodebaseGraph,
+        ctx: CodebaseContext,
         parent: Statement[CodeBlock[Parent, ...]],
     ) -> None:
-        super().__init__(ts_node, file_node_id, G, parent)
+        super().__init__(ts_node, file_node_id, ctx, parent)
         value_node = self.ts_node.child_by_field_name("value")
         self._value_node = self._parse_type(value_node) if value_node else None
         self.type_parameters = self.child_by_field_name("type_parameters")

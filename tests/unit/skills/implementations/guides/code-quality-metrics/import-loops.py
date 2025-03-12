@@ -4,7 +4,7 @@ import networkx
 from networkx import DiGraph
 
 from codegen.sdk.core.codebase import CodebaseType
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 from tests.shared.skills.decorators import skill, skill_impl
 from tests.shared.skills.skill import Skill
 from tests.shared.skills.skill_test import SkillTestCase, SkillTestCasePyFile
@@ -88,17 +88,17 @@ class ImportCycleDetectionAndVisualization(Skill, ABC):
     @staticmethod
     @skill_impl(test_cases=[ImportCycleDetectionAndVisualizationTest], language=ProgrammingLanguage.PYTHON)
     def skill_func(codebase: CodebaseType):
-        G: DiGraph = networkx.DiGraph()
+        ctx: DiGraph = networkx.DiGraph()
 
         # iterate over all imports
         for pyimport in codebase.imports:
             # Extract to/from files
             if pyimport.from_file and pyimport.to_file:
                 # Add nodes and edges to the graph
-                G.add_edge(pyimport.from_file.file_path, pyimport.to_file.file_path)
+                ctx.add_edge(pyimport.from_file.file_path, pyimport.to_file.file_path)
 
         # Find strongly connected components
-        strongly_connected_components = list(networkx.strongly_connected_components(G))
+        strongly_connected_components = list(networkx.strongly_connected_components(ctx))
 
         # Count the number of cycles (SCCs with more than one node)
         import_cycles = [scc for scc in strongly_connected_components if len(scc) > 1]
@@ -110,7 +110,7 @@ class ImportCycleDetectionAndVisualization(Skill, ABC):
         cycle_graph: DiGraph = networkx.DiGraph()
 
         # Add nodes involved in cycles to the new graph
-        for cycle in networkx.simple_cycles(G):
+        for cycle in networkx.simple_cycles(ctx):
             if len(cycle) > 2:
                 # Add nodes to the cycle graph
                 for node in cycle:

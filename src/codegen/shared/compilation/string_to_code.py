@@ -1,5 +1,4 @@
 import linecache
-import logging
 import sys
 import traceback
 from collections.abc import Callable
@@ -10,8 +9,9 @@ from codegen.shared.compilation.exception_utils import get_local_frame, get_offs
 from codegen.shared.compilation.function_compilation import safe_compile_function_string
 from codegen.shared.compilation.function_construction import create_function_str_from_codeblock, get_imports_string
 from codegen.shared.exceptions.control_flow import StopCodemodException
+from codegen.shared.logging.get_logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def create_execute_function_from_codeblock(codeblock: str, custom_scope: dict | None = None, func_name: str = "execute") -> Callable:

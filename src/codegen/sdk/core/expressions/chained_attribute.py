@@ -15,8 +15,10 @@ from codegen.sdk.extensions.autocommit import commiter
 from codegen.shared.decorators.docs import apidoc, noapidoc
 
 if TYPE_CHECKING:
+    from codegen.sdk.core.detached_symbols.function_call import FunctionCall
     from codegen.sdk.core.interfaces.has_name import HasName
     from codegen.sdk.core.interfaces.importable import Importable
+
 
 Object = TypeVar("Object", bound="Chainable")
 Attribute = TypeVar("Attribute", bound="Resolvable")
@@ -34,15 +36,15 @@ class ChainedAttribute(Expression[Parent], Resolvable, Generic[Object, Attribute
     _object: Object
     _attribute: Attribute
 
-    def __init__(self, ts_node, file_node_id, G, parent: Parent, object: TSNode, attribute: TSNode):
-        super().__init__(ts_node, file_node_id, G, parent=parent)
+    def __init__(self, ts_node, file_node_id, ctx, parent: Parent, object: TSNode, attribute: TSNode):
+        super().__init__(ts_node, file_node_id, ctx, parent=parent)
         self._object = self._parse_expression(object, default=Name)
-        if self.G.parser._should_log:
+        if self.ctx.parser._should_log:
             if not isinstance(self._object, Chainable):
                 msg = f"{self._object.__class__} is not chainable: {self._object.source}\nfile: {self.filepath}"
                 raise ValueError(msg)
         self._attribute = self._parse_expression(attribute, default=Name)
-        if self.G.parser._should_log:
+        if self.ctx.parser._should_log:
             if not isinstance(self._attribute, Resolvable):
                 msg = f"{self._attribute.__class__} is not resolvable: {self._attribute.source}\nfile: {self.filepath}"
                 raise ValueError(msg)
@@ -75,6 +77,49 @@ class ChainedAttribute(Expression[Parent], Resolvable, Generic[Object, Attribute
         return self._attribute
 
     @property
+    @reader
+    def attribute_chain(self) -> list["FunctionCall | Name"]:
+        """Returns a list of elements in a chained attribute expression.
+
+        Breaks down chained expressions into individual components in order of appearance.
+        For example: `a.b.c().d` -> [Name("a"), Name("b"), FunctionCall("c"), Name("d")]
+
+        Returns:
+            list[FunctionCall | Name]: List of Name nodes (property access) and FunctionCall nodes (method calls)
+        """
+        from codegen.sdk.core.detached_symbols.function_call import FunctionCall
+
+        ret = []
+        curr = self
+
+        # Traverse backwards in code (children of tree node)
+        while isinstance(curr, ChainedAttribute):
+            curr = curr.object
+
+            if isinstance(curr, FunctionCall):
+                ret.insert(0, curr)
+                curr = curr.get_name()
+            elif isinstance(curr, ChainedAttribute):
+                ret.insert(0, curr.attribute)
+
+            # This means that we have reached the base of the chain and the first item was an attribute (i.e a.b.c.func())
+            if isinstance(curr, Name) and not isinstance(curr.parent, FunctionCall):
+                ret.insert(0, curr)
+
+        curr = self
+
+        # Traversing forward in code (parents of tree node). Will add the current node as well
+        while isinstance(curr, ChainedAttribute) or isinstance(curr, FunctionCall):
+            if isinstance(curr, FunctionCall):
+                ret.append(curr)
+            elif isinstance(curr, ChainedAttribute) and not isinstance(curr.parent, FunctionCall):
+                ret.append(curr.attribute)
+
+            curr = curr.parent
+
+        return ret
+
+    @property
     def object(self) -> Object:
         """Returns the object that contains the attribute being looked up.
 
@@ -89,11 +134,16 @@ class ChainedAttribute(Expression[Parent], Resolvable, Generic[Object, Attribute
     @noapidoc
     @override
     def _resolved_types(self) -> Generator[ResolutionStack[Self], None, None]:
-        if not self.G.config.feature_flags.method_usages:
+        from codegen.sdk.typescript.namespace import TSNamespace
+
+        if not self.ctx.config.method_usages:
             return
         if res := self.file.valid_import_names.get(self.full_name, None):
             # Module imports
             yield from self.with_resolution_frame(res)
+            return
+        # HACK: This is a hack to skip the resolved types for namespaces
+        if isinstance(self.object, TSNamespace):
             return
         for resolved_type in self.object.resolved_type_frames:
             top = resolved_type.top
@@ -117,9 +167,9 @@ class ChainedAttribute(Expression[Parent], Resolvable, Generic[Object, Attribute
     def _compute_dependencies(self, usage_type: UsageKind, dest: Optional["HasName | None"] = None) -> None:
         edges = []
         for used_frame in self.resolved_type_frames:
-            edges.extend(used_frame.get_edges(self, usage_type, dest, self.G))
+            edges.extend(used_frame.get_edges(self, usage_type, dest, self.ctx))
         edges = list(dict.fromkeys(edges))
-        self.G.add_edges(edges)
+        self.ctx.add_edges(edges)
         if self.object.source not in ("self", "this"):
             self.object._compute_dependencies(usage_type, dest)
 

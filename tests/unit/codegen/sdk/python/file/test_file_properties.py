@@ -40,10 +40,10 @@ def test_file_extension(tmpdir) -> None:
 
 def test_file_from_content(tmpdir) -> None:
     with get_codebase_session(tmpdir=tmpdir, files={"test.py": default_content}) as codebase:
-        new_file = PyFile.from_content("test_new.py", default_content, codebase.G)
+        new_file = PyFile.from_content("test_new.py", default_content, codebase.ctx)
         assert new_file.name == "test_new"
         assert new_file.content == default_content
-        assert codebase.G.has_node(new_file.node_id)
+        assert codebase.ctx.has_node(new_file.node_id)
 
 
 def test_file_from_content_invalid_syntax(tmpdir) -> None:
@@ -56,16 +56,16 @@ def calculate_average(numbers)
     return total / len(numbers
     """
     with get_codebase_session(tmpdir=tmpdir, files={"test.py": default_content}) as codebase:
-        new_file = PyFile.from_content("test_new.py", content, codebase.G)
+        new_file = PyFile.from_content("test_new.py", content, codebase.ctx)
         assert new_file is None
 
 
 def test_file_create_from_filepath(tmpdir) -> None:
     with get_codebase_session(tmpdir=tmpdir, files={"test.py": default_content}) as codebase:
-        new_file = PyFile.create_from_filepath("test_new.py", codebase.G)
+        new_file = PyFile.create_from_filepath("test_new.py", codebase.ctx)
         assert new_file.name == "test_new"
         assert new_file.content == ""
-        assert codebase.G.has_node(new_file.node_id)
+        assert codebase.ctx.has_node(new_file.node_id)
 
 
 def test_file_content(tmpdir) -> None:

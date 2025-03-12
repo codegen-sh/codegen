@@ -1,7 +1,7 @@
 import pytest
 
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 @pytest.mark.skip(reason="V8 engine is not yet fully supported")

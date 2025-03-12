@@ -191,7 +191,7 @@ parent = dir.parent # Parent directory
 
 ## Editing Files Directly
 
-Files themselves are [`Editable`](/api-reference/core/Editable.mdx) objects, just like Functions and Classes.
+Files themselves are [Editable](/api-reference/core/Editable.mdx) objects, just like Functions and Classes.
 
 <Tip>
   Learn more about the [Editable API](/building-with-codegen/the-editable-api).
@@ -199,12 +199,12 @@ Files themselves are [`Editable`](/api-reference/core/Editable.mdx) objects, jus
 
 This means they expose many useful operations, including:
 
-- [`File.search`](/api-reference/core/File#search) - Search for all functions named "main"
-- [`File.edit`](/api-reference/core/File#edit) - Edit the file
-- [`File.replace`](/api-reference/core/File#replace) - Replace all instances of a string with another string
-- [`File.insert_before`](/api-reference/core/File#insert-before) - Insert text before a specific string
-- [`File.insert_after`](/api-reference/core/File#insert-after) - Insert text after a specific string
-- [`File.remove`](/api-reference/core/File#remove) - Remove a specific string
+- [File.search](/api-reference/core/File#search) - Search for all functions named "main"
+- [File.edit](/api-reference/core/File#edit) - Edit the file
+- [File.replace](/api-reference/core/File#replace) - Replace all instances of a string with another string
+- [File.insert_before](/api-reference/core/File#insert-before) - Insert text before a specific string
+- [File.insert_after](/api-reference/core/File#insert-after) - Insert text after a specific string
+- [File.remove](/api-reference/core/File#remove) - Remove a specific string
 
 ```python
 # Get a file
@@ -230,7 +230,7 @@ file.insert_after("def end():\npass")
 file.remove()
 ```
 
-You can frequently do bulk modifictions via the [`.edit(...)`](/api-reference/core/Editable#edit) method or [`.replace(...)`](/api-reference/core/File#replace) method.
+You can frequently do bulk modifictions via the [.edit(...)](/api-reference/core/Editable#edit) method or [.replace(...)](/api-reference/core/File#replace) method.
 
 <Note>
   Most useful operations will have bespoke APIs that handle edge cases, update
@@ -239,7 +239,7 @@ You can frequently do bulk modifictions via the [`.edit(...)`](/api-reference/co
 
 ## Moving and Renaming Files
 
-Files can be manipulated through methods like [`File.update_filepath()`](/api-reference/core/File#update-filepath), [`File.rename()`](/api-reference/core/File#rename), and [`File.remove()`](/api-reference/core/File#remove):
+Files can be manipulated through methods like [File.update_filepath()](/api-reference/core/File#update-filepath), [File.rename()](/api-reference/core/File#rename), and [File.remove()](/api-reference/core/File#remove):
 
 ```python
 # Move/rename a file
@@ -263,7 +263,7 @@ for file in codebase.files:
 
 ## Directories
 
-[`Directories`](/api-reference/core/Directory) expose a similar API to the [File](/api-reference/core/File.mdx) class, with the addition of the `subdirectories` property.
+[Directories](/api-reference/core/Directory) expose a similar API to the [File](/api-reference/core/File.mdx) class, with the addition of the `subdirectories` property.
 
 ```python
 # Get a directory

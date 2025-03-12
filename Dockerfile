@@ -3,7 +3,6 @@ ARG CODEGEN_BOT_GHE_TOKEN=""
 FROM ghcr.io/astral-sh/uv:python${PYTHON_VERSION}-bookworm-slim AS base_uv
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 ENV GITHUB_WORKSPACE=/workspace
-LABEL com.circleci.preserve-entrypoint=true
 ## Change the working directory to the `codegen-sdk` directory
 FROM base_uv AS install-tools
 RUN apt-get update && apt-get install -y build-essential curl git

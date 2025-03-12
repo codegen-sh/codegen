@@ -1,4 +1,3 @@
-import logging
 import re
 import textwrap
 
@@ -9,10 +8,11 @@ from codegen.sdk.core.expressions.type import Type
 from codegen.sdk.core.function import Function
 from codegen.sdk.core.interfaces.callable import Callable
 from codegen.sdk.core.symbol import Symbol
-from codegen.sdk.enums import ProgrammingLanguage
 from codegen.sdk.python.statements.attribute import PyAttribute
+from codegen.shared.enums.programming_language import ProgrammingLanguage
+from codegen.shared.logging.get_logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # These are the classes that are not language specific, but have language specific subclasses with different names
 SPECIAL_BASE_CLASSES = {"SourceFile": "File"}
@@ -101,7 +101,7 @@ def get_section(symbol: Symbol, parent_class: Class | None = None):
     return doc_section
 
 
-def get_langauge(symbol: Class | Function | PyAttribute) -> str:
+def get_language(symbol: Class | Function | PyAttribute) -> str:
     """Gets the language of which the symbol is an abstract representation.
 
     Args:
@@ -156,7 +156,7 @@ def create_path(symbol: Class | Function | PyAttribute, parent_class: Class | No
         str: route path of `symbol`
     """
     name = symbol.name
-    language = get_langauge(symbol)
+    language = get_language(symbol)
 
     if language == ProgrammingLanguage.PYTHON.value:
         doc_section = ProgrammingLanguage.PYTHON.value.lower()
@@ -253,7 +253,7 @@ def resolve_type_symbol(codebase: Codebase, symbol_name: str, resolved_types: li
     if symbol_name.lower() == "self":
         return f"<{create_path(parent_class)}>"
 
-    language = get_langauge(parent_class)
+    language = get_language(parent_class)
     if (symbol_name, language) in types_cache:
         return types_cache[(symbol_name, language)]
 
@@ -268,7 +268,7 @@ def resolve_type_symbol(codebase: Codebase, symbol_name: str, resolved_types: li
                 if isinstance(resolved_type, FunctionCall) and len(resolved_type.args) >= 2:
                     bound_arg = resolved_type.args[1]
                     bound_name = bound_arg.value.source
-                    if cls_obj := safe_get_class(codebase, bound_name, language=get_langauge(parent_class)):
+                    if cls_obj := safe_get_class(codebase, bound_name, language=get_language(parent_class)):
                         trgt_symbol = cls_obj
                         break
 

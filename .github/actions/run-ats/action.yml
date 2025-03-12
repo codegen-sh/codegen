@@ -1,0 +1,61 @@
+name: 'Run ATS'
+description: 'Run Automated Test Selection to determine which tests to run'
+
+inputs:
+  default_tests:
+    description: 'Default test path to run'
+    required: true
+  codecov_static_token:
+    description: 'Codecov static token'
+    required: true
+  codecov_token:
+    description: 'Codecov token'
+    required: true
+  collect_args:
+    description: 'Additional arguments for test collection'
+    required: false
+    default: ''
+  ats_collect_args:
+    description: 'Additional arguments for ATS collection'
+    required: false
+    default: ''
+  codecov_flags:
+    description: 'Flags for codecov upload'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run ATS
+      shell: bash
+      env:
+        BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        DEFAULT_TESTS: ${{ inputs.default_tests }}
+        CODECOV_STATIC_TOKEN: ${{ inputs.codecov_static_token }}
+        CODECOV_TOKEN: ${{ inputs.codecov_token }}
+        COLLECT_ARGS: ${{ inputs.collect_args }}
+        ATS_COLLECT_ARGS: ${{ inputs.ats_collect_args }}
+      run: |
+        uv run codecovcli create-commit -t ${{ inputs.codecov_token }}
+        uv run codecovcli create-report -t ${{ inputs.codecov_token }}
+        bash .github/actions/run-ats/ats.sh
+
+    - name: Run tests
+      shell: bash
+      run: |
+        TESTS_TO_RUN=$(cat codecov_ats/tests_to_run.txt)
+        if [ -z "$TESTS_TO_RUN" ]; then
+          echo "No tests to run, skipping..."
+          exit 0
+        fi
+        echo $TESTS_TO_RUN | xargs uv run --frozen pytest --cov \
+          -o junit_suite_name="${{ github.job }}" \
+          -n auto \
+          -vv \
+          --cov-append \
+          ${{ inputs.collect_args }}
+
+    - uses: ./.github/actions/report
+      with:
+        flag: ${{ inputs.codecov_flags }}
+        codecov_token: ${{ inputs.codecov_token }}

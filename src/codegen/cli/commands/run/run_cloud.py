@@ -2,10 +2,12 @@ import webbrowser
 
 import rich
 import rich_click as click
+from pygit2._pygit2 import Repository
 from rich.panel import Panel
 
 from codegen.cli.api.client import RestAPI
 from codegen.cli.auth.session import CodegenSession
+from codegen.cli.auth.token_manager import get_current_token
 from codegen.cli.errors import ServerError
 from codegen.cli.git.patch import apply_patch
 from codegen.cli.rich.codeblocks import format_command
@@ -24,7 +26,7 @@ def run_cloud(session: CodegenSession, function, apply_local: bool = False, diff
     """
     with create_spinner(f"Running {function.name}...") as status:
         try:
-            run_output = RestAPI(session.token).run(
+            run_output = RestAPI(get_current_token()).run(
                 function=function,
             )
 
@@ -86,7 +88,8 @@ def run_cloud(session: CodegenSession, function, apply_local: bool = False, diff
 
             if apply_local and run_output.observation:
                 try:
-                    apply_patch(session.git_repo, f"\n{run_output.observation}\n")
+                    git_repo = Repository(str(session.repo_path))
+                    apply_patch(git_repo, f"\n{run_output.observation}\n")
                     rich.print("")
                     rich.print("[green]✓ Changes have been applied to your local filesystem[/green]")
                     rich.print("[yellow]→ Don't forget to commit your changes:[/yellow]")

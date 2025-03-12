@@ -16,6 +16,7 @@ from codegen.sdk.extensions.autocommit import commiter
 from codegen.sdk.extensions.resolution import UsageKind
 from codegen.sdk.utils import find_first_descendant
 from codegen.shared.decorators.docs import apidoc, noapidoc
+from codegen.shared.logging.get_logger import get_logger
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -29,9 +30,8 @@ if TYPE_CHECKING:
     from codegen.sdk.core.interfaces.importable import Importable
     from codegen.sdk.core.symbol_groups.collection import Collection
 
-import logging
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 TType = TypeVar("TType", bound="Type")
 Parent = TypeVar("Parent", bound="Collection[Parameter, Function]")
@@ -45,7 +45,7 @@ class Parameter(Usable[Parent], Typeable[TType, Parent], HasValue, Expression[Pa
     _name_node: Name | None = None
 
     def __init__(self, ts_node: TSNode, index: int, parent: Parent) -> None:
-        super().__init__(ts_node, parent.file_node_id, parent.G, parent)
+        super().__init__(ts_node, parent.file_node_id, parent.ctx, parent)
         self._pos = index
         name_node = self._get_name_node(ts_node)
         self._name_node = self._parse_expression(name_node, default=Name)

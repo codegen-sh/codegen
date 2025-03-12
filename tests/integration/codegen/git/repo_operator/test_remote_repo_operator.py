@@ -3,22 +3,22 @@ from unittest.mock import patch
 import pytest
 from github.MainClass import Github
 
-from codegen.git.repo_operator.remote_repo_operator import RemoteRepoOperator
-from codegen.git.schemas.enums import CheckoutResult
+from codegen.git.repo_operator.repo_operator import RepoOperator
+from codegen.git.schemas.enums import CheckoutResult, SetupOption
 from codegen.git.utils.file_utils import create_files
 
 shallow_options = [True, False]
 
 
 @pytest.fixture
-def op(repo_config, request, tmpdir):
-    op = RemoteRepoOperator(repo_config, shallow=request.param, base_dir=tmpdir, bot_commit=False)
+def op(repo_config, request):
+    op = RepoOperator(repo_config, shallow=request.param if hasattr(request, "param") else True, bot_commit=False, setup_option=SetupOption.PULL_OR_CLONE)
     yield op
 
 
 @pytest.mark.parametrize("op", shallow_options, ids=lambda x: f"shallow={x}", indirect=True)
 @patch("codegen.git.clients.github_client.Github")
-def test_checkout_branch(mock_git_client, op: RemoteRepoOperator):
+def test_checkout_branch(mock_git_client, op: RepoOperator):
     mock_git_client.return_value = Github("test_token", "https://api.github.com")
     op.pull_repo()
     op.checkout_commit(op.head_commit)
@@ -40,7 +40,7 @@ def test_checkout_branch(mock_git_client, op: RemoteRepoOperator):
 
 @pytest.mark.parametrize("op", [True], ids=lambda x: f"shallow={x}", indirect=True)
 @patch("codegen.git.clients.github_client.Github")
-def test_checkout_branch_local_already_checked_out(mock_git_client, op: RemoteRepoOperator):
+def test_checkout_branch_local_already_checked_out(mock_git_client, op: RepoOperator):
     mock_git_client.return_value = Github("test_token", "https://api.github.com")
 
     op.checkout_commit(op.head_commit)
@@ -60,7 +60,7 @@ def test_checkout_branch_local_already_checked_out(mock_git_client, op: RemoteRe
 
 @pytest.mark.parametrize("op", [True], ids=lambda x: f"shallow={x}", indirect=True)
 @patch("codegen.git.clients.github_client.Github")
-def test_checkout_branch_remote_already_checked_out_resets_branch(mock_git_client, op: RemoteRepoOperator):
+def test_checkout_branch_remote_already_checked_out_resets_branch(mock_git_client, op: RepoOperator):
     mock_git_client.return_value = Github("test_token", "https://api.github.com")
 
     original_commit_head = op.head_commit
@@ -76,3 +76,24 @@ def test_checkout_branch_remote_already_checked_out_resets_branch(mock_git_clien
     assert res == CheckoutResult.SUCCESS
     assert len(op.git_cli.heads) == 1
     assert op.head_commit.hexsha == original_commit_head.hexsha
+
+
+def test_clean_repo(op: RepoOperator):
+    num_branches = len(op.git_cli.branches)
+    op.checkout_branch(branch_name="test_branch", create_if_missing=True)
+    with open(f"{op.repo_path}/test.txt", "w") as f:
+        f.write("test")
+    op.git_cli.git.add(A=True)
+    op.git_cli.create_remote(name="other-remote", url=op.clone_url)
+
+    assert op.git_cli.active_branch.name == "test_branch"
+    assert len(op.git_cli.branches) == num_branches + 1
+    assert len(op.git_cli.remotes) == 2
+    assert op.git_cli.is_dirty()
+
+    op.clean_repo()
+    assert not op.git_cli.is_dirty()  # discards changes
+    assert len(op.git_cli.branches) == 1  # deletes only the checked out branch
+    assert op.git_cli.active_branch.name == op.default_branch
+    assert len(op.git_cli.remotes) == 1  # deletes all remotes except origin
+    assert op.git_cli.remotes[0].name == "origin"

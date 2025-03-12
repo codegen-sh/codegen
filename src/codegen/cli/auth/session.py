@@ -1,145 +1,87 @@
-from dataclasses import dataclass
 from pathlib import Path
 
-from pygit2.repository import Repository
+import click
+import rich
+from github import BadCredentialsException
+from github.MainClass import Github
 
-from codegen.cli.auth.constants import CODEGEN_DIR
-from codegen.cli.auth.token_manager import get_current_token
-from codegen.cli.errors import AuthError, NoTokenError
 from codegen.cli.git.repo import get_git_repo
-from codegen.cli.utils.config import Config, get_config, write_config
-from codegen.sdk.enums import ProgrammingLanguage
-
-
-@dataclass
-class Identity:
-    token: str
-    expires_at: str
-    status: str
-    user: "User"
-
-
-@dataclass
-class User:
-    full_name: str
-    email: str
-    github_username: str
-
-
-@dataclass
-class UserProfile:
-    """User profile populated from /identity endpoint"""
-
-    name: str
-    email: str
-    username: str
+from codegen.cli.rich.codeblocks import format_command
+from codegen.configs.constants import CODEGEN_DIR_NAME, ENV_FILENAME
+from codegen.configs.session_manager import session_manager
+from codegen.configs.user_config import UserConfig
+from codegen.git.repo_operator.local_git_repo import LocalGitRepo
 
 
 class CodegenSession:
     """Represents an authenticated codegen session with user and repository context"""
 
-    # =====[ Instance attributes ]=====
-    token: str | None = None
+    repo_path: Path
+    local_git: LocalGitRepo
+    codegen_dir: Path
+    config: UserConfig
+    existing: bool
 
-    # =====[ Lazy instance attributes ]=====
-    _config: Config | None = None
-    _identity: Identity | None = None
-    _profile: UserProfile | None = None
+    def __init__(self, repo_path: Path, git_token: str | None = None) -> None:
+        if not repo_path.exists() or get_git_repo(repo_path) is None:
+            rich.print(f"\n[bold red]Error:[/bold red] Path to git repo does not exist at {self.repo_path}")
+            raise click.Abort()
 
-    def __init__(self, token: str | None = None):
-        self.token = token or get_current_token()
+        self.repo_path = repo_path
+        self.local_git = LocalGitRepo(repo_path=repo_path)
+        self.codegen_dir = repo_path / CODEGEN_DIR_NAME
+        self.config = UserConfig(env_filepath=repo_path / ENV_FILENAME)
+        self.config.secrets.github_token = git_token or self.config.secrets.github_token
+        self.existing = session_manager.get_session(repo_path) is not None
 
-    @property
-    def config(self) -> Config:
-        """Get the config for the current session"""
-        if self._config:
-            return self._config
-        self._config = get_config(self.codegen_dir)
-        return self._config
+        self._initialize()
+        session_manager.set_active_session(repo_path)
 
-    @property
-    def identity(self) -> Identity | None:
-        """Get the identity of the user, if a token has been provided"""
-        if self._identity:
-            return self._identity
-        if not self.token:
-            msg = "No authentication token found"
-            raise NoTokenError(msg)
-
-        from codegen.cli.api.client import RestAPI
-
-        identity = RestAPI(self.token).identify()
-        if not identity:
+    @classmethod
+    def from_active_session(cls) -> "CodegenSession | None":
+        active_session = session_manager.get_active_session()
+        if not active_session:
             return None
 
-        self._identity = Identity(
-            token=self.token,
-            expires_at=identity.auth_context.expires_at,
-            status=identity.auth_context.status,
-            user=User(
-                full_name=identity.user.full_name,
-                email=identity.user.email,
-                github_username=identity.user.github_username,
-            ),
-        )
-        return self._identity
+        return cls(active_session)
 
-    @property
-    def profile(self) -> UserProfile | None:
-        """Get the user profile information"""
-        if self._profile:
-            return self._profile
-        if not self.identity:
-            return None
+    def _initialize(self) -> None:
+        """Initialize the codegen session"""
+        self._validate()
 
-        self._profile = UserProfile(
-            name=self.identity.user.full_name,
-            email=self.identity.user.email,
-            username=self.identity.user.github_username,
-        )
-        return self._profile
+        self.config.repository.path = self.config.repository.path or str(self.local_git.repo_path)
+        self.config.repository.owner = self.config.repository.owner or self.local_git.owner
+        self.config.repository.user_name = self.config.repository.user_name or self.local_git.user_name
+        self.config.repository.user_email = self.config.repository.user_email or self.local_git.user_email
+        self.config.repository.language = self.config.repository.language or self.local_git.get_language(access_token=self.config.secrets.github_token).upper()
+        self.config.save()
 
-    @property
-    def git_repo(self) -> Repository:
-        git_repo = get_git_repo(Path.cwd())
-        if not git_repo:
-            msg = "No git repository found"
-            raise ValueError(msg)
-        return git_repo
+    def _validate(self) -> None:
+        """Validates that the session configuration is correct, otherwise raises an error"""
+        if not self.codegen_dir.exists():
+            self.codegen_dir.mkdir(parents=True, exist_ok=True)
 
-    @property
-    def repo_name(self) -> str:
-        """Get the current repository name"""
-        return self.config.repo_full_name
+        git_token = self.config.secrets.github_token
+        if git_token is None:
+            rich.print("\n[bold yellow]Warning:[/bold yellow] GitHub token not found")
+            rich.print("To enable full functionality, please set your GitHub token:")
+            rich.print(format_command("export GITHUB_TOKEN=<your-token>"))
+            rich.print("Or pass in as a parameter:")
+            rich.print(format_command("codegen init --token <your-token>"))
 
-    @property
-    def language(self) -> ProgrammingLanguage:
-        """Get the current language"""
-        # TODO(jayhack): This is a temporary solution to get the language.
-        # We should eventually get the language on init.
-        return self.config.programming_language or ProgrammingLanguage.PYTHON
+        if self.local_git.origin_remote is None:
+            rich.print("\n[bold yellow]Warning:[/bold yellow] No remote found for repository")
+            rich.print("[white]To enable full functionality, please add a remote to the repository[/white]")
+            rich.print("\n[dim]To add a remote to the repository:[/dim]")
+            rich.print(format_command("git remote add origin <your-repo-url>"))
 
-    @property
-    def codegen_dir(self) -> Path:
-        """Get the path to the  codegen-sh directory"""
-        return Path.cwd() / CODEGEN_DIR
+        try:
+            if git_token is not None:
+                Github(login_or_token=git_token).get_repo(self.local_git.full_name)
+        except BadCredentialsException:
+            rich.print(format_command(f"\n[bold red]Error:[/bold red] Invalid GitHub token={git_token} for repo={self.local_git.full_name}"))
+            rich.print("[white]Please provide a valid GitHub token for this repository.[/white]")
+            raise click.Abort()
 
     def __str__(self) -> str:
-        return f"CodegenSession(user={self.profile.name}, repo={self.repo_name})"
-
-    def is_authenticated(self) -> bool:
-        """Check if the session is fully authenticated, including token expiration"""
-        return bool(self.identity and self.identity.status == "active")
-
-    def assert_authenticated(self) -> None:
-        """Raise an AuthError if the session is not fully authenticated"""
-        if not self.identity:
-            msg = "No identity found for session"
-            raise AuthError(msg)
-        if self.identity.status != "active":
-            msg = "Current session is not active. API Token may be invalid or may have expired."
-            raise AuthError(msg)
-
-    def write_config(self) -> None:
-        """Write the config to the codegen-sh/config.toml file"""
-        write_config(self.config, self.codegen_dir)
+        return f"CodegenSession(user={self.config.repository.user_name}, repo={self.config.repository.repo_name})"

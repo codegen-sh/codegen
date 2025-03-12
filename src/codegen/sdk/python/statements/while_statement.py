@@ -12,7 +12,7 @@ from codegen.shared.decorators.docs import noapidoc, py_apidoc
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
 
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.dataclasses.usage import UsageKind
     from codegen.sdk.core.detached_symbols.function_call import FunctionCall
     from codegen.sdk.core.interfaces.has_name import HasName
@@ -31,11 +31,11 @@ class PyWhileStatement(WhileStatement["PyCodeBlock"], PyHasBlock):
 
     else_statement: PyIfBlockStatement[PyCodeBlock[PyWhileStatement]] | None = None
 
-    def __init__(self, ts_node: TSNode, file_node_id: NodeId, G: CodebaseGraph, parent: PyCodeBlock, pos: int | None = None) -> None:
-        super().__init__(ts_node, file_node_id, G, parent, pos)
+    def __init__(self, ts_node: TSNode, file_node_id: NodeId, ctx: CodebaseContext, parent: PyCodeBlock, pos: int | None = None) -> None:
+        super().__init__(ts_node, file_node_id, ctx, parent, pos)
         self.condition = self.child_by_field_name("condition")
         if else_block := ts_node.child_by_field_name("alternative"):
-            self.else_statement = PyIfBlockStatement(else_block, file_node_id, G, self.code_block, self.index, main_if_block=self)
+            self.else_statement = PyIfBlockStatement(else_block, file_node_id, ctx, self.code_block, self.index, main_if_block=self)
         else:
             self.else_statement = None
 

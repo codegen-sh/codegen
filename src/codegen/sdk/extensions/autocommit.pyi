@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from typing import Any, ParamSpec, TypeVar, overload
 
-from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+from codegen.sdk.codebase.codebase_context import CodebaseContext
 from codegen.sdk.core.interfaces.editable import Editable
 
 P = ParamSpec("P")
@@ -18,7 +18,7 @@ class AutoCommitMixin:
 
     autocommit_cache: dict[str, Any]
     removed: bool
-    def __init__(self, G: CodebaseGraph) -> None: ...
+    def __init__(self, ctx: CodebaseContext) -> None: ...
     def update_generation(self, generation: int | None = None) -> None: ...
     @property
     def is_outdated(self) -> bool: ...

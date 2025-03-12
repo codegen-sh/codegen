@@ -1,5 +1,5 @@
 from codegen.sdk.codebase.factory.get_session import get_codebase_graph_session
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 
 def test_functions_dependencies_async_function_finds_deps(tmpdir) -> None:
@@ -11,8 +11,8 @@ async function myFunction(a: A, b) {
   return a + b + d;
 };
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": ts_code}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": ts_code}) as ctx:
+        file = ctx.get_file("test.ts")
 
         # =====[ Test myFunction ]=====
         my_function = file.get_function("myFunction")
@@ -34,8 +34,8 @@ function* myFunction(a: A, b) {
   yield a + b + d;
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": ts_code}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": ts_code}) as ctx:
+        file = ctx.get_file("test.ts")
 
         # =====[ Test myFunction ]=====
         my_function = file.get_function("myFunction")
@@ -55,8 +55,8 @@ const d = 123;
 
 const myFunction = (a: A, b) => a + b + d;
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": ts_code}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": ts_code}) as ctx:
+        file = ctx.get_file("test.ts")
 
         # =====[ Test myFunction ]=====
         my_function = file.get_function("myFunction")
@@ -78,8 +78,8 @@ const myFunction = function(a: A, b) {
   return a + b + d;
 };
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": ts_code}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": ts_code}) as ctx:
+        file = ctx.get_file("test.ts")
 
         # =====[ Test myFunction ]=====
         my_function = file.get_function("myFunction")
@@ -101,8 +101,8 @@ function myFunction(a: A, b) {
   return a + b + d;
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": ts_code}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": ts_code}) as ctx:
+        file = ctx.get_file("test.ts")
 
         # =====[ Test myFunction ]=====
         my_function = file.get_function("myFunction")
@@ -125,8 +125,8 @@ export function foo() {
     bar();
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": ts_code}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": ts_code}) as ctx:
+        file = ctx.get_file("test.ts")
 
         # =====[ Test bar ]=====
         bar = file.get_function("bar")
@@ -156,8 +156,8 @@ const equalsFunction = function(a: A, b) {
   return a + b + d;
 };
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as ctx:
+        file = ctx.get_file("test.ts")
         my_func = file.get_function("myFunc")
         deps = my_func.dependencies
         assert len(deps) == 2

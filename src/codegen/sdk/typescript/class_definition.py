@@ -24,7 +24,7 @@ from codegen.shared.decorators.docs import noapidoc, ts_apidoc
 if TYPE_CHECKING:
     from tree_sitter import Node as TSNode
 
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.node_id_factory import NodeId
     from codegen.sdk.core.statements.symbol_statement import SymbolStatement
     from codegen.sdk.typescript.detached_symbols.code_block import TSCodeBlock
@@ -49,13 +49,13 @@ class TSClass(Class[TSFunction, TSDecorator, "TSCodeBlock", TSParameter, TSType]
     Representation of a Class in JavaScript/TypeScript
     """
 
-    def __init__(self, ts_node: TSNode, file_id: NodeId, G: CodebaseGraph, parent: SymbolStatement) -> None:
-        super().__init__(ts_node, file_id, G, parent)
+    def __init__(self, ts_node: TSNode, file_id: NodeId, ctx: CodebaseContext, parent: SymbolStatement) -> None:
+        super().__init__(ts_node, file_id, ctx, parent)
         if superclasses_node := self.child_by_field_types("class_heritage"):
             if extends_clause := superclasses_node.child_by_field_types(["extends_clause", "implements_clause"]):
-                self.parent_classes = Parents(extends_clause.ts_node, self.file_node_id, self.G, self)
+                self.parent_classes = Parents(extends_clause.ts_node, self.file_node_id, self.ctx, self)
         if self.constructor is not None and len(self.constructor.parameters) > 0:
-            self._parameters = SymbolGroup(self.file_node_id, self.G, self, children=self.constructor.parameters)
+            self._parameters = SymbolGroup(self.file_node_id, self.ctx, self, children=self.constructor.parameters)
         self.type_parameters = self.child_by_field_name("type_parameters")
 
     @noapidoc
@@ -98,7 +98,7 @@ class TSClass(Class[TSFunction, TSDecorator, "TSCodeBlock", TSParameter, TSType]
         else:
             start_byte = block_node.start_byte - block_node.start_point[1]
         return MultiLineCollection(
-            children=methods, file_node_id=self.file_node_id, G=self.G, parent=self, node=self.code_block.ts_node, indent_size=indent_size, start_byte=start_byte, end_byte=block_node.end_byte - 1
+            children=methods, file_node_id=self.file_node_id, ctx=self.ctx, parent=self, node=self.code_block.ts_node, indent_size=indent_size, start_byte=start_byte, end_byte=block_node.end_byte - 1
         )
 
     @property
@@ -225,4 +225,4 @@ class TSClass(Class[TSFunction, TSDecorator, "TSCodeBlock", TSParameter, TSType]
     @writer
     def class_component_to_function_component(self) -> None:
         """Converts a class component to a function component."""
-        return self.G.ts_declassify.declassify(self.source, filename=os.path.basename(self.file.file_path))
+        return self.ctx.ts_declassify.declassify(self.source, filename=os.path.basename(self.file.file_path))

@@ -1,0 +1,75 @@
+---
+title: "Building a Model Context Protocol server with Codegen"
+sidebarTitle: "MCP Server"
+icon: "boxes-stacked"
+iconType: "solid"
+---
+
+Learn how to build a Model Context Protocol (MCP) server that enables AI models to understand and manipulate code using Codegen's powerful tools.
+
+This guide will walk you through creating an MCP server that can provide semantic code search
+
+<Info>View the full code in our [examples repository](https://github.com/codegen-sh/codegen-sdk/tree/develop/src/codegen/extensions/mcp)</Info>
+
+
+## Setup:
+Install the MCP python library
+```
+uv pip install mcp
+```
+
+## Step 1: Setting Up Your MCP Server
+
+First, let's create a basic MCP server using Codegen's MCP tools:
+
+server.py
+```python
+from codegen import Codebase
+from mcp.server.fastmcp import FastMCP
+from typing import Annotated
+# Initialize the codebase
+codebase = Codebase.from_repo(".")
+
+# create the MCP server using FastMCP
+mcp = FastMCP(name="demo-mcp", instructions="Use this server for semantic search of codebases")
+
+
+if __name__ == "__main__":
+    # Initialize and run the server
+    print("Starting demo mpc server...")
+    mcp.run(transport="stdio")
+
+```
+
+## Step 2: Create the search tool
+
+Let's implement the semantic search tool.
+
+server.py
+```python
+from codegen.extensions.tools.semantic_search import semantic_search
+
+....
+
+@mcp.tool('codebase_semantic_search', "search codebase with the provided query")
+def search(query: Annotated[str, "search query to run against codebase"]):
+  codebase = Codebase("provide location to codebase", language="provide codebase Language")
+  # use the semantic search tool from codegen.extensions.tools OR write your own
+  results = semantic_search(codebase=codebase, query=query)
+  return results
+
+....
+```
+
+## Run Your MCP Server
+
+You can run and inspect your MCP server with:
+
+```
+mcp dev server.py
+```
+
+If you'd like to integrate this into an IDE checkout out this [setup guide](/introduction/ide-usage#mcp-server-setup)
+
+And that's a wrap, chime in at our [community
+  Slack](https://community.codegen.com) if you have questions or ideas for additional MCP tools/capabilities

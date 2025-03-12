@@ -17,10 +17,10 @@ Parent = TypeVar("Parent", bound="Editable")
 class AwaitExpression(Expression[Parent], HasValue, IWrapper, Generic[Parent]):
     """An awaited expression, only found in asynchronous contexts, e.g. await(foo(bar))"""
 
-    def __init__(self, ts_node, file_node_id, G, parent: Parent):
-        super().__init__(ts_node, file_node_id, G, parent=parent)
+    def __init__(self, ts_node, file_node_id, ctx, parent: Parent):
+        super().__init__(ts_node, file_node_id, ctx, parent=parent)
         value_node = self.ts_node.named_children[0]
-        self._value_node = self.G.parser.parse_expression(value_node, self.file_node_id, self.G, parent) if value_node else None
+        self._value_node = self.ctx.parser.parse_expression(value_node, self.file_node_id, self.ctx, parent) if value_node else None
 
     @property
     @reader

@@ -23,19 +23,19 @@ def bar(x):
     # Test remove c
     foo = file.get_function("foo")
     foo.get_parameter("c").remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert "def foo(b):" in file.source
 
     # Test remove b
     foo = file.get_function("foo")
     foo.get_parameter("b").remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert "def foo():" in file.source
 
     bar = file.get_function("bar")
 
     bar.parameters[0].remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert "def bar():" in file.content
 
 
@@ -94,7 +94,7 @@ def test_parameter_remove_any_formatting(tmpdir) -> None:
     assert all([len(call.args) == 2 for call in foo.call_sites])
 
     foo.parameters[1].remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
 
     foo = file1.get_function("foo")
     assert [p.name for p in foo.parameters] == ["b"]
@@ -102,7 +102,7 @@ def test_parameter_remove_any_formatting(tmpdir) -> None:
 
     bar = file1.get_function("bar")
     bar.parameters[0].remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
 
     bar = file1.get_function("bar")
     assert bar.parameters == []

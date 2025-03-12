@@ -11,7 +11,7 @@ import {HorizontalDivider} from '/snippets/HorizontalDivider.mdx';
 import {GithubLinkNote} from '/snippets/GithubLinkNote.mdx';
 import {Attribute} from '/snippets/Attribute.mdx';
 
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/python/import_resolution.py#L28-L285" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/python/import_resolution.py#L30-L353" />
 
 ### Inherits from
 [Import](/api-reference/core/Import), [Usable](/api-reference/core/Usable), [Editable](/api-reference/core/Editable), [Importable](/api-reference/core/Importable), [Expression](/api-reference/core/Expression), [HasName](/api-reference/core/HasName)
@@ -21,10 +21,6 @@ import {Attribute} from '/snippets/Attribute.mdx';
 ### <span className="text-primary">alias</span>
 <HorizontalDivider light={true} />
 <Attribute type={ <><a href="/api-reference/core/Editable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Editable</a> <span>| None</span></> } description="The alias of the imported symbol, if one exists." />
-
-### <span className="text-primary">dependencies</span>
-<HorizontalDivider light={true} />
-<Attribute type={ <><span>list[Union[</span> <a href="/api-reference/python/PySymbol" style={ {fontWeight: "inherit", fontSize: "inherit"} }>PySymbol</a> <span>,</span> <a href="/api-reference/python/PyImport" style={ {fontWeight: "inherit", fontSize: "inherit"} }>PyImport</a> <span>]]</span></> } description="Returns a list of symbols that this symbol depends on." />
 
 ### <span className="text-primary">extended</span>
 <HorizontalDivider light={true} />
@@ -139,15 +135,38 @@ import {Attribute} from '/snippets/Attribute.mdx';
 <HorizontalDivider />
 ### <span className="text-primary">ancestors</span>
 Find all ancestors of the node of the given type. Does not return itself
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1088-L1096" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1109-L1117" />
 
 
 <Return return_type={ <><span>list[</span> <a href="/api-reference/core/Editable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Editable</a> <span>]</span></> } description=""/>
 
 
+### <span className="text-primary">dependencies</span>
+Returns a list of symbols that this symbol depends on.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/interfaces/importable.py#L46-L78" />
+
+<ParameterWrapper>
+<Parameter
+    name="usage_types"
+    type={ <><a href="/api-reference/core/UsageType" style={ {fontWeight: "inherit", fontSize: "inherit"} }>UsageType</a> <span>| None</span></> }
+    description="The types of dependencies to search for. Defaults to UsageType.DIRECT."
+    defaultValue="UsageType.DIRECT"
+/>
+<Parameter
+    name="max_depth"
+    type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">int | None</code> }
+    description="Maximum depth to traverse in the dependency graph. If provided, will recursively collect"
+    defaultValue="None"
+/>
+</ParameterWrapper>
+
+
+<Return return_type={ <><span>list[Union[</span> <a href="/api-reference/python/PySymbol" style={ {fontWeight: "inherit", fontSize: "inherit"} }>PySymbol</a> <span>,</span> <a href="/api-reference/python/PyImport" style={ {fontWeight: "inherit", fontSize: "inherit"} }>PyImport</a> <span>]]</span></> } description="A list of symbols and imports that this symbol depends on, sorted by file location."/>
+
+
 ### <span className="text-primary">edit</span>
 Replace the source of this `Editable` with `new_src`.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L632-L660" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L637-L665" />
 
 <ParameterWrapper>
 <Parameter
@@ -182,7 +201,7 @@ Replace the source of this `Editable` with `new_src`.
 
 ### <span className="text-primary">find</span>
 Find and return matching nodes or substrings within an Editable instance.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L482-L499" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L487-L504" />
 
 <ParameterWrapper>
 <Parameter
@@ -205,7 +224,7 @@ Find and return matching nodes or substrings within an Editable instance.
 
 ### <span className="text-primary">find_string_literals</span>
 Returns a list of string literals within this node's source that match any of the given
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L394-L408" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L398-L412" />
 
 <ParameterWrapper>
 <Parameter
@@ -223,12 +242,12 @@ Returns a list of string literals within this node's source that match any of th
 </ParameterWrapper>
 
 
-<Return return_type={ <><span>list[</span> <a href="/api-reference/core/Editable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Editable</a> <span>]</span></> } description="A list of Editable objects representing the matching string literals."/>
+<Return return_type={ <><span>list[</span> <a href="/api-reference/core/Editable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Editable</a> <span>[</span> <a href="/api-reference/python/PyImport" style={ {fontWeight: "inherit", fontSize: "inherit"} }>PyImport</a> <span>]]</span></> } description="A list of Editable objects representing the matching string literals."/>
 
 
 ### <span className="text-primary">flag</span>
 Adds a visual flag comment to the end of this Editable's source text.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L926-L937" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L939-L950" />
 
 
 <Return return_type={ <><span>CodeFlag[</span> <a href="/api-reference/python/PyImport" style={ {fontWeight: "inherit", fontSize: "inherit"} }>PyImport</a> <span>]</span></> } description=""/>
@@ -236,7 +255,7 @@ Adds a visual flag comment to the end of this Editable's source text.
 
 ### <span className="text-primary">get_import_string</span>
 Generates an import string for a Python import statement.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/python/import_resolution.py#L258-L285" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/python/import_resolution.py#L326-L353" />
 
 <ParameterWrapper>
 <Parameter
@@ -271,7 +290,7 @@ Generates an import string for a Python import statement.
 
 ### <span className="text-primary">get_name</span>
 Returns the name node of the object.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/has_name.py#L52-L62" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/interfaces/has_name.py#L52-L62" />
 
 
 <Return return_type={ <><a href="/api-reference/core/Name" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Name</a> <span>|</span> <a href="/api-reference/python/PyChainedAttribute" style={ {fontWeight: "inherit", fontSize: "inherit"} }>PyChainedAttribute</a> <span>| None</span></> } description="The name node of the object. Can be a Name node for simple names, a ChainedAttribute for names with namespaces (e.g., a.b), or None if the object has no name."/>
@@ -279,7 +298,7 @@ Returns the name node of the object.
 
 ### <span className="text-primary">get_variable_usages</span>
 Returns Editables for all TreeSitter nodes corresponding to instances of variable usage
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L902-L918" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L909-L925" />
 
 <ParameterWrapper>
 <Parameter
@@ -297,12 +316,12 @@ Returns Editables for all TreeSitter nodes corresponding to instances of variabl
 </ParameterWrapper>
 
 
-<Return return_type={ <><span>list[</span> <a href="/api-reference/core/Editable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Editable</a> <span>]</span></> } description="List of Editable objects representing variable usage nodes matching the given name."/>
+<Return return_type={ <><span>Sequence[</span> <a href="/api-reference/core/Editable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Editable</a> <span>[</span> <a href="/api-reference/python/PyImport" style={ {fontWeight: "inherit", fontSize: "inherit"} }>PyImport</a> <span>]]</span></> } description="List of Editable objects representing variable usage nodes matching the given name."/>
 
 
 ### <span className="text-primary">insert_after</span>
 Inserts code after this node.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L603-L629" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L608-L634" />
 
 <ParameterWrapper>
 <Parameter
@@ -343,7 +362,7 @@ Inserts code after this node.
 
 ### <span className="text-primary">insert_before</span>
 Inserts text before this node's source with optional indentation and newline handling.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L570-L600" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L575-L605" />
 
 <ParameterWrapper>
 <Parameter
@@ -384,7 +403,7 @@ Inserts text before this node's source with optional indentation and newline han
 
 ### <span className="text-primary">is_aliased_import</span>
 Returns True if this import is aliased.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/import_resolution.py#L185-L200" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/import_resolution.py#L185-L200" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">bool</code> } description="True if the import has an alias different from its original name, False otherwise."/>
@@ -392,7 +411,7 @@ Returns True if this import is aliased.
 
 ### <span className="text-primary">is_module_import</span>
 Determines if the import is a module-level or wildcard import.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/python/import_resolution.py#L32-L40" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/python/import_resolution.py#L34-L42" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">bool</code> } description="True if the import is a module-level or wildcard import, False otherwise."/>
@@ -400,7 +419,7 @@ Determines if the import is a module-level or wildcard import.
 
 ### <span className="text-primary">is_reexport</span>
 Returns true if the Import object is also an Export object.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/import_resolution.py#L545-L554" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/import_resolution.py#L546-L555" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">bool</code> } description="True if the import is re-exported, False otherwise."/>
@@ -408,7 +427,7 @@ Returns true if the Import object is also an Export object.
 
 ### <span className="text-primary">is_symbol_import</span>
 Returns True if this import is importing a symbol rather than a module.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/import_resolution.py#L214-L222" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/import_resolution.py#L214-L222" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">bool</code> } description="True if this import is a symbol import, False if it is a module import."/>
@@ -416,7 +435,7 @@ Returns True if this import is importing a symbol rather than a module.
 
 ### <span className="text-primary">is_wildcard_import</span>
 Returns True if the import symbol is a wildcard import.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/import_resolution.py#L225-L235" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/import_resolution.py#L225-L235" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">bool</code> } description="True if this is a wildcard import, False otherwise."/>
@@ -424,7 +443,7 @@ Returns True if the import symbol is a wildcard import.
 
 ### <span className="text-primary">is_wrapped_in</span>
 Check if this node is contained another node of the given class
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1074-L1076" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1087-L1089" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">bool</code> } description=""/>
@@ -432,7 +451,15 @@ Check if this node is contained another node of the given class
 
 ### <span className="text-primary">parent_of_type</span>
 Find the first ancestor of the node of the given type. Does not return itself
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1079-L1085" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1092-L1098" />
+
+
+<Return return_type={ <><a href="/api-reference/core/Editable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Editable</a> <span>| None</span></> } description=""/>
+
+
+### <span className="text-primary">parent_of_types</span>
+Find the first ancestor of the node of the given type. Does not return itself
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1100-L1106" />
 
 
 <Return return_type={ <><a href="/api-reference/core/Editable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Editable</a> <span>| None</span></> } description=""/>
@@ -440,7 +467,7 @@ Find the first ancestor of the node of the given type. Does not return itself
 
 ### <span className="text-primary">reduce_condition</span>
 Reduces an editable to the following condition
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1030-L1035" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1043-L1048" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
@@ -448,7 +475,7 @@ Reduces an editable to the following condition
 
 ### <span className="text-primary">remove</span>
 Remove this import from the import statement.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/import_resolution.py#L503-L523" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/import_resolution.py#L504-L524" />
 
 <ParameterWrapper>
 <Parameter
@@ -477,7 +504,7 @@ Remove this import from the import statement.
 
 ### <span className="text-primary">rename</span>
 Renames the import symbol and updates all its usages throughout the codebase.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/import_resolution.py#L478-L500" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/import_resolution.py#L479-L501" />
 
 <ParameterWrapper>
 <Parameter
@@ -500,7 +527,7 @@ Renames the import symbol and updates all its usages throughout the codebase.
 
 ### <span className="text-primary">replace</span>
 Search and replace occurrences of text within this node's source and its extended nodes.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L427-L451" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L432-L456" />
 
 <ParameterWrapper>
 <Parameter
@@ -541,7 +568,7 @@ Search and replace occurrences of text within this node's source and its extende
 
 ### <span className="text-primary">search</span>
 Returns a list of all regex match of `regex_pattern`, similar to python's re.search().
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L515-L531" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L520-L536" />
 
 <ParameterWrapper>
 <Parameter
@@ -570,7 +597,7 @@ Returns a list of all regex match of `regex_pattern`, similar to python's re.sea
 
 ### <span className="text-primary">set_import_module</span>
 Sets the module of an import.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/import_resolution.py#L437-L455" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/import_resolution.py#L438-L456" />
 
 <ParameterWrapper>
 <Parameter
@@ -587,7 +614,7 @@ Sets the module of an import.
 
 ### <span className="text-primary">set_import_symbol_alias</span>
 Sets alias or name of an import at the declaration level.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/import_resolution.py#L458-L476" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/import_resolution.py#L459-L477" />
 
 <ParameterWrapper>
 <Parameter
@@ -604,7 +631,7 @@ Sets alias or name of an import at the declaration level.
 
 ### <span className="text-primary">set_name</span>
 Sets the name of a code element.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/has_name.py#L65-L77" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/interfaces/has_name.py#L65-L77" />
 
 <ParameterWrapper>
 <Parameter
@@ -621,7 +648,7 @@ Sets the name of a code element.
 
 ### <span className="text-primary">symbol_usages</span>
 Returns a list of symbols that use or import the exportable object.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/usable.py#L27-L42" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/interfaces/usable.py#L27-L42" />
 
 <ParameterWrapper>
 <Parameter
@@ -638,7 +665,7 @@ Returns a list of symbols that use or import the exportable object.
 
 ### <span className="text-primary">usages</span>
 Returns a list of usages of the exportable object.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen-sdk/blob/develop/src/codegen/sdk/core/interfaces/usable.py#L46-L76" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/interfaces/usable.py#L46-L76" />
 
 <ParameterWrapper>
 <Parameter

@@ -11,7 +11,7 @@ from codegen.sdk.extensions.autocommit import reader
 from codegen.shared.decorators.docs import apidoc, noapidoc
 
 if TYPE_CHECKING:
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.interfaces.editable import Editable
     from codegen.sdk.core.interfaces.importable import Importable
 
@@ -26,15 +26,15 @@ class UnionType(Collection[Type, Parent], Type[Parent], Generic[TType, Parent]):
     For example `str | None` or `string | number`.
     """
 
-    def __init__(self, ts_node: TSNode, file_node_id: NodeId, G: "CodebaseGraph", parent: Parent):
-        super().__init__(ts_node, file_node_id, G, parent, delimiter=" |")
+    def __init__(self, ts_node: TSNode, file_node_id: NodeId, ctx: "CodebaseContext", parent: Parent):
+        super().__init__(ts_node, file_node_id, ctx, parent, delimiter=" |")
         elements = list(self._get_types(ts_node))
         self._init_children(elements)
         self._bracket_size = 0
 
     def _get_types(self, node: TSNode) -> Generator[TType, None, None]:
         for child in node.named_children:
-            type_cls = self.G.node_classes.type_map.get(child.type, None)
+            type_cls = self.ctx.node_classes.type_map.get(child.type, None)
             if isinstance(type_cls, type) and issubclass(type_cls, self.__class__):
                 yield from self._get_types(child)
             else:

@@ -58,5 +58,5 @@ class PyDecorator(Decorator["PyClass", "PyFunction", "PyParameter"]):
             None if it's a simple decorator.
         """
         if call_node := next((x for x in self.ts_node.named_children if x.type == "call"), None):
-            return FunctionCall(call_node, self.file_node_id, self.G, self.parent)
+            return FunctionCall(call_node, self.file_node_id, self.ctx, self.parent)
         return None

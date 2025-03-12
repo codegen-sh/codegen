@@ -2,7 +2,7 @@ from typing import Self
 
 from tree_sitter import Node as TSNode
 
-from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+from codegen.sdk.codebase.codebase_context import CodebaseContext
 from codegen.sdk.core.autocommit import commiter, reader, writer
 from codegen.sdk.core.class_definition import Class
 from codegen.sdk.core.dataclasses.usage import UsageKind
@@ -34,14 +34,14 @@ class PyClass(Class[PyFunction, PyDecorator, PyCodeBlock, PyParameter, PyType], 
     _decorated_node: TSNode | None
     constructor_keyword = "__init__"
 
-    def __init__(self, ts_node: TSNode, file_id: NodeId, G: CodebaseGraph, parent: PyHasBlock, decorated_node: TSNode | None = None) -> None:
-        super().__init__(ts_node, file_id, G, parent)
+    def __init__(self, ts_node: TSNode, file_id: NodeId, ctx: CodebaseContext, parent: PyHasBlock, decorated_node: TSNode | None = None) -> None:
+        super().__init__(ts_node, file_id, ctx, parent)
         self._decorated_node = decorated_node
 
         if superclasses_node := self.ts_node.child_by_field_name("superclasses"):
-            self.parent_classes = Parents(superclasses_node, self.file_node_id, self.G, self)
+            self.parent_classes = Parents(superclasses_node, self.file_node_id, self.ctx, self)
         if self.constructor is not None and len(self.constructor.parameters) > 1:
-            self._parameters = SymbolGroup(self.file_node_id, self.G, self, children=self.constructor.parameters[1:])
+            self._parameters = SymbolGroup(self.file_node_id, self.ctx, self, children=self.constructor.parameters[1:])
         self.type_parameters = self.child_by_field_name("type_parameters")
 
     @noapidoc
@@ -76,7 +76,7 @@ class PyClass(Class[PyFunction, PyDecorator, PyCodeBlock, PyParameter, PyType], 
         else:
             # Set start byte at column=0 of start of the code block
             start_byte = block_node.start_byte - block_node.start_point[1]
-        return MultiLineCollection(children=methods, file_node_id=self.file_node_id, G=self.G, parent=self, node=self.code_block.ts_node, indent_size=indent_size, start_byte=start_byte)
+        return MultiLineCollection(children=methods, file_node_id=self.file_node_id, ctx=self.ctx, parent=self, node=self.code_block.ts_node, indent_size=indent_size, start_byte=start_byte)
 
     ####################################################################################################################
     # MANIPULATIONS

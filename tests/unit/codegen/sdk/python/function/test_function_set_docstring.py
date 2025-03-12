@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 if TYPE_CHECKING:
     from codegen.sdk.core.function import Function
@@ -45,7 +45,7 @@ class A():
     foo = file.get_function("foo")
     foo.docstring.edit_text("This is a another docstring")
 
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     foo = file.get_function("foo")
 
     assert "This is a another docstring" in foo.docstring.text
@@ -56,7 +56,7 @@ class A():
     bar = file.get_function("bar")
     bar.set_docstring("This is a brand new docstring")
 
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     bar = file.get_symbol("bar")
 
     assert "This is a brand new docstring" in bar.docstring.text
@@ -66,7 +66,7 @@ class A():
     baz = file.get_class("A").get_method("baz")
     baz.set_docstring(".\nThis is a multi-line docstring\n.")
 
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     baz = file.get_class("A").get_method("baz")
 
     assert "This is a multi-line docstring" in baz.docstring.text
@@ -77,7 +77,7 @@ class A():
     baz = file.get_class("A").get_method("baz")
     baz.docstring.edit_text(".\nThis is a new multi-line docstring\n.")
 
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     baz = file.get_class("A").get_method("baz")
 
     assert "This is a new multi-line docstring" in baz.docstring.text

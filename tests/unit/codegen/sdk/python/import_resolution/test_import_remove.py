@@ -21,21 +21,21 @@ from d.f import (g as h, i as j)  # test three
     # =====[ Remove b.c ]=====
     imp = file.get_import("d")
     imp.remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert "from b.c import d  # test two" not in file.content
     assert imp not in file.imports
 
     # =====[ Remove d.f ]=====
     imp = file.get_import("h")
     imp.remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert "from d.f import (g as h, i as j)  # test three" not in file.content
     assert "from d.f import (i as j)  # test three" in file.content
     assert imp not in file.imports
 
     imp = file.get_import("j")
     imp.remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert "from d.f" not in file.content
 
 
@@ -76,7 +76,7 @@ def bar():
     codebase.reset()
 
     file.imports[0].remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     # language=python
     assert (
         file.content
@@ -165,35 +165,35 @@ from d.f import (g as h, i as j, x as y)  # test three
     file.get_import("h").remove()
     file.get_import("j").remove()
     file.get_import("y").remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert "from d.f" not in file.content
 
     codebase.reset()
     file.get_import("y").remove()
     file.get_import("j").remove()
     file.get_import("h").remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert "from d.f" not in file.content
 
     codebase.reset()
     file.get_import("y").remove()
     file.get_import("h").remove()
     file.get_import("j").remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert "from d.f" not in file.content
 
     codebase.reset()
     file.get_import("j").remove()
     file.get_import("y").remove()
     file.get_import("h").remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert "from d.f" not in file.content
 
     codebase.reset()
     file.get_import("j").remove()
     file.get_import("h").remove()
     file.get_import("y").remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert "from d.f" not in file.content
 
 
@@ -219,7 +219,7 @@ def test_multi_import_remove_import_from_multi_import(tmpdir) -> None:
     )
 
     file.get_import("c").remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     # language=python
     assert (
         file.content
@@ -230,7 +230,7 @@ def test_multi_import_remove_import_from_multi_import(tmpdir) -> None:
     )
 
     file.get_import("b").remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     # language=python
     assert (
         file.content
@@ -240,7 +240,7 @@ def test_multi_import_remove_import_from_multi_import(tmpdir) -> None:
     )
 
     file.get_import("x").remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     # language=python
     assert (
         file.content
@@ -250,7 +250,7 @@ def test_multi_import_remove_import_from_multi_import(tmpdir) -> None:
     )
 
     file.get_import("z").remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     # language=python
     assert (
         file.content
@@ -260,7 +260,7 @@ def test_multi_import_remove_import_from_multi_import(tmpdir) -> None:
     )
 
     file.get_import("y").remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert file.content.strip() == ""
 
 

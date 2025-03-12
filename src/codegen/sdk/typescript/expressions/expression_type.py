@@ -8,7 +8,7 @@ from codegen.sdk.typescript.expressions.named_type import TSNamedType
 from codegen.shared.decorators.docs import ts_apidoc
 
 if TYPE_CHECKING:
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.interfaces.editable import Editable
 
 Parent = TypeVar("Parent", bound="Editable")
@@ -24,6 +24,6 @@ class TSExpressionType(TSNamedType, Generic[Parent]):
 
     expression: Expression["TSExpressionType[Parent]"]
 
-    def __init__(self, ts_node: TSNode, file_node_id: NodeId, G: "CodebaseGraph", parent: Parent):
-        super().__init__(ts_node, file_node_id, G, parent)
+    def __init__(self, ts_node: TSNode, file_node_id: NodeId, ctx: "CodebaseContext", parent: Parent):
+        super().__init__(ts_node, file_node_id, ctx, parent)
         self.expression = self._parse_expression(ts_node)

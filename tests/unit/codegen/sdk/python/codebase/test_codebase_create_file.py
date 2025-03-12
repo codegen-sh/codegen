@@ -65,5 +65,5 @@ def test_codebase_create_then_delete_file(mock_codebase_setup: tuple[Codebase, F
     assert len(list(list(codebase.files))) == 3
 
     file.remove()
-    codebase.G.commit_transactions()
+    codebase.ctx.commit_transactions()
     assert not os.path.exists("my_file.py")

@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     import rich.repr
     from tree_sitter import Node as TSNode
 
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.dataclasses.usage import UsageKind
     from codegen.sdk.core.detached_symbols.code_block import CodeBlock
     from codegen.sdk.core.interfaces.has_name import HasName
@@ -81,8 +81,8 @@ class Statement(Expression[Parent], Generic[Parent]):
     statement_type: StatementType = StatementType.UNSPECIFIED
     _pos: int
 
-    def __init__(self, ts_node: TSNode, file_node_id: NodeId, G: CodebaseGraph, parent: Parent, pos: int | None = None) -> None:
-        super().__init__(ts_node, file_node_id, G, parent)
+    def __init__(self, ts_node: TSNode, file_node_id: NodeId, ctx: CodebaseContext, parent: Parent, pos: int | None = None) -> None:
+        super().__init__(ts_node, file_node_id, ctx, parent)
         self._pos = pos
 
     def __rich_repr__(self) -> rich.repr.Result:
@@ -107,7 +107,7 @@ class Statement(Expression[Parent], Generic[Parent]):
     @noapidoc
     @final
     def from_code_block(cls, ts_node: TSNode, code_block: CodeBlock, pos: int | None = None) -> Statement:
-        return cls(ts_node, code_block.file_node_id, code_block.G, parent=code_block, pos=pos)
+        return cls(ts_node, code_block.file_node_id, code_block.ctx, parent=code_block, pos=pos)
 
     @cached_property
     @reader
@@ -123,7 +123,7 @@ class Statement(Expression[Parent], Generic[Parent]):
 
         nested_blocks = []
         for block_node in block_nodes:
-            block = self.G.node_classes.code_block_cls(block_node, self.parent.level + 1, self.parent, self)
+            block = self.ctx.node_classes.code_block_cls(block_node, self.parent.level + 1, self.parent, self)
             block.parse()
             nested_blocks.append(block)
         return nested_blocks

@@ -33,8 +33,8 @@ class BinaryExpression(Expression[Parent], Chainable, Generic[Parent]):
     left: Expression[Self] | None
     right: Expression[Self] | None
 
-    def __init__(self, ts_node, file_node_id, G, parent: Parent) -> None:
-        super().__init__(ts_node, file_node_id, G, parent=parent)
+    def __init__(self, ts_node, file_node_id, ctx, parent: Parent) -> None:
+        super().__init__(ts_node, file_node_id, ctx, parent=parent)
         self.left = self.child_by_field_name("left")
         self.right = self.child_by_field_name("right")
 
@@ -43,7 +43,7 @@ class BinaryExpression(Expression[Parent], Chainable, Generic[Parent]):
     def operator(self) -> ExpressionGroup[Expression[Self], Self]:
         """Returns the operator of the binary expression."""
         operator_nodes = self.ts_node.children[1:-1]
-        return ExpressionGroup(self.file_node_id, self.G, self, children=[self._parse_expression(node) for node in operator_nodes])
+        return ExpressionGroup(self.file_node_id, self.ctx, self, children=[self._parse_expression(node) for node in operator_nodes])
 
     @property
     def operators(self) -> list[ExpressionGroup[Expression[Self], Self]]:

@@ -1,8 +1,7 @@
-import logging
-
 from codegen.sdk.codebase.factory.codebase_factory import CodebaseType
+from codegen.shared.logging.get_logger import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class SandboxRepo:
@@ -68,4 +67,4 @@ class SandboxRepo:
         return not any(push_info.flags & push_info.ERROR for push_info in highside_res)
 
     # TODO: move bunch of codebase git operations into this class.
-    # The goal is to make the codebase class ONLY allow LocalRepoOperator.
+    # The goal is to make the codebase class ONLY allow RepoOperator.

@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 from codegen.sdk.codebase.factory.get_session import get_codebase_graph_session, get_codebase_session
-from codegen.sdk.enums import ProgrammingLanguage
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 if TYPE_CHECKING:
     from codegen.sdk.core.statements.attribute import Attribute
@@ -14,8 +14,8 @@ interface Animal {
   age: number;
 }
 """
-    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as G:
-        file = G.get_file("test.ts")
+    with get_codebase_graph_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={"test.ts": file}) as ctx:
+        file = ctx.get_file("test.ts")
         animal = file.get_symbol("Animal")
         assert len(animal.attributes) == 2
 

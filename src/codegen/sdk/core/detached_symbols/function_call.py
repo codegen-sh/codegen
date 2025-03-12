@@ -13,19 +13,21 @@ from codegen.sdk.core.expressions.unpack import Unpack
 from codegen.sdk.core.interfaces.has_name import HasName
 from codegen.sdk.core.interfaces.resolvable import Resolvable
 from codegen.sdk.core.symbol_groups.collection import Collection
-from codegen.sdk.enums import NodeType, ProgrammingLanguage
+from codegen.sdk.enums import NodeType
 from codegen.sdk.extensions.sort import sort_editables
 from codegen.sdk.extensions.utils import cached_property, is_descendant_of
+from codegen.sdk.typescript.detached_symbols.promise_chain import TSPromiseChain
 from codegen.sdk.typescript.enums import TSFunctionTypeNames
 from codegen.sdk.utils import find_first_ancestor
 from codegen.shared.decorators.docs import apidoc, noapidoc
+from codegen.shared.enums.programming_language import ProgrammingLanguage
 
 if TYPE_CHECKING:
     from collections.abc import Generator
 
     from tree_sitter import Node as TSNode
 
-    from codegen.sdk.codebase.codebase_graph import CodebaseGraph
+    from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.detached_symbols.parameter import Parameter
     from codegen.sdk.core.function import Function
     from codegen.sdk.core.interfaces.callable import Callable
@@ -48,8 +50,8 @@ class FunctionCall(Expression[Parent], HasName, Resolvable, Generic[Parent]):
 
     _arg_list: Collection[Argument, Self]
 
-    def __init__(self, node: TSNode, file_node_id: NodeId, G: CodebaseGraph, parent: Parent) -> None:
-        super().__init__(node, file_node_id, G, parent)
+    def __init__(self, node: TSNode, file_node_id: NodeId, ctx: CodebaseContext, parent: Parent) -> None:
+        super().__init__(node, file_node_id, ctx, parent)
         # =====[ Grab the function name ]=====
         self._name_node = self.child_by_field_name("function", default=Name) or self.child_by_field_name("constructor", default=Name)
         if self._name_node is not None and self._name_node.ts_node.type in ("unary_expression", "await_expression"):
@@ -60,7 +62,29 @@ class FunctionCall(Expression[Parent], HasName, Resolvable, Generic[Parent]):
             msg = f"Failed to parse function call. Child 'argument_list' node does not exist. Source: {self.source}"
             raise ValueError(msg)
         args = [Argument(x, i, self) for i, x in enumerate(arg_list_node.named_children) if x.type != "comment"]
-        self._arg_list = Collection(arg_list_node, self.file_node_id, self.G, self, children=args)
+        self._arg_list = Collection(arg_list_node, self.file_node_id, self.ctx, self, children=args)
+
+    def __repr__(self) -> str:
+        """Custom string representation showing the function call chain structure.
+
+        Format: FunctionCall(name=current, pred=pred_name, succ=succ_name, base=base_name)
+
+        It will only print out predecessor, successor, and base that are of type FunctionCall. If it's a property, it will not be logged
+        """
+        # Helper to safely get name
+
+        # Get names for each part
+        parts = [f"name='{self.name}'"]
+
+        if self.predecessor and isinstance(self.predecessor, FunctionCall):
+            parts.append(f"predecessor=FunctionCall(name='{self.predecessor.name}')")
+
+        if self.successor and isinstance(self.successor, FunctionCall):
+            parts.append(f"successor=FunctionCall(name='{self.successor.name}')")
+
+        parts.append(f"filepath='{self.file.filepath}'")
+
+        return f"FunctionCall({', '.join(parts)})"
 
     @classmethod
     def from_usage(cls, node: Editable[Parent], parent: Parent | None = None) -> Self | None:
@@ -79,7 +103,7 @@ class FunctionCall(Expression[Parent], HasName, Resolvable, Generic[Parent]):
         call_node = find_first_ancestor(node.ts_node, ["call", "call_expression"])
         if call_node is None:
             return None
-        return cls(call_node, node.file_node_id, node.G, parent or node.parent)
+        return cls(call_node, node.file_node_id, node.ctx, parent or node.parent)
 
     @property
     @reader
@@ -96,10 +120,10 @@ class FunctionCall(Expression[Parent], HasName, Resolvable, Generic[Parent]):
             if func := find_first_ancestor(self.ts_node, [function_type.value for function_type in TSFunctionTypeNames]):
                 from codegen.sdk.typescript.function import TSFunction
 
-                return TSFunction.from_function_type(func, self.file_node_id, self.G, self.parent)
+                return TSFunction.from_function_type(func, self.file_node_id, self.ctx, self.parent)
         elif self.file.programming_language == ProgrammingLanguage.PYTHON:
             if func := find_first_ancestor(self.ts_node, ["function_definition"]):
-                return self.G.node_classes.function_cls(func, self.file_node_id, self.G, self.parent)
+                return self.ctx.node_classes.function_cls(func, self.file_node_id, self.ctx, self.parent)
 
         return None
 
@@ -157,7 +181,7 @@ class FunctionCall(Expression[Parent], HasName, Resolvable, Generic[Parent]):
             return False
 
         # 3) Check if the nearest parent call is awaited
-        parent_call_obj = FunctionCall(nearest_call, self.file_node_id, self.G, None)
+        parent_call_obj = FunctionCall(nearest_call, self.file_node_id, self.ctx, None)
         if not parent_call_obj.is_awaited:
             return False
 
@@ -210,9 +234,33 @@ class FunctionCall(Expression[Parent], HasName, Resolvable, Generic[Parent]):
             or if the predecessor is not a function call.
         """
         # Recursively travel down the tree to find the previous function call (child nodes are previous calls)
-        return self.call_chain[-2] if len(self.call_chain) > 1 else None
+        name = self.get_name()
+        while name:
+            if isinstance(name, FunctionCall):
+                return name
+            elif isinstance(name, ChainedAttribute):
+                name = name.object
+            else:
+                break
+        return None
 
-    # TODO: also define a successor?
+    @property
+    @reader
+    def successor(self) -> FunctionCall[Parent] | None:
+        """Returns the next function call in a function call chain.
+
+        Returns the next function call in a function call chain. This method is useful for traversing function call chains
+        to analyze or modify sequences of chained function calls.
+
+        Returns:
+            FunctionCall[Parent] | None: The next function call in the chain, or None if there is no successor
+            or if the successor is not a function call.
+        """
+        # this will avoid parent function calls in tree-sitter that are NOT part of the chained calls
+        if not isinstance(self.parent, ChainedAttribute):
+            return None
+
+        return self.parent_of_type(FunctionCall)
 
     @property
     @noapidoc
@@ -424,14 +472,15 @@ class FunctionCall(Expression[Parent], HasName, Resolvable, Generic[Parent]):
         from codegen.sdk.core.interfaces.callable import Callable
 
         result = []
-        for resolution in self.get_name().resolved_type_frames:
-            top_node = resolution.top.node
-            if isinstance(top_node, Callable):
-                if isinstance(top_node, Class):
-                    if constructor := top_node.constructor:
-                        result.append(resolution.with_new_base(constructor, direct=True))
-                        continue
-                result.append(resolution)
+        if self.get_name():
+            for resolution in self.get_name().resolved_type_frames:
+                top_node = resolution.top.node
+                if isinstance(top_node, Callable):
+                    if isinstance(top_node, Class):
+                        if constructor := top_node.constructor:
+                            result.append(resolution.with_new_base(constructor, direct=True))
+                            continue
+                    result.append(resolution)
         return result
 
     @cached_property
@@ -480,7 +529,7 @@ class FunctionCall(Expression[Parent], HasName, Resolvable, Generic[Parent]):
             None
         """
         if self.ts_node.parent.type == "expression_statement":
-            Value(self.ts_node.parent, self.file_node_id, self.G, self.parent).remove(delete_formatting=delete_formatting, priority=priority, dedupe=dedupe)
+            Value(self.ts_node.parent, self.file_node_id, self.ctx, self.parent).remove(delete_formatting=delete_formatting, priority=priority, dedupe=dedupe)
         else:
             super().remove(delete_formatting=delete_formatting, priority=priority, dedupe=dedupe)
 
@@ -518,7 +567,7 @@ class FunctionCall(Expression[Parent], HasName, Resolvable, Generic[Parent]):
                         if generic := function_def_frame.generics.get(return_type.source, None):
                             yield from self.with_resolution_frame(generic, direct=function_def_frame.direct)
                             return
-                    if self.G.config.feature_flags.generics:
+                    if self.ctx.config.generics:
                         for arg in self.args:
                             if arg.parameter and (type := arg.parameter.type):
                                 if type.source == return_type.source:
@@ -546,15 +595,16 @@ class FunctionCall(Expression[Parent], HasName, Resolvable, Generic[Parent]):
         if desc := self.child_by_field_name("type_arguments"):
             desc._compute_dependencies(UsageKind.GENERIC, dest)
         match = self.get_name()
-        if len(self.function_definition_frames) > 0:
-            if isinstance(match, ChainedAttribute):
-                match.object._compute_dependencies(usage_type, dest)
-            if isinstance(match, FunctionCall):
+        if match:
+            if len(self.function_definition_frames) > 0:
+                if isinstance(match, ChainedAttribute):
+                    match.object._compute_dependencies(usage_type, dest)
+                if isinstance(match, FunctionCall):
+                    match._compute_dependencies(usage_type, dest)
+                for definition in self.function_definition_frames:
+                    definition.add_usage(self, usage_type, dest, self.ctx)
+            else:
                 match._compute_dependencies(usage_type, dest)
-            for definition in self.function_definition_frames:
-                definition.add_usage(match=self, dest=dest, usage_type=usage_type, G=self.G)
-        else:
-            match._compute_dependencies(usage_type, dest)
 
     @property
     @reader
@@ -580,6 +630,26 @@ class FunctionCall(Expression[Parent], HasName, Resolvable, Generic[Parent]):
         return sort_editables(calls, dedupe=False)
 
     @property
+    @reader
+    def attribute_chain(self) -> list[FunctionCall | Name]:
+        """Returns a list of elements in the chainedAttribute that the function call belongs in.
+
+        Breaks down chained expressions into individual components in order of appearance.
+        For example: `a.b.c().d` -> [Name("a"), Name("b"), FunctionCall("c"), Name("d")]
+
+        Returns:
+            list[FunctionCall | Name]: List of Name nodes (property access) and FunctionCall nodes (method calls)
+        """
+        if isinstance(self.get_name(), ChainedAttribute):  # child is chainedAttribute. MEANING that this is likely in the middle or the last function call of a chained function call chain.
+            return self.get_name().attribute_chain
+        elif isinstance(
+            self.parent, ChainedAttribute
+        ):  # does not have child chainedAttribute, but parent is chainedAttribute. MEANING that this is likely the TOP function call of a chained function call chain.
+            return self.parent.attribute_chain
+        else:  # this is a standalone function call
+            return [self]
+
+    @property
     @noapidoc
     def descendant_symbols(self) -> list[Importable]:
         symbols = self.get_name().descendant_symbols
@@ -596,29 +666,40 @@ class FunctionCall(Expression[Parent], HasName, Resolvable, Generic[Parent]):
     @noapidoc
     def register_api_call(self, url: str):
         assert url, self
-        self.G.global_context.multigraph.usages[url].append(self)
+        self.ctx.global_context.multigraph.usages[url].append(self)
 
     @property
     @reader
     def call_chain(self) -> list[FunctionCall]:
-        """Returns a list of all function calls in this function call chain, including this call. Does not include calls made after this one."""
+        """Returns a list of all function  calls in this function call chain, including this call. Does not include calls made after this one."""
         ret = []
-        name = self.get_name()
-        while name:
-            if isinstance(name, FunctionCall):
-                ret.extend(name.call_chain)
-                break
-            elif isinstance(name, ChainedAttribute):
-                name = name.object
-            else:
-                break
+
+        # backward traversal
+        curr = self
+        pred = curr.predecessor
+        while pred is not None and isinstance(pred, FunctionCall):
+            ret.insert(0, pred)
+            pred = pred.predecessor
+
         ret.append(self)
+
+        # forward traversal
+        curr = self
+        succ = curr.successor
+        while succ is not None and isinstance(succ, FunctionCall):
+            ret.append(succ)
+            succ = succ.successor
+
         return ret
 
     @property
     @reader
     def base(self) -> Editable | None:
-        """Returns the base object of this function call chain."""
+        """Returns the base object of this function call chain.
+
+        Args:
+            Editable | None: The base object of this function call chain.
+        """
         name = self.get_name()
         while isinstance(name, ChainedAttribute):
             if isinstance(name.object, FunctionCall):
@@ -626,3 +707,15 @@ class FunctionCall(Expression[Parent], HasName, Resolvable, Generic[Parent]):
             else:
                 name = name.object
         return name
+
+    @property
+    @reader
+    def promise_chain(self) -> TSPromiseChain | None:
+        """Return the promise chain associated with this function call, if a then call is found.
+
+        Returns:
+            TSPromiseChain | None: The promise chain associated with this function call, if a then call is found.
+        """
+        if any(call.name == "then" for call in self.call_chain) is True:
+            return TSPromiseChain(self.attribute_chain)
+        return None

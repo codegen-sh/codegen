@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-./scripts/setup-lfs.sh
 uv tool install pre-commit --with pre-commit-uv
 uv tool install deptry
 uv tool update-shell

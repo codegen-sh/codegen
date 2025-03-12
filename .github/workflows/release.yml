@@ -1,15 +1,25 @@
 name: Build & Release
 
 on:
+  workflow_call:
+    inputs:
+      release-tag:
+        required: true
+        type: string
+        description: Tag to release
+  # TODO(CG-10758): create if it does not exist
+  # workflow_dispatch:
+  #   inputs:
+  #     tag:
+  #       required: true
+  #       type: string
+  #       description: Tag to release
   push:
     tags:
       - v*
-    branches:
-      - develop
   pull_request:
     branches:
       - develop
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -23,8 +33,9 @@ jobs:
       matrix:
         os: [
           ubuntu-latest,
-          ubuntu-24.04-arm, # https://github.com/actions/partner-runner-images/issues/37
+          ubuntu-22.04-arm, # https://github.com/actions/partner-runner-images/issues/37 https://github.com/orgs/community/discussions/148648#discussioncomment-12099554
           macos-latest,
+          macos-14-large
         ]
         python: [
           12,
@@ -40,10 +51,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.ref || github.ref }}
+          ref: ${{ inputs.release-tag || github.event.pull_request.head.ref || github.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name || github.event.repository.full_name }}
 
       - name: Install UV
-        uses: astral-sh/setup-uv@v5.2
+        uses: astral-sh/setup-uv@v5.3
         id: setup-uv
         with:
           enable-cache: false
@@ -53,13 +65,14 @@ jobs:
           cache-suffix: 3.${{ matrix.python }}
 
       - name: Fetch tags
+        if: ${{ inputs.release-tag || startsWith(github.ref, 'refs/tags/') }}
         run: |
           git branch
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
 
       # TODO: add cbuildwheel cache
       - name: Build wheel
-        uses: pypa/cibuildwheel@v2.22.0
+        uses: pypa/cibuildwheel@v2.23.0
         env:
           CIBW_BUILD: "*cp3${{ matrix.python }}*"
 
@@ -69,7 +82,7 @@ jobs:
           path: ./wheelhouse/*.whl
 
   release:
-    if: startsWith(github.ref, 'refs/tags/')
+    if: ${{ inputs.release-tag || startsWith(github.ref, 'refs/tags/') }}
     needs: build
     runs-on: ubuntu-latest
     environment: release
@@ -89,31 +102,22 @@ jobs:
           pattern: wheels-*
 
       - name: Release PyPI
-        run: |
-          export UV_PUBLISH_PASSWORD="${{ secrets.PYPI_TOKEN }}"
-          export UV_PUBLISH_USERNAME="__token__"
-          uv publish --publish-url https://upload.pypi.org/legacy/
+        uses: ./.github/actions/release-pypi
+        with:
+          pypi-token: ${{ secrets.PYPI_TOKEN }}
 
       - name: Github release
         id: github-release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ inputs.release-tag || github.ref_name }}
           files: dist/*
           fail_on_unmatched_files: true
-          generate_release_notes: true
+          generate_release_notes: ${{ startsWith(github.ref, 'refs/tags/') }}
 
-      # TODO: use python exec instead
-      - uses: slackapi/slack-github-action@v2.0.0
+      - name: Slack notification
         if: always()
+        uses: ./.github/actions/release-slack-bot
         with:
-          method: chat.postMessage
-          token: ${{ secrets.SLACK_BOT_TOKEN }}
-          payload: |
-            username: ${{ job.status == 'success' && format('Released codegen@{0}', github.ref_name) || format('Failed to release codegen@{0}', github.ref_name) }}
-            channel: "#release"
-            icon_emoji: "${{ job.status == 'success' && ':white_check_mark:' || ':x:' }}"
-            text: |
-              Actor: `${{ github.triggering_actor }}`
-              Author: `${{ github.event.head_commit.author.username }}`
-              ${{ format('Commit: <{0}/{1}/commit/{2}|{1}@{2}>', github.server_url, github.repository, github.sha) || ''}}
-              View <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|GHA logs>
+          release-tag: ${{ inputs.release-tag || github.ref_name }}
+          slack-token: ${{ secrets.SLACK_BOT_TOKEN }}

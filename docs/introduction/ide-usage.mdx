@@ -51,6 +51,53 @@ Codegen creates a custom Python environment in `.codegen/.venv`. Configure your 
 </AccordionGroup>
 
 
+## MCP Server Setup
+This is an optional step but highly recommended if your IDE supports MCP support and you use AI Agents.
+The MCP server is a local server that allows your AI Agent to interact with the Codegen specific tools,
+it will allow an agent to:
+- ask an expert to create a codemod
+- improve a codemod
+- get setup instructions
+
+### IDE Configuration
+#### Cline
+Add this to your cline_mcp_settings.json:
+```json
+{
+  "mcpServers": {
+    "codegen-cli": {
+        "command": "uv",
+        "args": [
+            "--directory",
+            "<path to codegen installation>/codegen-sdk/src/codegen/cli/mcp",
+            "run",
+            "server.py"
+        ]
+    }
+  }
+}
+```
+
+
+#### Cursor:
+Under the `Settings` > `Feature` > `MCP Servers` section, click "Add New MCP Server" and add the following:
+
+```
+Name: codegen-mcp
+Type: Command
+Command: uv --directory <path to codegen installation>/codegen-sdk/src/codegen/cli/mcp run server.py
+```
+
+
+## Index Codegen Docs
+#### Cursor:
+If you use Cursor you'll be able to configure the IDE to index the Codegen docs. To do so go to `Settings` > `Features` > `Docs`
+and then click on `Add new docs`. We recommend using this url to index the API reference:
+```
+https://docs.codegen.com/api-reference/index
+```
+
+
 ## Create a New Codemod
 
 Generate the boilerplate for a new code manipulation program using [codegen create](/cli/create):
