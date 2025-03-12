@@ -11,14 +11,14 @@ This script performs several key functions:
    - Builds a dependency graph of symbols (classes, functions, etc.)
    - Analyzes import relationships and dependencies
 
-  ```python
-    repo_path = os.getcwd()
-    repo_config = RepoConfig.from_repo_path(repo_path)
-    repo_operator = RepoOperator(repo_config=repo_config)
+```python
+  repo_path = os.getcwd()
+  repo_config = RepoConfig.from_repo_path(repo_path)
+  repo_operator = RepoOperator(repo_config=repo_config)
 
-    project = ProjectConfig.from_repo_operator(repo_operator=repo_operator, programming_language=ProgrammingLanguage.PYTHON)
-    codebase = Codebase(projects=[project])
-  ```
+  project = ProjectConfig.from_repo_operator(repo_operator=repo_operator, programming_language=ProgrammingLanguage.PYTHON)
+  codebase = Codebase(projects=[project])
+```
 
 2. **AI Impact Analysis**
    - Identifies commits made by AI bots vs human contributors
@@ -28,10 +28,10 @@ This script performs several key functions:
      - Number of AI-touched symbols
    - Identifies high-impact AI-written code
 
-  ```python
-    ai_authors = ["devin[bot]", "codegen[bot]", "github-actions[bot]"]
-    add_attribution_to_symbols(codebase, ai_authors)
-  ```
+```python
+  ai_authors = ["devin[bot]", "codegen[bot]", "github-actions[bot]"]
+  add_attribution_to_symbols(codebase, ai_authors)
+```
 
 3. **Symbol Attribution**
    - Tracks edit history for each symbol in the codebase
@@ -41,12 +41,12 @@ This script performs several key functions:
      - Whether the symbol was AI-authored
    - Provides detailed attribution for most-used symbols
 
-  ```python
-    symbols_with_usages = []
-    for symbol in codebase.symbols:
-        if hasattr(symbol, "usages") and len(symbol.usages) > 0:
-            symbols_with_usages.append((symbol, len(symbol.usages)))
-  ```
+```python
+  symbols_with_usages = []
+  for symbol in codebase.symbols:
+      if hasattr(symbol, "usages") and len(symbol.usages) > 0:
+          symbols_with_usages.append((symbol, len(symbol.usages)))
+```
 
 ## Example Output
 
@@ -72,6 +72,7 @@ python run.py
 ```
 
 The script will automatically:
+
 - Use the current directory if it's a git repository
 - Fall back to a sample repository if not in a git repo
 - Generate comprehensive attribution analysis
