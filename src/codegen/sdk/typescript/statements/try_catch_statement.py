@@ -9,11 +9,14 @@ from codegen.sdk.typescript.statements.catch_statement import TSCatchStatement
 from codegen.shared.decorators.docs import noapidoc, ts_apidoc
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from tree_sitter import Node as TSNode
 
     from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.dataclasses.usage import UsageKind
     from codegen.sdk.core.detached_symbols.function_call import FunctionCall
+    from codegen.sdk.core.interfaces.conditional_block import ConditionalBlock
     from codegen.sdk.core.interfaces.has_name import HasName
     from codegen.sdk.core.interfaces.importable import Importable
     from codegen.sdk.core.node_id_factory import NodeId
@@ -91,3 +94,17 @@ class TSTryCatchStatement(TryCatchStatement["TSCodeBlock"], TSBlockStatement):
         if self.finalizer:
             nested_blocks.append(self.finalizer.code_block)
         return nested_blocks
+
+    @property
+    def other_possible_blocks(self) -> Sequence[ConditionalBlock]:
+        if self.catch:
+            return [self.catch]
+        else:
+            return []
+
+    @property
+    def end_byte_for_condition_block(self) -> int:
+        if self.code_block:
+            return self.code_block.end_byte
+        else:
+            return self.end_byte

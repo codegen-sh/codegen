@@ -53,3 +53,27 @@ def risky():
         assert len(dependencies) == 1
         global_var = file.get_global_var("risky_var")
         assert dependencies[0] == global_var
+
+
+def test_match_reassigment_handling(tmpdir) -> None:
+    content = """
+filter = 1
+match filter:
+    case 1:
+        PYSPARK=True
+    case 2:
+        PYSPARK=False
+    case _:
+        PYSPARK=None
+
+print(PYSPARK)
+    """
+
+    with get_codebase_session(tmpdir=tmpdir, files={"test.py": content}) as codebase:
+        file = codebase.get_file("test.py")
+        symbo = file.get_symbol("PYSPARK")
+        funct_call = file.function_calls[0]
+        pyspark_arg = funct_call.args.children[0]
+        for symb in file.symbols[1:]:
+            usage = symb.usages[0]
+            assert usage.match == pyspark_arg

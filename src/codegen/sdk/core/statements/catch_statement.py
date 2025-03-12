@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Generic, Self, TypeVar
 
+from codegen.sdk.core.interfaces.conditional_block import ConditionalBlock
 from codegen.sdk.core.statements.block_statement import BlockStatement
 from codegen.sdk.extensions.autocommit import commiter
 from codegen.shared.decorators.docs import apidoc, noapidoc
@@ -17,7 +18,7 @@ Parent = TypeVar("Parent", bound="CodeBlock")
 
 
 @apidoc
-class CatchStatement(BlockStatement[Parent], Generic[Parent]):
+class CatchStatement(ConditionalBlock, BlockStatement[Parent], Generic[Parent]):
     """Abstract representation catch clause.
 
     Attributes:
