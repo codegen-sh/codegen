@@ -489,12 +489,9 @@ class Codebase(
             ValueError: If the provided content cannot be parsed according to the file extension.
         """
         # Check if file already exists
-        # TODO: These checks break parse tests ???
-        # Look into this!
-        # if self.has_file(filepath):
-        #     raise ValueError(f"File {filepath} already exists in codebase.")
-        # if os.path.exists(filepath):
-        #     raise ValueError(f"File {filepath} already exists on disk.")
+        # NOTE: This check is also important to ensure the filepath is valid within the repo!
+        if self.has_file(filepath):
+            logger.warning(f"File {filepath} already exists in codebase. Overwriting...")
 
         file_exts = self.ctx.extensions
         # Create file as source file if it has a registered extension
@@ -523,6 +520,11 @@ class Codebase(
         Raises:
             FileExistsError: If the directory already exists and exist_ok is False.
         """
+        # Check if directory already exists
+        # NOTE: This check is also important to ensure the filepath is valid within the repo!
+        if self.has_directory(dir_path):
+            logger.warning(f"Directory {dir_path} already exists in codebase. Overwriting...")
+
         self.ctx.to_absolute(dir_path).mkdir(parents=parents, exist_ok=exist_ok)
 
     def has_file(self, filepath: str, ignore_case: bool = False) -> bool:
