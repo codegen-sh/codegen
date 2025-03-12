@@ -70,8 +70,8 @@ This script analyzes a codebase to measure and report the impact of AI-generated
 
   ```python
   # Get attribution information for a specific symbol
-  symbol = codebase.get_symbol('path/to/file.py:MyClass.my_method')
-  
+  symbol = codebase.get_symbol("path/to/file.py:MyClass.my_method")
+
   # Access attribution data
   print(f"Last editor: {symbol.last_editor}")
   print(f"Editor history: {symbol.editor_history}")
