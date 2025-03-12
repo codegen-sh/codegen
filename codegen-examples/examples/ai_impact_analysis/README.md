@@ -12,13 +12,14 @@ This script analyzes a codebase to measure and report the impact of AI-generated
 
   - Falls back to cloning a specified repository if needed
 
-    ```python
-    repo_path = os.getcwd()
-    repo_config = RepoConfig.from_repo_path(repo_path)
-    repo_operator = RepoOperator(repo_config=repo_config)
-    project = ProjectConfig.from_repo_operator(repo_operator=repo_operator, programming_language=ProgrammingLanguage.PYTHON)
-    codebase = Codebase(projects=[project])
-    ```
+  ```python
+  # Basic repository setup
+  repo_path = os.getcwd()
+  repo_config = RepoConfig.from_repo_path(repo_path)
+  repo_operator = RepoOperator(repo_config=repo_config)
+  project = ProjectConfig.from_repo_operator(repo_operator=repo_operator, programming_language=ProgrammingLanguage.PYTHON)
+  codebase = Codebase(projects=[project])
+  ```
 
 - **Comprehensive Statistics**:
 
@@ -27,16 +28,60 @@ This script analyzes a codebase to measure and report the impact of AI-generated
   - AI-touched symbols and their impact
   - Detailed contributor breakdown (human and AI contributors)
 
+  ```python
+  # Run the analysis
+  ai_authors = ["github-actions[bot]", "dependabot[bot]"]
+  results = analyze_ai_impact(codebase, ai_authors)
+
+  # Access statistics
+  stats = results["stats"]
+  print(f"Total commits: {stats['total_commits']}")
+  print(f"AI commits: {stats['ai_commits']} ({stats['ai_percentage']:.1f}%)")
+  print(f"Files with >50% AI: {stats['ai_file_count']} of {stats['total_file_count']}")
+
+  # View contributors
+  for author, count in results["contributors"]:
+      is_ai = any(ai_name in author for ai_name in ai_authors)
+      print(f"{'🤖' if is_ai else '👤'} {author}: {count} commits")
+  ```
+
 - **High-Impact Code Detection**:
 
   - Identifies AI-written code that is heavily used by other parts of the codebase
   - Shows dependency relationships for AI-contributed code
+
+  ```python
+  # Access high-impact AI symbols
+  for symbol in results["high_impact_symbols"]:
+      print(f"Symbol: {symbol['name']} ({symbol['filepath']})")
+      print(f"Used by {symbol['usage_count']} other symbols")
+      print(f"Last edited by: {symbol['last_editor']}")
+
+  # View top AI-contributed files
+  for file_path, percentage in stats["top_ai_files"]:
+      print(f"{file_path}: {percentage:.1f}% AI contribution")
+  ```
 
 - **Detailed Attribution**:
 
   - Maps symbols to git history
   - Tracks last editor and complete editor history for each symbol
   - Flags AI-authored symbols
+
+  ```python
+  # Get attribution information for a specific symbol
+  symbol = codebase.get_symbol('path/to/file.py:MyClass.my_method')
+  
+  # Access attribution data
+  print(f"Last editor: {symbol.last_editor}")
+  print(f"Editor history: {symbol.editor_history}")
+  print(f"AI authored: {symbol.is_ai_authored}")
+
+  # Find all AI-authored symbols
+  ai_symbols = [s for s in codebase.get_symbols() if s.is_ai_authored]
+  for symbol in ai_symbols:
+      print(f"AI symbol: {symbol.name}")
+  ```
 
 ## Output
 
