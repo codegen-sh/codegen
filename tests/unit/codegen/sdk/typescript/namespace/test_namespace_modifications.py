@@ -31,7 +31,7 @@ def test_namespace_add_symbol(tmpdir) -> None:
         # Store original location
 
         # Add to namespace and remove from original location
-        namespace.add_symbol(new_const,should_export=True)
+        namespace.add_symbol(new_const, should_export=True)
 
         codebase.ctx.commit_transactions()
 
@@ -41,14 +41,14 @@ def test_namespace_add_symbol(tmpdir) -> None:
         # Verify symbols were moved correctly
         assert namespace.get_symbol("ya") is not None
         assert namespace.get_symbol("ya").export is not None
-        
+
         # 2. Add new symbol from string
         code = "const z = 3"
         namespace.add_symbol_from_source(code)
         codebase.ctx.commit_transactions()
         namespace: TSNamespace = codebase.get_symbol("MyNamespace")
 
-        code_symbol = namespace.get_symbol('z',get_private=True) 
+        code_symbol = namespace.get_symbol("z", get_private=True)
         # Verify exported symbol
         assert code_symbol is not None
         assert code_symbol.name == "z"

@@ -1,18 +1,15 @@
 from __future__ import annotations
 
-from collections.abc import Sequence
 from typing import TYPE_CHECKING, override
 
 from codegen.sdk.core.autocommit import commiter
 from codegen.sdk.core.autocommit.decorators import writer
-from codegen.sdk.core.dataclasses.usage import Usage, UsageType
 from codegen.sdk.core.export import Export
 from codegen.sdk.core.interfaces.has_attribute import HasAttribute
 from codegen.sdk.core.interfaces.has_name import HasName
-from codegen.sdk.core.interfaces.importable import Importable
-from codegen.sdk.enums import EdgeType, SymbolType
-from codegen.sdk.extensions.sort import sort_editables
+from codegen.sdk.enums import SymbolType
 from codegen.sdk.extensions.autocommit import reader
+from codegen.sdk.extensions.sort import sort_editables
 from codegen.sdk.extensions.utils import cached_property
 from codegen.sdk.typescript.class_definition import TSClass
 from codegen.sdk.typescript.enum_definition import TSEnum
@@ -24,10 +21,13 @@ from codegen.sdk.typescript.type_alias import TSTypeAlias
 from codegen.shared.decorators.docs import noapidoc, ts_apidoc
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from tree_sitter import Node as TSNode
 
     from codegen.sdk.codebase.codebase_context import CodebaseContext
     from codegen.sdk.core.dataclasses.usage import UsageKind
+    from codegen.sdk.core.interfaces.importable import Importable
     from codegen.sdk.core.node_id_factory import NodeId
     from codegen.sdk.core.statements.statement import Statement
     from codegen.sdk.core.symbol import Symbol
@@ -116,7 +116,7 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName, HasAttribute):
                 return nested_symbol
 
         return None
-    
+
     @reader(cache=False)
     @noapidoc
     def get_nodes(self, *, sort_by_id: bool = False, sort: bool = True) -> Sequence[Importable]:
@@ -126,13 +126,13 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName, HasAttribute):
         end_limit = self.end_byte
         namespace_nodes = []
         for file_node in file_nodes:
-            if file_node.start_byte>start_limit:
-                if file_node.end_byte<end_limit:
+            if file_node.start_byte > start_limit:
+                if file_node.end_byte < end_limit:
                     namespace_nodes.append(file_node)
                 else:
                     break
         return namespace_nodes
-    
+
     @cached_property
     @reader(cache=False)
     def exports(self) -> list[TSExport]:
@@ -258,7 +258,6 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName, HasAttribute):
                 nested.extend(symbol.get_nested_namespaces())
         return nested
 
-
     @writer
     def add_symbol_from_source(self, source: str) -> None:
         """Adds a symbol to a namespace from a string representation.
@@ -280,7 +279,7 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName, HasAttribute):
             self.insert_after("\n" + source)
 
     @commiter
-    def add_symbol(self, symbol: TSSymbol, should_export: bool = True) -> TSSymbol|None:
+    def add_symbol(self, symbol: TSSymbol, should_export: bool = True) -> TSSymbol | None:
         """Adds a new symbol to the namespace, optionally exporting it if applicable. If the symbol already exists in the namespace, returns the existing symbol.
 
         Args:
@@ -303,11 +302,10 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName, HasAttribute):
         existing_symbol = self.get_symbol(symbol.name)
         if existing_symbol is not None:
             return existing_symbol
-        
+
         if not self.file.symbol_can_be_added(symbol):
             msg = f"Symbol {symbol.name} cannot be added to this file type."
             raise ValueError(msg)
-        
 
         source = symbol.source
         if isinstance(symbol, TSFunction) and symbol.is_arrow:
@@ -317,8 +315,6 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName, HasAttribute):
         if should_export and hasattr(symbol, "export") and (not symbol.is_exported or raw_source not in symbol.export.source):
             source = source.replace(source, f"export {source}")
         self.add_symbol_from_source(source)
-
-
 
     @commiter
     def remove_symbol(self, symbol_name: str) -> TSSymbol | None:
@@ -359,7 +355,7 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName, HasAttribute):
         Args:
             name: Name of symbol to export
         """
-        symbol = self.get_symbol(name,get_private=True)
+        symbol = self.get_symbol(name, get_private=True)
         if not symbol or symbol.is_exported:
             return
 
