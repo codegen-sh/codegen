@@ -102,5 +102,6 @@ class PyTryCatchStatement(TryCatchStatement["PyCodeBlock"], PyBlockStatement):
         return nested_blocks
 
     @property
+    @noapidoc
     def other_possible_blocks(self) -> Sequence[ConditionalBlock]:
         return self.except_clauses

@@ -12,11 +12,14 @@ class ConditionalBlock(Statement, ABC):
 
     @property
     @abstractmethod
+    @noapidoc
     def other_possible_blocks(self) -> Sequence["ConditionalBlock"]:
         """Should return all other "branches" that might be executed instead."""
 
     @property
+    @noapidoc
     def end_byte_for_condition_block(self) -> int:
+        """Returns the end byte for the specific condition block"""
         return self.end_byte
 
     @property

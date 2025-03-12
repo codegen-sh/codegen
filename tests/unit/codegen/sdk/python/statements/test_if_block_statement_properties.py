@@ -223,6 +223,24 @@ def test_if_else_reassigment_handling_partial_if(tmpdir) -> None:
             assert usage.match == pyspark_arg
 
 
+def test_if_else_reassigment_handling_solo_if(tmpdir) -> None:
+    content = """
+        PYSPARK = "TEST"
+        if True:
+            PYSPARK = True
+        print(PYSPARK)
+    """
+
+    with get_codebase_session(tmpdir=tmpdir, files={"test.py": content}) as codebase:
+        file = codebase.get_file("test.py")
+        symbo = file.get_symbol("PYSPARK")
+        funct_call = file.function_calls[0]
+        pyspark_arg = funct_call.args.children[0]
+        for symb in file.symbols:
+            usage = symb.usages[0]
+            assert usage.match == pyspark_arg
+
+
 def test_if_else_reassigment_handling_double(tmpdir) -> None:
     content = """
         if False:
