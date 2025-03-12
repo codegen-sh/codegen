@@ -1300,6 +1300,19 @@ Controls import path overrides during import resolution.
 
 Enables and disables resolution of imports from `sys.path`.
 
+<Warning>
+For this to properly work, you must also set `allow_external` to `True`.
+</Warning>
+
+## Flag: `allow_external`
+> **Default: `False`**
+
+Enables resolving imports, files, modules, and directories from outside of the repo path.
+
+<Warning>
+Turning this flag off may allow for bad actors to access files outside of the repo path! Use with caution!
+</Warning>
+
 ## Flag: `ts_dependency_manager`
 > **Default: `False`**
 
@@ -11940,3 +11953,198 @@ LIMIT 20
 <Frame caption="Call graph for a codebase">
   <img src="/images/neo4j-call-graph.png" />
 </Frame>
+
+---
+title: "Code Attributions"
+sidebarTitle: "Code Attributions"
+description: "Learn how to analyze code statistics and attributions using Codegen"
+icon: "network-wired"
+iconType: "solid"
+---
+
+# AI Impact Analysis
+
+This tutorial shows how to use Codegen's attribution extension to analyze the impact of AI on your 
+codebase. You'll learn how to identify which parts of your code were written by AI tools like 
+GitHub Copilot, Devin, or other AI assistants.
+
+Note: the code is flexible - you can track CI pipeline bots, or any other contributor you want.
+
+
+## Overview
+
+The attribution extension analyzes git history to:
+
+1. Identify which symbols (functions, classes, etc.) were authored or modified by AI tools
+2. Calculate the percentage of AI contributions in your codebase
+3. Find high-impact AI-written code (code that many other parts depend on)
+4. Track the evolution of AI contributions over time
+
+## Installation
+
+The attribution extension is included with Codegen. No additional installation is required.
+
+## Basic Usage
+
+### Running the Analysis
+
+You can run the AI impact analysis using the Codegen CLI:
+
+```bash
+codegen analyze-ai-impact
+```
+
+Or from Python code:
+
+```python
+from codegen import Codebase
+from codegen.extensions.attribution.cli import run
+
+# Initialize codebase from current directory
+codebase = Codebase.from_repo("your-org/your-repo", language="python")
+
+# Run the analysis
+run(codebase)
+```
+
+### Understanding the Results
+
+The analysis will print a summary of AI contributions to your console and save detailed results to a JSON file. The summary includes:
+
+- List of all contributors (human and AI)
+- Percentage of commits made by AI
+- Number of files and symbols touched by AI
+- High-impact AI-written code (code with many dependents)
+- Top files by AI contribution percentage
+
+## Advanced Usage
+
+### Accessing Attribution Information
+
+After running the analysis, each symbol in your codebase will have attribution information attached to it:
+
+```python
+from codegen import Codebase
+from codegen.extensions.attribution.main import add_attribution_to_symbols
+
+# Initialize codebase
+codebase = Codebase.from_repo("your-org/your-repo", language="python")
+
+# Add attribution information to symbols
+ai_authors = ['github-actions[bot]', 'dependabot[bot]', 'copilot[bot]']
+add_attribution_to_symbols(codebase, ai_authors)
+
+# Access attribution information on symbols
+for symbol in codebase.symbols:
+    if hasattr(symbol, 'is_ai_authored') and symbol.is_ai_authored:
+        print(f"AI-authored symbol: {symbol.name} in {symbol.filepath}")
+        print(f"Last editor: {symbol.last_editor}")
+        print(f"All editors: {symbol.editor_history}")
+```
+
+### Customizing AI Author Detection
+
+By default, the analysis looks for common AI bot names in commit authors. 
+You can customize this by providing your own list of AI authors:
+
+```python
+from codegen import Codebase
+from codegen.extensions.attribution.main import analyze_ai_impact
+
+# Initialize codebase
+codebase = Codebase.from_repo("your-org/your-repo", language="python")
+
+# Define custom AI authors
+ai_authors = [
+    'github-actions[bot]',
+    'dependabot[bot]',
+    'copilot[bot]',
+    'devin[bot]',
+    'your-custom-ai-email@example.com'
+]
+
+# Run analysis with custom AI authors
+results = analyze_ai_impact(codebase, ai_authors)
+```
+
+## Example: Contributor Analysis
+
+Here's a complete example that analyzes contributors to your codebase and their impact:
+
+```python
+import os
+from collections import Counter
+
+from codegen import Codebase
+from codegen.extensions.attribution.main import add_attribution_to_symbols
+from codegen.git.repo_operator.repo_operator import RepoOperator
+from codegen.git.schemas.repo_config import RepoConfig
+from codegen.sdk.codebase.config import ProjectConfig
+from codegen.shared.enums.programming_language import ProgrammingLanguage
+
+def analyze_contributors(codebase):
+    """Analyze contributors to the codebase and their impact."""
+    print("\n🔍 Contributor Analysis:")
+    
+    # Define which authors are considered AI
+    ai_authors = ['devin[bot]', 'codegen[bot]', 'github-actions[bot]', 'dependabot[bot]']
+    
+    # Add attribution information to all symbols
+    print("Adding attribution information to symbols...")
+    add_attribution_to_symbols(codebase, ai_authors)
+    
+    # Collect statistics about contributors
+    contributor_stats = Counter()
+    ai_contributor_stats = Counter()
+    
+    print("Analyzing symbol attributions...")
+    for symbol in codebase.symbols:
+        if hasattr(symbol, 'last_editor') and symbol.last_editor:
+            contributor_stats[symbol.last_editor] += 1
+            
+            # Track if this is an AI contributor
+            if any(ai in symbol.last_editor for ai in ai_authors):
+                ai_contributor_stats[symbol.last_editor] += 1
+    
+    # Print top contributors overall
+    print("\n👥 Top Contributors by Symbols Authored:")
+    for contributor, count in contributor_stats.most_common(10):
+        is_ai = any(ai in contributor for ai in ai_authors)
+        ai_indicator = "🤖" if is_ai else "👤"
+        print(f"  {ai_indicator} {contributor}: {count} symbols")
+    
+    # Print top AI contributors if any
+    if ai_contributor_stats:
+        print("\n🤖 Top AI Contributors:")
+        for contributor, count in ai_contributor_stats.most_common(5):
+            print(f"  • {contributor}: {count} symbols")
+
+# Initialize codebase from current directory
+if os.path.exists(".git"):
+    repo_path = os.getcwd()
+    repo_config = RepoConfig.from_repo_path(repo_path)
+    repo_operator = RepoOperator(repo_config=repo_config)
+    
+    project = ProjectConfig.from_repo_operator(
+        repo_operator=repo_operator,
+        programming_language=ProgrammingLanguage.PYTHON
+    )
+    codebase = Codebase(projects=[project])
+    
+    # Run the contributor analysis
+    analyze_contributors(codebase)
+```
+
+## Conclusion
+
+The attribution extension provides valuable insights into how AI tools are being used in your 
+development process. By understanding which parts of your codebase are authored by AI, you can:
+
+- Track the adoption of AI coding assistants in your team
+- Identify areas where AI is most effective
+- Ensure appropriate review of AI-generated code
+- Measure the impact of AI on developer productivity
+
+For more advanced usage, check out the [API reference](/api-reference/extensions/attribution)
+for the attribution extension.
+
