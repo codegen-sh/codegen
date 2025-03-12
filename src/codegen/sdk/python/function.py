@@ -131,7 +131,7 @@ class PyFunction(Function[PyDecorator, PyCodeBlock, PyParameter, PyType], PyHasB
                 if name == "super()":
                     yield self.parent_class
                     return
-        yield from super().resolve_name(name, start_byte)
+        yield from super().resolve_name(name, start_byte, strict=strict)
 
     @noapidoc
     @commiter

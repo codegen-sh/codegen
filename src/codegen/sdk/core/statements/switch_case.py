@@ -37,5 +37,7 @@ class SwitchCase(ConditionalBlock, BlockStatement[Parent], Generic[Parent]):
         super()._compute_dependencies(usage_type, dest)
 
     @property
+    @noapidoc
     def other_possible_blocks(self) -> list[ConditionalBlock]:
+        """Returns the end byte for the specific condition block"""
         return [case for case in self.parent.cases if case != self]

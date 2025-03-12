@@ -223,6 +223,24 @@ def test_if_else_reassigment_handling_partial_if(tmpdir) -> None:
             assert usage.match == pyspark_arg
 
 
+def test_if_else_reassigment_handling_solo_if(tmpdir) -> None:
+    content = """
+        PYSPARK = "TEST"
+        if True:
+            PYSPARK = True
+        print(PYSPARK)
+    """
+
+    with get_codebase_session(tmpdir=tmpdir, files={"test.py": content}) as codebase:
+        file = codebase.get_file("test.py")
+        symbo = file.get_symbol("PYSPARK")
+        funct_call = file.function_calls[0]
+        pyspark_arg = funct_call.args.children[0]
+        for symb in file.symbols:
+            usage = symb.usages[0]
+            assert usage.match == pyspark_arg
+
+
 def test_if_else_reassigment_handling_double(tmpdir) -> None:
     content = """
         if False:
@@ -266,3 +284,24 @@ def test_if_else_reassigment_handling_nested_usage(tmpdir) -> None:
         second = file.symbols[1]
         assert len(first.usages) == 0
         assert second.usages[0].match == pyspark_arg
+
+
+def test_if_else_reassigment_inside_func_with_external_element(tmpdir) -> None:
+    content = """
+    PYSPARK="0"
+    def foo():
+        if True:
+            PYSPARK = True
+        else:
+            PYSPARK = False
+        print(PYSPARK)
+
+    """
+
+    with get_codebase_session(tmpdir=tmpdir, files={"test.py": content}) as codebase:
+        file = codebase.get_file("test.py")
+        funct_call = file.function_calls[0]
+        pyspark_arg = funct_call.args.children[0]
+        func = file.get_function("foo")
+        for assign in func.valid_symbol_names[:-1]:
+            assign.usages[0] == pyspark_arg

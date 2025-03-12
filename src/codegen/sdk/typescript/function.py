@@ -378,7 +378,7 @@ class TSFunction(Function[TSDecorator, "TSCodeBlock", TSParameter, TSType], TSHa
             if name == "this":
                 yield self.parent_class
                 return
-        yield from super().resolve_name(name, start_byte)
+        yield from super().resolve_name(name, start_byte, strict=strict)
 
     @staticmethod
     def is_valid_node(node: TSNode) -> bool:
