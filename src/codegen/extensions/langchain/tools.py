@@ -187,13 +187,16 @@ class CreateFileInput(BaseModel):
     """Input for creating a file."""
 
     filepath: str = Field(..., description="Path where to create the file")
-    content: str = Field(..., description="""
+    content: str = Field(
+        ...,
+        description="""
 Content for the new file (REQUIRED).
 
 ⚠️ IMPORTANT: This parameter MUST be a STRING, not a dictionary, JSON object, or any other data type.
 Example: content="print('Hello world')"
 NOT: content={"code": "print('Hello world')"}
-                         """)
+                         """,
+    )
 
 
 class CreateFileTool(BaseTool):
@@ -203,7 +206,7 @@ class CreateFileTool(BaseTool):
     description: ClassVar[str] = """
 Create a new file in the codebase. Always provide content for the new file, even if minimal.
 
-⚠️ CRITICAL WARNING ⚠️ 
+⚠️ CRITICAL WARNING ⚠️
 Both parameters MUST be provided as STRINGS:
 The content for the new file always needs to be provided.
 
@@ -213,7 +216,7 @@ The content for the new file always needs to be provided.
 ✅ CORRECT usage:
 create_file(filepath="path/to/file.py", content="print('Hello world')")
 
-The content parameter is REQUIRED and MUST be a STRING. If you receive a validation error about 
+The content parameter is REQUIRED and MUST be a STRING. If you receive a validation error about
 missing content, you are likely trying to pass a dictionary instead of a string.
 """
     args_schema: ClassVar[type[BaseModel]] = CreateFileInput
