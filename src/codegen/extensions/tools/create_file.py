@@ -23,13 +23,13 @@ class CreateFileObservation(Observation):
     str_template: ClassVar[str] = "Created file {filepath}"
 
 
-def create_file(codebase: Codebase, filepath: str, content: str = "") -> CreateFileObservation:
+def create_file(codebase: Codebase, filepath: str, content: str) -> CreateFileObservation:
     """Create a new file.
 
     Args:
         codebase: The codebase to operate on
         filepath: Path where to create the file
-        content: Initial file content
+        content: Content for the new file (required)
 
     Returns:
         CreateFileObservation containing new file state, or error if file exists
