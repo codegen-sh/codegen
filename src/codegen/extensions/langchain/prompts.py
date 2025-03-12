@@ -43,3 +43,35 @@ REASONER_SYSTEM_MESSAGE = """
     Ensure if specifiying line numbers, it's chosen with room (around 20
     lines before and 20 lines after the edit range)
 """
+
+
+SUMMARIZE_CONVERSATION_PROMPT = """
+    You are maintaining state history for an LLM-based code agent.
+    YOU ARE A SUMMARIZER. PLEASE FOLLOW THE FOLLOWING GUIDELINES FOR YOUR SUMMARIZATION TASK. The following messages that you get you will need to summarize!
+
+    Track:
+
+    USER_CONTEXT: (Preserve essential user requirements, problem descriptions, and clarifications in concise form)
+
+    STATE: {File paths, function signatures, data structures}
+    TESTS: {Failing cases, error messages, outputs}
+    CHANGES: {Code edits, variable updates}
+    DEPS: {Dependencies, imports, external calls}
+    INTENT: {Why changes were made, acceptance criteria}
+
+    PRIORITIZE:
+    1. Capture key user requirements and constraints
+    2. Maintain critical problem context
+    3. Keep all sections concise
+
+    SKIP: {Git clones, build logs, file listings}
+
+    Example history format:
+    USER_CONTEXT: Fix FITS card float representation - "0.009125" becomes "0.009124999999999999" causing comment truncation. Use Python's str() when possible while maintaining FITS compliance.
+
+    STATE: mod_float() in card.py updated
+    TESTS: test_format() passed
+    CHANGES: str(val) replaces f"{val:.16G}"
+    DEPS: None modified
+    INTENT: Fix precision while maintaining FITS compliance
+"""

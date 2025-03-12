@@ -5,6 +5,7 @@ from uuid import uuid4
 from langchain.tools import BaseTool
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables.config import RunnableConfig
+from langgraph.graph.graph import CompiledGraph
 from langsmith import Client
 
 from codegen.extensions.langchain.agent import create_codebase_agent
@@ -15,16 +16,20 @@ from codegen.extensions.langchain.utils.get_langsmith_url import (
 if TYPE_CHECKING:
     from codegen import Codebase
 
+from codegen.agents.utils import AgentConfig
+
 
 class CodeAgent:
     """Agent for interacting with a codebase."""
 
     codebase: "Codebase"
-    agent: any
+    agent: CompiledGraph
     langsmith_client: Client
     project_name: str
     thread_id: str | None = None
-    config: dict = {}
+    run_id: str | None = None
+    instance_id: str | None = None
+    difficulty: int | None = None
 
     def __init__(
         self,
@@ -35,6 +40,8 @@ class CodeAgent:
         tools: Optional[list[BaseTool]] = None,
         tags: Optional[list[str]] = [],
         metadata: Optional[dict] = {},
+        agent_config: Optional[AgentConfig] = None,
+        thread_id: Optional[str] = None,
         **kwargs,
     ):
         """Initialize a CodeAgent.
@@ -60,14 +67,27 @@ class CodeAgent:
             model_name=model_name,
             memory=memory,
             additional_tools=tools,
+            config=agent_config,
             **kwargs,
         )
         self.model_name = model_name
         self.langsmith_client = Client()
 
+        if thread_id is None:
+            self.thread_id = str(uuid4())
+        else:
+            self.thread_id = thread_id
+
         # Get project name from environment variable or use a default
         self.project_name = os.environ.get("LANGCHAIN_PROJECT", "RELACE")
         print(f"Using LangSmith project: {self.project_name}")
+
+        # Store SWEBench metadata if provided
+        self.run_id = metadata.get("run_id")
+        self.instance_id = metadata.get("instance_id")
+        # Extract difficulty value from "difficulty_X" format
+        difficulty_str = metadata.get("difficulty", "")
+        self.difficulty = int(difficulty_str.split("_")[1]) if difficulty_str and "_" in difficulty_str else None
 
         # Initialize tags for agent trace
         self.tags = [*tags, self.model_name]
@@ -79,7 +99,7 @@ class CodeAgent:
             **metadata,
         }
 
-    def run(self, prompt: str, thread_id: Optional[str] = None) -> str:
+    def run(self, prompt: str) -> str:
         """Run the agent with a prompt.
 
         Args:
@@ -89,12 +109,9 @@ class CodeAgent:
         Returns:
             The agent's response
         """
-        if thread_id is None:
-            thread_id = str(uuid4())
-        self.thread_id = thread_id
         self.config = {
             "configurable": {
-                "thread_id": thread_id,
+                "thread_id": self.thread_id,
                 "metadata": {"project": self.project_name},
             },
             "recursion_limit": 100,
@@ -104,7 +121,7 @@ class CodeAgent:
         # see more https://langchain-ai.github.io/langgraph/concepts/low_level/#reducers
         input = {"query": prompt}
 
-        config = RunnableConfig(configurable={"thread_id": thread_id}, tags=self.tags, metadata=self.metadata, recursion_limit=100)
+        config = RunnableConfig(configurable={"thread_id": self.thread_id}, tags=self.tags, metadata=self.metadata, recursion_limit=200)
         # we stream the steps instead of invoke because it allows us to access intermediate nodes
         stream = self.agent.stream(input, config=config, stream_mode="values")
 
@@ -112,7 +129,7 @@ class CodeAgent:
         run_ids = []
 
         for s in stream:
-            if len(s["messages"]) == 0:
+            if len(s["messages"]) == 0 or isinstance(s["messages"][-1], HumanMessage):
                 message = HumanMessage(content=prompt)
             else:
                 message = s["messages"][-1]
