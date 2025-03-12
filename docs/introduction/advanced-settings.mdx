@@ -309,6 +309,19 @@ Controls import path overrides during import resolution.
 
 Enables and disables resolution of imports from `sys.path`.
 
+<Warning>
+For this to properly work, you must also set `allow_external` to `True`.
+</Warning>
+
+## Flag: `allow_external`
+> **Default: `False`**
+
+Enables resolving imports, files, modules, and directories from outside of the repo path.
+
+<Warning>
+Turning this flag off may allow for bad actors to access files outside of the repo path! Use with caution!
+</Warning>
+
 ## Flag: `ts_dependency_manager`
 > **Default: `False`**
 
