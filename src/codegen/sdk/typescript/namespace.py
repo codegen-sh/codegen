@@ -1,11 +1,18 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, override
 
 from codegen.sdk.core.autocommit import commiter
+from codegen.sdk.core.autocommit.decorators import writer
 from codegen.sdk.core.dataclasses.usage import Usage, UsageType
+from codegen.sdk.core.export import Export
+from codegen.sdk.core.interfaces.has_attribute import HasAttribute
 from codegen.sdk.core.interfaces.has_name import HasName
+from codegen.sdk.core.interfaces.importable import Importable
 from codegen.sdk.enums import EdgeType, SymbolType
+from codegen.sdk.extensions.sort import sort_editables
+from codegen.sdk.extensions.autocommit import reader
 from codegen.sdk.extensions.utils import cached_property
 from codegen.sdk.typescript.class_definition import TSClass
 from codegen.sdk.typescript.enum_definition import TSEnum
@@ -25,10 +32,11 @@ if TYPE_CHECKING:
     from codegen.sdk.core.statements.statement import Statement
     from codegen.sdk.core.symbol import Symbol
     from codegen.sdk.typescript.detached_symbols.code_block import TSCodeBlock
+    from codegen.sdk.typescript.export import TSExport
 
 
 @ts_apidoc
-class TSNamespace(TSSymbol, TSHasBlock, HasName):
+class TSNamespace(TSSymbol, TSHasBlock, HasName, HasAttribute):
     """Representation of a namespace module in TypeScript.
 
     Attributes:
@@ -55,19 +63,6 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName):
         """
         # Use self as destination if none provided
         dest = dest or self.self_dest
-
-        if dest and dest != self:
-            # Add direct usage of namespace itself
-            usage = Usage(kind=usage_type, match=self, usage_type=UsageType.DIRECT, usage_symbol=dest.parent_symbol, imported_by=None)
-            self.G.add_edge(self.node_id, dest.node_id, EdgeType.SYMBOL_USAGE, usage)
-
-            # For each exported symbol accessed through namespace
-            for symbol in self.symbols:
-                if symbol and symbol.ts_node_type == "export_statement":
-                    # Add chained usage edge
-                    chained_usage = Usage(kind=usage_type, match=symbol, usage_type=UsageType.CHAINED, usage_symbol=dest.parent_symbol, imported_by=None)
-                    self.G.add_edge(symbol.node_id, dest.node_id, EdgeType.SYMBOL_USAGE, chained_usage)
-
         # Compute dependencies from namespace's code block
         self.code_block._compute_dependencies(usage_type, dest)
 
@@ -121,6 +116,35 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName):
                 return nested_symbol
 
         return None
+    
+    @reader(cache=False)
+    @noapidoc
+    def get_nodes(self, *, sort_by_id: bool = False, sort: bool = True) -> Sequence[Importable]:
+        """Returns all nodes in the namespace, sorted by position in the namespace."""
+        file_nodes = self.file.get_nodes(sort_by_id=sort_by_id, sort=sort)
+        start_limit = self.start_byte
+        end_limit = self.end_byte
+        namespace_nodes = []
+        for file_node in file_nodes:
+            if file_node.start_byte>start_limit:
+                if file_node.end_byte<end_limit:
+                    namespace_nodes.append(file_node)
+                else:
+                    break
+        return namespace_nodes
+    
+    @cached_property
+    @reader(cache=False)
+    def exports(self) -> list[TSExport]:
+        """Returns all Export symbols in the namespace.
+
+        Retrieves a list of all top-level export declarations in the current TypeScript namespace.
+
+        Returns:
+            list[TSExport]: A list of TSExport objects representing all top-level export declarations in the namespace.
+        """
+        # Filter to only get exports that are direct children of the namespace's code block
+        return sort_editables(filter(lambda node: isinstance(node, Export), self.get_nodes(sort=False)), by_id=True)
 
     @cached_property
     def functions(self) -> list[TSFunction]:
@@ -234,18 +258,37 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName):
                 nested.extend(symbol.get_nested_namespaces())
         return nested
 
-    @ts_apidoc
+
+    @writer
+    def add_symbol_from_source(self, source: str) -> None:
+        """Adds a symbol to a namespace from a string representation.
+
+        This method adds a new symbol definition to the namespace by appending its source code string. The symbol will be added
+        after existing symbols if present, otherwise at the beginning of the namespace.
+
+        Args:
+            source (str): String representation of the symbol to be added. This should be valid source code for
+                the file's programming language.
+
+        Returns:
+            None: The symbol is added directly to the namespace's content.
+        """
+        symbols = self.symbols
+        if len(symbols) > 0:
+            symbols[-1].insert_after("\n" + source, fix_indentation=True)
+        else:
+            self.insert_after("\n" + source)
+
     @commiter
-    def add_symbol(self, symbol: TSSymbol | str, export: bool = False, remove_original: bool = False) -> TSSymbol:
-        """Adds a new symbol to the namespace.
+    def add_symbol(self, symbol: TSSymbol, should_export: bool = True) -> TSSymbol|None:
+        """Adds a new symbol to the namespace, optionally exporting it if applicable. If the symbol already exists in the namespace, returns the existing symbol.
 
         Args:
             symbol: The symbol to add to the namespace (either a TSSymbol instance or source code string)
-            export: Whether to export the symbol. Defaults to False.
-            remove_original: Whether to remove the original symbol. Defaults to False.
+            export: Whether to export the symbol. Defaults to True.
 
         Returns:
-            The added symbol
+            TSSymbol | None: The existing symbol if it already exists in the file or None if it was added.
         """
         # TODO: Do we need to check if symbol can be added to the namespace?
         # if not self.symbol_can_be_added(symbol):
@@ -253,38 +296,30 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName):
         # TODO: add symbol by moving
         # TODO: use self.export_symbol() to export the symbol if needed ?
 
-        print("SYMBOL to be added: ", symbol, "export: ", export)
-        symbol_name = symbol.name if isinstance(symbol, TSSymbol) else symbol.split(" ")[2 if export else 1]
+        # print("SYMBOL to be added: ", symbol, "export: ", should_export)
+        # symbol_name = symbol.name if isinstance(symbol, TSSymbol) else symbol.split(" ")[2 if should_export else 1]
 
         # Check if the symbol already exists in file
-        existing_symbol = self.get_symbol(symbol_name)
+        existing_symbol = self.get_symbol(symbol.name)
         if existing_symbol is not None:
             return existing_symbol
-
-        # Export symbol if needed, then append to code block
-        if isinstance(symbol, str):
-            if export and not symbol.startswith("export "):
-                symbol = f"export {symbol}"
-            self.code_block.statements.append(symbol)
-        elif isinstance(symbol, TSSymbol):
-            source = symbol.source
-            if export and not symbol.is_exported:
-                source = f"export {source}"
-            self.code_block.statements.append(source)
-        self.G.commit_transactions()
-
-        # Remove symbol from original location if remove_original is True
-        if remove_original and symbol.parent is not None:
-            symbol.parent.remove_symbol(symbol_name)
-
-        self.G.commit_transactions()
-        added_symbol = self.get_symbol(symbol_name)
-        if added_symbol is None:
-            msg = f"Failed to add symbol {symbol_name} to namespace"
+        
+        if not self.file.symbol_can_be_added(symbol):
+            msg = f"Symbol {symbol.name} cannot be added to this file type."
             raise ValueError(msg)
-        return added_symbol
+        
 
-    @ts_apidoc
+        source = symbol.source
+        if isinstance(symbol, TSFunction) and symbol.is_arrow:
+            raw_source = symbol._named_arrow_function.text.decode("utf-8")
+        else:
+            raw_source = symbol.ts_node.text.decode("utf-8")
+        if should_export and hasattr(symbol, "export") and (not symbol.is_exported or raw_source not in symbol.export.source):
+            source = source.replace(source, f"export {source}")
+        self.add_symbol_from_source(source)
+
+
+
     @commiter
     def remove_symbol(self, symbol_name: str) -> TSSymbol | None:
         """Removes a symbol from the namespace by name.
@@ -302,11 +337,9 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName):
                 if symbol.source == stmt.source:
                     print("stmt to be removed: ", stmt)
                     self.code_block.statements.pop(i)
-                    self.G.commit_transactions()
                     return symbol
         return None
 
-    @ts_apidoc
     @commiter
     def rename_symbol(self, old_name: str, new_name: str) -> None:
         """Renames a symbol within the namespace.
@@ -318,7 +351,6 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName):
         symbol = self.get_symbol(old_name)
         if symbol:
             symbol.rename(new_name)
-        self.G.commit_transactions()
 
     @commiter
     def export_symbol(self, name: str) -> None:
@@ -327,13 +359,12 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName):
         Args:
             name: Name of symbol to export
         """
-        symbol = self.get_symbol(name)
+        symbol = self.get_symbol(name,get_private=True)
         if not symbol or symbol.is_exported:
             return
 
         export_source = f"export {symbol.source}"
         symbol.parent.edit(export_source)
-        self.G.commit_transactions()
 
     @property
     def valid_import_names(self) -> set[str]:
@@ -371,7 +402,7 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName):
 
         return None
 
-    @ts_apidoc
+    @override
     def resolve_attribute(self, name: str) -> Symbol | None:
         """Resolves an attribute access on the namespace.
 

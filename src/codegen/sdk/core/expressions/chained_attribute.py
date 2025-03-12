@@ -142,11 +142,12 @@ class ChainedAttribute(Expression[Parent], Resolvable, Generic[Object, Attribute
             # Module imports
             yield from self.with_resolution_frame(res)
             return
-        # HACK: This is a hack to skip the resolved types for namespaces
-        if isinstance(self.object, TSNamespace):
-            return
+        # # HACK: This is a hack to skip the resolved types for namespaces
+        # if isinstance(self.object, TSNamespace):
+        #     return
         for resolved_type in self.object.resolved_type_frames:
             top = resolved_type.top
+
             if not isinstance(top.node, HasAttribute):
                 generics: dict = resolved_type.generics.copy()
                 if top.node.source.lower() == "dict" and self.attribute.source in ("values", "get", "pop"):

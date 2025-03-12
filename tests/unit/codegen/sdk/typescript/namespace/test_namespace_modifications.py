@@ -25,42 +25,36 @@ def test_namespace_add_symbol(tmpdir) -> None:
         # 1. a) Add new symbol from object, then manually remove the original symbol from the file
         # 1. b) Add new symbol by moving operation
         file.add_symbol_from_source(source="const ya = 2")
-        file.add_symbol_from_source(source="const yb = 2")
-        codebase.G.commit_transactions()
+        codebase.ctx.commit_transactions()
         new_const = file.get_symbol("ya")
 
         # Store original location
-        original_parent = new_const.parent
 
         # Add to namespace and remove from original location
-        namespace.add_symbol(new_const, export=True)
-        original_parent.remove_symbol(new_const.name)
+        namespace.add_symbol(new_const,should_export=True)
 
-        # Add to namespace by moving operation
-        namespace.add_symbol(new_const, export=True, move=True)
-
-        codebase.G.commit_transactions()
+        codebase.ctx.commit_transactions()
 
         # Get fresh reference to namespace
         namespace: TSNamespace = codebase.get_symbol("MyNamespace")
 
         # Verify symbols were moved correctly
         assert namespace.get_symbol("ya") is not None
-        assert file.get_symbol("ya") is None  # Should no longer exist in file directly
-        assert namespace.get_symbol("yb") is not None
-        assert file.get_symbol("yb") is None  # Should no longer exist in file directly
+        assert namespace.get_symbol("ya").export is not None
+        
+        # 2. Add new symbol from string
+        code = "const z = 3"
+        namespace.add_symbol_from_source(code)
+        codebase.ctx.commit_transactions()
+        namespace: TSNamespace = codebase.get_symbol("MyNamespace")
 
-        # 2. Add new exported symbol from string
-        exported_code = "const z = 3"
-        exported = namespace.add_symbol(exported_code, export=True)
-
+        code_symbol = namespace.get_symbol('z',get_private=True) 
         # Verify exported symbol
-        assert exported is not None
-        assert exported.name == "z"
-        assert exported.parent.ts_node_type == "export_statement"
+        assert code_symbol is not None
+        assert code_symbol.name == "z"
 
-        assert len(namespace.symbols) == 2
-        assert {s.name for s in namespace.symbols} == {"x", "z", "ya", "yb"}
+        assert len(namespace.symbols) == 3
+        assert {s.name for s in namespace.symbols} == {"x", "ya", "z"}
 
 
 def test_namespace_remove_symbol(tmpdir) -> None:
@@ -78,6 +72,7 @@ def test_namespace_remove_symbol(tmpdir) -> None:
 
         # Remove existing symbol
         removed = namespace.remove_symbol("x")
+        codebase.ctx.commit_transactions()
         assert removed is not None
         assert removed.name == "x"
 
@@ -104,7 +99,7 @@ def test_namespace_rename(tmpdir) -> None:
 
         # Rename namespace
         namespace.rename("NewName")
-        codebase.G.commit_transactions()
+        codebase.ctx.commit_transactions()
 
         # Verify rename
         namespace: TSNamespace = codebase.get_symbol("NewName")
@@ -128,6 +123,7 @@ def test_namespace_export_symbol(tmpdir) -> None:
 
         # Export internal symbol
         namespace.export_symbol("internal")
+        codebase.ctx.commit_transactions()
 
         # Verify export
         namespace: TSNamespace = codebase.get_symbol("ExportTest")
@@ -137,6 +133,8 @@ def test_namespace_export_symbol(tmpdir) -> None:
 
         # Export already exported symbol (no change)
         namespace.export_symbol("external")
+        codebase.ctx.commit_transactions()
+
         namespace: TSNamespace = codebase.get_symbol("ExportTest")
         external = namespace.get_symbol("external")
         assert external is not None

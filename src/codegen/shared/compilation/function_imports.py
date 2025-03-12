@@ -176,10 +176,6 @@ from codegen.sdk.typescript.import_resolution import TSImport
 from codegen.sdk.typescript.interface import TSInterface
 from codegen.sdk.typescript.interfaces.has_block import TSHasBlock
 from codegen.sdk.typescript.namespace import TSNamespace
-from codegen.sdk.typescript.namespace import add_symbol
-from codegen.sdk.typescript.namespace import remove_symbol
-from codegen.sdk.typescript.namespace import rename_symbol
-from codegen.sdk.typescript.namespace import resolve_attribute
 from codegen.sdk.typescript.placeholder.placeholder_return_type import TSReturnTypePlaceholder
 from codegen.sdk.typescript.statements.assignment_statement import TSAssignmentStatement
 from codegen.sdk.typescript.statements.attribute import TSAttribute

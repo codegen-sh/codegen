@@ -162,9 +162,9 @@ class TSImport(Import["TSFile"], Exportable):
                     # Get the accessed symbol through namespace
                     if accessed := resolved_symbol.get_symbol(usage.match.attribute.source):
                         # Create bi-directional usage relationship
-                        accessed.add_usage(usage.usage_symbol, UsageKind.CHAINED, usage.match, self.G)
+                        accessed.add_usage(usage.usage_symbol, UsageKind.CHAINED, usage.match, self.ctx)
                         # The namespace itself maintains direct usage
-                        resolved_symbol.add_usage(usage.usage_symbol, UsageKind.DIRECT, usage.match, self.G)
+                        resolved_symbol.add_usage(usage.usage_symbol, UsageKind.DIRECT, usage.match, self.ctx)
 
         # If the default import is a single symbol export, resolve to the symbol
         if self.is_default_import():

@@ -30,7 +30,6 @@ def test_namespace_same_file_usage(tmpdir) -> None:
         assert len(namespace.valid_import_names) == 3  # MathUtils, PI, and square
 
         # Check usages
-        assert {namespace.export}.issubset(namespace.symbol_usages(UsageType.DIRECT))
         assert {calc_area}.issubset(namespace.symbol_usages)
 
         # PI has direct usage (export) and chained usage (in calculateArea)
