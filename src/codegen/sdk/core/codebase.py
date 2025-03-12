@@ -498,7 +498,7 @@ class Codebase(
 
         file_exts = self.ctx.extensions
         # Create file as source file if it has a registered extension
-        if any(filepath.endswith(ext) for ext in file_exts):
+        if any(filepath.endswith(ext) for ext in file_exts) and not self.ctx.config.disable_file_parse:
             file_cls = self.ctx.node_classes.file_cls
             file = file_cls.from_content(filepath, content, self.ctx, sync=sync)
             if file is None:
