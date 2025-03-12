@@ -211,7 +211,11 @@ class PyImport(Import["PyFile"]):
         """
         for resolve_path in resolve_paths:
             filepath_new: str = os.path.join(resolve_path, filepath)
-            if file := self.ctx.get_file(filepath_new):
+            try:
+                file = self.ctx.get_file(filepath_new)
+            except AssertionError as e:
+                file = None
+            if file:
                 return file
 
         return None

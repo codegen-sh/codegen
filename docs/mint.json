@@ -106,7 +106,8 @@
         "tutorials/python2-to-python3",
         "tutorials/flask-to-fastapi",
         "tutorials/build-mcp",
-        "tutorials/neo4j-graph"
+        "tutorials/neo4j-graph",
+        "tutorials/attributions"
       ]
     },
     {
