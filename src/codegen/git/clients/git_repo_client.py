@@ -173,6 +173,19 @@ class GitRepoClient:
             logger.warning(f"Error getting PR by number: {number}\n\t{e}")
             return None
 
+    def get_issue_safe(self, number: int) -> Issue | None:
+        """Returns an issue by its number
+        TODO: catching UnknownObjectException is common enough to create a decorator
+        """
+        try:
+            pr = self.repo.get_issue(number)
+            return pr
+        except UnknownObjectException as e:
+            return None
+        except Exception as e:
+            logger.warning(f"Error getting issue by number: {number}\n\t{e}")
+            return None
+
     def get_or_create_pull(
         self,
         head_branch_name: str,
