@@ -118,9 +118,12 @@ def relace_edit(codebase: Codebase, filepath: str, edit_snippet: str, api_key: O
     """
     try:
         file = codebase.get_file(filepath)
-    except ValueError:
-        msg = f"File not found: {filepath}"
-        raise FileNotFoundError(msg)
+    except ValueError as e:
+        return RelaceEditObservation(
+            status="error",
+            error=f"File not found: {filepath}",
+            filepath=filepath,
+        )
 
     # Get the original content
     original_content = file.content
