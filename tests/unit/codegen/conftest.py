@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
