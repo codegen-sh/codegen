@@ -381,7 +381,7 @@ class CodebaseContext:
         """
         # If not part of repo path, return None
         absolute_path = self.to_absolute(directory_path)
-        if not self.is_subdir(absolute_path):
+        if not self.is_subdir(absolute_path) and not self.config.allow_external:
             assert False, f"Directory {absolute_path} is not part of repo path {self.repo_path}"
             return None
 
@@ -611,7 +611,7 @@ class CodebaseContext:
     def get_file(self, file_path: os.PathLike, ignore_case: bool = False) -> SourceFile | None:
         # If not part of repo path, return None
         absolute_path = self.to_absolute(file_path)
-        if not self.is_subdir(absolute_path):
+        if not self.is_subdir(absolute_path) and not self.config.allow_external:
             assert False, f"File {file_path} is not part of the repository path"
 
         # Check if file exists in graph
