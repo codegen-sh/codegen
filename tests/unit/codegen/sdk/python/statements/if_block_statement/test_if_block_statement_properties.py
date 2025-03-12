@@ -126,3 +126,143 @@ def foo():
         assert len(alt_blocks[2].alternative_blocks) == 0
         assert len(alt_blocks[2].elif_statements) == 0
         assert alt_blocks[2].else_statement is None
+
+
+def test_if_else_reassigment_handling(tmpdir) -> None:
+    content = """
+
+        if True:
+            PYSPARK = True
+        elif False:
+            PYSPARK = False
+        else:
+            PYSPARK = None
+
+        print(PYSPARK)
+    """
+
+    with get_codebase_session(tmpdir=tmpdir, files={"test.py": content}) as codebase:
+        file = codebase.get_file("test.py")
+        symbo = file.get_symbol("PYSPARK")
+        funct_call = file.function_calls[0]
+        pyspark_arg = funct_call.args.children[0]
+        for symb in file.symbols:
+            usage = symb.usages[0]
+            assert usage.match == pyspark_arg
+
+
+def test_if_else_reassigment_handling_function(tmpdir) -> None:
+    content = """
+        if True:
+            def foo():
+                print('t')
+        elif False:
+            def foo():
+                print('t')
+        else:
+            def foo():
+                print('t')
+        foo()
+    """
+
+    with get_codebase_session(tmpdir=tmpdir, files={"test.py": content}) as codebase:
+        file = codebase.get_file("test.py")
+        foo = file.get_function("foo")
+        funct_call = file.function_calls[3]
+        for funct in file.functions:
+            usage = funct.usages[0]
+            assert usage.match == funct_call
+
+
+def test_if_else_reassigment_handling_inside_func(tmpdir) -> None:
+    content = """
+    def foo(a):
+        a = 1
+        if xyz:
+            b = 1
+        else:
+            b = 2
+        f(a) # a resolves to 1 name
+        f(b) # b resolves to 2 possible names
+    """
+
+    with get_codebase_session(tmpdir=tmpdir, files={"test.py": content}) as codebase:
+        file = codebase.get_file("test.py")
+        foo = file.get_function("foo")
+        assert foo
+        assert len(foo.parameters[0].usages) == 0
+        funct_call_a = foo.function_calls[0].args[0]
+        funct_call_b = foo.function_calls[1]
+        for symbol in file.symbols(True):
+            if symbol.name == "a":
+                assert len(symbol.usages) == 1
+                symbol.usages[0].match == funct_call_a
+            elif symbol.name == "b":
+                assert len(symbol.usages) == 1
+                symbol.usages[0].match == funct_call_b
+
+
+def test_if_else_reassigment_handling_partial_if(tmpdir) -> None:
+    content = """
+        PYSPARK = "TEST"
+        if True:
+            PYSPARK = True
+        elif None:
+            PYSPARK = False
+
+        print(PYSPARK)
+    """
+
+    with get_codebase_session(tmpdir=tmpdir, files={"test.py": content}) as codebase:
+        file = codebase.get_file("test.py")
+        symbo = file.get_symbol("PYSPARK")
+        funct_call = file.function_calls[0]
+        pyspark_arg = funct_call.args.children[0]
+        for symb in file.symbols:
+            usage = symb.usages[0]
+            assert usage.match == pyspark_arg
+
+
+def test_if_else_reassigment_handling_double(tmpdir) -> None:
+    content = """
+        if False:
+            PYSPARK = "TEST1"
+        elif True:
+            PYSPARK = "TEST2"
+
+        if True:
+            PYSPARK = True
+        elif None:
+            PYSPARK = False
+
+        print(PYSPARK)
+    """
+
+    with get_codebase_session(tmpdir=tmpdir, files={"test.py": content}) as codebase:
+        file = codebase.get_file("test.py")
+        symbo = file.get_symbol("PYSPARK")
+        funct_call = file.function_calls[0]
+        pyspark_arg = funct_call.args.children[0]
+        for symb in file.symbols:
+            usage = symb.usages[0]
+            assert usage.match == pyspark_arg
+
+
+def test_if_else_reassigment_handling_nested_usage(tmpdir) -> None:
+    content = """
+        if True:
+            PYSPARK = True
+        elif None:
+            PYSPARK = False
+            print(PYSPARK)
+
+    """
+
+    with get_codebase_session(tmpdir=tmpdir, files={"test.py": content}) as codebase:
+        file = codebase.get_file("test.py")
+        funct_call = file.function_calls[0]
+        pyspark_arg = funct_call.args.children[0]
+        first = file.symbols[0]
+        second = file.symbols[1]
+        assert len(first.usages) == 0
+        assert second.usages[0].match == pyspark_arg

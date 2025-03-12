@@ -3,7 +3,7 @@ import re
 import resource
 import sys
 from abc import abstractmethod
-from collections.abc import Sequence
+from collections.abc import Generator, Sequence
 from functools import cached_property
 from os import PathLike
 from pathlib import Path
@@ -744,7 +744,7 @@ class SourceFile(
         Returns:
             Symbol | None: The found symbol, or None if not found.
         """
-        if symbol := self.resolve_name(name, self.end_byte):
+        if symbol := next(self.resolve_name(name, self.end_byte), None):
             if isinstance(symbol, Symbol):
                 return symbol
         return next((x for x in self.symbols if x.name == name), None)
@@ -819,7 +819,7 @@ class SourceFile(
         Returns:
             TClass | None: The matching Class object if found, None otherwise.
         """
-        if symbol := self.resolve_name(name, self.end_byte):
+        if symbol := next(self.resolve_name(name, self.end_byte), None):
             if isinstance(symbol, Class):
                 return symbol
 
@@ -880,13 +880,41 @@ class SourceFile(
 
     @noapidoc
     @reader
-    def resolve_name(self, name: str, start_byte: int | None = None) -> Symbol | Import | WildcardImport | None:
+    def resolve_name(self, name: str, start_byte: int | None = None, strict: bool = True) -> Generator[Symbol | Import | WildcardImport]:
+        """Resolves a name to a symbol, import, or wildcard import within the file's scope.
+
+        Performs name resolution by first checking the file's valid symbols and imports. When a start_byte
+        is provided, ensures proper scope handling by only resolving to symbols that are defined before
+        that position in the file.
+
+        Args:
+            name (str): The name to resolve.
+            start_byte (int | None): If provided, only resolves to symbols defined before this byte position
+                in the file. Used for proper scope handling. Defaults to None.
+            strict (bool): When True and using start_byte, only yields symbols if found in the correct scope.
+                When False, allows falling back to global scope. Defaults to True.
+
+        Yields:
+            Symbol | Import | WildcardImport: The resolved symbol, import, or wildcard import that matches
+                the name and scope requirements. Yields at most one result.
+        """
         if resolved := self.valid_symbol_names.get(name):
+            # If we have a start_byte and the resolved symbol is after it,
+            # we need to look for earlier definitions of the symbol
             if start_byte is not None and resolved.end_byte > start_byte:
-                for symbol in self.symbols:
+                # Search backwards through symbols to find the most recent definition
+                # that comes before our start_byte position
+                for symbol in reversed(self.symbols):
                     if symbol.start_byte <= start_byte and symbol.name == name:
-                        return symbol
-            return resolved
+                        yield symbol
+                        return
+                # If strict mode and no valid symbol found, return nothing
+                if not strict:
+                    return
+            # Either no start_byte constraint or symbol is before start_byte
+            yield resolved
+            return
+        return
 
     @property
     @reader

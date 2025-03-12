@@ -213,6 +213,13 @@ class Codebase(
         self.ctx = CodebaseContext(projects, config=config, secrets=secrets, io=io, progress=progress)
         self.console = Console(record=True, soft_wrap=True)
 
+        # Assert config assertions
+        # External import resolution must be enabled if syspath is enabled
+        if self.ctx.config.py_resolve_syspath:
+            if not self.ctx.config.allow_external:
+                msg = "allow_external must be set to True when py_resolve_syspath is enabled"
+                raise ValueError(msg)
+
     @noapidoc
     def __str__(self) -> str:
         return f"<Codebase(name={self.name}, language={self.language}, path={self.repo_path})>"
