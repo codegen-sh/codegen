@@ -159,7 +159,6 @@ class CodebaseContext:
 
         # =====[ __init__ attributes ]=====
         self.projects = projects
-        self.io = io or FileIO()
         context = projects[0]
         self.node_classes = get_node_classes(context.programming_language)
         self.config = config or CodebaseConfig()
@@ -169,6 +168,11 @@ class CodebaseContext:
         self.full_path = os.path.join(self.repo_path, context.base_path) if context.base_path else self.repo_path
         self.codeowners_parser = context.repo_operator.codeowners_parser
         self.base_url = context.repo_operator.base_url
+        if not self.config.allow_external:
+            # TODO: Fix this to be more robust with multiple projects
+            self.io = io or FileIO(allowed_paths=[Path(self.repo_path).resolve()])
+        else:
+            self.io = io or FileIO()
         # =====[ computed attributes ]=====
         self.transaction_manager = TransactionManager()
         self._autocommit = AutoCommit(self)
@@ -187,6 +191,13 @@ class CodebaseContext:
         if self.programming_language is ProgrammingLanguage.UNSUPPORTED or self.programming_language is ProgrammingLanguage.OTHER:
             logger.warning("WARNING: The codebase is using an unsupported language!")
             logger.warning("Some features may not work as expected. Advanced static analysis will be disabled but simple file IO will still work.")
+
+        # Assert config assertions
+        # External import resolution must be enabled if syspath is enabled
+        if self.config.py_resolve_syspath:
+            if not self.config.allow_external:
+                msg = "allow_external must be set to True when py_resolve_syspath is enabled"
+                raise ValueError(msg)
 
         # Build the graph
         if not self.config.exp_lazy_graph and self.config.use_pink != PinkMode.ALL_FILES:
