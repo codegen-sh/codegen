@@ -192,6 +192,13 @@ class CodebaseContext:
             logger.warning("WARNING: The codebase is using an unsupported language!")
             logger.warning("Some features may not work as expected. Advanced static analysis will be disabled but simple file IO will still work.")
 
+        # Assert config assertions
+        # External import resolution must be enabled if syspath is enabled
+        if self.config.py_resolve_syspath:
+            if not self.config.allow_external:
+                msg = "allow_external must be set to True when py_resolve_syspath is enabled"
+                raise ValueError(msg)
+
         # Build the graph
         if not self.config.exp_lazy_graph:
             self.build_graph(context.repo_operator)
