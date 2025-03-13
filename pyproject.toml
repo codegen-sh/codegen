@@ -79,7 +79,7 @@ dependencies = [
   "colorlog>=6.9.0",
   "langsmith",
   "langchain-xai>=0.2.1",
-  "pink-python",
+  "codegen-sdk-pink>=0.1.0",
 ]
 
 license = { text = "Apache-2.0" }
@@ -173,8 +173,6 @@ dev-dependencies = [
 [tool.uv.workspace]
 exclude = ["codegen-examples"]
 
-[tool.uv.sources]
-pink-python = { path = "../pink/bindings/python" }
 
 [tool.cython-lint]
 max-line-length = 200
