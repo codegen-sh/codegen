@@ -87,6 +87,7 @@
         "tutorials/slack-bot",
         "tutorials/github-review-bot",
         "tutorials/deep-code-research",
+        "tutorials/codebase-analytics-dashboard",
         "tutorials/training-data",
         "tutorials/codebase-visualization",
         "tutorials/migrating-apis",
