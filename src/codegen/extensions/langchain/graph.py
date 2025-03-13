@@ -6,7 +6,8 @@ from typing import Annotated, Any, Literal, Optional, Union
 import anthropic
 import openai
 from langchain.tools import BaseTool
-from langchain_core.messages import AIMessage, AnyMessage, HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage, AnyMessage, HumanMessage, SystemMessage, ToolMessage
+from langchain_core.prompts import ChatPromptTemplate
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START
 from langgraph.graph.state import CompiledGraph, StateGraph
@@ -16,6 +17,7 @@ from langgraph.pregel import RetryPolicy
 from codegen.agents.utils import AgentConfig
 from codegen.extensions.langchain.llm import LLM
 from codegen.extensions.langchain.prompts import SUMMARIZE_CONVERSATION_PROMPT
+from codegen.extensions.langchain.utils.utils import get_max_model_input_tokens
 
 
 def manage_messages(existing: list[AnyMessage], updates: Union[list[AnyMessage], dict]) -> list[AnyMessage]:
@@ -53,9 +55,13 @@ def manage_messages(existing: list[AnyMessage], updates: Union[list[AnyMessage],
 
     if isinstance(updates, dict):
         if updates.get("type") == "summarize":
-            # Add summary message
-            summary_msg = AIMessage(content=f"This next few sections contain a summary of the conversation: \n{updates['summary']}")
-            summary_msg.id = str(uuid.uuid4())  # Ensure summary message has ID
+            # Create summary message and mark it with additional_kwargs
+            summary_msg = AIMessage(
+                content=f"""Here is a summary of the conversation
+            from a previous timestep to aid for the continuing conversation: \n{updates["summary"]}\n\n""",
+                additional_kwargs={"is_summary": True},  # Use additional_kwargs for custom metadata
+            )
+            summary_msg.id = str(uuid.uuid4())
             result = updates["head"] + [summary_msg] + updates["tail"]
             return result
 
@@ -65,7 +71,6 @@ def manage_messages(existing: list[AnyMessage], updates: Union[list[AnyMessage],
 class GraphState(dict[str, Any]):
     """State of the graph."""
 
-    summary: str
     query: str
     final_answer: str
     messages: Annotated[list[AnyMessage], manage_messages]
@@ -104,54 +109,90 @@ class AgentGraph:
     def summarize_conversation(self, state: GraphState):
         """Summarize conversation while preserving key context and recent messages."""
         messages = state["messages"]
-        keep_first = self.keep_first_messages  # Keep system prompt and initial user message
+        keep_first = self.keep_first_messages
         target_size = self.max_messages // 2
         messages_from_tail = target_size - keep_first
 
-        # If we don't have enough messages to require summarization
-        if len(messages) <= self.max_messages:
-            return state
+        head = messages[:keep_first]
+        tail = messages[-messages_from_tail:]
+        to_summarize = messages[: len(messages) - messages_from_tail]
 
-        head = messages[:keep_first]  # gets first message  (human instruction)
-        tail = messages[-messages_from_tail:]  # gets last 48 messages (default implementation with 100 max messages)
-        to_summarize = messages[keep_first:-messages_from_tail]  # gets middle messages to summarize -> len(messages) - (len(tail) + len(head))
+        # Handle tool message pairing at truncation point
+        truncation_idx = len(messages) - messages_from_tail
+        if truncation_idx > 0 and isinstance(messages[truncation_idx], ToolMessage):
+            # Keep the AI message right before it
+            tail = [messages[truncation_idx - 1], *tail]
 
         # Skip if nothing to summarize
         if not to_summarize:
             return state
 
-        summary = state.get("summary", "")
-        summary_prompt = SUMMARIZE_CONVERSATION_PROMPT
-        if summary:
-            summary_prompt += f"\n\nPrevious summary: {summary}\n\nExtend this summary with the new conversation:"
+        # Define constants
+        HEADER_WIDTH = 40
+        HEADER_TYPES = {"human": "HUMAN", "ai": "AI", "summary": "SUMMARY FROM PREVIOUS TIMESTEP", "tool_call": "TOOL CALL", "tool_response": "TOOL RESPONSE"}
 
-        # Convert messages to string format for summarization
-        conversation = "\n".join(f"{msg.type}: {msg.content}" for msg in to_summarize)
+        def format_header(header_type: str) -> str:
+            """Format message header with consistent padding.
 
-        messages_for_summary = [SystemMessage(content=summary_prompt), HumanMessage(content="Summarize the following conversation: \n\n" + conversation)]
+            Args:
+                header_type: Type of header to format (must be one of HEADER_TYPES)
 
-        # Initialize the LLM
+            Returns:
+                Formatted header string with padding
+            """
+            header = HEADER_TYPES[header_type]
+            padding = "=" * ((HEADER_WIDTH - len(header)) // 2)
+            return f"{padding} {header} {padding}\n"
+
+        # Format messages with appropriate headers
+        formatted_messages = []
+        for msg in to_summarize:  # No need for slice when iterating full list
+            if isinstance(msg, HumanMessage):
+                formatted_messages.append(format_header("human") + msg.content)
+            elif isinstance(msg, AIMessage):
+                # Check for summary message using additional_kwargs
+                if msg.additional_kwargs.get("is_summary"):
+                    formatted_messages.append(format_header("summary") + msg.content)
+                elif isinstance(msg.content, list) and len(msg.content) > 0 and isinstance(msg.content[0], dict):
+                    for item in msg.content:  # No need for slice when iterating full list
+                        if item.get("type") == "text":
+                            formatted_messages.append(format_header("ai") + item["text"])
+                        elif item.get("type") == "tool_use":
+                            formatted_messages.append(format_header("tool_call") + f"Tool: {item['name']}\nInput: {item['input']}")
+                else:
+                    formatted_messages.append(format_header("ai") + msg.content)
+            elif isinstance(msg, ToolMessage):
+                formatted_messages.append(format_header("tool_response") + msg.content)
+
+        conversation = "\n".join(formatted_messages)  # No need for slice when joining full list
+
         summary_llm = LLM(
             model_provider="anthropic",
             model_name="claude-3-5-sonnet-latest",
-            temperature=0.2,  # Slightly higher temperature for more creative reflection
+            temperature=0.3,
             max_tokens=8012,
         )
-        response = summary_llm.invoke(messages_for_summary)
-        new_summary = response.content
 
-        return {"messages": {"type": "summarize", "summary": new_summary, "tail": tail, "head": head}, "summary": new_summary}
+        chain = ChatPromptTemplate.from_template(SUMMARIZE_CONVERSATION_PROMPT) | summary_llm
+        new_summary = chain.invoke({"conversation": conversation}).content
+
+        return {"messages": {"type": "summarize", "summary": new_summary, "tail": tail, "head": head}}
 
     # =================================== EDGE CONDITIONS ====================================
     def should_continue(self, state: GraphState) -> Literal["tools", "summarize_conversation", END]:
         messages = state["messages"]
         last_message = messages[-1]
 
-        # If the message count exceeds the limit, summarize before performing tool call
+        # Summarize if the number of messages passed in exceeds the max_messages threshold (default 100)
         if len(messages) > self.max_messages:
             return "summarize_conversation"
 
-        if hasattr(last_message, "tool_calls") and last_message.tool_calls:
+        # Summarize if the last message exceeds the max input tokens of the model - 10000 tokens
+        elif isinstance(last_message, AIMessage) and last_message.usage_metadata["input_tokens"] > get_max_model_input_tokens(self.model) - 10000:
+            print("here lol")
+            return "summarize_conversation"
+
+        elif hasattr(last_message, "tool_calls") and last_message.tool_calls:
             return "tools"
 
         return END
@@ -164,7 +205,7 @@ class AgentGraph:
         # the retry policy has an initial interval, a backoff factor, and a max interval of controlling the
         # amount of time between retries
         retry_policy = RetryPolicy(
-            retry_on=[anthropic.RateLimitError, openai.RateLimitError, anthropic.InternalServerError],
+            retry_on=[anthropic.RateLimitError, openai.RateLimitError, anthropic.InternalServerError, anthropic.BadRequestError],
             max_attempts=10,
             initial_interval=30.0,  # Start with 30 second wait
             backoff_factor=2,  # Double the wait time each retry
@@ -187,6 +228,7 @@ class AgentGraph:
                     return field_descriptions
 
                 try:
+                    # Get all field descriptions from the tool
                     schema_cls = tool_obj.args_schema
 
                     # Handle Pydantic v2
