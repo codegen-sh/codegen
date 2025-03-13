@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import pytest
 
 from codegen.sdk.codebase.io.file_io import BadWriteError, FileIO
@@ -137,6 +135,7 @@ def test_delete_file_bounded(file_io, tmp_path):
         file_io.delete_file(bad_file_2)
 
     assert "is not within allowed paths" in str(exc_info.value)
+
 
 def test_file_exists_bounded(file_io, tmp_path):
     allowed_dir = tmp_path / "allowed"
