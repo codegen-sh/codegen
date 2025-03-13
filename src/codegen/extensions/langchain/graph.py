@@ -110,7 +110,7 @@ class AgentGraph:
         """Summarize conversation while preserving key context and recent messages."""
         messages = state["messages"]
         keep_first = self.keep_first_messages
-        target_size = self.max_messages // 2
+        target_size = len(messages) // 2
         messages_from_tail = target_size - keep_first
 
         head = messages[:keep_first]
