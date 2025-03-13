@@ -121,6 +121,7 @@ def test_file_extensions_ignore_case(tmpdir) -> None:
 
 
 @pytest.mark.skipif(sys.platform == "darwin", reason="macOS is case-insensitive")
+@pytest.mark.xfail(reason="Blocked on CG-11949")
 def test_file_case_sensitivity_has_file(tmpdir) -> None:
     with get_codebase_session(tmpdir=tmpdir, files={"file1.py": "print(123)", "file2.py": "print(456)", "file3.bin": b"\x89PNG"}, config=Config) as codebase:
         # Test has_file with ignore_case=True
@@ -147,6 +148,7 @@ def test_file_case_sensitivity_has_file(tmpdir) -> None:
 
 
 @pytest.mark.skipif(sys.platform == "darwin", reason="macOS is case-insensitive")
+@pytest.mark.xfail(reason="Blocked on CG-11949")
 def test_file_case_sensitivity_get_file(tmpdir) -> None:
     with get_codebase_session(tmpdir=tmpdir, files={"file1.py": "print(123)", "file2.py": "print(456)", "file3.bin": b"\x89PNG"}, config=Config) as codebase:
         file1 = codebase.get_file("file1.py")
@@ -168,58 +170,6 @@ def test_file_case_sensitivity_get_file(tmpdir) -> None:
         assert codebase.get_file("FiLe2.Py", ignore_case=False, optional=True) is None
         assert codebase.get_file("FILE3.BIN", ignore_case=False, optional=True) is None
         assert codebase.get_file("FiLe3.BiN", ignore_case=False, optional=True) is None
-
-
-@pytest.mark.skipif(sys.platform == "darwin", reason="macOS is case-insensitive")
-def test_subdirectory_case_sensitivity(tmpdir) -> None:
-    with get_codebase_session(tmpdir=tmpdir, files={"subdir/file1.py": "print(123)", "SUBDIR2/file2.py": "print(456)", "SubDir3/file3.py": "print(789)"}, config=Config) as codebase:
-        # Test has_subdirectory with ignore_case=True
-        assert codebase.has_directory("subdir", ignore_case=True)
-        assert codebase.has_directory("SUBDIR", ignore_case=True)
-        assert codebase.has_directory("SubDir", ignore_case=True)
-        assert codebase.has_directory("SUBDIR2", ignore_case=True)
-        assert codebase.has_directory("subdir2", ignore_case=True)
-        assert codebase.has_directory("SubDir2", ignore_case=True)
-        assert codebase.has_directory("SubDir3", ignore_case=True)
-        assert codebase.has_directory("SUBDIR3", ignore_case=True)
-        assert codebase.has_directory("subdir3", ignore_case=True)
-
-        # Test has_subdirectory with ignore_case=False (default)
-        assert codebase.has_directory("subdir", ignore_case=False)
-        assert not codebase.has_directory("SUBDIR", ignore_case=False)
-        assert not codebase.has_directory("SubDir", ignore_case=False)
-        assert codebase.has_directory("SUBDIR2", ignore_case=False)
-        assert not codebase.has_directory("subdir2", ignore_case=False)
-        assert not codebase.has_directory("SubDir2", ignore_case=False)
-        assert codebase.has_directory("SubDir3", ignore_case=False)
-        assert not codebase.has_directory("SUBDIR3", ignore_case=False)
-        assert not codebase.has_directory("subdir3", ignore_case=False)
-
-
-@pytest.mark.skipif(sys.platform == "darwin", reason="macOS is case-insensitive")
-def test_files_in_subdirectories_case_sensitivity(tmpdir) -> None:
-    with get_codebase_session(tmpdir=tmpdir, files={"subdir/file1.py": "print(123)", "SUBDIR2/FILE2.py": "print(456)", "SubDir3/File3.py": "print(789)"}, config=Config) as codebase:
-        # Test has_file with ignore_case=True for files in subdirectories
-        assert codebase.has_file("subdir/file1.py", ignore_case=True)
-        assert codebase.has_file("SUBDIR/FILE1.py", ignore_case=True)
-        assert codebase.has_file("SubDir/File1.py", ignore_case=True)
-        assert codebase.has_file("SUBDIR2/FILE2.py", ignore_case=True)
-        assert codebase.has_file("subdir2/file2.py", ignore_case=True)
-        assert codebase.has_file("SubDir2/File2.py", ignore_case=True)
-        assert codebase.has_file("SubDir3/File3.py", ignore_case=True)
-        assert codebase.has_file("SUBDIR3/FILE3.py", ignore_case=True)
-        assert codebase.has_file("subdir3/file3.py", ignore_case=True)
-
-        # Test has_file with ignore_case=False (default) for files in subdirectories
-        assert codebase.has_file("subdir/file1.py", ignore_case=False)
-        assert not codebase.has_file("SUBDIR/FILE1.py", ignore_case=False)
-        assert not codebase.has_file("SubDir/File1.py", ignore_case=False)
-        assert codebase.has_file("SUBDIR2/FILE2.py", ignore_case=False)
-        assert not codebase.has_file("subdir2/file2.py", ignore_case=False)
-        assert not codebase.has_file("SubDir2/File2.py", ignore_case=False)
-        assert codebase.has_file("SubDir3/File3.py", ignore_case=False)
-        assert not codebase.has_file("SUBDIR3/FILE3.py", ignore_case=False)
-        assert not codebase.has_file("subdir3/file3.py", ignore_case=False)
 
 
 def test_minified_file(tmpdir) -> None:

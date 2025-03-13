@@ -534,6 +534,12 @@ class Codebase(
         Returns:
             bool: True if the file exists in the codebase, False otherwise.
         """
+        if self.ctx.config.use_pink == PinkMode.ALL_FILES:
+            absolute_path = self.ctx.to_absolute(filepath)
+            return self._pink_codebase.has_file(absolute_path)
+        if self.ctx.config.use_pink == PinkMode.NON_SOURCE_FILES:
+            if self._pink_codebase.has_file(filepath):
+                return True
         return self.get_file(filepath, optional=True, ignore_case=ignore_case) is not None
 
     @overload
