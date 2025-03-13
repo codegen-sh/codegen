@@ -6,8 +6,11 @@ from codegen.configs.models.base_config import BaseConfig
 
 
 class PinkMode(IntEnum):
+    # Use the python SDK for all files
     OFF = auto()
+    # Use the Rust SDK for all files
     ALL_FILES = auto()
+    # Use the Rust SDK for files the python SDK can't parse (non-source files)
     NON_SOURCE_FILES = auto()
 
 
