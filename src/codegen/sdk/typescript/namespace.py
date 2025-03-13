@@ -289,16 +289,6 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName, HasAttribute):
         Returns:
             TSSymbol | None: The existing symbol if it already exists in the file or None if it was added.
         """
-        # TODO: Do we need to check if symbol can be added to the namespace?
-        # if not self.symbol_can_be_added(symbol):
-        #     raise ValueError(f"Symbol {symbol.name} cannot be added to the namespace.")
-        # TODO: add symbol by moving
-        # TODO: use self.export_symbol() to export the symbol if needed ?
-
-        # print("SYMBOL to be added: ", symbol, "export: ", should_export)
-        # symbol_name = symbol.name if isinstance(symbol, TSSymbol) else symbol.split(" ")[2 if should_export else 1]
-
-        # Check if the symbol already exists in file
         existing_symbol = self.get_symbol(symbol.name)
         if existing_symbol is not None:
             return existing_symbol
