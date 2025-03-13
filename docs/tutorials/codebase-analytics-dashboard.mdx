@@ -1,6 +1,6 @@
 ---
-title: "Building a Codebase Analytics Dashboard with Codegen"
-sidebarTitle: "Analytics Dashboard"
+title: "Codebase Analytics"
+sidebarTitle: "Analytics"
 icon: "calculator"
 iconType: "solid"
 ---
@@ -9,29 +9,10 @@ This tutorial explains how codebase metrics are efficiently calculated using the
 
 View the full code and setup instructions in our [codebase-analytics repository](https://github.com/codegen-sh/codebase-analytics).
 
-## Line Metrics
-
-Line metrics are used to determine the size and maintainability of the codebase.
-
-### Lines of Code
-Lines of Code refers to the total number of lines in the source code, including blank lines and comments. This is accomplished with a simple count of all lines in the source file
-
-### Logical Lines of Code (LLOC)
-LLOC is the amount of lines of code which contain actual functional statements. It excludes comments, blank lines, and other lines which do not contribute to the utility of the codebase.
-
-### Source Lines of Code (SLOC)
-SLOC refers to the number of lines containing actual code, excluding blank lines. This includes programming language keywords and comments.
-
-### Comment Density
-Comment density is calculated by dividing the lines of code which contain comments by the total lines of code in the codebase. The formula is:
-
-```python
-"comment_density": (total_comments / total_loc * 100)
-```
-
-It measures the proportion of comments in the codebase and is a good indicator of how much code is properly documented. Accordingly, it can show how maintainable and easy to understand the codebase is.
 
 ## Complexity Metrics
+
+Complexity metrics help quantify how easy or difficult a codebase is to understand and maintain. These metrics are calculated by analyzing various aspects of the code structure, including control flow, code volume, and inheritance patterns. The following metrics provide different perspectives on code complexity.
 
 ### Cyclomatic Complexity
 Cyclomatic Complexity measures the number of linearly independent paths through the codebase, making it a valuable indicator of how difficult code will be to test and maintain.
@@ -126,6 +107,28 @@ def calculate_maintainability_index(
         return 0
 ```
 
+## Line Metrics
+
+Line metrics provide insights into the size, complexity, and maintainability of a codebase. These measurements help determine the scale of a project, identify areas that may need refactoring, and track the growth of the codebase over time. 
+
+### Lines of Code
+Lines of Code refers to the total number of lines in the source code, including blank lines and comments. This is accomplished with a simple count of all lines in the source file.
+
+### Logical Lines of Code (LLOC)
+LLOC is the amount of lines of code which contain actual functional statements. It excludes comments, blank lines, and other lines which do not contribute to the utility of the codebase. A high LLOC relative to total lines of code suggests dense, potentially complex code that may benefit from breaking into smaller functions or modules with more documentation.
+
+### Source Lines of Code (SLOC)
+SLOC refers to the number of lines containing actual code, excluding blank lines. This includes programming language keywords and comments. While a higher SLOC indicates a larger codebase, it should be evaluated alongside other metrics like cyclomatic complexity and maintainability index to assess if the size is justified by the functionality provided.
+
+### Comment Density
+Comment density is calculated by dividing the lines of code which contain comments by the total lines of code in the codebase. The formula is:
+
+```python
+"comment_density": (total_comments / total_loc * 100)
+```
+
+It measures the proportion of comments in the codebase and is a good indicator of how much code is properly documented. Accordingly, it can show how maintainable and easy to understand the codebase is.
+
 ## General Codebase Statistics
 The number of files is determined by traversing codegen's FileNode objects in the parsed codebase. The number of functions is calculated by counting FunctionDef nodes across all parsed files. The number of classes is obtained by summing ClassDef nodes throughout the codebase.
 
@@ -148,10 +151,7 @@ The tool is implemented as a FastAPI application wrapped in a Modal deployment. 
    - Calculate all metrics
    - Return a comprehensive JSON response with all metrics
 
-This is the only endpoint in the FastAPI server, as it takes care of the entire analysis process.
+This is the only endpoint in the FastAPI server, as it takes care of the entire analysis process. To run the FastAPI server locally, install all dependencies and run the server with `modal serve modal_main.py`.
 
-To run the FastAPI server locally, install all dependencies and run the server with `modal serve modal_main.py`.
+The server can be connected to the frontend dashboard. This web component is implemented as a Next.js application with appropriate comments and visualizations for the raw server data. To run the frontend locally, install all dependencies and run the server with `npm run dev`. This can be connected to the FastAPI server by setting the URL in the request to the `/analyze_repo` endpoint.
 
-## Frontend Dashboard
-
-The frontend dashboard is implemented as a Next.js application. It is built using Shadcn/UI and uses the `@/components` directory for components.
