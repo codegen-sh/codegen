@@ -188,7 +188,6 @@ class GitRepoClient:
             pull = self.create_pull(head_branch_name=head_branch_name, base_branch_name=base_branch_name, title=title, body=body)
         return pull
 
-    # TODO: update params to match super
     def create_pull(
         self,
         head_branch_name: str,
@@ -199,6 +198,13 @@ class GitRepoClient:
     ) -> PullRequest | None:
         if base_branch_name is None:
             base_branch_name = self.default_branch
+
+        # draft PRs are not supported on all private repos
+        # TODO: check repo plan features instead of this heuristic
+        if self.repo.visibility == "private":
+            logger.info(f"Repo {self.repo.name} is private. Disabling draft PRs.")
+            draft = False
+
         try:
             pr = self.repo.create_pull(title=title or f"Draft PR for {head_branch_name}", body=body or "", head=head_branch_name, base=base_branch_name, draft=draft)
             logger.info(f"Created pull request for head branch: {head_branch_name} at {pr.html_url}")
