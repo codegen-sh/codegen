@@ -37,22 +37,6 @@ class CodeAgent:
         metadata: Optional[dict] = {},
         **kwargs,
     ):
-        """Initialize a CodeAgent.
-
-        Args:
-            codebase: The codebase to operate on
-            model_provider: The model provider to use ("anthropic" or "openai")
-            model_name: Name of the model to use
-            memory: Whether to let LLM keep track of the conversation history
-            tools: Additional tools to use
-            tags: Tags to add to the agent trace. Must be of the same type.
-            metadata: Metadata to use for the agent. Must be a dictionary.
-            **kwargs: Additional LLM configuration options. Supported options:
-                - temperature: Temperature parameter (0-1)
-                - top_p: Top-p sampling parameter (0-1)
-                - top_k: Top-k sampling parameter (>= 1)
-                - max_tokens: Maximum number of tokens to generate
-        """
         self.codebase = codebase
         self.agent = create_codebase_agent(
             self.codebase,
@@ -65,14 +49,11 @@ class CodeAgent:
         self.model_name = model_name
         self.langsmith_client = Client()
 
-        # Get project name from environment variable or use a default
         self.project_name = os.environ.get("LANGCHAIN_PROJECT", "RELACE")
         print(f"Using LangSmith project: {self.project_name}")
 
-        # Initialize tags for agent trace
         self.tags = [*tags, self.model_name]
 
-        # Initialize metadata for agent trace
         self.metadata = {
             "project": self.project_name,
             "model": self.model_name,
@@ -100,15 +81,11 @@ class CodeAgent:
             "recursion_limit": 100,
         }
 
-        # this message has a reducer which appends the current message to the existing history
-        # see more https://langchain-ai.github.io/langgraph/concepts/low_level/#reducers
         input = {"query": prompt}
 
         config = RunnableConfig(configurable={"thread_id": thread_id}, tags=self.tags, metadata=self.metadata, recursion_limit=100)
-        # we stream the steps instead of invoke because it allows us to access intermediate nodes
         stream = self.agent.stream(input, config=config, stream_mode="values")
 
-        # Keep track of run IDs from the stream
         run_ids = []
 
         for s in stream:
@@ -125,16 +102,12 @@ class CodeAgent:
                 else:
                     message.pretty_print()
 
-                # Try to extract run ID if available in metadata
                 if hasattr(message, "additional_kwargs") and "run_id" in message.additional_kwargs:
                     run_ids.append(message.additional_kwargs["run_id"])
 
-        # Get the last message content
         result = s["final_answer"]
 
-        # Try to find run IDs in the LangSmith client's recent runs
         try:
-            # Find and print the LangSmith run URL
             find_and_print_langsmith_run_url(self.langsmith_client, self.project_name)
         except Exception as e:
             separator = "=" * 60
@@ -153,7 +126,6 @@ class CodeAgent:
             The URL for the run in LangSmith if found, None otherwise
         """
         try:
-            # TODO - this is definitely not correct, we should be able to get the URL directly...
             return find_and_print_langsmith_run_url(client=self.langsmith_client, project_name=self.project_name)
         except Exception as e:
             separator = "=" * 60
@@ -173,7 +145,7 @@ class CodeAgent:
     def get_tags_metadata(self) -> tuple[list[str], dict]:
         tags = [self.model_name]
         metadata = {"project": self.project_name, "model": self.model_name}
-        # Add SWEBench run ID and instance ID to the metadata and tags for filtering
+
         if self.run_id is not None:
             metadata["swebench_run_id"] = self.run_id
             tags.append(self.run_id)
