@@ -159,7 +159,6 @@ class CodebaseContext:
 
         # =====[ __init__ attributes ]=====
         self.projects = projects
-        self.io = io or FileIO()
         context = projects[0]
         self.node_classes = get_node_classes(context.programming_language)
         self.config = config or CodebaseConfig()
@@ -169,6 +168,8 @@ class CodebaseContext:
         self.full_path = os.path.join(self.repo_path, context.base_path) if context.base_path else self.repo_path
         self.codeowners_parser = context.repo_operator.codeowners_parser
         self.base_url = context.repo_operator.base_url
+        # TODO: Fix this to be more robust with multiple projects
+        self.io = io or FileIO(allowed_paths=[Path(self.repo_path).resolve()])
         # =====[ computed attributes ]=====
         self.transaction_manager = TransactionManager()
         self._autocommit = AutoCommit(self)
