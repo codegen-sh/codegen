@@ -301,6 +301,8 @@ class Codebase(
         Returns:
             list[TSourceFile]: A sorted list of source files in the codebase.
         """
+        if self.ctx.config.use_pink == PinkMode.ALL_FILES:
+            return self._pink_codebase.files
         if extensions is None and len(self.ctx.get_nodes(NodeType.FILE)) > 0:
             # If extensions is None AND there is at least one file in the codebase (This checks for unsupported languages or parse-off repos),
             # Return all source files
@@ -554,6 +556,9 @@ class Codebase(
         Raises:
             ValueError: If file not found and optional=False.
         """
+        if self.ctx.config.use_pink == PinkMode.ALL_FILES:
+            absolute_path = self.ctx.to_absolute(filepath)
+            return self._pink_codebase.get_file(absolute_path)
         # Try to get the file from the graph first
         file = self.ctx.get_file(filepath, ignore_case=ignore_case)
         if file is not None:
