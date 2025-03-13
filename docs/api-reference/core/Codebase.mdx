@@ -11,7 +11,7 @@ import {HorizontalDivider} from '/snippets/HorizontalDivider.mdx';
 import {GithubLinkNote} from '/snippets/GithubLinkNote.mdx';
 import {Attribute} from '/snippets/Attribute.mdx';
 
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L117-L1568" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L117-L1561" />
 
 
 ## Attributes
@@ -89,7 +89,7 @@ import {Attribute} from '/snippets/Attribute.mdx';
 <HorizontalDivider />
 ### <span className="text-primary">ai</span>
 Generates a response from the AI based on the provided prompt, target, and context.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L1199-L1286" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L1192-L1279" />
 
 <ParameterWrapper>
 <Parameter
@@ -124,7 +124,7 @@ Generates a response from the AI based on the provided prompt, target, and conte
 
 ### <span className="text-primary">checkout</span>
 Checks out a git branch or commit and syncs the codebase graph to the new state.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L872-L912" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L865-L905" />
 
 <ParameterWrapper>
 <Parameter
@@ -159,7 +159,7 @@ Checks out a git branch or commit and syncs the codebase graph to the new state.
 
 ### <span className="text-primary">commit</span>
 Commits all staged changes to the codebase graph and synchronizes the graph with the filesystem if specified.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L810-L822" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L803-L815" />
 
 <ParameterWrapper>
 <Parameter
@@ -176,7 +176,7 @@ Commits all staged changes to the codebase graph and synchronizes the graph with
 
 ### <span className="text-primary">create_directory</span>
 Creates a directory at the specified path.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L518-L534" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L511-L527" />
 
 <ParameterWrapper>
 <Parameter
@@ -205,7 +205,7 @@ Creates a directory at the specified path.
 
 ### <span className="text-primary">create_file</span>
 Creates a new file in the codebase with specified content.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L483-L516" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L476-L509" />
 
 <ParameterWrapper>
 <Parameter
@@ -234,7 +234,7 @@ Creates a new file in the codebase with specified content.
 
 ### <span className="text-primary">create_pr</span>
 Creates a pull request from the current branch to the repository's default branch.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L977-L1009" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L970-L1002" />
 
 <ParameterWrapper>
 <Parameter
@@ -257,7 +257,7 @@ Creates a pull request from the current branch to the repository's default branc
 
 ### <span className="text-primary">create_pr_comment</span>
 Create a comment on a pull request
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L1540-L1542" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L1533-L1535" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
@@ -265,7 +265,7 @@ Create a comment on a pull request
 
 ### <span className="text-primary">create_pr_review_comment</span>
 Create a review comment on a pull request.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L1544-L1568" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L1537-L1561" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
@@ -273,7 +273,7 @@ Create a review comment on a pull request.
 
 ### <span className="text-primary">files</span>
 A list property that returns all files in the codebase.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L293-L329" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L286-L322" />
 
 
 <Return return_type={ <><span>list[</span> <a href="/api-reference/core/SourceFile" style={ {fontWeight: "inherit", fontSize: "inherit"} }>SourceFile</a> <span>] | list[</span> <a href="/api-reference/core/File" style={ {fontWeight: "inherit", fontSize: "inherit"} }>File</a> <span>]</span></> } description="A sorted list of source files in the codebase."/>
@@ -281,7 +281,7 @@ A list property that returns all files in the codebase.
 
 ### <span className="text-primary">find_by_span</span>
 Finds editable objects that overlap with the given source code span.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L1296-L1311" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L1289-L1304" />
 
 <ParameterWrapper>
 <Parameter
@@ -298,7 +298,7 @@ Finds editable objects that overlap with the given source code span.
 
 ### <span className="text-primary">from_files</span>
 Creates a Codebase instance from multiple files.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L1450-L1530" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L1443-L1523" />
 
 
 <Return return_type={ <><a href="/api-reference/core/Codebase" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Codebase</a></> } description="A Codebase instance initialized with the provided files"/>
@@ -306,7 +306,7 @@ Creates a Codebase instance from multiple files.
 
 ### <span className="text-primary">from_repo</span>
 Fetches a codebase from GitHub and returns a Codebase instance.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L1334-L1401" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L1327-L1394" />
 
 <ParameterWrapper>
 <Parameter
@@ -359,7 +359,7 @@ Fetches a codebase from GitHub and returns a Codebase instance.
 
 ### <span className="text-primary">from_string</span>
 Creates a Codebase instance from a string of code.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L1404-L1447" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L1397-L1440" />
 
 
 <Return return_type={ <><a href="/api-reference/core/Codebase" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Codebase</a></> } description="A Codebase instance initialized with the provided code Example: >>> # Python code >>> code = &quot;def add(a, b): return a + b&quot; >>> codebase = Codebase.from_string(code, language=&quot;python&quot;) >>> # TypeScript code >>> code = &quot;function add(a: number, b: number): number { return a + b; }&quot; >>> codebase = Codebase.from_string(code, language=&quot;typescript&quot;)"/>
@@ -367,7 +367,7 @@ Creates a Codebase instance from a string of code.
 
 ### <span className="text-primary">get_class</span>
 Returns a class that matches the given name.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L694-L716" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L687-L709" />
 
 <ParameterWrapper>
 <Parameter
@@ -390,7 +390,7 @@ Returns a class that matches the given name.
 
 ### <span className="text-primary">get_directory</span>
 Returns Directory by `dir_path`, or full path to the directory from codebase root.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L616-L636" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L609-L629" />
 
 <ParameterWrapper>
 <Parameter
@@ -413,7 +413,7 @@ Returns Directory by `dir_path`, or full path to the directory from codebase roo
 
 ### <span className="text-primary">get_file</span>
 Retrieves a file from the codebase by its filepath.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L558-L601" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L551-L594" />
 
 <ParameterWrapper>
 <Parameter
@@ -442,7 +442,7 @@ Retrieves a file from the codebase by its filepath.
 
 ### <span className="text-primary">get_function</span>
 Retrieves a function from the codebase by its name.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L718-L745" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L711-L738" />
 
 <ParameterWrapper>
 <Parameter
@@ -465,7 +465,7 @@ Retrieves a function from the codebase by its name.
 
 ### <span className="text-primary">get_modified_symbols_in_pr</span>
 Get all modified symbols in a pull request
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L1532-L1538" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L1525-L1531" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">tuple[str, dict[str, str], list[str]]</code> } description=""/>
@@ -473,7 +473,7 @@ Get all modified symbols in a pull request
 
 ### <span className="text-primary">get_relative_path</span>
 Calculates a relative path from one file to another, removing the extension from the target file.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L755-L786" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L748-L779" />
 
 <ParameterWrapper>
 <Parameter
@@ -496,7 +496,7 @@ Calculates a relative path from one file to another, removing the extension from
 
 ### <span className="text-primary">get_symbol</span>
 Returns a Symbol by name from the codebase.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L651-L676" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L644-L669" />
 
 <ParameterWrapper>
 <Parameter
@@ -519,7 +519,7 @@ Returns a Symbol by name from the codebase.
 
 ### <span className="text-primary">get_symbols</span>
 Retrieves all symbols in the codebase that match the given symbol name.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L678-L692" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L671-L685" />
 
 <ParameterWrapper>
 <Parameter
@@ -536,7 +536,7 @@ Retrieves all symbols in the codebase that match the given symbol name.
 
 ### <span className="text-primary">git_commit</span>
 Stages + commits all changes to the codebase and git.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L792-L808" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L785-L801" />
 
 <ParameterWrapper>
 <Parameter
@@ -559,7 +559,7 @@ Stages + commits all changes to the codebase and git.
 
 ### <span className="text-primary">has_directory</span>
 Returns a boolean indicating if a directory exists in the codebase.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L603-L614" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L596-L607" />
 
 <ParameterWrapper>
 <Parameter
@@ -576,7 +576,7 @@ Returns a boolean indicating if a directory exists in the codebase.
 
 ### <span className="text-primary">has_file</span>
 Determines if a file exists in the codebase.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L536-L552" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L529-L545" />
 
 <ParameterWrapper>
 <Parameter
@@ -599,7 +599,7 @@ Determines if a file exists in the codebase.
 
 ### <span className="text-primary">has_symbol</span>
 Returns whether a symbol exists in the codebase.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L638-L649" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L631-L642" />
 
 <ParameterWrapper>
 <Parameter
@@ -616,7 +616,7 @@ Returns whether a symbol exists in the codebase.
 
 ### <span className="text-primary">reset</span>
 Resets the codebase by
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L853-L870" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L846-L863" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
@@ -624,7 +624,7 @@ Resets the codebase by
 
 ### <span className="text-primary">set_ai_key</span>
 Sets the OpenAI key for the current Codebase instance.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L1288-L1294" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L1281-L1287" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
@@ -632,7 +632,7 @@ Sets the OpenAI key for the current Codebase instance.
 
 ### <span className="text-primary">set_session_options</span>
 Sets the session options for the current codebase.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L1313-L1331" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L1306-L1324" />
 
 <ParameterWrapper>
 <Parameter
@@ -661,7 +661,7 @@ Sets the session options for the current codebase.
 
 ### <span className="text-primary">should_fix</span>
 Returns True if the flag should be fixed based on the current mode and active group.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L1063-L1077" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L1056-L1070" />
 
 <ParameterWrapper>
 <Parameter
@@ -678,7 +678,7 @@ Returns True if the flag should be fixed based on the current mode and active gr
 
 ### <span className="text-primary">visualize</span>
 Visualizes a NetworkX graph or Plotly figure.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L1015-L1028" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/codebase.py#L1008-L1021" />
 
 <ParameterWrapper>
 <Parameter
