@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 
 from rustworkx import PyDiGraph, WeightedEdgeList
 
-from codegen.configs.models.codebase import CodebaseConfig
+from codegen.configs.models.codebase import CodebaseConfig, PinkMode
 from codegen.configs.models.secrets import SecretsConfig
 from codegen.sdk.codebase.config import ProjectConfig, SessionOptions
 from codegen.sdk.codebase.config_parser import ConfigParser, get_config_parser_for_language
@@ -189,7 +189,7 @@ class CodebaseContext:
             logger.warning("Some features may not work as expected. Advanced static analysis will be disabled but simple file IO will still work.")
 
         # Build the graph
-        if not self.config.exp_lazy_graph:
+        if not self.config.exp_lazy_graph and self.config.use_pink != PinkMode.ALL_FILES:
             self.build_graph(context.repo_operator)
         try:
             self.synced_commit = context.repo_operator.head_commit

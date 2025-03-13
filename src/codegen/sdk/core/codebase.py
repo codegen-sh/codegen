@@ -22,7 +22,7 @@ from openai import OpenAI
 from rich.console import Console
 from typing_extensions import TypeVar, deprecated
 
-from codegen.configs.models.codebase import CodebaseConfig
+from codegen.configs.models.codebase import CodebaseConfig, PinkMode
 from codegen.configs.models.secrets import SecretsConfig
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.enums import CheckoutResult, SetupOption
@@ -212,6 +212,10 @@ class Codebase(
         self.repo_path = Path(self._op.repo_path)
         self.ctx = CodebaseContext(projects, config=config, secrets=secrets, io=io, progress=progress)
         self.console = Console(record=True, soft_wrap=True)
+        if self.ctx.config.use_pink != PinkMode.OFF:
+            import codegen_sdk_pink
+
+            self._pink_codebase = codegen_sdk_pink.Codebase(self.repo_path)
 
         # Assert config assertions
         # External import resolution must be enabled if syspath is enabled
@@ -304,6 +308,8 @@ class Codebase(
         Returns:
             list[TSourceFile]: A sorted list of source files in the codebase.
         """
+        if self.ctx.config.use_pink == PinkMode.ALL_FILES:
+            return self._pink_codebase.files
         if extensions is None and len(self.ctx.get_nodes(NodeType.FILE)) > 0:
             # If extensions is None AND there is at least one file in the codebase (This checks for unsupported languages or parse-off repos),
             # Return all source files
@@ -537,6 +543,12 @@ class Codebase(
         Returns:
             bool: True if the file exists in the codebase, False otherwise.
         """
+        if self.ctx.config.use_pink == PinkMode.ALL_FILES:
+            absolute_path = self.ctx.to_absolute(filepath)
+            return self._pink_codebase.has_file(absolute_path)
+        if self.ctx.config.use_pink == PinkMode.NON_SOURCE_FILES:
+            if self._pink_codebase.has_file(filepath):
+                return True
         return self.get_file(filepath, optional=True, ignore_case=ignore_case) is not None
 
     @overload
@@ -559,13 +571,20 @@ class Codebase(
         Raises:
             ValueError: If file not found and optional=False.
         """
+        if self.ctx.config.use_pink == PinkMode.ALL_FILES:
+            absolute_path = self.ctx.to_absolute(filepath)
+            return self._pink_codebase.get_file(absolute_path)
         # Try to get the file from the graph first
         file = self.ctx.get_file(filepath, ignore_case=ignore_case)
         if file is not None:
             return file
+
         # If the file is not in the graph, check the filesystem
         absolute_path = self.ctx.to_absolute(filepath)
         if self.ctx.io.file_exists(absolute_path):
+            if self.ctx.config.use_pink != PinkMode.OFF:
+                if file := self._pink_codebase.get_file(absolute_path):
+                    return file
             return self.ctx._get_raw_file_from_path(absolute_path)
         # If the file is not in the graph, check the filesystem
         if absolute_path.parent.exists():

@@ -1,5 +1,4 @@
 version = 1
-revision = 1
 requires-python = ">=3.12, <3.14"
 resolution-markers = [
     "python_full_version >= '3.12.4'",
@@ -534,6 +533,7 @@ dependencies = [
     { name = "anthropic" },
     { name = "astor" },
     { name = "click" },
+    { name = "codegen-sdk-pink" },
     { name = "codeowners" },
     { name = "colorlog" },
     { name = "dataclasses-json" },
@@ -665,6 +665,7 @@ requires-dist = [
     { name = "astor", specifier = ">=0.8.1,<1.0.0" },
     { name = "attrs", marker = "extra == 'lsp'", specifier = ">=25.1.0" },
     { name = "click", specifier = ">=8.1.7" },
+    { name = "codegen-sdk-pink", specifier = ">=0.1.0" },
     { name = "codeowners", specifier = ">=0.6.0,<1.0.0" },
     { name = "colorlog", specifier = ">=6.9.0" },
     { name = "dataclasses-json", specifier = ">=0.6.4,<1.0.0" },
@@ -744,7 +745,6 @@ requires-dist = [
     { name = "wrapt", specifier = ">=1.16.0,<2.0.0" },
     { name = "xmltodict", specifier = ">=0.13.0,<1.0.0" },
 ]
-provides-extras = ["lsp", "types"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -782,6 +782,21 @@ dev = [
     { name = "sybil", extras = ["pytest"], specifier = ">=9.0.0" },
     { name = "typer", specifier = ">=0.12.5" },
     { name = "uv", specifier = ">=0.4.25" },
+]
+
+[[package]]
+name = "codegen-sdk-pink"
+version = "0.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/1d/da/0e968f5bd8d839ec30b58b681ba30781d5eb1b33a95d771e4b31f3a7cf08/codegen_sdk_pink-0.1.0.tar.gz", hash = "sha256:3be5c2caf47f40ec541cdd04558d8ddfb816ede7d7334e4a62ab3f6130f86afb", size = 322299 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/98/4c/6321af0699207ab63b750e82589f2c4d8726956da9413e30a42c7ea59641/codegen_sdk_pink-0.1.0-cp311-abi3-macosx_10_12_x86_64.whl", hash = "sha256:03f71cd48cd7547faf8233b90f01f4c41b750b4195a83a6a1b6427bee24a45a4", size = 5749136 },
+    { url = "https://files.pythonhosted.org/packages/c2/d0/39b35e45ce5683dace3e4b8c44e51a6471177708e5b3285fc1d764270ba1/codegen_sdk_pink-0.1.0-cp311-abi3-macosx_11_0_arm64.whl", hash = "sha256:c4872286a1328ec546798268ab9ff3bf368c223178fecf45903cf0c667290471", size = 5807261 },
+    { url = "https://files.pythonhosted.org/packages/db/19/5aff61ba06d877f385b206a8da88c87c77f6b7cd68f0aec7b8b16813e1a9/codegen_sdk_pink-0.1.0-cp311-abi3-manylinux_2_34_aarch64.whl", hash = "sha256:64943be3bed917d506ece1e0b5492effaa500712c5109a3937266d440ee8bb53", size = 6387801 },
+    { url = "https://files.pythonhosted.org/packages/5e/e4/6a8f7b12b20ab4cd61b833f32bbc1f7c8c86ca7332364f01f08881a4a5e2/codegen_sdk_pink-0.1.0-cp311-abi3-manylinux_2_34_x86_64.whl", hash = "sha256:345deecefa2de455dcf1fb2bdf5ad2e71e74476b4212b1bd51f57e6904c1d7e9", size = 6231083 },
+    { url = "https://files.pythonhosted.org/packages/0d/c3/b0f7106308e278b6774275c891bb82c08e04c41f1e9abf6bdf56757cc123/codegen_sdk_pink-0.1.0-cp311-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:7c5bcf0ad41644ac980590a37178f231ba275a75ce946dcfc31fa39330c098da", size = 6543302 },
+    { url = "https://files.pythonhosted.org/packages/e0/42/fedf5eec26a06d83de5cfb39fc7072261b72311b70d5fbbd4a75deec2457/codegen_sdk_pink-0.1.0-cp311-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:b3ee15469ad58d0222dfa0ba5950cd0eb7b8b7c607912d1845950096ddcb7aad", size = 6682410 },
+    { url = "https://files.pythonhosted.org/packages/38/fc/b1479140f579bcd6bdc090e71033484fcfd3bbc76aa779906a322cb33834/codegen_sdk_pink-0.1.0-cp311-abi3-win_amd64.whl", hash = "sha256:10b9b00070b5561df80dd269524f106e44e222d1ab9a93f6cf6ca3565c0aa0f9", size = 4305666 },
 ]
 
 [[package]]
@@ -943,7 +958,7 @@ wheels = [
 
 [[package]]
 name = "datamodel-code-generator"
-version = "0.28.2"
+version = "0.28.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "argcomplete" },
@@ -956,9 +971,9 @@ dependencies = [
     { name = "pydantic" },
     { name = "pyyaml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/25/5f/74fac9f7262e7763eaf56bbcd64c31f712f68135f2c758bc02d15876c543/datamodel_code_generator-0.28.2.tar.gz", hash = "sha256:5f16fe4d6acee79c1366f9ee68016eeec544fc0a2fec25ce47d35f7b7767e0fe", size = 435017 }
+sdist = { url = "https://files.pythonhosted.org/packages/db/12/3b30fb3ad74a5af84ac4efae538220a062eaed9effbffea99a7ffc061045/datamodel_code_generator-0.28.3.tar.gz", hash = "sha256:89c8163bbac954289ec0000d2ef8fad11aabb4652471305749c7fd06a9bd1651", size = 435150 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/78/a0/5ce4d9495355507dfb6093192d1762f745c3e824be6377fc3df8539f06dc/datamodel_code_generator-0.28.2-py3-none-any.whl", hash = "sha256:a2c425386c3f836c618ae276be57e460df323ac78f911b1b12d927ddffd70e73", size = 115645 },
+    { url = "https://files.pythonhosted.org/packages/c2/aa/eea1e5ad2966f1944e1f5bf202df968531a207c811fa3256819e8b6ad480/datamodel_code_generator-0.28.3-py3-none-any.whl", hash = "sha256:697e8ac42f29b544e608dbad977cccdb8adb6c3f6b965f609d987abd15c36280", size = 115640 },
 ]
 
 [[package]]
@@ -2412,7 +2427,7 @@ wheels = [
 
 [[package]]
 name = "modal"
-version = "0.73.91"
+version = "0.73.92"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -2430,9 +2445,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "watchfiles" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d0/b6/c44d67b8468f86e2cad6c6f61afdc4021c97adabcc826d465eb45bd1b139/modal-0.73.91.tar.gz", hash = "sha256:77d8c556f9be37298e042ea0ea1602f5de3261ef1e3c4135f63a6f758be9c06d", size = 469844 }
+sdist = { url = "https://files.pythonhosted.org/packages/b1/22/edbde41a3ff6c9e43ed62545d3c1b126d26d72b67581e8b9d74354bfdaf6/modal-0.73.92.tar.gz", hash = "sha256:9fb8d6fa1c42c117e7c911a7b5e14afb07ff0a4005baa323cc2303008b96a2d4", size = 469815 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1b/a9/8bf787c9dde7e0ae5d5c33ba9a75e5b67aadd90fd6046441c88024f651c7/modal-0.73.91-py3-none-any.whl", hash = "sha256:5d47a250dc8af992934359ffe9ee7c0cb1a1b7a732f47651750a982ed6b9a214", size = 536057 },
+    { url = "https://files.pythonhosted.org/packages/d8/41/cfebba4e449943fd9ffb7f33e9a3afc54d6f0fb135820433a7abf109b884/modal-0.73.92-py3-none-any.whl", hash = "sha256:5ab5188c2b4fb771563b315dbe0bcecf85b2dbe675f1fb1371e93122648c965d", size = 536055 },
 ]
 
 [[package]]
@@ -2564,11 +2579,11 @@ wheels = [
 
 [[package]]
 name = "narwhals"
-version = "1.29.1"
+version = "1.30.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/a7/17/7d35094da0820ae941d8ce51842f253da36c6f95360ea0afabfc18bc02c6/narwhals-1.29.1.tar.gz", hash = "sha256:c408acf09e90c116f247cf34f24a3a89d147e3e235b1d3c708cfd1960baf320a", size = 251464 }
+sdist = { url = "https://files.pythonhosted.org/packages/c4/98/be6d35e8869ab9403fa25dc3458e7af6ce36dac2873c74c7274a59b21958/narwhals-1.30.0.tar.gz", hash = "sha256:0c50cc67a5404da501302882838ec17dce51703d22cd8ad89162d6f60ea0bb19", size = 253461 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f1/22/380df533b08a57bc9013bb5714f33c571e1447828d83213a66adaefc0a04/narwhals-1.29.1-py3-none-any.whl", hash = "sha256:2f68cfbb2562672c4dfa54f158ed8c2828e9920ef784981cd9114e419c444216", size = 308220 },
+    { url = "https://files.pythonhosted.org/packages/e4/97/bde1e4cf1e0fe0d4c70f750b57d152c0ecb04bb35de7aa7950a5756a71d6/narwhals-1.30.0-py3-none-any.whl", hash = "sha256:443aa0a1abfae89bc65a6b888a7e310a03d1818bfb2ccd61c150199a5f954c17", size = 313611 },
 ]
 
 [[package]]
