@@ -168,8 +168,11 @@ class CodebaseContext:
         self.full_path = os.path.join(self.repo_path, context.base_path) if context.base_path else self.repo_path
         self.codeowners_parser = context.repo_operator.codeowners_parser
         self.base_url = context.repo_operator.base_url
-        # TODO: Fix this to be more robust with multiple projects
-        self.io = io or FileIO(allowed_paths=[Path(self.repo_path).resolve()])
+        if not self.config.allow_external:
+            # TODO: Fix this to be more robust with multiple projects
+            self.io = io or FileIO(allowed_paths=[Path(self.repo_path).resolve()])
+        else:
+            self.io = io or FileIO()
         # =====[ computed attributes ]=====
         self.transaction_manager = TransactionManager()
         self._autocommit = AutoCommit(self)
