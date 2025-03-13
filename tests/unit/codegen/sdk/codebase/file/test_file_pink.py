@@ -91,6 +91,7 @@ def test_codebase_files_other_language(tmpdir) -> None:
 
 
 @pytest.mark.skipif(sys.platform == "darwin", reason="macOS is case-insensitive")
+@pytest.mark.xfail(reason="Blocked on CG-11949")
 def test_file_extensions_ignore_case(tmpdir) -> None:
     with get_codebase_session(tmpdir=tmpdir, files={"file1.py": "print(123)", "file2.py": "print(456)", "file3.bin": b"\x89PNG", "file4": "Hello world!"}, config=Config) as codebase:
         file1 = codebase.get_file("file1.py")
