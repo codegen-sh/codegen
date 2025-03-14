@@ -9,7 +9,7 @@ def get_max_model_input_tokens(llm: LLM) -> int:
     """
     # For Claude models not explicitly listed, if model name contains "claude", use Claude's limit
     if "claude" in llm.model.lower():
-        return 50000
+        return 200000
     # For GPT-4 models
     elif "gpt-4" in llm.model.lower():
         return 128000
