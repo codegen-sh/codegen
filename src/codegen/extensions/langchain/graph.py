@@ -62,6 +62,7 @@ def manage_messages(existing: list[AnyMessage], updates: Union[list[AnyMessage],
                 additional_kwargs={"is_summary": True},  # Use additional_kwargs for custom metadata
             )
             summary_msg.id = str(uuid.uuid4())
+            updates["tail"][-1].additional_kwargs["just_summarized"] = True
             result = updates["head"] + [summary_msg] + updates["tail"]
             return result
 
@@ -182,14 +183,16 @@ class AgentGraph:
     def should_continue(self, state: GraphState) -> Literal["tools", "summarize_conversation", END]:
         messages = state["messages"]
         last_message = messages[-1]
+        just_summarized = last_message.additional_kwargs.get("just_summarized")
+        curr_input_tokens = last_message.usage_metadata["input_tokens"]
+        max_input_tokens = get_max_model_input_tokens(self.model)
 
         # Summarize if the number of messages passed in exceeds the max_messages threshold (default 100)
         if len(messages) > self.max_messages:
             return "summarize_conversation"
 
         # Summarize if the last message exceeds the max input tokens of the model - 10000 tokens
-        elif isinstance(last_message, AIMessage) and last_message.usage_metadata["input_tokens"] > get_max_model_input_tokens(self.model) - 10000:
-            print("here lol")
+        elif isinstance(last_message, AIMessage) and not just_summarized and curr_input_tokens > (max_input_tokens - 10000):
             return "summarize_conversation"
 
         elif hasattr(last_message, "tool_calls") and last_message.tool_calls:
