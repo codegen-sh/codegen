@@ -90,7 +90,7 @@ def apply_relace_edit(api_key: str, initial_code: str, edit_snippet: str, stream
     Raises:
         Exception: If the API request fails
     """
-    url = "https://codegen-instantapply.dev-endpoint.relace.run/v1/code/apply"
+    url = "https://codegen-instantapply.endpoint.relace.run/v1/code/apply"
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
 
     data = {"initialCode": initial_code, "editSnippet": edit_snippet, "stream": stream}
@@ -119,8 +119,13 @@ def relace_edit(codebase: Codebase, filepath: str, edit_snippet: str, api_key: O
     try:
         file = codebase.get_file(filepath)
     except ValueError:
-        msg = f"File not found: {filepath}"
-        raise FileNotFoundError(msg)
+        # Return an observation with error status instead of raising an exception
+        # Include the full filepath in the error message
+        return RelaceEditObservation(
+            status="error",
+            error=f"File not found: {filepath}. Please provide the full filepath relative to the repository root.",
+            filepath=filepath,
+        )
 
     # Get the original content
     original_content = file.content

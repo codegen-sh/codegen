@@ -87,6 +87,7 @@
         "tutorials/slack-bot",
         "tutorials/github-review-bot",
         "tutorials/deep-code-research",
+        "tutorials/codebase-analytics-dashboard",
         "tutorials/training-data",
         "tutorials/codebase-visualization",
         "tutorials/migrating-apis",
@@ -106,7 +107,8 @@
         "tutorials/python2-to-python3",
         "tutorials/flask-to-fastapi",
         "tutorials/build-mcp",
-        "tutorials/neo4j-graph"
+        "tutorials/neo4j-graph",
+        "tutorials/attributions"
       ]
     },
     {

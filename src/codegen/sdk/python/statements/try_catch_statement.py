@@ -101,10 +101,12 @@ class PyTryCatchStatement(TryCatchStatement["PyCodeBlock"], PyBlockStatement):
         return nested_blocks
 
     @property
+    @noapidoc
     def other_possible_blocks(self) -> Sequence[ConditionalBlock]:
         return self.except_clauses
 
     @property
+    @noapidoc
     def end_byte_for_condition_block(self) -> int:
         if self.code_block:
             return self.code_block.end_byte

@@ -276,9 +276,10 @@ class IfBlockStatement(ConditionalBlock, Statement[TCodeBlock], Generic[TCodeBlo
                 self.remove()
 
     @property
+    @noapidoc
     def other_possible_blocks(self) -> Sequence[ConditionalBlock]:
         if self.is_if_statement:
-            return self._main_if_block.alternative_blocks
+            return self.alternative_blocks
         elif self.is_elif_statement:
             main = self._main_if_block
             statements = [main]
@@ -293,6 +294,7 @@ class IfBlockStatement(ConditionalBlock, Statement[TCodeBlock], Generic[TCodeBlo
             return [main, *main.elif_statements]
 
     @property
+    @noapidoc
     def end_byte_for_condition_block(self) -> int:
         if self.is_if_statement:
             return self.consequence_block.end_byte

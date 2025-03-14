@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 from codegen.sdk.core.statements.catch_statement import CatchStatement
 from codegen.sdk.python.detached_symbols.code_block import PyCodeBlock
 from codegen.sdk.python.statements.block_statement import PyBlockStatement
-from codegen.shared.decorators.docs import py_apidoc
+from codegen.shared.decorators.docs import noapidoc, py_apidoc
 
 if TYPE_CHECKING:
     from tree_sitter import Node as PyNode
@@ -29,5 +29,6 @@ class PyCatchStatement(CatchStatement[PyCodeBlock], PyBlockStatement):
         self.condition = self.children[0]
 
     @property
+    @noapidoc
     def other_possible_blocks(self) -> list[ConditionalBlock]:
         return [clause for clause in self.parent.except_clauses if clause != self] + [self.parent]
