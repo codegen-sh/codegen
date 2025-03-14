@@ -31,3 +31,4 @@ class PyCatchStatement(CatchStatement[PyCodeBlock], PyBlockStatement):
     @property
     def other_possible_blocks(self) -> list[ConditionalBlock]:
         return [clause for clause in self.parent.except_clauses if clause != self] + [self.parent]
+

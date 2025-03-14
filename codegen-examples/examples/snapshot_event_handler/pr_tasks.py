@@ -1,8 +1,6 @@
 import logging
-from codegen.agents.code_agent import CodeAgent
 from codegen.extensions.github.types.pull_request import PullRequestLabeledEvent
 
-from codegen.extensions.langchain.tools import GithubCreatePRCommentTool, GithubCreatePRReviewCommentTool, GithubViewPRTool
 from codegen.sdk.core.codebase import Codebase
 
 logging.basicConfig(level=logging.INFO, force=True)
