@@ -6,7 +6,9 @@ from codegen.shared.decorators.docs import noapidoc
 
 
 class ConditionalBlock(Statement, ABC):
-    """An interface for any code block that might not be executed in the code, e.g if block/else block/try block/catch block ect."""
+    """An interface for any code block that might not be executed in the code,
+    e.g if block/else block, try block/catch block ect.
+    """
 
     @property
     @abstractmethod
@@ -25,5 +27,8 @@ class ConditionalBlock(Statement, ABC):
 
     @noapidoc
     def is_true_conditional(self,descendant) -> bool:
-        """Returns if this conditional is truly conditional, this is necessary as an override for things like finally statements that share a parent with try blocks"""
+        """Returns if this conditional is truly conditional,
+        this is necessary as an override for things like finally
+        statements that share a parent with try blocks
+        """
         return True

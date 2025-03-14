@@ -1107,6 +1107,7 @@ class Editable(JSONable, Generic[Parent]):
         return None
 
     def is_child_of(self, instance: Editable) -> bool:
+        """Checks if this node is a descendant of the given editable instance in the AST."""
         if not self.parent:
             return False
         if self.parent is instance:
