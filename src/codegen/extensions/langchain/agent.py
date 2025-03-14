@@ -59,7 +59,7 @@ def create_codebase_agent(
     Returns:
         Initialized agent with message history
     """
-    llm = LLM(model_provider=model_provider, model_name=model_name, max_tokens=8192, **kwargs)
+    llm = LLM(model_provider=model_provider, model_name=model_name, **kwargs)
 
     # Get all codebase tools
     tools = [

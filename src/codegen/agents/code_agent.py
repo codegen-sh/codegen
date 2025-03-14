@@ -68,7 +68,6 @@ class CodeAgent:
             memory=memory,
             additional_tools=tools,
             config=agent_config,
-            max_tokens=8192,
             **kwargs,
         )
         self.model_name = model_name

@@ -171,7 +171,6 @@ class AgentGraph:
             model_provider="anthropic",
             model_name="claude-3-5-sonnet-latest",
             temperature=0.3,
-            max_tokens=8012,
         )
 
         chain = ChatPromptTemplate.from_template(SUMMARIZE_CONVERSATION_PROMPT) | summary_llm
