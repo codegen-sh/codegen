@@ -119,7 +119,6 @@ console.log(PYSPARK);
             assert usage.match == pyspark_arg
 
 
-
 def test_switch_reassignment_handling_function(tmpdir) -> None:
     # language=typescript
     content = """
@@ -145,7 +144,6 @@ process();
             if func.name == "process":
                 usage = func.usages[0]
                 assert usage.match == func_call
-
 
 
 def test_switch_reassignment_handling_inside_func(tmpdir) -> None:
@@ -176,7 +174,6 @@ function getStatus(code) {
             if symb.name == "status":
                 assert len(symb.usages) > 0
                 assert any(usage.match == status_var for usage in symb.usages)
-
 
 
 def test_switch_reassignment_handling_nested(tmpdir) -> None:
@@ -212,7 +209,6 @@ console.log(RESULT);
                 assert usage.match == result_arg
 
 
-
 def test_switch_multiple_reassignment(tmpdir) -> None:
     # language=typescript
     content = """
@@ -246,7 +242,6 @@ console.log(VALUE);
             if symb.name == "VALUE":
                 usage = symb.usages[0]
                 assert usage.match == value_arg
-
 
 
 def test_switch_fallthrough_reassignment(tmpdir) -> None:

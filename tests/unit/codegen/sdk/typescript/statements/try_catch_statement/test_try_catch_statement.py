@@ -127,7 +127,6 @@ console.log(PYSPARK);
             assert usage.match == pyspark_arg
 
 
-
 def test_try_catch_reassignment_handling_function(tmpdir) -> None:
     # language=typescript
     content = """
@@ -152,7 +151,6 @@ foo();
             assert usage.match == func_call
 
 
-
 def test_try_catch_reassignment_handling_function_finally(tmpdir) -> None:
     # language=typescript
     content = """
@@ -175,14 +173,13 @@ foo();
         file = codebase.get_file("test.ts")
         foo = file.get_function("foo")
         func_call = file.function_calls[3]
-        for idx,func in enumerate(file.functions):
+        for idx, func in enumerate(file.functions):
             if idx == 2:
                 assert func.usages
                 usage = func.usages[0]
                 assert usage.match == func_call
             else:
-                assert len(func.usages)==0
-
+                assert len(func.usages) == 0
 
 
 def test_try_catch_reassignment_handling_nested(tmpdir) -> None:
@@ -210,7 +207,6 @@ console.log(PYSPARK);
             assert usage.match == pyspark_arg
 
 
-
 def test_try_catch_reassignment_handling_inside_func(tmpdir) -> None:
     # language=typescript
     content = """
@@ -231,15 +227,14 @@ function process() {
         process_func = file.get_function("process")
         return_stmt = process_func.code_block.statements[-1]
         result_var = return_stmt.value
-        for idx,symb in enumerate(file.symbols(True)):
+        for idx, symb in enumerate(file.symbols(True)):
             if symb.name == "result":
-                if idx==4:
-                    #Only finally triggers
+                if idx == 4:
+                    # Only finally triggers
                     assert len(symb.usages) > 0
                     assert any(usage.match == result_var for usage in symb.usages)
                 else:
-                    assert len(symb.usages)==0
-
+                    assert len(symb.usages) == 0
 
 
 def test_try_catch_reassignment_with_finally(tmpdir) -> None:
@@ -259,13 +254,12 @@ console.log(PYSPARK);
         file = codebase.get_file("test.ts")
         func_call = file.function_calls[0]
         pyspark_arg = func_call.args.children[0]
-        for idx,symb in enumerate(file.symbols):
-            if idx==2:
+        for idx, symb in enumerate(file.symbols):
+            if idx == 2:
                 usage = symb.usages[0]
                 assert usage.match == pyspark_arg
             else:
                 assert not symb.usages
-
 
 
 def test_try_catch_multiple_reassignment(tmpdir) -> None:

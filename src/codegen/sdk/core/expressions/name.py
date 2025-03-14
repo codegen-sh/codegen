@@ -50,7 +50,6 @@ class Name(Expression[Parent], Resolvable, Generic[Parent]):
         if self.source == old:
             self.edit(new)
 
-
     @noapidoc
     def _resolve_conditionals(self, conditional_parent: ConditionalBlock, name: str, original_resolved):
         """Resolves name references within conditional blocks by traversing the conditional chain.
@@ -78,33 +77,33 @@ class Name(Expression[Parent], Resolvable, Generic[Parent]):
         """
         search_limit = conditional_parent.start_byte_for_condition_block
         if search_limit >= original_resolved.start_byte:
-            search_limit = original_resolved.start_byte-1
+            search_limit = original_resolved.start_byte - 1
         if not conditional_parent.is_true_conditional(original_resolved):
-            #If it's a fake conditional we must skip any potential enveloping conditionals
-            def get_top_of_fake_chain(conditional,resolved,search_limit=0):
+            # If it's a fake conditional we must skip any potential enveloping conditionals
+            def get_top_of_fake_chain(conditional, resolved, search_limit=0):
                 if skip_fake := conditional.parent_of_type(ConditionalBlock):
                     if skip_fake.is_true_conditional(resolved):
                         return skip_fake.start_byte_for_condition_block
-                    search_limit=skip_fake.start_byte_for_condition_block
-                    return get_top_of_fake_chain(skip_fake,conditional,search_limit)
+                    search_limit = skip_fake.start_byte_for_condition_block
+                    return get_top_of_fake_chain(skip_fake, conditional, search_limit)
                 return search_limit
-            if search_limit := get_top_of_fake_chain(conditional_parent,original_resolved):
+
+            if search_limit := get_top_of_fake_chain(conditional_parent, original_resolved):
                 search_limit = search_limit
             else:
                 return
 
         original_conditional = conditional_parent
-        while next_resolved := next(conditional_parent.resolve_name(name,start_byte=search_limit,strict=False),None):
+        while next_resolved := next(conditional_parent.resolve_name(name, start_byte=search_limit, strict=False), None):
             yield next_resolved
             next_conditional = next_resolved.parent_of_type(ConditionalBlock)
-            if not next_conditional or  next_conditional == original_conditional:
+            if not next_conditional or next_conditional == original_conditional:
                 return
             search_limit = next_conditional.start_byte_for_condition_block
             if next_conditional and not next_conditional.is_true_conditional(original_resolved):
                 pass
             if search_limit >= next_resolved.start_byte:
                 search_limit = next_resolved.start_byte - 1
-
 
     @noapidoc
     @reader
@@ -120,4 +119,4 @@ class Name(Expression[Parent], Resolvable, Generic[Parent]):
                 # Use in the same block, should only depend on the inside of the block
                 return
 
-            yield from self._resolve_conditionals(conditional_parent=conditional_parent,name=name,original_resolved=resolved_name)
+            yield from self._resolve_conditionals(conditional_parent=conditional_parent, name=name, original_resolved=resolved_name)

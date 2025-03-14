@@ -79,7 +79,6 @@ print(PYSPARK)
             assert usage.match == pyspark_arg
 
 
-
 def test_match_reassigment_handling_function(tmpdir) -> None:
     content = """
 action = "create"
@@ -106,7 +105,6 @@ process()
             assert usage.match == funct_call
 
 
-
 def test_match_reassigment_handling_inside_func(tmpdir) -> None:
     content = """
 def get_message(status):
@@ -130,7 +128,6 @@ def get_message(status):
             if symb.name == "result":
                 assert len(symb.usages) > 0
                 assert any(usage.match == result_var for usage in symb.usages)
-
 
 
 def test_match_reassigment_handling_nested(tmpdir) -> None:
@@ -161,7 +158,6 @@ print(RESULT)
                 assert usage.match == result_arg
 
 
-
 def test_match_multiple_reassigment(tmpdir) -> None:
     content = """
 first = "a"
@@ -189,7 +185,6 @@ print(VALUE)
             if symb.name == "VALUE":
                 usage = symb.usages[0]
                 assert usage.match == value_arg
-
 
 
 def test_match_complex_pattern_reassigment(tmpdir) -> None:

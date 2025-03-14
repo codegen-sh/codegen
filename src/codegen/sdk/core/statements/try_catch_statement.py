@@ -30,7 +30,7 @@ class TryCatchStatement(ConditionalBlock, BlockStatement[Parent], HasBlock, ABC,
 
     @noapidoc
     @override
-    def is_true_conditional(self,descendant) -> bool:
+    def is_true_conditional(self, descendant) -> bool:
         if descendant.is_child_of(self.finalizer):
             return False
         return True
@@ -47,6 +47,6 @@ class TryCatchStatement(ConditionalBlock, BlockStatement[Parent], HasBlock, ABC,
     @noapidoc
     def start_byte_for_condition_block(self) -> int:
         if self.code_block:
-            return self.code_block.start_byte-1
+            return self.code_block.start_byte - 1
         else:
             return self.start_byte

@@ -68,7 +68,6 @@ class PyTryCatchStatement(TryCatchStatement["PyCodeBlock"], PyBlockStatement):
         if self.finalizer:
             self.finalizer._compute_dependencies(usage_type, dest)
 
-
     @property
     @noapidoc
     def descendant_symbols(self) -> list[Importable]:

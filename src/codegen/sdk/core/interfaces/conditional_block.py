@@ -29,7 +29,7 @@ class ConditionalBlock(Statement, ABC):
         return self.start_byte
 
     @noapidoc
-    def is_true_conditional(self,descendant) -> bool:
+    def is_true_conditional(self, descendant) -> bool:
         """Returns if this conditional is truly conditional,
         this is necessary as an override for things like finally
         statements that share a parent with try blocks

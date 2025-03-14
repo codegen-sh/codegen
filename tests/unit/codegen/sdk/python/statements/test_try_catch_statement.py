@@ -97,7 +97,6 @@ def test_try_except_reassigment_handling(tmpdir) -> None:
             assert usage.match == pyspark_arg
 
 
-
 def test_try_except_reassigment_handling_function(tmpdir) -> None:
     content = """
         try:
@@ -117,13 +116,12 @@ def test_try_except_reassigment_handling_function(tmpdir) -> None:
         file = codebase.get_file("test.py")
         process = file.get_function("process")
         funct_call = file.function_calls[3]  # Skip the print calls
-        for idx,func in enumerate(file.functions):
+        for idx, func in enumerate(file.functions):
             if idx == 2:
                 usage = func.usages[0]
                 assert usage.match == funct_call
             else:
                 assert not func.usages
-
 
 
 def test_try_except_reassigment_handling_inside_func(tmpdir) -> None:
@@ -144,15 +142,14 @@ def test_try_except_reassigment_handling_inside_func(tmpdir) -> None:
         get_result = file.get_function("get_result")
         return_stmt = get_result.code_block.statements[-1]
         result_var = return_stmt.value
-        for idx,symb in enumerate(file.symbols(True)):
-            if symb.name=='result':
-                if idx==4:
+        for idx, symb in enumerate(file.symbols(True)):
+            if symb.name == "result":
+                if idx == 4:
                     # The only usage is in the finally block
                     assert len(symb.usages) > 0
                     assert any(usage.match == result_var for usage in symb.usages)
                 else:
-                    assert len(symb.usages)==0
-
+                    assert len(symb.usages) == 0
 
 
 def test_try_except_reassigment_handling_nested(tmpdir) -> None:
@@ -179,7 +176,6 @@ def test_try_except_reassigment_handling_nested(tmpdir) -> None:
                 assert usage.match == result_arg
 
 
-
 def test_try_except_reassigment_with_finally(tmpdir) -> None:
     content = """
         try:
@@ -196,14 +192,14 @@ def test_try_except_reassigment_with_finally(tmpdir) -> None:
         file = codebase.get_file("test.py")
         funct_call = file.function_calls[0]
         status_arg = funct_call.args.children[0]
-        for idx,symb in enumerate(file.symbols(True)):
-            if symb.name=='STATUS':
-                if idx==2:
+        for idx, symb in enumerate(file.symbols(True)):
+            if symb.name == "STATUS":
+                if idx == 2:
                     # The only usage is in the finally block
                     assert len(symb.usages) > 0
                     assert any(usage.match == status_arg for usage in symb.usages)
                 else:
-                    assert len(symb.usages)==0
+                    assert len(symb.usages) == 0
 
 
 def test_try_except_reassigment_with_finally_nested(tmpdir) -> None:
@@ -226,14 +222,15 @@ def test_try_except_reassigment_with_finally_nested(tmpdir) -> None:
         file = codebase.get_file("test.py")
         funct_call = file.function_calls[0]
         status_arg = funct_call.args.children[0]
-        for idx,symb in enumerate(file.symbols(True)):
-            if symb.name=='STATUS':
-                if idx==0 or idx==4:
+        for idx, symb in enumerate(file.symbols(True)):
+            if symb.name == "STATUS":
+                if idx == 0 or idx == 4:
                     # The only usage is in the finally block
                     assert len(symb.usages) > 0
                     assert any(usage.match == status_arg for usage in symb.usages)
                 else:
-                    assert len(symb.usages)==0
+                    assert len(symb.usages) == 0
+
 
 def test_try_except_reassigment_with_finally_nested_deeper(tmpdir) -> None:
     content = """
@@ -260,14 +257,14 @@ def test_try_except_reassigment_with_finally_nested_deeper(tmpdir) -> None:
         file = codebase.get_file("test.py")
         funct_call = file.function_calls[0]
         status_arg = funct_call.args.children[0]
-        for idx,symb in enumerate(file.symbols(True)):
-            if symb.name=='STATUS':
-                if idx==0 or idx==6:
+        for idx, symb in enumerate(file.symbols(True)):
+            if symb.name == "STATUS":
+                if idx == 0 or idx == 6:
                     # The only usage is in the finally block
                     assert len(symb.usages) > 0
                     assert any(usage.match == status_arg for usage in symb.usages)
                 else:
-                    assert len(symb.usages)==0
+                    assert len(symb.usages) == 0
 
 
 def test_try_except_reassigment_with_finally_secondary_nested_deeper(tmpdir) -> None:
@@ -293,12 +290,10 @@ def test_try_except_reassigment_with_finally_secondary_nested_deeper(tmpdir) -> 
         file = codebase.get_file("test.py")
         funct_call = file.function_calls[0]
         status_arg = funct_call.args.children[0]
-        for idx,symb in enumerate(file.symbols(True)):
-            if symb.name=='STATUS':
+        for idx, symb in enumerate(file.symbols(True)):
+            if symb.name == "STATUS":
                 assert len(symb.usages) > 0
                 assert any(usage.match == status_arg for usage in symb.usages)
-
-
 
 
 def test_try_except_multiple_reassigment(tmpdir) -> None:
