@@ -78,7 +78,7 @@ class TSCodeBlock(CodeBlock[Parent, "TSAssignment"], Generic[Parent]):
         else:
             # If there is no next sibling, remove up to the closing brace of the last line
             self.remove_byte_range(self._get_line_ends()[-1].end_byte, self.ts_node.end_byte)
-            
+
     @property
     @noapidoc
     def end_byte_for_condition_block(self) -> int:
