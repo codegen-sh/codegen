@@ -1,5 +1,6 @@
 """Tool for listing directory contents."""
 
+import os
 from typing import ClassVar
 
 from pydantic import Field
@@ -138,32 +139,41 @@ def list_directory(codebase: Codebase, path: str = "./", depth: int = 2) -> List
 
     def get_directory_info(dir_obj: Directory, current_depth: int) -> DirectoryInfo:
         """Helper function to get directory info recursively."""
-        # Get direct files (always include files unless at max depth)
+        # Get direct files using os.listdir instead of dir_obj.files
         all_files = []
-        for file in dir_obj.files(recursive=True):
-            if file.directory == dir_obj:
-                all_files.append(file.filepath.split("/")[-1])
+        full_path = os.path.join(codebase.workspace_root, dir_obj.dirpath)
+
+        try:
+            # Get all items in the directory
+            items = os.listdir(full_path)
+
+            # Filter out directories to get only files
+            for item in items:
+                item_path = os.path.join(full_path, item)
+                if os.path.isfile(item_path):
+                    all_files.append(item)
+        except (FileNotFoundError, PermissionError) as e:
+            # Handle potential errors
+            pass
 
         # Get direct subdirectories
         subdirs = []
-        for subdir in dir_obj.subdirectories(recursive=True):
-            # Only include direct descendants
-            if subdir.parent == dir_obj:
-                if current_depth > 1 or current_depth == -1:
-                    # For deeper traversal, get full directory info
-                    new_depth = current_depth - 1 if current_depth > 1 else -1
-                    subdirs.append(get_directory_info(subdir, new_depth))
-                else:
-                    # At max depth, return a leaf node
-                    subdirs.append(
-                        DirectoryInfo(
-                            status="success",
-                            name=subdir.name,
-                            path=subdir.dirpath,
-                            files=None,  # Don't include files at max depth
-                            is_leaf=True,
-                        )
+        for subdir in dir_obj.subdirectories(recursive=False):  # Changed to non-recursive
+            if current_depth > 1 or current_depth == -1:
+                # For deeper traversal, get full directory info
+                new_depth = current_depth - 1 if current_depth > 1 else -1
+                subdirs.append(get_directory_info(subdir, new_depth))
+            else:
+                # At max depth, return a leaf node
+                subdirs.append(
+                    DirectoryInfo(
+                        status="success",
+                        name=subdir.name,
+                        path=subdir.dirpath,
+                        files=None,  # Don't include files at max depth
+                        is_leaf=True,
                     )
+                )
 
         return DirectoryInfo(
             status="success",
