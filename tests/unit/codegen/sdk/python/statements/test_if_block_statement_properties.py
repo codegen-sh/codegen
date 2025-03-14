@@ -307,7 +307,6 @@ def test_if_else_reassigment_inside_func_with_external_element(tmpdir) -> None:
             assign.usages[0] == pyspark_arg
 
 
-
 def test_if_else_reassigment_handling_double_nested(tmpdir) -> None:
     content = """
         if False:
