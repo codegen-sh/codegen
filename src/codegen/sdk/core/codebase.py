@@ -22,7 +22,7 @@ from openai import OpenAI
 from rich.console import Console
 from typing_extensions import TypeVar, deprecated
 
-from codegen.configs.models.codebase import CodebaseConfig
+from codegen.configs.models.codebase import CodebaseConfig, PinkMode
 from codegen.configs.models.secrets import SecretsConfig
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.enums import CheckoutResult, SetupOption
@@ -212,6 +212,10 @@ class Codebase(
         self.repo_path = Path(self._op.repo_path)
         self.ctx = CodebaseContext(projects, config=config, secrets=secrets, io=io, progress=progress)
         self.console = Console(record=True, soft_wrap=True)
+        if self.ctx.config.use_pink != PinkMode.OFF:
+            import codegen_sdk_pink
+
+            self._pink_codebase = codegen_sdk_pink.Codebase(self.repo_path)
 
     @noapidoc
     def __str__(self) -> str:
@@ -297,6 +301,8 @@ class Codebase(
         Returns:
             list[TSourceFile]: A sorted list of source files in the codebase.
         """
+        if self.ctx.config.use_pink == PinkMode.ALL_FILES:
+            return self._pink_codebase.files
         if extensions is None and len(self.ctx.get_nodes(NodeType.FILE)) > 0:
             # If extensions is None AND there is at least one file in the codebase (This checks for unsupported languages or parse-off repos),
             # Return all source files
@@ -482,16 +488,13 @@ class Codebase(
             ValueError: If the provided content cannot be parsed according to the file extension.
         """
         # Check if file already exists
-        # TODO: These checks break parse tests ???
-        # Look into this!
-        # if self.has_file(filepath):
-        #     raise ValueError(f"File {filepath} already exists in codebase.")
-        # if os.path.exists(filepath):
-        #     raise ValueError(f"File {filepath} already exists on disk.")
+        # NOTE: This check is also important to ensure the filepath is valid within the repo!
+        if self.has_file(filepath):
+            logger.warning(f"File {filepath} already exists in codebase. Overwriting...")
 
         file_exts = self.ctx.extensions
         # Create file as source file if it has a registered extension
-        if any(filepath.endswith(ext) for ext in file_exts):
+        if any(filepath.endswith(ext) for ext in file_exts) and not self.ctx.config.disable_file_parse:
             file_cls = self.ctx.node_classes.file_cls
             file = file_cls.from_content(filepath, content, self.ctx, sync=sync)
             if file is None:
@@ -516,6 +519,11 @@ class Codebase(
         Raises:
             FileExistsError: If the directory already exists and exist_ok is False.
         """
+        # Check if directory already exists
+        # NOTE: This check is also important to ensure the filepath is valid within the repo!
+        if self.has_directory(dir_path):
+            logger.warning(f"Directory {dir_path} already exists in codebase. Overwriting...")
+
         self.ctx.to_absolute(dir_path).mkdir(parents=parents, exist_ok=exist_ok)
 
     def has_file(self, filepath: str, ignore_case: bool = False) -> bool:
@@ -528,6 +536,12 @@ class Codebase(
         Returns:
             bool: True if the file exists in the codebase, False otherwise.
         """
+        if self.ctx.config.use_pink == PinkMode.ALL_FILES:
+            absolute_path = self.ctx.to_absolute(filepath)
+            return self._pink_codebase.has_file(absolute_path)
+        if self.ctx.config.use_pink == PinkMode.NON_SOURCE_FILES:
+            if self._pink_codebase.has_file(filepath):
+                return True
         return self.get_file(filepath, optional=True, ignore_case=ignore_case) is not None
 
     @overload
@@ -550,13 +564,20 @@ class Codebase(
         Raises:
             ValueError: If file not found and optional=False.
         """
+        if self.ctx.config.use_pink == PinkMode.ALL_FILES:
+            absolute_path = self.ctx.to_absolute(filepath)
+            return self._pink_codebase.get_file(absolute_path)
         # Try to get the file from the graph first
         file = self.ctx.get_file(filepath, ignore_case=ignore_case)
         if file is not None:
             return file
+
         # If the file is not in the graph, check the filesystem
         absolute_path = self.ctx.to_absolute(filepath)
         if self.ctx.io.file_exists(absolute_path):
+            if self.ctx.config.use_pink != PinkMode.OFF:
+                if file := self._pink_codebase.get_file(absolute_path):
+                    return file
             return self.ctx._get_raw_file_from_path(absolute_path)
         # If the file is not in the graph, check the filesystem
         if absolute_path.parent.exists():
@@ -1353,7 +1374,7 @@ class Codebase(
             if commit is None:
                 repo_config = RepoConfig.from_repo_path(repo_path)
                 repo_config.full_name = repo_full_name
-                repo_operator = RepoOperator.create_from_repo(repo_config=repo_config, access_token=access_token, setup_option=setup_option, full_history=full_history)
+                repo_operator = RepoOperator.create_from_repo(repo_path=repo_path, url=repo_url, access_token=access_token, full_history=full_history)
             else:
                 # Ensure the operator can handle remote operations
                 repo_operator = RepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url, full_name=repo_full_name, access_token=access_token)

@@ -114,7 +114,6 @@ class SearchObservation(Observation):
 def _search_with_ripgrep(
     codebase: Codebase,
     query: str,
-    target_directories: Optional[list[str]] = None,
     file_extensions: Optional[list[str]] = None,
     page: int = 1,
     files_per_page: int = 10,
@@ -141,9 +140,6 @@ def _search_with_ripgrep(
 
     # Add target directories if specified
     search_path = codebase.repo_path
-    if target_directories:
-        # We'll handle target directories by filtering results later
-        pass
 
     # Add the query and path
     cmd.append(f"{query}")
@@ -188,10 +184,6 @@ def _search_with_ripgrep(
 
             # Convert to relative path within the codebase
             rel_path = os.path.relpath(filepath, codebase.repo_path)
-
-            # Skip if not in target directories
-            if target_directories and not any(rel_path.startswith(d) for d in target_directories):
-                continue
 
             try:
                 line_number = int(line_number_str)
@@ -264,7 +256,6 @@ def _search_with_ripgrep(
 def _search_with_python(
     codebase: Codebase,
     query: str,
-    target_directories: Optional[list[str]] = None,
     file_extensions: Optional[list[str]] = None,
     page: int = 1,
     files_per_page: int = 10,
@@ -304,10 +295,6 @@ def _search_with_python(
 
     all_results = []
     for file in codebase.files(extensions=extensions):
-        # Skip if file doesn't match target directories
-        if target_directories and not any(file.filepath.startswith(d) for d in target_directories):
-            continue
-
         # Skip binary files
         try:
             content = file.content
@@ -366,7 +353,6 @@ def _search_with_python(
 def search(
     codebase: Codebase,
     query: str,
-    target_directories: Optional[list[str]] = None,
     file_extensions: Optional[list[str]] = None,
     page: int = 1,
     files_per_page: int = 10,
@@ -383,7 +369,6 @@ def search(
     Args:
         codebase: The codebase to operate on
         query: The text to search for or regex pattern to match
-        target_directories: Optional list of directories to search in
         file_extensions: Optional list of file extensions to search (e.g. ['.py', '.ts']).
                         If None, searches all files ('*')
         page: Page number to return (1-based, default: 1)
@@ -395,7 +380,7 @@ def search(
     """
     # Try to use ripgrep first
     try:
-        return _search_with_ripgrep(codebase, query, target_directories, file_extensions, page, files_per_page, use_regex)
+        return _search_with_ripgrep(codebase, query, file_extensions, page, files_per_page, use_regex)
     except (FileNotFoundError, subprocess.SubprocessError):
         # Fall back to Python implementation if ripgrep fails or isn't available
-        return _search_with_python(codebase, query, target_directories, file_extensions, page, files_per_page, use_regex)
+        return _search_with_python(codebase, query, file_extensions, page, files_per_page, use_regex)

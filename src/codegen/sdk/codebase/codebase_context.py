@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 
 from rustworkx import PyDiGraph, WeightedEdgeList
 
-from codegen.configs.models.codebase import CodebaseConfig
+from codegen.configs.models.codebase import CodebaseConfig, PinkMode
 from codegen.configs.models.secrets import SecretsConfig
 from codegen.sdk.codebase.config import ProjectConfig, SessionOptions
 from codegen.sdk.codebase.config_parser import ConfigParser, get_config_parser_for_language
@@ -159,7 +159,6 @@ class CodebaseContext:
 
         # =====[ __init__ attributes ]=====
         self.projects = projects
-        self.io = io or FileIO()
         context = projects[0]
         self.node_classes = get_node_classes(context.programming_language)
         self.config = config or CodebaseConfig()
@@ -169,6 +168,11 @@ class CodebaseContext:
         self.full_path = os.path.join(self.repo_path, context.base_path) if context.base_path else self.repo_path
         self.codeowners_parser = context.repo_operator.codeowners_parser
         self.base_url = context.repo_operator.base_url
+        if not self.config.allow_external:
+            # TODO: Fix this to be more robust with multiple projects
+            self.io = io or FileIO(allowed_paths=[Path(self.repo_path).resolve()])
+        else:
+            self.io = io or FileIO()
         # =====[ computed attributes ]=====
         self.transaction_manager = TransactionManager()
         self._autocommit = AutoCommit(self)
@@ -188,8 +192,15 @@ class CodebaseContext:
             logger.warning("WARNING: The codebase is using an unsupported language!")
             logger.warning("Some features may not work as expected. Advanced static analysis will be disabled but simple file IO will still work.")
 
+        # Assert config assertions
+        # External import resolution must be enabled if syspath is enabled
+        if self.config.py_resolve_syspath:
+            if not self.config.allow_external:
+                msg = "allow_external must be set to True when py_resolve_syspath is enabled"
+                raise ValueError(msg)
+
         # Build the graph
-        if not self.config.exp_lazy_graph:
+        if not self.config.exp_lazy_graph and self.config.use_pink != PinkMode.ALL_FILES:
             self.build_graph(context.repo_operator)
         try:
             self.synced_commit = context.repo_operator.head_commit
@@ -224,7 +235,9 @@ class CodebaseContext:
 
         # =====[ Add all files to the graph in parallel ]=====
         syncs = defaultdict(lambda: [])
-        if not self.config.disable_file_parse:
+        if self.config.disable_file_parse:
+            logger.warning("WARNING: File parsing is disabled!")
+        else:
             for filepath, _ in repo_operator.iter_files(subdirs=self.projects[0].subdirectories, extensions=self.extensions, ignore_list=GLOBAL_FILE_IGNORE_LIST):
                 syncs[SyncType.ADD].append(self.to_absolute(filepath))
         logger.info(f"> Parsing {len(syncs[SyncType.ADD])} files in {self.projects[0].subdirectories or 'ALL'} subdirectories with {self.extensions} extensions")
@@ -266,7 +279,9 @@ class CodebaseContext:
             else:
                 logger.warning(f"Unhandled diff change type: {diff.change_type}")
         by_sync_type = defaultdict(lambda: [])
-        if not self.config.disable_file_parse:
+        if self.config.disable_file_parse:
+            logger.warning("WARNING: File parsing is disabled!")
+        else:
             for filepath, sync_type in files_to_sync.items():
                 if self.get_file(filepath) is None:
                     if sync_type is SyncType.DELETE:
@@ -381,7 +396,7 @@ class CodebaseContext:
         """
         # If not part of repo path, return None
         absolute_path = self.to_absolute(directory_path)
-        if not self.is_subdir(absolute_path):
+        if not self.is_subdir(absolute_path) and not self.config.allow_external:
             assert False, f"Directory {absolute_path} is not part of repo path {self.repo_path}"
             return None
 
@@ -609,6 +624,12 @@ class CodebaseContext:
         return [(x[0], x[1], x[2].type, x[2].usage) for x in self._graph.weighted_edge_list()]
 
     def get_file(self, file_path: os.PathLike, ignore_case: bool = False) -> SourceFile | None:
+        # If not part of repo path, return None
+        absolute_path = self.to_absolute(file_path)
+        if not self.is_subdir(absolute_path) and not self.config.allow_external:
+            assert False, f"File {file_path} is not part of the repository path"
+
+        # Check if file exists in graph
         node_id = self.filepath_idx.get(str(self.to_relative(file_path)), None)
         if node_id is not None:
             return self.get_node(node_id)

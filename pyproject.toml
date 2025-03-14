@@ -6,7 +6,7 @@ readme = "README.md"
 # renovate: datasource=python-version depName=python
 requires-python = ">=3.12, <3.14"
 dependencies = [
-  "openai==1.65.5",
+  "openai==1.66.3",
   "tiktoken<1.0.0,>=0.5.1",
   "tabulate>=0.9.0,<1.0.0",
   "codeowners<1.0.0,>=0.6.0",
@@ -80,6 +80,7 @@ dependencies = [
   "colorlog>=6.9.0",
   "langsmith",
   "langchain-xai>=0.2.1",
+  "codegen-sdk-pink>=0.1.0",
 ]
 
 license = { text = "Apache-2.0" }
@@ -172,6 +173,7 @@ dev-dependencies = [
 
 [tool.uv.workspace]
 exclude = ["codegen-examples"]
+
 
 [tool.cython-lint]
 max-line-length = 200

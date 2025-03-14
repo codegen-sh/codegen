@@ -277,6 +277,8 @@ def func():
 
         # Enable resolution via sys.path
         codebase.ctx.config.py_resolve_syspath = True
+        # Allow resolving files and modules outside of the repo path
+        codebase.ctx.config.allow_external = True
 
         # =====[ Imports cannot be found without sys.path being set ]=====
         assert len(consumer_file.imports) == 1
@@ -372,6 +374,8 @@ def func():
         # Ensure we don't have overrites and enable syspath resolution
         codebase.ctx.config.import_resolution_paths = []
         codebase.ctx.config.py_resolve_syspath = True
+        # Allow resolving files and modules outside of the repo path
+        codebase.ctx.config.allow_external = True
 
         # =====[ Import with sys.path set can be found ]=====
         assert len(consumer_file.imports) == 1
@@ -419,6 +423,8 @@ def func():
         # Ensure we don't have overrites and enable syspath resolution
         codebase.ctx.config.import_resolution_paths = []
         codebase.ctx.config.py_resolve_syspath = True
+        # Allow resolving files and modules outside of the repo path
+        codebase.ctx.config.allow_external = True
 
         # =====[ Default import works ]=====
         assert len(consumer_file.imports) == 1
