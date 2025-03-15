@@ -25,8 +25,11 @@ from .search import search
 from .semantic_edit import semantic_edit
 from .semantic_search import semantic_search
 from .view_file import view_file
+from .web_browser import browse_web
 
 __all__ = [
+    # Web operations
+    "browse_web",
     # Git operations
     "commit",
     # File operations

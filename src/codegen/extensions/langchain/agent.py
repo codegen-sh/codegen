@@ -23,6 +23,7 @@ from codegen.extensions.langchain.tools import (
     SearchTool,
     # SemanticEditTool,
     ViewFileTool,
+    WebBrowserTool,
 )
 
 from .graph import create_react_agent
@@ -134,6 +135,7 @@ def create_chat_agent(
         MoveSymbolTool(codebase),
         RevealSymbolTool(codebase),
         RelaceEditTool(codebase),
+        WebBrowserTool(codebase),
     ]
 
     if additional_tools:

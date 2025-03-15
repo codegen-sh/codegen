@@ -25,6 +25,7 @@ from codegen.extensions.tools.reveal_symbol import reveal_symbol
 from codegen.extensions.tools.search import search
 from codegen.extensions.tools.semantic_edit import semantic_edit
 from codegen.extensions.tools.semantic_search import semantic_search
+from codegen.extensions.tools.web_browser import browse_web
 from codegen.sdk.core.codebase import Codebase
 
 from ..tools import (
@@ -850,11 +851,10 @@ def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
         RevealSymbolTool(codebase),
         RunBashCommandTool(),  # Note: This tool doesn't need the codebase
         SearchTool(codebase),
-        # SemanticEditTool(codebase),
-        # SemanticSearchTool(codebase),
         ViewFileTool(codebase),
         RelaceEditTool(codebase),
         ReflectionTool(codebase),
+        WebBrowserTool(codebase),
         # Github
         GithubCreatePRTool(codebase),
         GithubCreatePRCommentTool(codebase),
@@ -1023,4 +1023,45 @@ class ReflectionTool(BaseTool):
     ) -> str:
         result = perform_reflection(context_summary=context_summary, findings_so_far=findings_so_far, current_challenges=current_challenges, reflection_focus=reflection_focus, codebase=self.codebase)
 
+        return result.render()
+
+
+class WebBrowserInput(BaseModel):
+    """Input for web browser tool."""
+
+    url: str = Field(..., description="URL to browse (must include http:// or https://)")
+    extract_text_only: bool = Field(default=True, description="Whether to extract only text content (True) or include HTML (False)")
+    timeout: int = Field(default=10, description="Request timeout in seconds")
+    max_content_length: int = Field(default=10000, description="Maximum content length to return")
+
+
+class WebBrowserTool(BaseTool):
+    """Tool for browsing websites and extracting content."""
+
+    name: ClassVar[str] = "browse_web"
+    description: ClassVar[str] = """
+    Browse a website and extract its content.
+    This tool allows you to access web pages, retrieve information, and analyze online content.
+    Useful for researching documentation, checking references, or gathering information from websites.
+    """
+    args_schema: ClassVar[type[BaseModel]] = WebBrowserInput
+    codebase: Codebase = Field(exclude=True)
+
+    def __init__(self, codebase: Codebase) -> None:
+        super().__init__(codebase=codebase)
+
+    def _run(
+        self,
+        url: str,
+        extract_text_only: bool = True,
+        timeout: int = 10,
+        max_content_length: int = 10000,
+    ) -> str:
+        result = browse_web(
+            self.codebase,
+            url=url,
+            extract_text_only=extract_text_only,
+            timeout=timeout,
+            max_content_length=max_content_length,
+        )
         return result.render()
