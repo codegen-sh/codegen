@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 from dataclasses import dataclass, field
 from datetime import datetime
 
@@ -50,3 +50,5 @@ class FunctionMessageData(BaseMessage):
 class UnknownMessage(BaseMessage):
     """Represents an unknown message type."""
     type: str = field(default="unknown") 
+
+type AgentRunMessage = Union[UserMessage, SystemMessageData, AssistantMessage, ToolMessageData, FunctionMessageData, UnknownMessage]

@@ -1,13 +1,11 @@
-import json
-from typing import Dict, List, Any, Union, Protocol
-from dataclasses import asdict
-from .data import BaseMessage
+from typing import Protocol
+from .data import AgentRunMessage
 
 # Define the interface for ExternalLogger
 class ExternalLogger(Protocol):
     """Protocol defining the interface for external loggers."""
     
-    def log(self, data: Union[Dict[str, Any], BaseMessage]) -> None:
+    def log(self, data: AgentRunMessage) -> None:
         """
         Log structured data to an external system.
         
