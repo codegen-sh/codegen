@@ -836,7 +836,6 @@ export function bar() {
         assert bar.call_sites[0].source == "myFile3.bar()"
 
 
-
 def test_resolve_namespace_import(tmpdir) -> None:
     # language=typescript
     content = """
@@ -862,5 +861,5 @@ export namespace CONSTS {
 
         consts = file2.get_namespace("CONSTS")
 
-        assert file.imports[0].resolved_symbol==consts
-        assert file.get_symbol("use_a").resolved_value==consts.get_symbol("a").resolved_value
+        assert file.imports[0].resolved_symbol == consts
+        assert file.get_symbol("use_a").resolved_value == consts.get_symbol("a").resolved_value

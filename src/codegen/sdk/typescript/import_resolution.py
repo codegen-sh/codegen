@@ -153,7 +153,6 @@ class TSImport(Import["TSFile"], Exportable):
         if resolved_symbol is None:
             return None
 
-
         # If the default import is a single symbol export, resolve to the symbol
         if self.is_default_import():
             if resolved_symbol is not None and resolved_symbol.node_type == NodeType.FILE:
