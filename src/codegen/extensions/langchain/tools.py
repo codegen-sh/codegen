@@ -82,7 +82,7 @@ The response will indicate if there are more lines available to view."""
             line_numbers=line_numbers if line_numbers is not None else True,
             start_line=start_line,
             end_line=end_line,
-            max_lines=max_lines if max_lines is not None else 250,
+            max_lines=max_lines if max_lines is not None else 1500,
         )
 
         return result.render()
