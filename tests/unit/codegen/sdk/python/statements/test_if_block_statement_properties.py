@@ -305,3 +305,34 @@ def test_if_else_reassigment_inside_func_with_external_element(tmpdir) -> None:
         func = file.get_function("foo")
         for assign in func.valid_symbol_names[:-1]:
             assign.usages[0] == pyspark_arg
+
+
+def test_if_else_reassigment_handling_double_nested(tmpdir) -> None:
+    content = """
+        if False:
+            PYSPARK = "TEST1"
+        elif True:
+            PYSPARK = "TEST2"
+
+        if True:
+            PYSPARK = True
+        elif None:
+            if True:
+                PYSPARK = True
+            elif None:
+                if True:
+                    PYSPARK = True
+                elif None:
+                    PYSPARK = False
+
+        print(PYSPARK)
+    """
+
+    with get_codebase_session(tmpdir=tmpdir, files={"test.py": content}) as codebase:
+        file = codebase.get_file("test.py")
+        symbo = file.get_symbol("PYSPARK")
+        funct_call = file.function_calls[0]
+        pyspark_arg = funct_call.args.children[0]
+        for symb in file.symbols:
+            usage = symb.usages[0]
+            assert usage.match == pyspark_arg

@@ -1,0 +1,71 @@
+---
+title: "Capabilities"
+icon: "gear"
+---
+
+Codegen is built on an [open-source library](/introduction/overiew.mdx) for code manipulation.
+
+It combines "tools" for code editing with powerful integrations, including Github, Linear and Slack.
+
+<Tip>
+  Learn more about our open source [code agent implementation](/docs/tutorials/build-code-agent)
+</Tip>
+
+## Communication Tools
+
+- **SlackSendMessageTool**: Allows Codegen to send messages in Slack channels and threads, providing responses to your queries and sharing information with your team.
+
+## GitHub Integration Tools
+
+Codegen includes a comprehensive set of GitHub tools:
+
+- **GithubCheckoutPRTool**: Checks out pull requests to your local environment for review and testing.
+
+- **GithubCreatePRTool**: Creates new pull requests from your current branch, including title, description, and target branch.
+
+- **GithubCreatePRCommentTool**: Adds comments to pull requests for feedback and team communication.
+
+- **GithubCreatePRReviewCommentTool**: Provides inline comments on specific code changes within pull requests.
+
+- **GithubEditPRTool**: Modifies existing pull requests, including updating titles, descriptions, and other metadata.
+
+- **GithubSearchIssuesTool**: Searches for GitHub issues based on various criteria like status, assignee, or labels.
+
+- **GithubViewPRTool**: Retrieves and displays information about specific pull requests.
+
+- **GithubViewPRCheckTool**: Checks the status of CI/CD and other automated checks on pull requests.
+
+- **GithubViewCommitHistoryTool**: Shows the commit history of a repository or specific branch.
+
+- **GithubViewCommitTool**: Displays details about specific commits, including changes made.
+
+## Linear Integration Tools (Optional)
+
+For teams using Linear for project management, Codegen offers:
+
+- **LinearGetIssueTool**: Retrieves details about specific Linear issues.
+
+- **LinearGetIssueCommentsTool**: Fetches comments on Linear issues for context and history.
+
+- **LinearCommentOnIssueTool**: Adds comments to Linear issues for team communication.
+
+- **LinearSearchIssuesTool**: Searches for Linear issues based on various criteria.
+
+- **LinearCreateIssueTool**: Creates new issues in Linear with appropriate metadata.
+
+- **LinearGetTeamsTool**: Retrieves information about teams in your Linear organization.
+
+## How Codegen Uses These Tools
+
+Codegen's AI brain (powered by Claude 3.7 Sonnet) intelligently selects and combines these tools to:
+
+1. Understand your requests through natural language in Slack
+2. Determine the most appropriate tools to fulfill your request
+3. Execute the necessary actions across GitHub, Linear, and your codebase
+4. Provide clear, helpful responses back in Slack
+
+This seamless integration allows you to manage your entire development workflow through simple conversations, without having to switch between different platforms and interfaces.
+
+## Getting Started
+
+Ready to experience the power of Codegen? Check out our [Quickstart Guide](/docs/gen/quickstart) to set up Codegen for your team, and explore [Common Commands](/docs/gen/common-commands) to see how to interact with these tools through natural language.

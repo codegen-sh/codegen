@@ -36,7 +36,7 @@ class TSTryCatchStatement(TryCatchStatement["TSCodeBlock"], TSBlockStatement):
     def __init__(self, ts_node: TSNode, file_node_id: NodeId, ctx: CodebaseContext, parent: TSCodeBlock, pos: int | None = None) -> None:
         super().__init__(ts_node, file_node_id, ctx, parent, pos)
         if handler_node := self.ts_node.child_by_field_name("handler"):
-            self.catch = TSCatchStatement(handler_node, file_node_id, ctx, self.code_block)
+            self.catch = TSCatchStatement(handler_node, file_node_id, ctx, self)
         if finalizer_node := self.ts_node.child_by_field_name("finalizer"):
             self.finalizer = TSBlockStatement(finalizer_node, file_node_id, ctx, self.code_block)
 
@@ -102,11 +102,3 @@ class TSTryCatchStatement(TryCatchStatement["TSCodeBlock"], TSBlockStatement):
             return [self.catch]
         else:
             return []
-
-    @property
-    @noapidoc
-    def end_byte_for_condition_block(self) -> int:
-        if self.code_block:
-            return self.code_block.end_byte
-        else:
-            return self.end_byte

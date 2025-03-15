@@ -1106,6 +1106,15 @@ class Editable(JSONable, Generic[Parent]):
             return self.parent.parent_of_types(types)
         return None
 
+    def is_child_of(self, instance: Editable) -> bool:
+        """Checks if this node is a descendant of the given editable instance in the AST."""
+        if not self.parent:
+            return False
+        if self.parent is instance:
+            return True
+        else:
+            return self.parent.is_child_of(instance=instance)
+
     @reader
     def ancestors(self, type: type[T]) -> list[T]:
         """Find all ancestors of the node of the given type. Does not return itself"""
