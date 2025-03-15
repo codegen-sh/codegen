@@ -64,16 +64,26 @@ class TSEnum(TSHasBlock, TSSymbol, HasAttribute[TSAttribute]):
         return self.code_block.attributes
 
     @reader
-    def get_attribute(self, name: str) -> TSAttribute | None:
+    def get_attribute(self, name: str, optional: bool = False) -> TSAttribute | None:
         """Returns an attribute from the TypeScript enum by its name.
 
         Args:
             name (str): The name of the attribute to retrieve.
+            optional (bool, optional): Whether to return None if the attribute is not found. Defaults to False.
 
         Returns:
             TSAttribute | None: The attribute with the given name if it exists, None otherwise.
         """
-        return next((x for x in self.attributes if x.name == name), None)
+        attribute = [x for x in self.attributes if x.name == name]
+        if not attribute:
+            if not optional:
+                msg = f"Attribute {name} not found in enum {self.name}. Use optional=True to return None instead."
+                raise ValueError(msg)
+            return None
+        if len(attribute) > 1:
+            msg = f"Multiple attributes found with name {name} in enum {self.name}."
+            raise ValueError(msg)
+        return attribute[0]
 
     @noapidoc
     @commiter

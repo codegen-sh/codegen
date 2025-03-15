@@ -52,12 +52,21 @@ class Interface(Inherits, HasBlock, HasAttribute[TAttribute], Generic[TCodeBlock
         raise NotImplementedError(msg)
 
     @reader
-    def get_attribute(self, name: str) -> TAttribute | None:
+    def get_attribute(self, name: str, optional: bool = False) -> TAttribute | None:
         """Returns the attribute with the given name, if it exists.
 
         Otherwise, returns None.
         """
-        return next((x for x in self.attributes if x.name == name), None)
+        attribute = [x for x in self.attributes if x.name == name]
+        if not attribute:
+            if not optional:
+                msg = f"Attribute {name} not found in interface {self.name}. Use optional=True to return None instead."
+                raise ValueError(msg)
+            return None
+        if len(attribute) > 1:
+            msg = f"Multiple attributes found with name {name} in interface {self.name}."
+            raise ValueError(msg)
+        return attribute[0]
 
     @reader
     def extends(self, parent_interface: str | Interface, max_depth: int | None = None) -> bool:

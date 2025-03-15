@@ -105,18 +105,28 @@ class TSFile(SourceFile[TSImport, TSFunction, TSClass, TSAssignment, TSInterface
         return [x for x in self.exports if not x.is_default_export()]
 
     @reader
-    def get_export(self, export_name: str) -> TSExport | None:
+    def get_export(self, export_name: str, optional: bool = False) -> TSExport | None:
         """Returns an export object with the specified name from the file.
 
         This method searches for an export with the given name in the file.
 
         Args:
             export_name (str): The name of the export to find.
+            optional (bool, optional): Whether to return None if the export is not found. Defaults to False.
 
         Returns:
             TSExport | None: The export object if found, None otherwise.
         """
-        return next((x for x in self.exports if x.name == export_name), None)
+        export = [x for x in self.exports if x.name == export_name]
+        if not export:
+            if not optional:
+                msg = f"Export {export_name} not found in file {self.file_path}. Use optional=True to return None instead."
+                raise ValueError(msg)
+            return None
+        if len(export) > 1:
+            msg = f"Multiple exports found with name {export_name} in file {self.file_path}."
+            raise ValueError(msg)
+        return export[0]
 
     @property
     @reader
@@ -134,16 +144,26 @@ class TSFile(SourceFile[TSImport, TSFunction, TSClass, TSAssignment, TSInterface
         return [s for s in self.symbols if s.symbol_type == SymbolType.Interface]
 
     @reader
-    def get_interface(self, name: str) -> TSInterface | None:
+    def get_interface(self, name: str, optional: bool = False) -> TSInterface | None:
         """Retrieves a specific interface from the file by its name.
 
         Args:
             name (str): The name of the interface to find.
+            optional (bool, optional): Whether to return None if the interface is not found. Defaults to False.
 
         Returns:
             TSInterface | None: The interface with the specified name if found, None otherwise.
         """
-        return next((x for x in self.interfaces if x.name == name), None)
+        interface = [x for x in self.interfaces if x.name == name]
+        if not interface:
+            if not optional:
+                msg = f"Interface {name} not found in file {self.file_path}. Use optional=True to return None instead."
+                raise ValueError(msg)
+            return None
+        if len(interface) > 1:
+            msg = f"Multiple interfaces found with name {name} in file {self.file_path}."
+            raise ValueError(msg)
+        return interface[0]
 
     @property
     @reader
@@ -158,18 +178,28 @@ class TSFile(SourceFile[TSImport, TSFunction, TSClass, TSAssignment, TSInterface
         return [s for s in self.symbols if s.symbol_type == SymbolType.Type]
 
     @reader
-    def get_type(self, name: str) -> TSTypeAlias | None:
+    def get_type(self, name: str, optional: bool = False) -> TSTypeAlias | None:
         """Returns a specific Type by name from the file's types.
 
         Retrieves a TypeScript type alias by its name from the file's collection of types.
 
         Args:
             name (str): The name of the type alias to retrieve.
+            optional (bool, optional): Whether to return None if the type alias is not found. Defaults to False.
 
         Returns:
             TSTypeAlias | None: The TypeScript type alias with the matching name, or None if not found.
         """
-        return next((x for x in self.types if x.name == name), None)
+        type_ = [x for x in self.types if x.name == name]
+        if not type_:
+            if not optional:
+                msg = f"Type {name} not found in file {self.file_path}. Use optional=True to return None instead."
+                raise ValueError(msg)
+            return None
+        if len(type_) > 1:
+            msg = f"Multiple types found with name {name} in file {self.file_path}."
+            raise ValueError(msg)
+        return type_[0]
 
     @staticmethod
     def get_extensions() -> list[str]:
@@ -320,12 +350,13 @@ class TSFile(SourceFile[TSImport, TSFunction, TSClass, TSAssignment, TSInterface
     ####################################################################################################################
 
     @reader
-    def get_export_statement_for_path(self, relative_path: str, export_type: str = "EXPORT") -> ExportStatement | None:
+    def get_export_statement_for_path(self, relative_path: str, export_type: str = "EXPORT", optional: bool = False) -> ExportStatement | None:
         """Gets the first export of specified type that contains the given path in single or double quotes.
 
         Args:
             relative_path (str): The path to check for in export statements
             export_type (str): Type of export to get - "WILDCARD", "TYPE", or "EXPORT" (default)
+            optional (bool, optional): Whether to return None if the export statement is not found. Defaults to False.
 
         Returns:
             TSExport | None: The first matching export if found, None otherwise.
@@ -342,6 +373,9 @@ class TSFile(SourceFile[TSImport, TSFunction, TSClass, TSAssignment, TSInterface
                     if condition(exp):
                         return exp
 
+        if not optional:
+            msg = f"Export statement for path {relative_path} not found in file {self.file_path}. Use optional=True to return None instead."
+            raise ValueError(msg)
         return None
 
     @noapidoc
@@ -424,16 +458,26 @@ class TSFile(SourceFile[TSImport, TSFunction, TSClass, TSAssignment, TSInterface
             imp.set_import_module(f"'{new_module_name}'")
 
     @reader
-    def get_namespace(self, name: str) -> TSNamespace | None:
+    def get_namespace(self, name: str, optional: bool = False) -> TSNamespace | None:
         """Returns a specific namespace by name from the file's namespaces.
 
         Args:
             name (str): The name of the namespace to find.
+            optional (bool, optional): Whether to return None if the namespace is not found. Defaults to False.
 
         Returns:
             TSNamespace | None: The namespace with the specified name if found, None otherwise.
         """
-        return next((x for x in self.symbols if isinstance(x, TSNamespace) and x.name == name), None)
+        namespace = [x for x in self.symbols if isinstance(x, TSNamespace) and x.name == name]
+        if not namespace:
+            if not optional:
+                msg = f"Namespace {name} not found in file {self.file_path}. Use optional=True to return None instead."
+                raise ValueError(msg)
+            return None
+        if len(namespace) > 1:
+            msg = f"Multiple namespaces found with name {name} in file {self.file_path}."
+            raise ValueError(msg)
+        return namespace[0]
 
     @property
     @reader

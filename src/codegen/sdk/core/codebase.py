@@ -547,7 +547,7 @@ class Codebase(
     @overload
     def get_file(self, filepath: str, *, optional: Literal[False] = ..., ignore_case: bool = ...) -> TSourceFile: ...
     @overload
-    def get_file(self, filepath: str, *, optional: Literal[True], ignore_case: bool = ...) -> TSourceFile | None: ...
+    def get_file(self, filepath: str, *, optional: Literal[True] = ..., ignore_case: bool = ...) -> TSourceFile | None: ...
     def get_file(self, filepath: str, *, optional: bool = False, ignore_case: bool = False) -> TSourceFile | None:
         """Retrieves a file from the codebase by its filepath.
 
@@ -658,7 +658,7 @@ class Codebase(
             ValueError: If multiple symbols are found with the same name, or if no symbol is found and optional=False.
         """
         symbols = self.get_symbols(symbol_name)
-        if len(symbols) == 0:
+        if not symbols:
             if not optional:
                 msg = f"Symbol {symbol_name} not found in codebase. Use optional=True to return None instead."
                 raise ValueError(msg)
@@ -698,7 +698,7 @@ class Codebase(
             ValueError: If the class is not found and optional=False, or if multiple classes with the same name exist.
         """
         matches = [c for c in self.classes if c.name == class_name]
-        if len(matches) == 0:
+        if not matches:
             if not optional:
                 msg = f"Class {class_name} not found in codebase. Use optional=True to return None instead."
                 raise ValueError(msg)
@@ -727,7 +727,7 @@ class Codebase(
             ValueError: If function is not found and optional=False, or if multiple matching functions exist.
         """
         matches = [f for f in self.functions if f.name == function_name]
-        if len(matches) == 0:
+        if not matches:
             if not optional:
                 msg = f"Function {function_name} not found in codebase. Use optional=True to return None instead."
                 raise ValueError(msg)

@@ -61,7 +61,7 @@ class TSTypeAlias(TypeAlias[TSCodeBlock, TSAttribute], TSSymbol, TSHasBlock):
         return self.code_block.attributes
 
     @reader
-    def get_attribute(self, name: str) -> TSAttribute | None:
+    def get_attribute(self, name: str, optional: bool = False) -> TSAttribute | None:
         """Retrieves a specific attribute from a TypeScript type alias by its name.
 
         Args:
@@ -70,4 +70,13 @@ class TSTypeAlias(TypeAlias[TSCodeBlock, TSAttribute], TSSymbol, TSHasBlock):
         Returns:
             TSAttribute[TSTypeAlias, None] | None: The attribute with the specified name if found, None otherwise.
         """
-        return next((x for x in self.attributes if x.name == name), None)
+        attribute = [x for x in self.attributes if x.name == name]
+        if not attribute:
+            if not optional:
+                msg = f"Attribute {name} not found in type alias {self.name}. Use optional=True to return None instead."
+                raise ValueError(msg)
+            return None
+        if len(attribute) > 1:
+            msg = f"Multiple attributes found with name {name} in type alias {self.name}."
+            raise ValueError(msg)
+        return attribute[0]

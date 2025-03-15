@@ -222,7 +222,7 @@ class PyFile(SourceFile[PyImport, PyFunction, PyClass, PyAssignment, Interface[P
         return super().valid_import_names
 
     @noapidoc
-    def get_node_from_wildcard_chain(self, symbol_name: str) -> PySymbol | None:
+    def get_node_from_wildcard_chain(self, symbol_name: str, optional: bool = False) -> PySymbol | None:
         """Recursively searches for a symbol through wildcard import chains.
 
         Attempts to find a symbol by name in the current file, and if not found, recursively searches
@@ -230,6 +230,7 @@ class PyFile(SourceFile[PyImport, PyFunction, PyClass, PyAssignment, Interface[P
 
         Args:
             symbol_name (str): The name of the symbol to search for.
+            optional (bool, optional): Whether to return None if the symbol is not found. Defaults to False.
 
         Returns:
             PySymbol | None: The found symbol if it exists in this file or any of its wildcard
@@ -244,10 +245,14 @@ class PyFile(SourceFile[PyImport, PyFunction, PyClass, PyAssignment, Interface[P
                 if imp_resolution := wildcard_import.resolve_import():
                     node = imp_resolution.from_file.get_node_from_wildcard_chain(symbol_name=symbol_name)
 
+        if not node and not optional:
+            msg = f"Symbol {symbol_name} not found in files container. Use optional=True to return None instead."
+            raise ValueError(msg)
+
         return node
 
     @noapidoc
-    def get_node_wildcard_resolves_for(self, symbol_name: str) -> PyImport | PySymbol | None:
+    def get_node_wildcard_resolves_for(self, symbol_name: str, optional: bool = False) -> PyImport | PySymbol | None:
         """Finds the wildcard import that resolves a given symbol name.
 
         Searches for a symbol by name, first in the current file, then through wildcard imports.
@@ -256,6 +261,7 @@ class PyFile(SourceFile[PyImport, PyFunction, PyClass, PyAssignment, Interface[P
 
         Args:
             symbol_name (str): The name of the symbol to search for.
+            optional (bool, optional): Whether to return None if the symbol is not found. Defaults to False.
 
         Returns:
             PyImport | PySymbol | None:
@@ -272,5 +278,9 @@ class PyFile(SourceFile[PyImport, PyFunction, PyClass, PyAssignment, Interface[P
                 if imp_resolution := wildcard_import.resolve_import():
                     if imp_resolution.from_file.get_node_from_wildcard_chain(symbol_name=symbol_name):
                         node = wildcard_import
+
+        if not node and not optional:
+            msg = f"Symbol {symbol_name} not found in files container. Use optional=True to return None instead."
+            raise ValueError(msg)
 
         return node

@@ -140,7 +140,7 @@ class CodeBlock(Expression[Parent], Generic[Parent, TAssignment]):
         return [x for x in self.statements if x.statement_type == StatementType.COMMENT]
 
     @reader
-    def get_comment(self, comment_src: str) -> Comment[Parent, Self] | None:
+    def get_comment(self, comment_src: str, optional: bool = False) -> Comment[Parent, Self] | None:
         """Gets the first comment statement containing a specific text string.
 
         Searches through all nested statement levels in the code block to find a comment that contains
@@ -148,12 +148,22 @@ class CodeBlock(Expression[Parent], Generic[Parent, TAssignment]):
 
         Args:
             comment_src (str): The text string to search for within comment statements.
+            optional (bool, optional): If True, returns None instead of raising an error if the comment is not found.
 
         Returns:
             Comment[Parent, Self] | None: The first comment statement containing the search text,
                 or None if no matching comment is found.
         """
-        return next((x for x in self._get_statements(StatementType.COMMENT) if comment_src in x.source), None)
+        comment = [x for x in self._get_statements(StatementType.COMMENT) if comment_src in x.source]
+        if not comment:
+            if not optional:
+                msg = f"Comment {comment_src} not found in code block {self.source}. Use optional=True to return None instead."
+                raise ValueError(msg)
+            return None
+        if len(comment) > 1:
+            msg = f"Multiple comments found with text {comment_src} in code block {self.source}."
+            raise ValueError(msg)
+        return comment[0]
 
     @property
     @reader

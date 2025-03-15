@@ -84,34 +84,98 @@ class HasSymbols(Generic[TFile, TSymbol, TImportStatement, TGlobalVar, TClass, T
         """Get a recursive list of all imports in files container."""
         return list(chain.from_iterable(f.imports for f in self.files_generator()))
 
-    def get_symbol(self, name: str) -> TSymbol | None:
+    def get_symbol(self, name: str, optional: bool = False) -> TSymbol | None:
         """Get a symbol by name in files container."""
-        return next((s for s in self.symbols if s.name == name), None)
+        symbol = next((s for s in self.symbols if s.name == name), None)
+        if not symbol:
+            if not optional:
+                msg = f"Symbol {name} not found in files container. Use optional=True to return None instead."
+                raise ValueError(msg)
+            return None
+        if len(symbol) > 1:
+            msg = f"Multiple symbols with name {name} found in files container. Use get_symbol_by_type to resolve."
+            raise ValueError(msg)
+        return symbol
 
-    def get_import_statement(self, name: str) -> TImportStatement | None:
+    def get_import_statement(self, name: str, optional: bool = False) -> TImportStatement | None:
         """Get an import statement by name in files container."""
-        return next((s for s in self.import_statements if s.name == name), None)
+        import_statement = next((s for s in self.import_statements if s.name == name), None)
+        if not import_statement:
+            if not optional:
+                msg = f"Import statement {name} not found in files container. Use optional=True to return None instead."
+                raise ValueError(msg)
+            return None
+        if len(import_statement) > 1:
+            msg = f"Multiple import statements with name {name} found in files container. Use get_import_statement_by_type to resolve."
+            raise ValueError(msg)
+        return import_statement
 
-    def get_global_var(self, name: str) -> TGlobalVar | None:
+    def get_global_var(self, name: str, optional: bool = False) -> TGlobalVar | None:
         """Get a global variable by name in files container."""
-        return next((s for s in self.global_vars if s.name == name), None)
+        global_var = next((s for s in self.global_vars if s.name == name), None)
+        if not global_var:
+            if not optional:
+                msg = f"Global variable {name} not found in files container. Use optional=True to return None instead."
+                raise ValueError(msg)
+            return None
+        if len(global_var) > 1:
+            msg = f"Multiple global variables with name {name} found in files container. Use get_global_var_by_type to resolve."
+            raise ValueError(msg)
+        return global_var
 
-    def get_class(self, name: str) -> TClass | None:
+    def get_class(self, name: str, optional: bool = False) -> TClass | None:
         """Get a class by name in files container."""
-        return next((s for s in self.classes if s.name == name), None)
+        class_ = next((s for s in self.classes if s.name == name), None)
+        if not class_:
+            if not optional:
+                msg = f"Class {name} not found in files container. Use optional=True to return None instead."
+                raise ValueError(msg)
+            return None
+        if len(class_) > 1:
+            msg = f"Multiple classes with name {name} found in files container. Use get_class_by_type to resolve."
+            raise ValueError(msg)
+        return class_
 
-    def get_function(self, name: str) -> TFunction | None:
+    def get_function(self, name: str, optional: bool = False) -> TFunction | None:
         """Get a function by name in files container."""
-        return next((s for s in self.functions if s.name == name), None)
+        function = next((s for s in self.functions if s.name == name), None)
+        if not function:
+            if not optional:
+                msg = f"Function {name} not found in files container. Use optional=True to return None instead."
+                raise ValueError(msg)
+            return None
+        if len(function) > 1:
+            msg = f"Multiple functions with name {name} found in files container. Use get_function_by_type to resolve."
+            raise ValueError(msg)
+        return function
 
     @py_noapidoc
     def get_export(
         self: "HasSymbols[TSFile, TSSymbol, TSImportStatement, TSGlobalVar, TSClass, TSFunction, TSImport]",
         name: str,
+        optional: bool = False,
     ) -> "TSExport | None":
         """Get an export by name in files container (supports only typescript)."""
-        return next((s for s in self.exports if s.name == name), None)
+        export = next((s for s in self.exports if s.name == name), None)
+        if not export:
+            if not optional:
+                msg = f"Export {name} not found in files container. Use optional=True to return None instead."
+                raise ValueError(msg)
+            return None
+        if len(export) > 1:
+            msg = f"Multiple exports with name {name} found in files container. Use get_export_by_type to resolve."
+            raise ValueError(msg)
+        return export
 
-    def get_import(self, name: str) -> TImport | None:
+    def get_import(self, name: str, optional: bool = False) -> TImport | None:
         """Get an import by name in files container."""
-        return next((s for s in self.imports if s.name == name), None)
+        import_ = next((s for s in self.imports if s.name == name), None)
+        if not import_:
+            if not optional:
+                msg = f"Import {name} not found in files container. Use optional=True to return None instead."
+                raise ValueError(msg)
+            return None
+        if len(import_) > 1:
+            msg = f"Multiple imports with name {name} found in files container. Use get_import_by_type to resolve."
+            raise ValueError(msg)
+        return import_

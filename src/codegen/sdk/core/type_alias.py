@@ -60,9 +60,18 @@ class TypeAlias(SupportsGenerics, HasValue, HasBlock, HasAttribute[TAttribute], 
         """List of expressions defined in this Type object."""
 
     @reader
-    def get_attribute(self, name: str) -> TAttribute | None:
+    def get_attribute(self, name: str, optional: bool = False) -> TAttribute | None:
         """Get attribute by name."""
-        return next((x for x in self.attributes if x.name == name), None)
+        attribute = [x for x in self.attributes if x.name == name]
+        if not attribute:
+            if not optional:
+                msg = f"Attribute {name} not found in type alias {self.name}. Use optional=True to return None instead."
+                raise ValueError(msg)
+            return None
+        if len(attribute) > 1:
+            msg = f"Multiple attributes found with name {name} in type alias {self.name}."
+            raise ValueError(msg)
+        return attribute[0]
 
     @noapidoc
     @reader

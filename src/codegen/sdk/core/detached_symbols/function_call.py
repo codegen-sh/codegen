@@ -374,7 +374,7 @@ class FunctionCall(Expression[Parent], HasName, Resolvable, Generic[Parent]):
                     return param
 
     @reader
-    def get_arg_by_parameter_name(self, param_name: str) -> Argument | None:
+    def get_arg_by_parameter_name(self, param_name: str, optional: bool = False) -> Argument | None:
         """Returns an argument by its parameter name.
 
         Searches through the arguments of a function call to find an argument that matches
@@ -384,6 +384,7 @@ class FunctionCall(Expression[Parent], HasName, Resolvable, Generic[Parent]):
 
         Args:
             param_name (str): The name of the parameter to search for.
+            optional (bool, optional): If True, returns None instead of raising an error if the parameter is not found.
 
         Returns:
             Argument | None: The matching argument if found, None otherwise.
@@ -402,12 +403,18 @@ class FunctionCall(Expression[Parent], HasName, Resolvable, Generic[Parent]):
                 if param.name == param_name:
                     return arg
 
+        if not optional:
+            msg = f"Parameter {param_name} not found in function call {self.source}. Use optional=True to return None instead."
+            raise ValueError(msg)
+        return None
+
     @reader
-    def get_arg_by_index(self, arg_idx: int) -> Argument | None:
+    def get_arg_by_index(self, arg_idx: int, optional: bool = False) -> Argument | None:
         """Returns the Argument with the given index from the function call's argument list.
 
         Args:
             arg_idx (int): The index of the argument to retrieve.
+            optional (bool, optional): If True, returns None instead of raising an error if the index is out of bounds.
 
         Returns:
             Argument | None: The Argument object at the specified index, or None if the index is out of bounds.
@@ -415,6 +422,9 @@ class FunctionCall(Expression[Parent], HasName, Resolvable, Generic[Parent]):
         try:
             return self.args[arg_idx]
         except IndexError:
+            if not optional:
+                msg = f"Index {arg_idx} is out of bounds for function call {self.source}. Use optional=True to return None instead."
+                raise IndexError(msg)
             return None
 
     ####################################################################################################################

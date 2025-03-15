@@ -73,12 +73,13 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName):
                 all_symbols.append(stmt)
         return all_symbols
 
-    def get_symbol(self, name: str, recursive: bool = True) -> Symbol | None:
+    def get_symbol(self, name: str, recursive: bool = True, optional: bool = False) -> Symbol | None:
         """Get a symbol by name from this namespace.
 
         Args:
             name: Name of the symbol to find
             recursive: If True, also search in nested namespaces
+            optional: If True, return None if the symbol is not found
 
         Returns:
             Symbol | None: The found symbol, or None if not found
@@ -93,6 +94,10 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName):
                 nested_symbol = symbol.get_symbol(name, recursive=True)
                 return nested_symbol
 
+        if not optional:
+            msg = f"Symbol {name} not found in namespace {self.name} of file {self.file_path}. Use optional=True to return None instead."
+            raise ValueError(msg)
+
         return None
 
     @cached_property
@@ -104,13 +109,14 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName):
         """
         return [symbol for symbol in self.symbols if isinstance(symbol, TSFunction)]
 
-    def get_function(self, name: str, recursive: bool = True, use_full_name: bool = False) -> TSFunction | None:
+    def get_function(self, name: str, recursive: bool = True, use_full_name: bool = False, optional: bool = False) -> TSFunction | None:
         """Get a function by name from this namespace.
 
         Args:
             name: Name of the function to find (can be fully qualified like 'Outer.Inner.func')
             recursive: If True, also search in nested namespaces
             use_full_name: If True, match against the full qualified name
+            optional: If True, return None if the function is not found
 
         Returns:
             TSFunction | None: The found function, or None if not found
@@ -120,8 +126,13 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName):
             target_ns = self.get_namespace(namespace_path)
             return target_ns.get_function(func_name, recursive=False) if target_ns else None
 
-        symbol = self.get_symbol(name, recursive=recursive)
-        return symbol if isinstance(symbol, TSFunction) else None
+        if (symbol := self.get_symbol(name, recursive=recursive)) and isinstance(symbol, TSFunction):
+            return symbol
+
+        if not optional:
+            msg = f"Function {name} not found in namespace {self.name} of file {self.file_path}. Use optional=True to return None instead."
+            raise ValueError(msg)
+        return None
 
     @cached_property
     def classes(self) -> list[TSClass]:
@@ -132,52 +143,85 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName):
         """
         return [symbol for symbol in self.symbols if isinstance(symbol, TSClass)]
 
-    def get_class(self, name: str, recursive: bool = True) -> TSClass | None:
+    def get_class(self, name: str, recursive: bool = True, optional: bool = False) -> TSClass | None:
         """Get a class by name from this namespace.
 
         Args:
             name: Name of the class to find
             recursive: If True, also search in nested namespaces
-        """
-        symbol = self.get_symbol(name, recursive=recursive)
-        return symbol if isinstance(symbol, TSClass) else None
+            optional: If True, return None if the class is not found
 
-    def get_interface(self, name: str, recursive: bool = True) -> TSInterface | None:
+        Returns:
+            TSClass | None: The found class, or None if not found
+        """
+        if (symbol := self.get_symbol(name, recursive=recursive)) and isinstance(symbol, TSClass):
+            return symbol
+        if not optional:
+            msg = f"Class {name} not found in namespace {self.name} of file {self.file_path}. Use optional=True to return None instead."
+            raise ValueError(msg)
+        return None
+
+    def get_interface(self, name: str, recursive: bool = True, optional: bool = False) -> TSInterface | None:
         """Get an interface by name from this namespace.
 
         Args:
             name: Name of the interface to find
             recursive: If True, also search in nested namespaces
-        """
-        symbol = self.get_symbol(name, recursive=recursive)
-        return symbol if isinstance(symbol, TSInterface) else None
+            optional: If True, return None if the interface is not found
 
-    def get_type(self, name: str, recursive: bool = True) -> TSTypeAlias | None:
+        Returns:
+            TSInterface | None: The found interface, or None if not found
+        """
+        if (symbol := self.get_symbol(name, recursive=recursive)) and isinstance(symbol, TSInterface):
+            return symbol
+        if not optional:
+            msg = f"Interface {name} not found in namespace {self.name} of file {self.file_path}. Use optional=True to return None instead."
+            raise ValueError(msg)
+        return None
+
+    def get_type(self, name: str, recursive: bool = True, optional: bool = False) -> TSTypeAlias | None:
         """Get a type alias by name from this namespace.
 
         Args:
             name: Name of the type to find
             recursive: If True, also search in nested namespaces
-        """
-        symbol = self.get_symbol(name, recursive=recursive)
-        return symbol if isinstance(symbol, TSTypeAlias) else None
+            optional: If True, return None if the type is not found
 
-    def get_enum(self, name: str, recursive: bool = True) -> TSEnum | None:
+        Returns:
+            TSTypeAlias | None: The found type alias, or None if not found
+        """
+        if (symbol := self.get_symbol(name, recursive=recursive)) and isinstance(symbol, TSTypeAlias):
+            return symbol
+        if not optional:
+            msg = f"Type alias {name} not found in namespace {self.name} of file {self.file_path}. Use optional=True to return None instead."
+            raise ValueError(msg)
+        return None
+
+    def get_enum(self, name: str, recursive: bool = True, optional: bool = False) -> TSEnum | None:
         """Get an enum by name from this namespace.
 
         Args:
             name: Name of the enum to find
             recursive: If True, also search in nested namespaces
-        """
-        symbol = self.get_symbol(name, recursive=recursive)
-        return symbol if isinstance(symbol, TSEnum) else None
+            optional: If True, return None if the enum is not found
 
-    def get_namespace(self, name: str, recursive: bool = True) -> TSNamespace | None:
+        Returns:
+            TSEnum | None: The found enum, or None if not found
+        """
+        if (symbol := self.get_symbol(name, recursive=recursive)) and isinstance(symbol, TSEnum):
+            return symbol
+        if not optional:
+            msg = f"Enum {name} not found in namespace {self.name} of file {self.file_path}. Use optional=True to return None instead."
+            raise ValueError(msg)
+        return None
+
+    def get_namespace(self, name: str, recursive: bool = True, optional: bool = False) -> TSNamespace | None:
         """Get a namespace by name from this namespace.
 
         Args:
             name: Name of the namespace to find
             recursive: If True, also search in nested namespaces
+            optional: If True, return None if the namespace is not found
 
         Returns:
             TSNamespace | None: The found namespace, or None if not found
@@ -192,6 +236,9 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName):
                 nested_namespace = symbol.get_namespace(name, recursive=True)
                 return nested_namespace
 
+        if not optional:
+            msg = f"Namespace {name} not found in namespace {self.name} of file {self.file_path}. Use optional=True to return None instead."
+            raise ValueError(msg)
         return None
 
     def get_nested_namespaces(self) -> list[TSNamespace]:

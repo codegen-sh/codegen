@@ -221,7 +221,7 @@ class Directory(
         """Yield files recursively from the directory."""
         yield from self.files(*args, extensions="*", **kwargs, recursive=True)
 
-    def get_file(self, filename: str, ignore_case: bool = False) -> TFile | None:
+    def get_file(self, filename: str, ignore_case: bool = False, optional: bool = False) -> TFile | None:
         """Get a file by its name relative to the directory."""
         file_path = os.path.join(self.dirpath, filename)
         absolute_path = self.ctx.to_absolute(file_path)
@@ -235,11 +235,19 @@ class Directory(
                 return self.ctx._get_raw_file_from_path(file)
             elif not ignore_case and str(absolute_path) == str(file):
                 return self.ctx._get_raw_file_from_path(file)
+        if not optional:
+            msg = f"File {filename} not found in directory {self.dirpath}. Use optional=True to return None instead."
+            raise ValueError(msg)
         return None
 
-    def get_subdirectory(self, subdirectory_name: str) -> Self | None:
+    def get_subdirectory(self, subdirectory_name: str, optional: bool = False) -> Self | None:
         """Get a subdirectory by its name (relative to the directory)."""
-        return self.ctx.get_directory(os.path.join(self.dirpath, subdirectory_name))
+        if directory := self.ctx.get_directory(os.path.join(self.dirpath, subdirectory_name)):
+            return directory
+        if not optional:
+            msg = f"Subdirectory {subdirectory_name} not found in directory {self.dirpath}. Use optional=True to return None instead."
+            raise ValueError(msg)
+        return None
 
     def update_filepath(self, new_filepath: str) -> None:
         """Update the filepath of the directory and its contained files."""

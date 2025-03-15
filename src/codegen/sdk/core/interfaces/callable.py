@@ -87,44 +87,74 @@ class Callable(Usable, Generic[TParameter, TType]):
         return self._parameters
 
     @reader
-    def get_parameter(self, name: str) -> TParameter | None:
+    def get_parameter(self, name: str, optional: bool = False) -> TParameter | None:
         """Gets a specific parameter from the callable's parameters list by name.
 
         Args:
             name (str): The name of the parameter to retrieve.
+            optional (bool, optional): If True, returns None instead of raising an error if the parameter is not found.
 
         Returns:
             TParameter | None: The parameter with the specified name, or None if no parameter with that name exists or if there are no parameters.
         """
-        return next((x for x in self._parameters if x.name == name), None)
+        parameter = [x for x in self._parameters if x.name == name]
+        if not parameter:
+            if not optional:
+                msg = f"Parameter {name} not found in callable {self.name}. Use optional=True to return None instead."
+                raise ValueError(msg)
+            return None
+        if len(parameter) > 1:
+            msg = f"Multiple parameters with name {name} found in callable {self.name}. Use get_parameter_by_type to resolve."
+            raise ValueError(msg)
+        return parameter[0]
 
     @reader
-    def get_parameter_by_index(self, index: int) -> TParameter | None:
+    def get_parameter_by_index(self, index: int, optional: bool = False) -> TParameter | None:
         """Returns the parameter at the given index.
 
         Retrieves a parameter from the callable's parameter list based on its positional index.
 
         Args:
             index (int): The index of the parameter to retrieve.
+            optional (bool, optional): If True, returns None instead of raising an error if the parameter is not found.
 
         Returns:
             TParameter | None: The parameter at the specified index, or None if the parameter list
                 is empty or the index does not exist.
         """
-        return next((x for x in self._parameters if x.index == index), None)
+        parameter = [x for x in self._parameters if x.index == index]
+        if not parameter:
+            if not optional:
+                msg = f"Parameter at index {index} not found in callable {self.name}. Use optional=True to return None instead."
+                raise ValueError(msg)
+            return None
+        if len(parameter) > 1:
+            msg = f"Multiple parameters at index {index} found in callable {self.name}. Use get_parameter_by_type to resolve."
+            raise ValueError(msg)
+        return parameter[0]
 
     @reader
-    def get_parameter_by_type(self, type: "Symbol") -> TParameter | None:
+    def get_parameter_by_type(self, type: "Symbol", optional: bool = False) -> TParameter | None:
         """Retrieves a parameter from the callable by its type.
 
         Searches through the callable's parameters to find a parameter with the specified type.
 
         Args:
             type (Symbol): The type to search for.
+            optional (bool, optional): If True, returns None instead of raising an error if the parameter is not found.
 
         Returns:
             TParameter | None: The parameter with the specified type, or None if no parameter is found or if the callable has no parameters.
         """
         if self._parameters is None:
             return None
-        return next((x for x in self._parameters if x.type == type), None)
+        parameter = [x for x in self._parameters if x.type == type]
+        if not parameter:
+            if not optional:
+                msg = f"Parameter of type {type} not found in callable {self.name}. Use optional=True to return None instead."
+                raise ValueError(msg)
+            return None
+        if len(parameter) > 1:
+            msg = f"Multiple parameters of type {type} found in callable {self.name}. Use get_parameter_by_name to resolve."
+            raise ValueError(msg)
+        return parameter[0]

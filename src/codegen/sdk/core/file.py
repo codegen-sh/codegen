@@ -20,6 +20,7 @@ from codegen.sdk.core.autocommit import commiter, mover, reader, remover, writer
 from codegen.sdk.core.class_definition import Class
 from codegen.sdk.core.dataclasses.usage import UsageType
 from codegen.sdk.core.directory import Directory
+from codegen.sdk.core.function import Function
 from codegen.sdk.core.import_resolution import Import, WildcardImport
 from codegen.sdk.core.interfaces.editable import Editable
 from codegen.sdk.core.interfaces.has_attribute import HasAttribute
@@ -41,7 +42,6 @@ from codegen.visualizations.enums import VizNode
 if TYPE_CHECKING:
     from codegen.sdk.core.assignment import Assignment
     from codegen.sdk.core.detached_symbols.code_block import CodeBlock
-    from codegen.sdk.core.function import Function
     from codegen.sdk.core.interface import Interface
 
 logger = get_logger(__name__)
@@ -694,16 +694,22 @@ class SourceFile(
         return any(a.source == symbol_alias for a in aliases)
 
     @reader
-    def get_import(self, symbol_alias: str) -> TImport | None:
+    def get_import(self, symbol_alias: str, optional: bool = False) -> TImport | None:
         """Returns the import with matching alias. Returns None if not found.
 
         Args:
             symbol_alias (str): The alias name to search for. This can match either the direct import name or the aliased name.
+            optional (bool, optional): Whether to return None if the import is not found. Defaults to False.
 
         Returns:
             TImport | None: The import statement with the matching alias if found, None otherwise.
         """
-        return next((x for x in self.imports if x.alias is not None and x.alias.source == symbol_alias), None)
+        if import_ := next((x for x in self.imports if x.alias is not None and x.alias.source == symbol_alias), None):
+            return import_
+        if not optional:
+            msg = f"Import with alias {symbol_alias} not found in file {self.filepath}. Use optional=True to return None instead."
+            raise ValueError(msg)
+        return None
 
     @proxy_property
     def symbols(self, nested: bool = False) -> list[Symbol | TClass | TFunction | TGlobalVar | TInterface]:
@@ -732,7 +738,7 @@ class SourceFile(
         return ret
 
     @reader
-    def get_symbol(self, name: str) -> Symbol | None:
+    def get_symbol(self, name: str, optional: bool = False) -> Symbol | None:
         """Gets a symbol by its name from the file.
 
         Attempts to resolve the symbol by name using name resolution rules first. If that fails,
@@ -740,6 +746,7 @@ class SourceFile(
 
         Args:
             name (str): The name of the symbol to find.
+            optional (bool, optional): Whether to return None if the symbol is not found. Defaults to False.
 
         Returns:
             Symbol | None: The found symbol, or None if not found.
@@ -747,7 +754,16 @@ class SourceFile(
         if symbol := next(self.resolve_name(name, self.end_byte), None):
             if isinstance(symbol, Symbol):
                 return symbol
-        return next((x for x in self.symbols if x.name == name), None)
+        symbol = [x for x in self.symbols if x.name == name]
+        if len(symbol) == 0:
+            if not optional:
+                msg = f"Symbol {name} not found in file {self.filepath}. Use optional=True to return None instead."
+                raise ValueError(msg)
+            return None
+        if len(symbol) > 1:
+            msg = f"Multiple symbols found with name {name} in file {self.filepath}."
+            raise ValueError(msg)
+        return symbol[0]
 
     @property
     @reader(cache=False)
@@ -783,16 +799,26 @@ class SourceFile(
         return [s for s in self.symbols if s.symbol_type == SymbolType.GlobalVar]
 
     @reader
-    def get_global_var(self, name: str) -> TGlobalVar | None:
+    def get_global_var(self, name: str, optional: bool = False) -> TGlobalVar | None:
         """Returns a specific global var by name. Returns None if not found.
 
         Args:
             name (str): The name of the global variable to find.
+            optional (bool, optional): Whether to return None if the global var is not found. Defaults to False.
 
         Returns:
             TGlobalVar | None: The global variable if found, None otherwise.
         """
-        return next((x for x in self.global_vars if x.name == name), None)
+        global_var = [x for x in self.global_vars if x.name == name]
+        if not global_var:
+            if not optional:
+                msg = f"Global var {name} not found in file {self.filepath}. Use optional=True to return None instead."
+                raise ValueError(msg)
+            return None
+        if len(global_var) > 1:
+            msg = f"Multiple global vars found with name {name} in file {self.filepath}."
+            raise ValueError(msg)
+        return global_var[0]
 
     @property
     @reader(cache=False)
@@ -808,13 +834,14 @@ class SourceFile(
         return [s for s in self.symbols if s.symbol_type == SymbolType.Class]
 
     @reader
-    def get_class(self, name: str) -> TClass | None:
+    def get_class(self, name: str, optional: bool = False) -> TClass | None:
         """Returns a specific Class by full name. Returns None if not found.
 
         Searches for a class in the file with the specified name. Similar to get_symbol, but specifically for Class types.
 
         Args:
             name (str): The full name of the class to search for.
+            optional (bool, optional): Whether to return None if the class is not found. Defaults to False.
 
         Returns:
             TClass | None: The matching Class object if found, None otherwise.
@@ -822,6 +849,16 @@ class SourceFile(
         if symbol := next(self.resolve_name(name, self.end_byte), None):
             if isinstance(symbol, Class):
                 return symbol
+        class_ = [x for x in self.classes if x.name == name]
+        if not class_:
+            if not optional:
+                msg = f"Class {name} not found in file {self.filepath}. Use optional=True to return None instead."
+                raise ValueError(msg)
+            return None
+        if len(class_) > 1:
+            msg = f"Multiple classes found with name {name} in file {self.filepath}."
+            raise ValueError(msg)
+        return class_[0]
 
     @property
     @reader(cache=False)
@@ -837,22 +874,35 @@ class SourceFile(
         return [s for s in self.symbols if s.symbol_type == SymbolType.Function]
 
     @reader
-    def get_function(self, name: str) -> TFunction | None:
+    def get_function(self, name: str, optional: bool = False) -> TFunction | None:
         """Returns a specific Function by name.
 
         Gets a Function object from the file by searching for a function with the given name.
 
         Args:
             name (str): The name of the function to find.
+            optional (bool, optional): Whether to return None if the function is not found. Defaults to False.
 
         Returns:
             TFunction | None: The matching Function object if found, None otherwise.
         """
-        return next((x for x in self.functions if x.name == name), None)
+        if symbol := self.resolve_name(name, self.end_byte):
+            if isinstance(symbol, Function):
+                return symbol
+        function = [x for x in self.functions if x.name == name]
+        if not function:
+            if not optional:
+                msg = f"Function {name} not found in file {self.filepath}. Use optional=True to return None instead."
+                raise ValueError(msg)
+            return None
+        if len(function) > 1:
+            msg = f"Multiple functions found with name {name} in file {self.filepath}."
+            raise ValueError(msg)
+        return function[0]
 
     @noapidoc
     @reader
-    def get_node_by_name(self, name: str) -> Symbol | TImport | None:
+    def get_node_by_name(self, name: str, optional: bool = False) -> Symbol | TImport | None:
         """Returns something defined in this file by name.
 
         Used during import resolution
@@ -863,6 +913,9 @@ class SourceFile(
         imp = self.get_import(name)
         if imp is not None:
             return imp
+        if not optional:
+            msg = f"Symbol {name} not found in file {self.filepath}. Use optional=True to return None instead."
+            raise ValueError(msg)
         return None
 
     @cached_property
