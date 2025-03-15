@@ -6,6 +6,7 @@ version-file = "src/codegen/sdk/__init__.py"
 allow-direct-references = true
 [envs.hatch-build]
 installer = "uv"
+
 [[envs.hatch-build.matrix]]
 tool = ["uv", "pip"]
 
@@ -35,6 +36,14 @@ compile_args = [
   { platforms = [
     "darwin",
   ], arch = "arm64", arg = "-mcpu=apple-m1" },
+]
+env = [
+  { env = "CC", arg = "cc", platforms = [
+    "linux",
+  ] },
+  { env = "CC", arg = "clang", platforms = [
+    "darwin",
+  ] },
 ]
 cythonize_kwargs = { annotate = true, nthreads = 16, exclude_failures = false, cache = true }
 compiled_sdist = true

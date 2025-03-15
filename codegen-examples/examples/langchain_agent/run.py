@@ -20,7 +20,7 @@ from codegen.extensions.langchain.prompts import REASONER_SYSTEM_MESSAGE
 
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph.graph import CompiledGraph
-from langgraph.prebuilt import create_react_agent
+from codegen.extensions.langchain.graph import create_react_agent
 from langchain_core.messages import SystemMessage
 
 
@@ -70,7 +70,7 @@ def create_codebase_agent(
 
     memory = MemorySaver() if memory else None
 
-    return create_react_agent(model=llm, tools=tools, prompt=system_message, checkpointer=memory, debug=debug)
+    return create_react_agent(model=llm, tools=tools, system_message=system_message, checkpointer=memory, debug=debug)
 
 
 if __name__ == "__main__":

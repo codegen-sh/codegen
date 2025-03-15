@@ -5,7 +5,14 @@ if command -v sudo &> /dev/null; then
 fi
 
 if command -v apt &> /dev/null; then
+    if ! (command -v clang &> /dev/null || command -v gcc &> /dev/null); then
+        echo "Neither clang nor gcc found. Installing gcc..."
+        $SUDO apt update && $SUDO apt install -y gcc build-essential python3-dev
+    fi
+
     $SUDO apt update && $SUDO apt install -y jq \
+        build-essential \
+        python3-dev \
         libpixman-1-dev \
         libcairo2-dev \
         libpango1.0-dev \

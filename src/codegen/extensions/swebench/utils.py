@@ -1,20 +1,14 @@
 import json
 from dataclasses import dataclass
-from enum import Enum
 from pathlib import Path
 from pprint import pprint
 from typing import Literal, Optional
 
 from datasets import load_dataset
 
-# Add constant for cache directory
-CACHE_DIR = Path.home() / ".cache" / "swebench"
-
-
-class SWEBenchDataset(Enum):
-    LITE = "princeton-nlp/SWE-bench_Lite"
-    FULL = "princeton-nlp/SWE-bench"
-    VERIFIED = "princeton-nlp/SWE-bench-verified"
+from codegen.extensions.swebench.enums import SWEBenchDataset, SWEBenchLiteSubset
+from codegen.extensions.swebench.subsets import LITE_SUBSETS
+from codegen.extensions.swebench.success_rates import LITE_SUCCESS_RATES
 
 
 @dataclass
@@ -33,6 +27,7 @@ class SweBenchExample:
     fail_to_pass: str
     pass_to_pass: Optional[str]
     environment_setup_commit: Optional[str]
+    difficulty: Optional[int]
 
 
 def load_predictions(paths):
@@ -67,52 +62,54 @@ def load_predictions(paths):
     return predictions
 
 
+def get_difficulty(instance_id: str) -> int | None:
+    if instance_id in LITE_SUCCESS_RATES:
+        return 10 - int(LITE_SUCCESS_RATES[instance_id] * 10)
+    return None
+
+
 def get_swe_bench_examples(
-    dataset: SWEBenchDataset = SWEBenchDataset.LITE,
+    dataset: SWEBenchDataset | SWEBenchLiteSubset = SWEBenchLiteSubset.LITE_SMALL,
     split: Literal["train", "dev", "test"] = "test",
-    offset: int = 0,
-    length: int = 100,
+    length: int | None = None,
     instance_id: str | None = None,
+    repo: str | None = None,
 ) -> list[SweBenchExample]:
     """Fetch examples from the SWE-bench dataset using the datasets library.
 
     Args:
-        dataset: The dataset to use (LITE, FULL, or VERIFIED)
+        dataset: The dataset to use ("lite", "full", or "verified")
         split: The dataset split to use
         offset: Starting index for examples
         length: Number of examples to fetch
+        instance_id: Optional specific instance ID to fetch
 
     Returns:
         List of SweBenchExample objects
     """
-    # Ensure cache directory exists
-    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    # Convert string dataset name to enum
 
     # Load the dataset with caching enabled
-    dataset_name = dataset.value
-    swe_bench_dataset = load_dataset(dataset_name, cache_dir=str(CACHE_DIR), download_mode="reuse_dataset_if_exists")
+    instance_ids = []
+    if isinstance(dataset, SWEBenchLiteSubset):
+        swe_bench_dataset = load_dataset(SWEBenchDataset.LITE.value, download_mode="reuse_dataset_if_exists")
+        instance_ids = LITE_SUBSETS[dataset]
+    else:
+        swe_bench_dataset = load_dataset(dataset.value, download_mode="reuse_dataset_if_exists")
 
     # Get the requested split
     split_data = swe_bench_dataset[split]
 
-    # Apply offset and length
-    if instance_id:
-        offset = 0
-        end_idx = len(split_data)
-    else:
-        end_idx = min(offset + length, len(split_data))
-        if offset >= len(split_data):
-            return []
-
-    # Use the select method instead of slicing
-    # This ensures we get dictionary-like objects
-    selected_rows = split_data.select(range(offset, end_idx))
-
     # Convert to SweBenchExample objects
     examples = []
-    for row in selected_rows:
+    for row in split_data:
         if instance_id and row["instance_id"] != instance_id:
             continue
+        if repo and row["repo"] != repo:
+            continue
+        if instance_ids and row["instance_id"] not in instance_ids:
+            continue
+
         example = SweBenchExample(
             repo=row["repo"],
             instance_id=row["instance_id"],
@@ -126,7 +123,11 @@ def get_swe_bench_examples(
             fail_to_pass=row["FAIL_TO_PASS"],
             pass_to_pass=row.get("PASS_TO_PASS"),
             environment_setup_commit=row.get("environment_setup_commit"),
+            difficulty=get_difficulty(row["instance_id"]),
         )
         examples.append(example)
+
+    if length:
+        examples = examples[:length]
 
     return examples

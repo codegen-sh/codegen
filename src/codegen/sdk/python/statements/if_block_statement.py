@@ -14,7 +14,6 @@ if TYPE_CHECKING:
     from codegen.sdk.core.node_id_factory import NodeId
     from codegen.sdk.python.detached_symbols.code_block import PyCodeBlock
 
-
 Parent = TypeVar("Parent", bound="PyCodeBlock")
 
 

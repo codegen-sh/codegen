@@ -20,7 +20,7 @@ from codegen.configs.models.secrets import SecretsConfig
 from codegen.git.clients.git_repo_client import GitRepoClient
 from codegen.git.configs.constants import CODEGEN_BOT_EMAIL, CODEGEN_BOT_NAME
 from codegen.git.repo_operator.local_git_repo import LocalGitRepo
-from codegen.git.schemas.enums import CheckoutResult, FetchResult, SetupOption
+from codegen.git.schemas.enums import CheckoutResult, FetchResult, RepoVisibility, SetupOption
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.git.utils.clone import clone_or_pull_repo, clone_repo, pull_repo
 from codegen.git.utils.clone_url import add_access_token_to_url, get_authenticated_clone_url_for_repo_config, get_clone_url_for_repo_config, url_to_github
@@ -89,7 +89,7 @@ class RepoOperator:
 
     @property
     def remote_git_repo(self) -> GitRepoClient:
-        if not self.access_token:
+        if not self.access_token and self.repo_config.visibility != RepoVisibility.PUBLIC:
             msg = "Must initialize with access_token to get remote"
             raise ValueError(msg)
 
@@ -616,6 +616,7 @@ class RepoOperator:
         subdirs: list[str] | None = None,
         extensions: list[str] | None = None,
         ignore_list: list[str] | None = None,
+        skip_content: bool = False,
     ) -> Generator[tuple[str, str]]:
         """Iterates over all files in the codebase, yielding the filepath and its content.
 
@@ -642,8 +643,14 @@ class RepoOperator:
 
             if extensions is None or any(filepath.endswith(e) for e in extensions):
                 try:
-                    content = self.get_file(filepath)
-                    yield rel_filepath, content
+                    if os.path.isfile(filepath):
+                        if not skip_content:
+                            content = self.get_file(filepath)
+                            yield rel_filepath, content
+                        else:
+                            yield rel_filepath, ""
+                    else:
+                        logger.warning(f"Skipping {filepath} because it does not exist or is not a valid file.")
                 except Exception as e:
                     logger.warning(f"Error reading file {filepath}: {e}")
 
@@ -843,13 +850,14 @@ class RepoOperator:
         return op
 
     @classmethod
-    def create_from_repo(cls, repo_path: str, url: str, access_token: str | None = None) -> Self | None:
+    def create_from_repo(cls, repo_path: str, url: str, access_token: str | None = None, full_history: bool = False) -> Self | None:
         """Create a fresh clone of a repository or use existing one if up to date.
 
         Args:
             repo_path (str): Path where the repo should be cloned
             url (str): Git URL of the repository
             access_token (str | None): Optional GitHub API key for operations that need GitHub access
+            full_history (bool): If True, clones the complete repository history. If False, performs a shallow clone. Defaults to False.
         """
         access_token = access_token or SecretsConfig().github_token
         if access_token:
@@ -879,9 +887,13 @@ class RepoOperator:
             import shutil
 
             shutil.rmtree(repo_path)
+
         try:
-            # Clone the repository
-            GitCLI.clone_from(url=url, to_path=repo_path, depth=1)
+            # Clone the repository with or without full history
+            if full_history:
+                GitCLI.clone_from(url=url, to_path=repo_path)
+            else:
+                GitCLI.clone_from(url=url, to_path=repo_path, depth=1)
 
             # Initialize with the cloned repo
             git_cli = GitCLI(repo_path)

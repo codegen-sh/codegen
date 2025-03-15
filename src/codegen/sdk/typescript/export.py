@@ -204,7 +204,7 @@ class TSExport(Export["Collection[TSExport, ExportStatement[TSExport]]"], HasVal
                 if frame.parent_frame:
                     frame.parent_frame.add_usage(self._name_node or self, UsageKind.EXPORTED_SYMBOL, self, self.ctx)
         elif self._exported_symbol:
-            if not self.resolve_name(self._exported_symbol.source):
+            if not next(self.resolve_name(self._exported_symbol.source), None):
                 self._exported_symbol._compute_dependencies(UsageKind.BODY, dest=dest or self)
         elif self.value:
             self.value._compute_dependencies(UsageKind.EXPORTED_SYMBOL, self)
@@ -218,7 +218,7 @@ class TSExport(Export["Collection[TSExport, ExportStatement[TSExport]]"], HasVal
             self.ctx.add_edge(self.node_id, self.declared_symbol.node_id, type=EdgeType.EXPORT)
         elif self._exported_symbol is not None:
             symbol_name = self._exported_symbol.source
-            if (used_node := self.resolve_name(symbol_name)) and isinstance(used_node, Importable) and self.ctx.has_node(used_node.node_id):
+            if (used_node := next(self.resolve_name(symbol_name), None)) and isinstance(used_node, Importable) and self.ctx.has_node(used_node.node_id):
                 self.ctx.add_edge(self.node_id, used_node.node_id, type=EdgeType.EXPORT)
         elif self.value is not None:
             if isinstance(self.value, Chainable):

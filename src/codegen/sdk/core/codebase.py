@@ -22,15 +22,19 @@ from openai import OpenAI
 from rich.console import Console
 from typing_extensions import TypeVar, deprecated
 
-from codegen.configs.models.codebase import CodebaseConfig
+from codegen.configs.models.codebase import CodebaseConfig, PinkMode
 from codegen.configs.models.secrets import SecretsConfig
 from codegen.git.repo_operator.repo_operator import RepoOperator
 from codegen.git.schemas.enums import CheckoutResult, SetupOption
+from codegen.git.schemas.repo_config import RepoConfig
 from codegen.git.utils.pr_review import CodegenPR
 from codegen.sdk._proxy import proxy_property
 from codegen.sdk.ai.client import get_openai_client
 from codegen.sdk.codebase.codebase_ai import generate_system_prompt, generate_tools
-from codegen.sdk.codebase.codebase_context import GLOBAL_FILE_IGNORE_LIST, CodebaseContext
+from codegen.sdk.codebase.codebase_context import (
+    GLOBAL_FILE_IGNORE_LIST,
+    CodebaseContext,
+)
 from codegen.sdk.codebase.config import ProjectConfig, SessionOptions
 from codegen.sdk.codebase.diff_lite import DiffLite
 from codegen.sdk.codebase.flagging.code_flag import CodeFlag
@@ -110,7 +114,21 @@ PyDirectory = Directory[PyFile, PySymbol, PyImportStatement, PyGlobalVar, PyClas
 
 
 @apidoc
-class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImport, TGlobalVar, TInterface, TTypeAlias, TParameter, TCodeBlock]):
+class Codebase(
+    Generic[
+        TSourceFile,
+        TDirectory,
+        TSymbol,
+        TClass,
+        TFunction,
+        TImport,
+        TGlobalVar,
+        TInterface,
+        TTypeAlias,
+        TParameter,
+        TCodeBlock,
+    ]
+):
     """This class provides the main entrypoint for most programs to analyzing and manipulating codebases.
 
     Attributes:
@@ -180,7 +198,10 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
 
         # Initialize project with repo_path if projects is None
         if repo_path is not None:
-            main_project = ProjectConfig.from_path(repo_path, programming_language=ProgrammingLanguage(language.upper()) if language else None)
+            main_project = ProjectConfig.from_path(
+                repo_path,
+                programming_language=ProgrammingLanguage(language.upper()) if language else None,
+            )
             projects = [main_project]
         else:
             main_project = projects[0]
@@ -191,6 +212,10 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         self.repo_path = Path(self._op.repo_path)
         self.ctx = CodebaseContext(projects, config=config, secrets=secrets, io=io, progress=progress)
         self.console = Console(record=True, soft_wrap=True)
+        if self.ctx.config.use_pink != PinkMode.OFF:
+            import codegen_sdk_pink
+
+            self._pink_codebase = codegen_sdk_pink.Codebase(self.repo_path)
 
     @noapidoc
     def __str__(self) -> str:
@@ -276,6 +301,8 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         Returns:
             list[TSourceFile]: A sorted list of source files in the codebase.
         """
+        if self.ctx.config.use_pink == PinkMode.ALL_FILES:
+            return self._pink_codebase.files
         if extensions is None and len(self.ctx.get_nodes(NodeType.FILE)) > 0:
             # If extensions is None AND there is at least one file in the codebase (This checks for unsupported languages or parse-off repos),
             # Return all source files
@@ -286,7 +313,10 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         else:
             files = []
             # Get all files with the specified extensions
-            for filepath, _ in self._op.iter_files(extensions=None if extensions == "*" else extensions, ignore_list=GLOBAL_FILE_IGNORE_LIST):
+            for filepath, _ in self._op.iter_files(
+                extensions=None if extensions == "*" else extensions,
+                ignore_list=GLOBAL_FILE_IGNORE_LIST,
+            ):
                 files.append(self.get_file(filepath, optional=False))
         # Sort files alphabetically
         return sort_editables(files, alphabetical=True, dedupe=False)
@@ -298,9 +328,12 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         Returns:
             list[CodeOwners]: A list of CodeOwners objects in the codebase.
         """
-        if self.G.codeowners_parser is None:
+        if self.ctx.codeowners_parser is None:
             return []
-        return CodeOwner.from_parser(self.G.codeowners_parser, lambda *args, **kwargs: self.files(*args, **kwargs))
+        return CodeOwner.from_parser(
+            self.ctx.codeowners_parser,
+            lambda *args, **kwargs: self.files(*args, **kwargs),
+        )
 
     @property
     def directories(self) -> list[TDirectory]:
@@ -455,16 +488,13 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             ValueError: If the provided content cannot be parsed according to the file extension.
         """
         # Check if file already exists
-        # TODO: These checks break parse tests ???
-        # Look into this!
-        # if self.has_file(filepath):
-        #     raise ValueError(f"File {filepath} already exists in codebase.")
-        # if os.path.exists(filepath):
-        #     raise ValueError(f"File {filepath} already exists on disk.")
+        # NOTE: This check is also important to ensure the filepath is valid within the repo!
+        if self.has_file(filepath):
+            logger.warning(f"File {filepath} already exists in codebase. Overwriting...")
 
         file_exts = self.ctx.extensions
         # Create file as source file if it has a registered extension
-        if any(filepath.endswith(ext) for ext in file_exts):
+        if any(filepath.endswith(ext) for ext in file_exts) and not self.ctx.config.disable_file_parse:
             file_cls = self.ctx.node_classes.file_cls
             file = file_cls.from_content(filepath, content, self.ctx, sync=sync)
             if file is None:
@@ -489,6 +519,11 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         Raises:
             FileExistsError: If the directory already exists and exist_ok is False.
         """
+        # Check if directory already exists
+        # NOTE: This check is also important to ensure the filepath is valid within the repo!
+        if self.has_directory(dir_path):
+            logger.warning(f"Directory {dir_path} already exists in codebase. Overwriting...")
+
         self.ctx.to_absolute(dir_path).mkdir(parents=parents, exist_ok=exist_ok)
 
     def has_file(self, filepath: str, ignore_case: bool = False) -> bool:
@@ -501,6 +536,12 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         Returns:
             bool: True if the file exists in the codebase, False otherwise.
         """
+        if self.ctx.config.use_pink == PinkMode.ALL_FILES:
+            absolute_path = self.ctx.to_absolute(filepath)
+            return self._pink_codebase.has_file(absolute_path)
+        if self.ctx.config.use_pink == PinkMode.NON_SOURCE_FILES:
+            if self._pink_codebase.has_file(filepath):
+                return True
         return self.get_file(filepath, optional=True, ignore_case=ignore_case) is not None
 
     @overload
@@ -523,13 +564,20 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         Raises:
             ValueError: If file not found and optional=False.
         """
+        if self.ctx.config.use_pink == PinkMode.ALL_FILES:
+            absolute_path = self.ctx.to_absolute(filepath)
+            return self._pink_codebase.get_file(absolute_path)
         # Try to get the file from the graph first
         file = self.ctx.get_file(filepath, ignore_case=ignore_case)
         if file is not None:
             return file
+
         # If the file is not in the graph, check the filesystem
         absolute_path = self.ctx.to_absolute(filepath)
         if self.ctx.io.file_exists(absolute_path):
+            if self.ctx.config.use_pink != PinkMode.OFF:
+                if file := self._pink_codebase.get_file(absolute_path):
+                    return file
             return self.ctx._get_raw_file_from_path(absolute_path)
         # If the file is not in the graph, check the filesystem
         if absolute_path.parent.exists():
@@ -814,7 +862,14 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         self.reset_logs()
         self.ctx.undo_applied_diffs()
 
-    def checkout(self, *, commit: str | GitCommit | None = None, branch: str | None = None, create_if_missing: bool = False, remote: bool = False) -> CheckoutResult:
+    def checkout(
+        self,
+        *,
+        commit: str | GitCommit | None = None,
+        branch: str | None = None,
+        create_if_missing: bool = False,
+        remote: bool = False,
+    ) -> CheckoutResult:
         """Checks out a git branch or commit and syncs the codebase graph to the new state.
 
         This method discards any pending changes, performs a git checkout of the specified branch or commit,
@@ -939,7 +994,12 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             raise ValueError(msg)
         self._op.stage_and_commit_all_changes(message=title)
         self._op.push_changes()
-        return self._op.remote_git_repo.create_pull(head_branch_name=self._op.git_cli.active_branch.name, base_branch_name=self._op.default_branch, title=title, body=body)
+        return self._op.remote_git_repo.create_pull(
+            head_branch_name=self._op.git_cli.active_branch.name,
+            base_branch_name=self._op.default_branch,
+            title=title,
+            body=body,
+        )
 
     ####################################################################################################################
     # GRAPH VISUALIZATION
@@ -1064,15 +1124,27 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
 
     @contextmanager
     @noapidoc
-    def session(self, sync_graph: bool = True, commit: bool = True, session_options: SessionOptions = SessionOptions()) -> Generator[None, None, None]:
+    def session(
+        self,
+        sync_graph: bool = True,
+        commit: bool = True,
+        session_options: SessionOptions = SessionOptions(),
+    ) -> Generator[None, None, None]:
         with self.ctx.session(sync_graph=sync_graph, commit=commit, session_options=session_options):
             yield None
 
     @noapidoc
-    def _enable_experimental_language_engine(self, async_start: bool = False, install_deps: bool = False, use_v8: bool = False) -> None:
+    def _enable_experimental_language_engine(
+        self,
+        async_start: bool = False,
+        install_deps: bool = False,
+        use_v8: bool = False,
+    ) -> None:
         """Debug option to enable experimental language engine for the current codebase."""
         if install_deps and not self.ctx.language_engine:
-            from codegen.sdk.core.external.dependency_manager import get_dependency_manager
+            from codegen.sdk.core.external.dependency_manager import (
+                get_dependency_manager,
+            )
 
             logger.info("Cold installing dependencies...")
             logger.info("This may take a while for large repos...")
@@ -1086,7 +1158,12 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
 
             logger.info("Cold starting language engine...")
             logger.info("This may take a while for large repos...")
-            self.ctx.language_engine = get_language_engine(self.ctx.projects[0].programming_language, self.ctx, use_ts=True, use_v8=use_v8)
+            self.ctx.language_engine = get_language_engine(
+                self.ctx.projects[0].programming_language,
+                self.ctx,
+                use_ts=True,
+                use_v8=use_v8,
+            )
             self.ctx.language_engine.start(async_start=async_start)
             # Wait for the language engine to be ready
             self.ctx.language_engine.wait_until_ready(ignore_error=False)
@@ -1112,7 +1189,13 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             self._ai_helper = get_openai_client(key=self.ctx.secrets.openai_api_key)
         return self._ai_helper
 
-    def ai(self, prompt: str, target: Editable | None = None, context: Editable | list[Editable] | dict[str, Editable | list[Editable]] | None = None, model: str = "gpt-4o") -> str:
+    def ai(
+        self,
+        prompt: str,
+        target: Editable | None = None,
+        context: Editable | list[Editable] | dict[str, Editable | list[Editable]] | None = None,
+        model: str = "gpt-4o",
+    ) -> str:
         """Generates a response from the AI based on the provided prompt, target, and context.
 
         A method that sends a prompt to the AI client along with optional target and context information to generate a response.
@@ -1139,7 +1222,10 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
             raise MaxAIRequestsError(msg, threshold=self.ctx.session_options.max_ai_requests)
 
         params = {
-            "messages": [{"role": "system", "content": generate_system_prompt(target, context)}, {"role": "user", "content": prompt}],
+            "messages": [
+                {"role": "system", "content": generate_system_prompt(target, context)},
+                {"role": "user", "content": prompt},
+            ],
             "model": model,
             "functions": generate_tools(),
             "temperature": 0,
@@ -1248,6 +1334,7 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         config: CodebaseConfig | None = None,
         secrets: SecretsConfig | None = None,
         setup_option: SetupOption | None = None,
+        full_history: bool = False,
     ) -> "Codebase":
         """Fetches a codebase from GitHub and returns a Codebase instance.
 
@@ -1279,21 +1366,26 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         repo_path = os.path.join(tmp_dir, repo)
         repo_url = f"https://github.com/{repo_full_name}.git"
         logger.info(f"Will clone {repo_url} to {repo_path}")
+        access_token = secrets.github_token if secrets else None
 
         try:
             # Use RepoOperator to fetch the repository
             logger.info("Cloning repository...")
             if commit is None:
-                repo_operator = RepoOperator.create_from_repo(repo_path=repo_path, url=repo_url)
+                repo_config = RepoConfig.from_repo_path(repo_path)
+                repo_config.full_name = repo_full_name
+                repo_operator = RepoOperator.create_from_repo(repo_path=repo_path, url=repo_url, access_token=access_token, full_history=full_history)
             else:
                 # Ensure the operator can handle remote operations
-                access_token = secrets.github_token if secrets else None
                 repo_operator = RepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url, full_name=repo_full_name, access_token=access_token)
             logger.info("Clone completed successfully")
 
             # Initialize and return codebase with proper context
             logger.info("Initializing Codebase...")
-            project = ProjectConfig.from_repo_operator(repo_operator=repo_operator, programming_language=ProgrammingLanguage(language.upper()) if language else None)
+            project = ProjectConfig.from_repo_operator(
+                repo_operator=repo_operator,
+                programming_language=ProgrammingLanguage(language.upper()) if language else None,
+            )
             codebase = Codebase(projects=[project], config=config, secrets=secrets)
             logger.info("Codebase initialization complete")
             return codebase
@@ -1442,7 +1534,16 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
         """Create a comment on a pull request"""
         return self._op.create_pr_comment(pr_number, body)
 
-    def create_pr_review_comment(self, pr_number: int, body: str, commit_sha: str, path: str, line: int | None = None, side: str = "RIGHT", start_line: int | None = None) -> None:
+    def create_pr_review_comment(
+        self,
+        pr_number: int,
+        body: str,
+        commit_sha: str,
+        path: str,
+        line: int | None = None,
+        side: str = "RIGHT",
+        start_line: int | None = None,
+    ) -> None:
         """Create a review comment on a pull request.
 
         Args:
@@ -1462,6 +1563,42 @@ class Codebase(Generic[TSourceFile, TDirectory, TSymbol, TClass, TFunction, TImp
 
 # The last 2 lines of code are added to the runner. See codegen-backend/cli/generate/utils.py
 # Type Aliases
-CodebaseType = Codebase[SourceFile, Directory, Symbol, Class, Function, Import, Assignment, Interface, TypeAlias, Parameter, CodeBlock]
-PyCodebaseType = Codebase[PyFile, PyDirectory, PySymbol, PyClass, PyFunction, PyImport, PyAssignment, Interface, TypeAlias, PyParameter, PyCodeBlock]
-TSCodebaseType = Codebase[TSFile, TSDirectory, TSSymbol, TSClass, TSFunction, TSImport, TSAssignment, TSInterface, TSTypeAlias, TSParameter, TSCodeBlock]
+CodebaseType = Codebase[
+    SourceFile,
+    Directory,
+    Symbol,
+    Class,
+    Function,
+    Import,
+    Assignment,
+    Interface,
+    TypeAlias,
+    Parameter,
+    CodeBlock,
+]
+PyCodebaseType = Codebase[
+    PyFile,
+    PyDirectory,
+    PySymbol,
+    PyClass,
+    PyFunction,
+    PyImport,
+    PyAssignment,
+    Interface,
+    TypeAlias,
+    PyParameter,
+    PyCodeBlock,
+]
+TSCodebaseType = Codebase[
+    TSFile,
+    TSDirectory,
+    TSSymbol,
+    TSClass,
+    TSFunction,
+    TSImport,
+    TSAssignment,
+    TSInterface,
+    TSTypeAlias,
+    TSParameter,
+    TSCodeBlock,
+]

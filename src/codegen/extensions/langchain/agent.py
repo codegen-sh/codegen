@@ -1,16 +1,16 @@
 """Demo implementation of an agent with Codegen tools."""
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from langchain.tools import BaseTool
 from langchain_core.messages import SystemMessage
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph.graph import CompiledGraph
-from langgraph.prebuilt import create_react_agent
 
-from .llm import LLM
-from .prompts import REASONER_SYSTEM_MESSAGE
-from .tools import (
+from codegen.agents.utils import AgentConfig
+from codegen.extensions.langchain.llm import LLM
+from codegen.extensions.langchain.prompts import REASONER_SYSTEM_MESSAGE
+from codegen.extensions.langchain.tools import (
     CreateFileTool,
     DeleteFileTool,
     ListDirectoryTool,
@@ -25,6 +25,8 @@ from .tools import (
     ViewFileTool,
 )
 
+from .graph import create_react_agent
+
 if TYPE_CHECKING:
     from codegen import Codebase
 
@@ -37,6 +39,7 @@ def create_codebase_agent(
     memory: bool = True,
     debug: bool = False,
     additional_tools: Optional[list[BaseTool]] = None,
+    config: Optional[AgentConfig] = None,
     **kwargs,
 ) -> CompiledGraph:
     """Create an agent with all codebase tools.
@@ -67,8 +70,8 @@ def create_codebase_agent(
         CreateFileTool(codebase),
         DeleteFileTool(codebase),
         RenameFileTool(codebase),
-        MoveSymbolTool(codebase),
-        RevealSymbolTool(codebase),
+        # MoveSymbolTool(codebase),
+        # RevealSymbolTool(codebase),
         # SemanticEditTool(codebase),
         ReplacementEditTool(codebase),
         RelaceEditTool(codebase),
@@ -88,7 +91,7 @@ def create_codebase_agent(
 
     memory = MemorySaver() if memory else None
 
-    return create_react_agent(model=llm, tools=tools, prompt=system_message, checkpointer=memory, debug=debug)
+    return create_react_agent(model=llm, tools=tools, system_message=system_message, checkpointer=memory, debug=debug, config=config)
 
 
 def create_chat_agent(
@@ -99,6 +102,7 @@ def create_chat_agent(
     memory: bool = True,
     debug: bool = False,
     additional_tools: Optional[list[BaseTool]] = None,
+    config: Optional[dict[str, Any]] = None,  # over here you can pass in the max length of the number of messages
     **kwargs,
 ) -> CompiledGraph:
     """Create an agent with all codebase tools.
@@ -137,7 +141,7 @@ def create_chat_agent(
 
     memory = MemorySaver() if memory else None
 
-    return create_react_agent(model=llm, tools=tools, prompt=system_message, checkpointer=memory, debug=debug)
+    return create_react_agent(model=llm, tools=tools, system_message=system_message, checkpointer=memory, debug=debug, config=config)
 
 
 def create_codebase_inspector_agent(
@@ -147,6 +151,7 @@ def create_codebase_inspector_agent(
     system_message: SystemMessage = SystemMessage(REASONER_SYSTEM_MESSAGE),
     memory: bool = True,
     debug: bool = True,
+    config: Optional[dict[str, Any]] = None,
     **kwargs,
 ) -> CompiledGraph:
     """Create an inspector agent with read-only codebase tools.
@@ -174,7 +179,7 @@ def create_codebase_inspector_agent(
     ]
 
     memory = MemorySaver() if memory else None
-    return create_react_agent(model=llm, tools=tools, prompt=system_message, checkpointer=memory, debug=debug)
+    return create_react_agent(model=llm, tools=tools, system_message=system_message, checkpointer=memory, debug=debug, config=config)
 
 
 def create_agent_with_tools(
@@ -184,6 +189,7 @@ def create_agent_with_tools(
     system_message: SystemMessage = SystemMessage(REASONER_SYSTEM_MESSAGE),
     memory: bool = True,
     debug: bool = True,
+    config: Optional[dict[str, Any]] = None,
     **kwargs,
 ) -> CompiledGraph:
     """Create an agent with a specific set of tools.
@@ -208,4 +214,4 @@ def create_agent_with_tools(
 
     memory = MemorySaver() if memory else None
 
-    return create_react_agent(model=llm, tools=tools, prompt=system_message, checkpointer=memory, debug=debug)
+    return create_react_agent(model=llm, tools=tools, system_message=system_message, checkpointer=memory, debug=debug, config=config)

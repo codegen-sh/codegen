@@ -2,7 +2,9 @@
 
 import pickle
 from pathlib import Path
+from typing import Optional
 
+import modal
 import numpy as np
 import tiktoken
 from openai import OpenAI
@@ -26,6 +28,7 @@ class FileIndex(CodeIndex):
     EMBEDDING_MODEL = "text-embedding-3-small"
     MAX_TOKENS = 8000
     BATCH_SIZE = 100
+    USE_MODAL_DICT = True  # Flag to control whether to use Modal Dict
 
     def __init__(self, codebase: Codebase):
         """Initialize the file index.
@@ -37,9 +40,86 @@ class FileIndex(CodeIndex):
         self.client = OpenAI()
         self.encoding = tiktoken.get_encoding("cl100k_base")
 
+    def set_use_modal_dict(self, use_modal: bool) -> None:
+        """Set whether to use Modal Dict for storage.
+
+        Args:
+            use_modal: Whether to use Modal Dict for storage
+        """
+        self.USE_MODAL_DICT = use_modal
+        logger.info(f"Modal Dict storage {'enabled' if use_modal else 'disabled'}")
+
     @property
     def save_file_name(self) -> str:
         return "file_index_{commit}.pkl"
+
+    @property
+    def modal_dict_id(self) -> str:
+        """Get the Modal Dict ID based on the same naming convention as the pickle file."""
+        if not self.commit_hash:
+            return "file_index_latest"
+        return f"file_index_{self.commit_hash}"
+
+    def delete_modal_dict(self) -> bool:
+        """Delete the Modal Dict storage for this index.
+
+        Returns:
+            bool: True if successfully deleted, False otherwise
+        """
+        if not self.USE_MODAL_DICT:
+            logger.warning("Modal Dict storage is disabled")
+            return False
+
+        try:
+            dict_id = self.modal_dict_id
+            logger.info(f"Deleting Modal Dict: {dict_id}")
+
+            # Check if the dict exists before trying to delete
+            try:
+                # Use modal.Dict.delete to properly delete the dict
+                modal.Dict.delete(dict_id)
+                logger.info(f"Successfully deleted Modal Dict: {dict_id}")
+                return True
+            except Exception as e:
+                logger.info(f"Modal Dict {dict_id} does not exist or cannot be deleted: {e}")
+                return False
+        except Exception as e:
+            logger.exception(f"Failed to delete Modal Dict: {e}")
+            return False
+
+    def modal_dict_exists(self, commit_hash: Optional[str] = None) -> bool:
+        """Check if a Modal Dict exists for a specific commit.
+
+        Args:
+            commit_hash: The commit hash to check, or None to use the current commit
+
+        Returns:
+            bool: True if the Modal Dict exists, False otherwise
+        """
+        if not self.USE_MODAL_DICT:
+            return False
+
+        try:
+            # Use provided commit hash or current one
+            old_commit = self.commit_hash
+            if commit_hash is not None:
+                self.commit_hash = commit_hash
+
+            dict_id = self.modal_dict_id
+
+            # Restore original commit hash
+            if commit_hash is not None:
+                self.commit_hash = old_commit
+
+            try:
+                # Try to access the dict - this will raise an exception if it doesn't exist
+                modal_dict = modal.Dict.from_name(dict_id, create_if_missing=False)
+                # Check if our data is in the dict
+                return "index_data" in modal_dict
+            except Exception:
+                return False
+        except Exception:
+            return False
 
     def _split_by_tokens(self, text: str) -> list[str]:
         """Split text into chunks that fit within token limit."""
@@ -135,17 +215,69 @@ class FileIndex(CodeIndex):
         return changed_files
 
     def _save_index(self, path: Path) -> None:
-        """Save index data to disk."""
+        """Save index data to disk and optionally to Modal Dict."""
+        # Save to local pickle file
         with open(path, "wb") as f:
             pickle.dump({"E": self.E, "items": self.items, "commit_hash": self.commit_hash}, f)
 
+        # Save to Modal Dict if enabled
+        if self.USE_MODAL_DICT:
+            try:
+                dict_id = self.modal_dict_id
+                logger.info(f"Saving index to Modal Dict: {dict_id}")
+
+                # Convert numpy arrays to lists for JSON serialization
+                modal_data = {"E": self.E.tolist() if self.E is not None else None, "items": self.items.tolist() if self.items is not None else None, "commit_hash": self.commit_hash}
+
+                # Create or update Modal Dict
+                # Note: from_name is lazy, so we need to explicitly set the data
+                modal_dict = modal.Dict.from_name(dict_id, create_if_missing=True)
+                modal_dict["index_data"] = modal_data
+
+                logger.info(f"Successfully saved index to Modal Dict: {dict_id}")
+            except Exception as e:
+                logger.exception(f"Failed to save index to Modal Dict: {e}")
+
     def _load_index(self, path: Path) -> None:
-        """Load index data from disk."""
-        with open(path, "rb") as f:
-            data = pickle.load(f)
-            self.E = data["E"]
-            self.items = data["items"]
-            self.commit_hash = data["commit_hash"]
+        """Load index data from disk or Modal Dict."""
+        # Try loading from Modal Dict first if enabled
+        if self.USE_MODAL_DICT:
+            try:
+                dict_id = self.modal_dict_id
+                logger.info(f"Attempting to load index from Modal Dict: {dict_id}")
+
+                # from_name is lazy, so we need to check if the dict exists first
+                try:
+                    modal_dict = modal.Dict.from_name(dict_id, create_if_missing=False)
+                    # Check if the dict contains our data
+                    if "index_data" in modal_dict:
+                        data = modal_dict["index_data"]
+
+                        # Convert lists back to numpy arrays
+                        self.E = np.array(data["E"]) if data["E"] is not None else None
+                        self.items = np.array(data["items"]) if data["items"] is not None else None
+                        self.commit_hash = data["commit_hash"]
+
+                        logger.info(f"Successfully loaded index from Modal Dict: {dict_id}")
+                        return
+                    else:
+                        logger.info(f"No index data found in Modal Dict: {dict_id}")
+                except Exception as e:
+                    logger.warning(f"Modal Dict {dict_id} not found or error accessing it: {e}")
+            except Exception as e:
+                logger.warning(f"Failed to load index from Modal Dict, falling back to local file: {e}")
+
+        # Fall back to loading from local file
+        try:
+            with open(path, "rb") as f:
+                data = pickle.load(f)
+                self.E = data["E"]
+                self.items = data["items"]
+                self.commit_hash = data["commit_hash"]
+                logger.info(f"Loaded index from local file: {path}")
+        except Exception as e:
+            logger.exception(f"Failed to load index from local file: {e}")
+            raise
 
     def similarity_search(self, query: str, k: int = 5) -> list[tuple[File, float]]:
         """Find the k most similar files to a query.
@@ -216,3 +348,20 @@ class FileIndex(CodeIndex):
 
         # Update commit hash
         self.commit_hash = self._get_current_commit()
+
+        # Save updated index to Modal Dict if enabled
+        if self.USE_MODAL_DICT and (num_updated > 0 or num_added > 0):
+            try:
+                dict_id = self.modal_dict_id
+                logger.info(f"Updating index in Modal Dict: {dict_id}")
+
+                # Convert numpy arrays to lists for JSON serialization
+                modal_data = {"E": self.E.tolist() if self.E is not None else None, "items": self.items.tolist() if self.items is not None else None, "commit_hash": self.commit_hash}
+
+                # Create or update Modal Dict
+                modal_dict = modal.Dict.from_name(dict_id, create_if_missing=True)
+                modal_dict["index_data"] = modal_data
+
+                logger.info(f"Successfully updated index in Modal Dict: {dict_id}")
+            except Exception as e:
+                logger.exception(f"Failed to update index in Modal Dict: {e}")

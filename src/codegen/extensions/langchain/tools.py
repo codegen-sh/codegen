@@ -7,6 +7,8 @@ from pydantic import BaseModel, Field
 
 from codegen.extensions.linear.linear_client import LinearClient
 from codegen.extensions.tools.bash import run_bash_command
+from codegen.extensions.tools.github.checkout_pr import checkout_pr
+from codegen.extensions.tools.github.view_pr_checks import view_pr_checks
 from codegen.extensions.tools.linear.linear import (
     linear_comment_on_issue_tool,
     linear_create_issue_tool,
@@ -114,10 +116,9 @@ class SearchInput(BaseModel):
 
     query: str = Field(
         ...,
-        description="The search query to find in the codebase. When ripgrep is available, this will be passed as a ripgrep pattern. "
-        "For regex searches, set use_regex=True. Ripgrep is the preferred method.",
+        description="""The search query to find in the codebase. When ripgrep is available, this will be passed as a ripgrep pattern. For regex searches, set use_regex=True.
+        Ripgrep is the preferred method.""",
     )
-    target_directories: Optional[list[str]] = Field(default=None, description="Optional list of directories to search in")
     file_extensions: Optional[list[str]] = Field(default=None, description="Optional list of file extensions to search (e.g. ['.py', '.ts'])")
     page: int = Field(default=1, description="Page number to return (1-based, default: 1)")
     files_per_page: int = Field(default=10, description="Number of files to return per page (default: 10)")
@@ -135,8 +136,8 @@ class SearchTool(BaseTool):
     def __init__(self, codebase: Codebase) -> None:
         super().__init__(codebase=codebase)
 
-    def _run(self, query: str, target_directories: Optional[list[str]] = None, file_extensions: Optional[list[str]] = None, page: int = 1, files_per_page: int = 10, use_regex: bool = False) -> str:
-        result = search(self.codebase, query, target_directories=target_directories, file_extensions=file_extensions, page=page, files_per_page=files_per_page, use_regex=use_regex)
+    def _run(self, query: str, file_extensions: Optional[list[str]] = None, page: int = 1, files_per_page: int = 10, use_regex: bool = False) -> str:
+        result = search(self.codebase, query, file_extensions=file_extensions, page=page, files_per_page=files_per_page, use_regex=use_regex)
         return result.render()
 
 
@@ -151,7 +152,26 @@ class EditFileTool(BaseTool):
     """Tool for editing files."""
 
     name: ClassVar[str] = "edit_file"
-    description: ClassVar[str] = "Edit a file by replacing its entire content. This tool should only be used for replacing entire file contents."
+    description: ClassVar[str] = r"""
+Edit a file by replacing its entire content. This tool should only be used for replacing entire file contents.
+Input for searching the codebase.
+
+    This tool provides powerful text-based search capabilities across your codebase,
+    with support for both simple text matching and regular expressions. It uses ripgrep
+    when available for high-performance searches, falling back to Python's regex engine
+    when necessary.
+
+    Features:
+    - Plain text or regex pattern matching
+    - Directory and file type filtering
+    - Paginated results for large codebases
+    - Case-insensitive by default for simple text searches
+
+    Example queries:
+    1. Simple text: "function calculateTotal" (matches exactly, case-insensitive)
+    2. Regex: "def.*calculate.*\(.*\)" (with use_regex=True)
+    3. File-specific: "TODO" with file_extensions=[".py", ".ts"]
+    """
     args_schema: ClassVar[type[BaseModel]] = EditFileInput
     codebase: Codebase = Field(exclude=True)
 
@@ -167,21 +187,45 @@ class CreateFileInput(BaseModel):
     """Input for creating a file."""
 
     filepath: str = Field(..., description="Path where to create the file")
-    content: str = Field(default="", description="Initial file content")
+    content: str = Field(
+        ...,
+        description="""
+Content for the new file (REQUIRED).
+
+⚠️ IMPORTANT: This parameter MUST be a STRING, not a dictionary, JSON object, or any other data type.
+Example: content="print('Hello world')"
+NOT: content={"code": "print('Hello world')"}
+                         """,
+    )
 
 
 class CreateFileTool(BaseTool):
     """Tool for creating files."""
 
     name: ClassVar[str] = "create_file"
-    description: ClassVar[str] = "Create a new file in the codebase"
+    description: ClassVar[str] = """
+Create a new file in the codebase. Always provide content for the new file, even if minimal.
+
+⚠️ CRITICAL WARNING ⚠️
+Both parameters MUST be provided as STRINGS:
+The content for the new file always needs to be provided.
+
+1. filepath: The path where to create the file (as a string)
+2. content: The content for the new file (as a STRING, NOT as a dictionary or JSON object)
+
+✅ CORRECT usage:
+create_file(filepath="path/to/file.py", content="print('Hello world')")
+
+The content parameter is REQUIRED and MUST be a STRING. If you receive a validation error about
+missing content, you are likely trying to pass a dictionary instead of a string.
+"""
     args_schema: ClassVar[type[BaseModel]] = CreateFileInput
     codebase: Codebase = Field(exclude=True)
 
     def __init__(self, codebase: Codebase) -> None:
         super().__init__(codebase=codebase)
 
-    def _run(self, filepath: str, content: str = "") -> str:
+    def _run(self, filepath: str, content: str) -> str:
         result = create_file(self.codebase, filepath, content)
         return result.render()
 
@@ -454,6 +498,28 @@ class GithubCreatePRTool(BaseTool):
         return result.render()
 
 
+class GithubSearchIssuesInput(BaseModel):
+    """Input for searching GitHub issues."""
+
+    query: str = Field(..., description="Search query string to find issues")
+
+
+class GithubSearchIssuesTool(BaseTool):
+    """Tool for searching GitHub issues."""
+
+    name: ClassVar[str] = "search_issues"
+    description: ClassVar[str] = "Search for GitHub issues/PRs using a query string from pygithub, e.g. 'is:pr is:open test_query'"
+    args_schema: ClassVar[type[BaseModel]] = GithubSearchIssuesInput
+    codebase: Codebase = Field(exclude=True)
+
+    def __init__(self, codebase: Codebase) -> None:
+        super().__init__(codebase=codebase)
+
+    def _run(self, query: str) -> str:
+        result = search(self.codebase, query)
+        return result.render()
+
+
 class GithubViewPRInput(BaseModel):
     """Input for getting PR contents."""
 
@@ -473,6 +539,28 @@ class GithubViewPRTool(BaseTool):
 
     def _run(self, pr_id: int) -> str:
         result = view_pr(self.codebase, pr_id)
+        return result.render()
+
+
+class GithubCheckoutPRInput(BaseModel):
+    """Input for checkout out a PR head branch."""
+
+    pr_number: int = Field(..., description="Number of the PR to checkout")
+
+
+class GithubCheckoutPRTool(BaseTool):
+    """Tool for checking out a PR head branch."""
+
+    name: ClassVar[str] = "checkout_pr"
+    description: ClassVar[str] = "Checkout out a PR head branch"
+    args_schema: ClassVar[type[BaseModel]] = GithubCheckoutPRInput
+    codebase: Codebase = Field(exclude=True)
+
+    def __init__(self, codebase: Codebase) -> None:
+        super().__init__(codebase=codebase)
+
+    def _run(self, pr_number: int) -> str:
+        result = checkout_pr(self.codebase, pr_number)
         return result.render()
 
 
@@ -538,6 +626,28 @@ class GithubCreatePRReviewCommentTool(BaseTool):
             path=path,
             line=line,
         )
+        return result.render()
+
+
+class GithubViewPRCheckInput(BaseModel):
+    """Input for viewing PR checks"""
+
+    pr_number: int = Field(..., description="The PR number to view checks for")
+
+
+class GithubViewPRCheckTool(BaseTool):
+    """Tool for viewing PR checks."""
+
+    name: ClassVar[str] = "view_pr_checks"
+    description: ClassVar[str] = "View the check suites for a PR"
+    args_schema: ClassVar[type[BaseModel]] = GithubCreatePRReviewCommentInput
+    codebase: Codebase = Field(exclude=True)
+
+    def __init__(self, codebase: Codebase) -> None:
+        super().__init__(codebase=codebase)
+
+    def _run(self, pr_number: int) -> str:
+        result = view_pr_checks(self.codebase, pr_number=pr_number)
         return result.render()
 
 
@@ -741,7 +851,7 @@ def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
         RunBashCommandTool(),  # Note: This tool doesn't need the codebase
         SearchTool(codebase),
         # SemanticEditTool(codebase),
-        SemanticSearchTool(codebase),
+        # SemanticSearchTool(codebase),
         ViewFileTool(codebase),
         RelaceEditTool(codebase),
         ReflectionTool(codebase),
@@ -750,6 +860,7 @@ def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
         GithubCreatePRCommentTool(codebase),
         GithubCreatePRReviewCommentTool(codebase),
         GithubViewPRTool(codebase),
+        GithubSearchIssuesTool(codebase),
         # Linear
         LinearGetIssueTool(codebase),
         LinearGetIssueCommentsTool(codebase),
@@ -761,14 +872,46 @@ def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
 
 
 class ReplacementEditInput(BaseModel):
-    """Input for regex-based replacement editing."""
+    """Input for replacement editing."""
 
-    filepath: str = Field(..., description="Path to the file to edit")
-    pattern: str = Field(..., description="Regex pattern to match")
-    replacement: str = Field(..., description="Replacement text (can include regex groups)")
-    start: int = Field(default=1, description="Starting line number (1-indexed, inclusive). Default is 1.")
-    end: int = Field(default=-1, description="Ending line number (1-indexed, inclusive). Default is -1 (end of file).")
-    count: Optional[int] = Field(default=None, description="Maximum number of replacements. Default is None (replace all).")
+    filepath: str = Field(
+        ...,
+        description=("Path to the file to edit relative to the workspace root. The file must exist and be a text file."),
+    )
+    pattern: str = Field(
+        ...,
+        description=(
+            "Regular expression pattern to match text that should be replaced. "
+            "Supports all Python regex syntax including capture groups (\\1, \\2, etc). "
+            "The pattern is compiled with re.MULTILINE flag by default."
+        ),
+    )
+    replacement: str = Field(
+        ...,
+        description=(
+            "Text to replace matched patterns with. Can reference regex capture groups using \\1, \\2, etc. If using regex groups in pattern, make sure to preserve them in replacement if needed."
+        ),
+    )
+    start: int = Field(
+        default=1,
+        description=("Starting line number (1-indexed, inclusive) to begin replacements from. Use this with 'end' to limit changes to a specific region. Default is 1 (start of file)."),
+    )
+    end: int = Field(
+        default=-1,
+        description=(
+            "Ending line number (1-indexed, inclusive) to stop replacements at. "
+            "Use -1 to indicate end of file. Use this with 'start' to limit changes to a specific region. "
+            "Default is -1 (end of file)."
+        ),
+    )
+    count: Optional[int] = Field(
+        default=None,
+        description=(
+            "Maximum number of replacements to make. "
+            "Use None to replace all occurrences (default), or specify a number to limit replacements. "
+            "Useful when you only want to replace the first N occurrences."
+        ),
+    )
 
 
 class ReplacementEditTool(BaseTool):

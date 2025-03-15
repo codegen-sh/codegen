@@ -197,6 +197,11 @@ class Directory(
         return self._files + self._subdirectories
 
     @property
+    def file_names(self) -> list[str]:
+        """Get a list of all file names in the directory."""
+        return self._files
+
+    @property
     def tree(self) -> list[Self | TFile]:
         """Get a recursive list of all files and subdirectories in the directory.
 

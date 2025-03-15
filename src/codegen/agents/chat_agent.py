@@ -44,7 +44,7 @@ class ChatAgent:
         if thread_id is None:
             thread_id = str(uuid4())
 
-        input = {"messages": [("user", prompt)]}
+        input = {"query": prompt}
         stream = self.agent.stream(input, config={"configurable": {"thread_id": thread_id}}, stream_mode="values")
 
         for s in stream:
@@ -57,7 +57,7 @@ class ChatAgent:
                 else:
                     message.pretty_print()
 
-        return s["messages"][-1].content
+        return s["final_answer"]
 
     def chat(self, prompt: str, thread_id: Optional[str] = None) -> tuple[str, str]:
         """Chat with the agent, maintaining conversation history.

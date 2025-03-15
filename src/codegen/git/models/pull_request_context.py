@@ -14,10 +14,10 @@ class PullRequestContext(BaseModel):
     state: str
     title: str
     user: GithubNamedUserContext
-    body: str
     draft: bool
     head: PRPartContext
     base: PRPartContext
+    body: str | None = None
     merged: bool | None = None
     merged_by: dict | None = None
     additions: int | None = None

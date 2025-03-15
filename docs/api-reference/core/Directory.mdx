@@ -11,7 +11,7 @@ import {HorizontalDivider} from '/snippets/HorizontalDivider.mdx';
 import {GithubLinkNote} from '/snippets/GithubLinkNote.mdx';
 import {Attribute} from '/snippets/Attribute.mdx';
 
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/directory.py#L32-L264" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/directory.py#L32-L269" />
 
 
 ## Attributes
@@ -27,6 +27,10 @@ import {Attribute} from '/snippets/Attribute.mdx';
 ### <span className="text-primary">exports</span>
 <HorizontalDivider light={true} />
 <Attribute type={ <><span>list[</span> <a href="/api-reference/typescript/TSExport" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSExport</a> <span>]</span></> } description="Get a recursive list of all exports in files container." />
+
+### <span className="text-primary">file_names</span>
+<HorizontalDivider light={true} />
+<Attribute type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">list[str]</code> } description="Get a list of all file names in the directory." />
 
 ### <span className="text-primary">functions</span>
 <HorizontalDivider light={true} />
@@ -97,7 +101,7 @@ Get an export by name in files container (supports only typescript).
 
 ### <span className="text-primary">get_file</span>
 Get a file by its name relative to the directory.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/directory.py#L219-L233" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/directory.py#L224-L238" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">TFile | None</code> } description=""/>
@@ -137,7 +141,7 @@ Get an import statement by name in files container.
 
 ### <span className="text-primary">get_subdirectory</span>
 Get a subdirectory by its name (relative to the directory).
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/directory.py#L235-L237" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/directory.py#L240-L242" />
 
 
 <Return return_type={ <><a href="/api-reference/core/Directory" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Directory</a> <span>| None</span></> } description=""/>
@@ -161,7 +165,7 @@ Get a list of all files and subdirectories in the directory.
 
 ### <span className="text-primary">remove</span>
 Remove all the files in the files container.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/directory.py#L247-L250" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/directory.py#L252-L255" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
@@ -169,7 +173,7 @@ Remove all the files in the files container.
 
 ### <span className="text-primary">rename</span>
 Rename the directory.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/directory.py#L252-L256" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/directory.py#L257-L261" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
@@ -185,7 +189,7 @@ Get a list of all top level subdirectories in the directory.
 
 ### <span className="text-primary">update_filepath</span>
 Update the filepath of the directory and its contained files.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/directory.py#L239-L245" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/directory.py#L244-L250" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>

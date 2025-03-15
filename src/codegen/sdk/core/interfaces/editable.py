@@ -189,14 +189,14 @@ class Editable(JSONable, Generic[Parent]):
     def transaction_manager(self) -> TransactionManager:
         return self.ctx.transaction_manager
 
-    @cached_property
+    @property
     @noapidoc
     @reader
     def start_byte(self) -> int:
         """The start byte of the Editable instance that appears in file."""
         return self.ts_node.start_byte
 
-    @cached_property
+    @property
     @noapidoc
     @reader
     @final
@@ -227,7 +227,7 @@ class Editable(JSONable, Generic[Parent]):
         """The 0-indexed line/row range that the Editable instance spans in the file."""
         return range(self.start_point[0], self.end_point[0] + 1)  # +1 b/c end_point[0] is inclusive
 
-    @cached_property
+    @property
     @noapidoc
     @reader
     def _source(self) -> str:
@@ -657,7 +657,7 @@ class Editable(JSONable, Generic[Parent]):
 
         t = EditTransaction(
             self.start_byte,
-            self.ts_node.end_byte,
+            self.end_byte,
             self.file,
             new_src,
             priority=priority,
@@ -1003,10 +1003,11 @@ class Editable(JSONable, Generic[Parent]):
 
     @noapidoc
     @reader
-    def resolve_name(self, name: str, start_byte: int | None = None) -> Symbol | Import | WildcardImport | None:
+    def resolve_name(self, name: str, start_byte: int | None = None, strict: bool = True) -> Generator[Symbol | Import | WildcardImport]:
         if self.parent is not None:
-            return self.parent.resolve_name(name, start_byte or self.start_byte)
-        return self.file.resolve_name(name, start_byte or self.start_byte)
+            yield from self.parent.resolve_name(name, start_byte or self.start_byte, strict=strict)
+        else:
+            yield from self.file.resolve_name(name, start_byte or self.start_byte, strict=strict)
 
     @cached_property
     @noapidoc
@@ -1104,6 +1105,15 @@ class Editable(JSONable, Generic[Parent]):
         if self.parent is not self and self.parent is not None:
             return self.parent.parent_of_types(types)
         return None
+
+    def is_child_of(self, instance: Editable) -> bool:
+        """Checks if this node is a descendant of the given editable instance in the AST."""
+        if not self.parent:
+            return False
+        if self.parent is instance:
+            return True
+        else:
+            return self.parent.is_child_of(instance=instance)
 
     @reader
     def ancestors(self, type: type[T]) -> list[T]:

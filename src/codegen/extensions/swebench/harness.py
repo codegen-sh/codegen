@@ -12,6 +12,7 @@ import lox
 
 from codegen import Codebase
 from codegen.agents.code_agent import CodeAgent
+from codegen.configs.models.codebase import CodebaseConfig
 from codegen.extensions.swebench.utils import (
     SweBenchExample,
     get_swe_bench_examples,
@@ -48,7 +49,7 @@ def show_problems(dataset):
         print(f"{inst}: {problem}")
 
 
-def run_agent_on_entry(entry: SweBenchExample, codebase: Codebase | None = None):
+def run_agent_on_entry(entry: SweBenchExample, model: str, codebase: Codebase | None = None, run_id: str | None = None):
     """Process one `entry` from SWE Bench using the LLM `models` at the
     given `temperature`.  Set `model_name_or_path` in the result json.
     """
@@ -64,9 +65,14 @@ def run_agent_on_entry(entry: SweBenchExample, codebase: Codebase | None = None)
     gold_files = files_in_patch(entry.patch)
 
     if codebase is None:
-        codebase = Codebase.from_repo(repo_full_name=entry.repo, commit=base_commit, language="python")  # check out the repo
+        config = CodebaseConfig(
+            disable_file_parse=True,  # Disable the graph AND disable file parsing (file.edit only)
+        )
+        codebase = Codebase.from_repo(repo_full_name=entry.repo, commit=base_commit, language="python", config=config)  # check out the repo
 
-    agent = CodeAgent(codebase=codebase)
+    metadata = {"run_id": run_id, "instance_id": instance_id, "difficulty": f"difficulty_{entry.difficulty}"}
+    tags = [str(value) for value in metadata.values()]
+    agent = CodeAgent(codebase=codebase, tags=tags, metadata=metadata)
 
     pprint.pprint(instance_id)
     pprint.pprint(gold_files)
@@ -117,8 +123,9 @@ Also DO NOT ADD OR EDIT ANY TESTS!
 
     # Did we get a successful patch?
     if not model_patch:
-        msg = "Failed to generate a patch"
-        raise ValueError(msg)
+        pprint.pprint("=" * 60)
+        pprint.pprint("Failed to generate a patch")
+        pprint.pprint("=" * 60)
 
     return result
 

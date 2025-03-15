@@ -1,6 +1,6 @@
 import pytest
 
-from codegen.sdk.codebase.io.file_io import FileIO
+from codegen.sdk.codebase.io.file_io import BadWriteError, FileIO
 
 
 @pytest.fixture
@@ -61,3 +61,102 @@ def test_delete_file(file_io, tmp_path):
 
     assert not test_file.exists()
     assert test_file not in file_io.files
+
+
+def test_read_and_write_bounded(file_io, tmp_path):
+    allowed_dir = tmp_path / "allowed"
+    file_io.allowed_paths = [allowed_dir]
+
+    allowed_file = allowed_dir / "test.txt"
+    content = b"test content"
+
+    file_io.write_bytes(allowed_file, content)
+    assert file_io.read_bytes(allowed_file) == content
+
+    with pytest.raises(BadWriteError) as exc_info:
+        bad_file = tmp_path / "test.txt"
+        file_io.write_bytes(bad_file, content)
+
+    assert "is not within allowed paths" in str(exc_info.value)
+
+    with pytest.raises(BadWriteError) as exc_info:
+        bad_file_2 = allowed_dir / ".." / "test2.txt"
+        file_io.write_bytes(bad_file_2, content)
+
+    assert "is not within allowed paths" in str(exc_info.value)
+
+
+def test_read_bounded(file_io, tmp_path):
+    allowed_dir = tmp_path / "allowed"
+    allowed_dir.mkdir(exist_ok=True)
+    file_io.allowed_paths = [allowed_dir]
+
+    allowed_file = allowed_dir / "test.txt"
+    content = b"test content"
+    allowed_file.write_bytes(content)
+
+    assert file_io.read_bytes(allowed_file) == content
+
+    with pytest.raises(BadWriteError) as exc_info:
+        bad_file = tmp_path / "test.txt"
+        bad_file.write_bytes(content)
+        file_io.read_bytes(bad_file)
+
+    assert "is not within allowed paths" in str(exc_info.value)
+
+    with pytest.raises(BadWriteError) as exc_info:
+        bad_file_2 = allowed_dir / ".." / "test2.txt"
+        bad_file_2.write_bytes(content)
+        file_io.read_bytes(bad_file_2)
+
+    assert "is not within allowed paths" in str(exc_info.value)
+
+
+def test_delete_file_bounded(file_io, tmp_path):
+    allowed_dir = tmp_path / "allowed"
+    allowed_dir.mkdir(exist_ok=True)
+    file_io.allowed_paths = [allowed_dir]
+
+    allowed_file = allowed_dir / "test.txt"
+    allowed_file.write_bytes(b"test content")
+
+    file_io.delete_file(allowed_file)
+
+    with pytest.raises(BadWriteError) as exc_info:
+        bad_file = tmp_path / "test.txt"
+        bad_file.write_bytes(b"test content")
+        file_io.delete_file(bad_file)
+
+    assert "is not within allowed paths" in str(exc_info.value)
+
+    with pytest.raises(BadWriteError) as exc_info:
+        bad_file_2 = allowed_dir / ".." / "test2.txt"
+        bad_file_2.write_bytes(b"test content")
+        file_io.delete_file(bad_file_2)
+
+    assert "is not within allowed paths" in str(exc_info.value)
+
+
+def test_file_exists_bounded(file_io, tmp_path):
+    allowed_dir = tmp_path / "allowed"
+    allowed_dir.mkdir(exist_ok=True)
+    file_io.allowed_paths = [allowed_dir]
+
+    allowed_file = allowed_dir / "test.txt"
+    allowed_file.write_bytes(b"test content")
+
+    assert file_io.file_exists(allowed_file)
+
+    with pytest.raises(BadWriteError) as exc_info:
+        bad_file = tmp_path / "test.txt"
+        bad_file.write_bytes(b"test content")
+        file_io.file_exists(bad_file)
+
+    assert "is not within allowed paths" in str(exc_info.value)
+
+    with pytest.raises(BadWriteError) as exc_info:
+        bad_file_2 = allowed_dir / ".." / "test2.txt"
+        bad_file_2.write_bytes(b"test content")
+        file_io.file_exists(bad_file_2)
+
+    assert "is not within allowed paths" in str(exc_info.value)

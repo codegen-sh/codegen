@@ -7,6 +7,7 @@ from github.CheckSuite import CheckSuite
 from github.Commit import Commit
 from github.GithubException import GithubException, UnknownObjectException
 from github.GithubObject import NotSet, Opt
+from github.Issue import Issue
 from github.IssueComment import IssueComment
 from github.Label import Label
 from github.PullRequest import PullRequest
@@ -187,7 +188,6 @@ class GitRepoClient:
             pull = self.create_pull(head_branch_name=head_branch_name, base_branch_name=base_branch_name, title=title, body=body)
         return pull
 
-    # TODO: update params to match super
     def create_pull(
         self,
         head_branch_name: str,
@@ -198,6 +198,13 @@ class GitRepoClient:
     ) -> PullRequest | None:
         if base_branch_name is None:
             base_branch_name = self.default_branch
+
+        # draft PRs are not supported on all private repos
+        # TODO: check repo plan features instead of this heuristic
+        if self.repo.visibility == "private":
+            logger.info(f"Repo {self.repo.name} is private. Disabling draft PRs.")
+            draft = False
+
         try:
             pr = self.repo.create_pull(title=title or f"Draft PR for {head_branch_name}", body=body or "", head=head_branch_name, base=base_branch_name, draft=draft)
             logger.info(f"Created pull request for head branch: {head_branch_name} at {pr.html_url}")
@@ -431,3 +438,13 @@ class GitRepoClient:
         post_parameters = {"branch": branch_name}
         status, _, _ = self.repo._requester.requestJson("POST", f"{self.repo.url}/merge-upstream", input=post_parameters)
         return status == 200
+
+    ####################################################################################################################
+    # SEARCH
+    ####################################################################################################################
+
+    def search_issues(self, query: str, **kwargs) -> list[Issue]:
+        return self.gh_client.client.search_issues(query, **kwargs)
+
+    def search_prs(self, query: str, **kwargs) -> list[PullRequest]:
+        return self.gh_client.client.search_issues(query, **kwargs)
