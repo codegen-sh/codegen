@@ -3,9 +3,10 @@ from typing import TYPE_CHECKING, Optional
 from uuid import uuid4
 
 from langchain.tools import BaseTool
-from langchain_core.messages import AIMessage
 from langsmith import Client
-
+from langchain_core.messages import AIMessage
+from codegen.agents.loggers import  ExternalLogger
+from codegen.agents.tracer import MessageStreamTracer
 from codegen.extensions.langchain.agent import create_codebase_agent
 from codegen.extensions.langchain.utils.get_langsmith_url import find_and_print_langsmith_run_url
 
@@ -42,7 +43,7 @@ class CodeAgent:
         self.project_name = os.environ.get("LANGCHAIN_PROJECT", "RELACE")
         print(f"Using LangSmith project: {self.project_name}")
 
-    def run(self, prompt: str, thread_id: Optional[str] = None) -> str:
+    def run(self, prompt: str, thread_id: Optional[str] = None, logger: Optional[ExternalLogger] = None) -> str:
         """Run the agent with a prompt.
 
         Args:
@@ -55,20 +56,32 @@ class CodeAgent:
         if thread_id is None:
             thread_id = str(uuid4())
 
+
+
         # this message has a reducer which appends the current message to the existing history
         # see more https://langchain-ai.github.io/langgraph/concepts/low_level/#reducers
         input = {"messages": [("user", prompt)]}
 
         # we stream the steps instead of invoke because it allows us to access intermediate nodes
-        stream = self.agent.stream(input, config={"configurable": {"thread_id": thread_id, "metadata": {"project": self.project_name}}, "recursion_limit": 100}, stream_mode="values")
+        stream = self.agent.stream(input, config={"configurable": {"thread_id": thread_id,  "metadata": {"project": self.project_name}}, "recursion_limit": 100}, stream_mode="values")
+        # Get the stream from the graph
+                # Create the external logger (optional)        
+        # Create the tracer
+        _tracer = MessageStreamTracer(logger=logger)
+
+        # Process the stream with the tracer
+        traced_stream = _tracer.process_stream(stream)
 
         # Keep track of run IDs from the stream
         run_ids = []
 
-        for s in stream:
+        for s in traced_stream:
             message = s["messages"][-1]
+            message.pretty_print()
+
             if isinstance(message, tuple):
-                print(message)
+                # print(message)
+                pass
             else:
                 if isinstance(message, AIMessage) and isinstance(message.content, list) and "text" in message.content[0]:
                     AIMessage(message.content[0]["text"]).pretty_print()
@@ -82,7 +95,7 @@ class CodeAgent:
         # Get the last message content
         result = s["messages"][-1].content
 
-        # Try to find run IDs in the LangSmith client's recent runs
+        # # Try to find run IDs in the LangSmith client's recent runs
         try:
             # Find and print the LangSmith run URL
             find_and_print_langsmith_run_url(self.langsmith_client, self.project_name)
