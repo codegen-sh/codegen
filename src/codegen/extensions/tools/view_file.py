@@ -78,7 +78,7 @@ def view_file(
     line_numbers: bool = True,
     start_line: Optional[int] = None,
     end_line: Optional[int] = None,
-    max_lines: int = 250,
+    max_lines: int = 1000,
 ) -> ViewFileObservation:
     """View the contents and metadata of a file.
 
@@ -88,7 +88,7 @@ def view_file(
         line_numbers: If True, add line numbers to the content (1-indexed)
         start_line: Starting line number to view (1-indexed, inclusive)
         end_line: Ending line number to view (1-indexed, inclusive)
-        max_lines: Maximum number of lines to view at once, defaults to 250
+        max_lines: Maximum number of lines to view at once, defaults to 1000
     """
     try:
         file = codebase.get_file(filepath)
