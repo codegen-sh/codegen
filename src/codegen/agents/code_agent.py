@@ -137,7 +137,7 @@ class CodeAgent:
         stream = self.agent.stream(input, config=config, stream_mode="values")
 
 
-        _tracer = MessageStreamTracer(logger=logger)
+        _tracer = MessageStreamTracer(logger=self.logger)
 
         # Process the stream with the tracer
         traced_stream = _tracer.process_stream(stream)
