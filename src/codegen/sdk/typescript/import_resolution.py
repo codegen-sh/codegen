@@ -5,9 +5,7 @@ from collections import deque
 from typing import TYPE_CHECKING, Self, override
 
 from codegen.sdk.core.autocommit import reader
-from codegen.sdk.core.dataclasses.usage import UsageKind
 from codegen.sdk.core.expressions import Name
-from codegen.sdk.core.expressions.chained_attribute import ChainedAttribute
 from codegen.sdk.core.import_resolution import Import, ImportResolution, WildcardImport
 from codegen.sdk.core.interfaces.exportable import Exportable
 from codegen.sdk.enums import ImportType, NodeType, SymbolType
@@ -155,16 +153,6 @@ class TSImport(Import["TSFile"], Exportable):
         if resolved_symbol is None:
             return None
 
-        # Track namespace-chained usages before any resolution happens
-        if hasattr(resolved_symbol, "get_symbol"):
-            for usage in self.usages:
-                if isinstance(usage.match, ChainedAttribute):
-                    # Get the accessed symbol through namespace
-                    if accessed := resolved_symbol.get_symbol(usage.match.attribute.source):
-                        # Create bi-directional usage relationship
-                        accessed.add_usage(usage.usage_symbol, UsageKind.CHAINED, usage.match, self.ctx)
-                        # The namespace itself maintains direct usage
-                        resolved_symbol.add_usage(usage.usage_symbol, UsageKind.DIRECT, usage.match, self.ctx)
 
         # If the default import is a single symbol export, resolve to the symbol
         if self.is_default_import():
