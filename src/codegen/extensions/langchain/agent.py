@@ -13,6 +13,12 @@ from codegen.extensions.langchain.prompts import REASONER_SYSTEM_MESSAGE
 from codegen.extensions.langchain.tools import (
     CreateFileTool,
     DeleteFileTool,
+    LinearCommentOnIssueTool,
+    LinearCreateIssueTool,
+    LinearGetIssueCommentsTool,
+    LinearGetIssueTool,
+    LinearGetTeamsTool,
+    LinearSearchIssuesTool,
     ListDirectoryTool,
     MoveSymbolTool,
     ReflectionTool,
@@ -21,7 +27,6 @@ from codegen.extensions.langchain.tools import (
     ReplacementEditTool,
     RevealSymbolTool,
     SearchTool,
-    # SemanticEditTool,
     ViewFileTool,
 )
 
@@ -48,42 +53,53 @@ def create_codebase_agent(
         codebase: The codebase to operate on
         model_provider: The model provider to use ("anthropic" or "openai")
         model_name: Name of the model to use
-        verbose: Whether to print agent's thought process (default: True)
-        chat_history: Optional list of messages to initialize chat history with
-        **kwargs: Additional LLM configuration options. Supported options:
-            - temperature: Temperature parameter (0-1)
-            - top_p: Top-p sampling parameter (0-1)
-            - top_k: Top-k sampling parameter (>= 1)
-            - max_tokens: Maximum number of tokens to generate
+        system_message: Custom system message to use
+        memory: Whether to enable memory/checkpointing
+        debug: Whether to enable debug mode
+        additional_tools: Optional additional tools to include
+        **kwargs: Additional LLM configuration options
 
     Returns:
-        Initialized agent with message history
+        Compiled langgraph agent
     """
     llm = LLM(model_provider=model_provider, model_name=model_name, **kwargs)
 
-    # Get all codebase tools
+    # Initialize Linear client if environment variables are set
+    linear_client = None
+    linear_tools = []
+    try:
+        from codegen.extensions.linear.linear_client import LinearClient
+
+        linear_client = LinearClient()
+        # Add Linear tools
+        linear_tools = [
+            LinearCreateIssueTool(linear_client),
+            LinearGetIssueTool(linear_client),
+            LinearSearchIssuesTool(linear_client),
+            LinearCommentOnIssueTool(linear_client),
+            LinearGetIssueCommentsTool(linear_client),
+            LinearGetTeamsTool(linear_client),
+        ]
+    except (ImportError, ValueError):
+        # Linear client not available or not configured
+        pass
+
+    # Core codebase tools
     tools = [
         ViewFileTool(codebase),
         ListDirectoryTool(codebase),
         SearchTool(codebase),
-        # EditFileTool(codebase),
         CreateFileTool(codebase),
         DeleteFileTool(codebase),
         RenameFileTool(codebase),
-        # MoveSymbolTool(codebase),
-        # RevealSymbolTool(codebase),
-        # SemanticEditTool(codebase),
         ReplacementEditTool(codebase),
         RelaceEditTool(codebase),
         ReflectionTool(codebase),
-        # SemanticSearchTool(codebase),
-        # =====[ Github Integration ]=====
-        # Enable Github integration
-        # GithubCreatePRTool(codebase),
-        # GithubViewPRTool(codebase),
-        # GithubCreatePRCommentTool(codebase),
-        # GithubCreatePRReviewCommentTool(codebase),
     ]
+
+    # Add Linear tools if available
+    if linear_tools:
+        tools.extend(linear_tools)
 
     # Add additional tools if provided
     if additional_tools:
@@ -105,25 +121,44 @@ def create_chat_agent(
     config: Optional[dict[str, Any]] = None,  # over here you can pass in the max length of the number of messages
     **kwargs,
 ) -> CompiledGraph:
-    """Create an agent with all codebase tools.
+    """Create an agent with chat-focused tools.
 
     Args:
         codebase: The codebase to operate on
         model_provider: The model provider to use ("anthropic" or "openai")
         model_name: Name of the model to use
-        verbose: Whether to print agent's thought process (default: True)
-        chat_history: Optional list of messages to initialize chat history with
-        **kwargs: Additional LLM configuration options. Supported options:
-            - temperature: Temperature parameter (0-1)
-            - top_p: Top-p sampling parameter (0-1)
-            - top_k: Top-k sampling parameter (>= 1)
-            - max_tokens: Maximum number of tokens to generate
+        system_message: Custom system message to use
+        memory: Whether to enable memory/checkpointing
+        debug: Whether to enable debug mode
+        additional_tools: Optional additional tools to include
+        **kwargs: Additional LLM configuration options
 
     Returns:
-        Initialized agent with message history
+        Compiled langgraph agent
     """
     llm = LLM(model_provider=model_provider, model_name=model_name, **kwargs)
 
+    # Initialize Linear client if environment variables are set
+    linear_client = None
+    linear_tools = []
+    try:
+        from codegen.extensions.linear.linear_client import LinearClient
+
+        linear_client = LinearClient()
+        # Add Linear tools
+        linear_tools = [
+            LinearCreateIssueTool(linear_client),
+            LinearGetIssueTool(linear_client),
+            LinearSearchIssuesTool(linear_client),
+            LinearCommentOnIssueTool(linear_client),
+            LinearGetIssueCommentsTool(linear_client),
+            LinearGetTeamsTool(linear_client),
+        ]
+    except (ImportError, ValueError):
+        # Linear client not available or not configured
+        pass
+
+    # Core codebase tools
     tools = [
         ViewFileTool(codebase),
         ListDirectoryTool(codebase),
@@ -136,6 +171,11 @@ def create_chat_agent(
         RelaceEditTool(codebase),
     ]
 
+    # Add Linear tools if available
+    if linear_tools:
+        tools.extend(linear_tools)
+
+    # Add additional tools if provided
     if additional_tools:
         tools.extend(additional_tools)
 
@@ -154,22 +194,8 @@ def create_codebase_inspector_agent(
     config: Optional[dict[str, Any]] = None,
     **kwargs,
 ) -> CompiledGraph:
-    """Create an inspector agent with read-only codebase tools.
-
-    Args:
-        codebase: The codebase to operate on
-        model_provider: The model provider to use ("anthropic" or "openai")
-        model_name: Name of the model to use
-        system_message: Custom system message to use (defaults to standard reasoner message)
-        memory: Whether to enable memory/checkpointing
-        **kwargs: Additional LLM configuration options
-
-    Returns:
-        Compiled langgraph agent
-    """
     llm = LLM(model_provider=model_provider, model_name=model_name, **kwargs)
 
-    # Get read-only codebase tools
     tools = [
         ViewFileTool(codebase),
         ListDirectoryTool(codebase),
@@ -192,24 +218,6 @@ def create_agent_with_tools(
     config: Optional[dict[str, Any]] = None,
     **kwargs,
 ) -> CompiledGraph:
-    """Create an agent with a specific set of tools.
-
-    Args:
-        codebase: The codebase to operate on
-        tools: List of tools to provide to the agent
-        model_provider: The model provider to use ("anthropic" or "openai")
-        model_name: Name of the model to use
-        system_message: Custom system message to use (defaults to standard reasoner message)
-        memory: Whether to enable memory/checkpointing
-        **kwargs: Additional LLM configuration options. Supported options:
-            - temperature: Temperature parameter (0-1)
-            - top_p: Top-p sampling parameter (0-1)
-            - top_k: Top-k sampling parameter (>= 1)
-            - max_tokens: Maximum number of tokens to generate
-
-    Returns:
-        Compiled langgraph agent
-    """
     llm = LLM(model_provider=model_provider, model_name=model_name, **kwargs)
 
     memory = MemorySaver() if memory else None

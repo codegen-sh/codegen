@@ -34,6 +34,7 @@ REASONER_SYSTEM_MESSAGE = """
     - Use semantic edits for complex changes
     - Commit changes after significant modifications
     - Maintain code quality and consistency
+    - When asked to solve an issue, first create a Linear ticket to track the work and assign it to yourself before proceeding with the solution
 
     Remember: You can combine these tools to perform complex refactoring
     and development tasks. Always explain your approach before making changes.
