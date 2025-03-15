@@ -7,8 +7,8 @@ from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables.config import RunnableConfig
 from langgraph.graph.graph import CompiledGraph
 from langsmith import Client
-from langchain_core.messages import AIMessage
-from codegen.agents.loggers import  ExternalLogger
+
+from codegen.agents.loggers import ExternalLogger
 from codegen.agents.tracer import MessageStreamTracer
 from codegen.extensions.langchain.agent import create_codebase_agent
 from codegen.extensions.langchain.utils.get_langsmith_url import (
@@ -86,7 +86,6 @@ class CodeAgent:
         self.project_name = os.environ.get("LANGCHAIN_PROJECT", "RELACE")
         print(f"Using LangSmith project: {self.project_name}")
 
-
         # Store SWEBench metadata if provided
         self.run_id = metadata.get("run_id")
         self.instance_id = metadata.get("instance_id")
@@ -125,8 +124,6 @@ class CodeAgent:
             "recursion_limit": 100,
         }
 
-
-
         # this message has a reducer which appends the current message to the existing history
         # see more https://langchain-ai.github.io/langgraph/concepts/low_level/#reducers
         input = {"query": prompt}
@@ -135,7 +132,6 @@ class CodeAgent:
         # we stream the steps instead of invoke because it allows us to access intermediate nodes
 
         stream = self.agent.stream(input, config=config, stream_mode="values")
-
 
         _tracer = MessageStreamTracer(logger=self.logger)
 
