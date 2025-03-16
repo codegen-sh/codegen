@@ -25,6 +25,8 @@ from codegen.extensions.tools.reveal_symbol import reveal_symbol
 from codegen.extensions.tools.search import search
 from codegen.extensions.tools.semantic_edit import semantic_edit
 from codegen.extensions.tools.semantic_search import semantic_search
+from codegen.extensions.tools.web_page_view import web_page_view
+from codegen.extensions.tools.web_search import web_search
 from codegen.sdk.core.codebase import Codebase
 
 from ..tools import (
@@ -824,6 +826,59 @@ class SlackSendMessageTool(BaseTool):
 
 
 ########################################################################################################################
+# WEB SEARCH
+########################################################################################################################
+
+
+class WebSearchInput(BaseModel):
+    """Input for web search."""
+
+    query: str = Field(..., description="The search query")
+    num_results: int = Field(default=5, description="Number of results to return (default: 5)")
+    search_engine: str = Field(default="google", description="Search engine to use (default: 'google')")
+
+
+class WebSearchTool(BaseTool):
+    """Tool for searching the web."""
+
+    name: ClassVar[str] = "web_search"
+    description: ClassVar[str] = "Search the web for information and return relevant results"
+    args_schema: ClassVar[type[BaseModel]] = WebSearchInput
+    codebase: Codebase = Field(exclude=True)
+
+    def __init__(self, codebase: Codebase) -> None:
+        super().__init__(codebase=codebase)
+
+    def _run(self, query: str, num_results: int = 5, search_engine: str = "google") -> str:
+        result = web_search(self.codebase, query, num_results=num_results, search_engine=search_engine)
+        return result.render()
+
+
+class WebPageViewInput(BaseModel):
+    """Input for viewing web page content."""
+
+    url: str = Field(..., description="URL of the web page to view")
+    selector: Optional[str] = Field(None, description="Optional CSS selector to extract specific content")
+    max_length: int = Field(default=10000, description="Maximum length of content to return (default: 10000)")
+
+
+class WebPageViewTool(BaseTool):
+    """Tool for viewing web page content."""
+
+    name: ClassVar[str] = "web_page_view"
+    description: ClassVar[str] = "Extract and view content from a web page"
+    args_schema: ClassVar[type[BaseModel]] = WebPageViewInput
+    codebase: Codebase = Field(exclude=True)
+
+    def __init__(self, codebase: Codebase) -> None:
+        super().__init__(codebase=codebase)
+
+    def _run(self, url: str, selector: Optional[str] = None, max_length: int = 10000) -> str:
+        result = web_page_view(self.codebase, url, selector=selector, max_length=max_length)
+        return result.render()
+
+
+########################################################################################################################
 # EXPORT
 ########################################################################################################################
 
@@ -850,11 +905,11 @@ def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
         RevealSymbolTool(codebase),
         RunBashCommandTool(),  # Note: This tool doesn't need the codebase
         SearchTool(codebase),
-        # SemanticEditTool(codebase),
-        # SemanticSearchTool(codebase),
         ViewFileTool(codebase),
         RelaceEditTool(codebase),
         ReflectionTool(codebase),
+        WebSearchTool(codebase),
+        WebPageViewTool(codebase),
         # Github
         GithubCreatePRTool(codebase),
         GithubCreatePRCommentTool(codebase),

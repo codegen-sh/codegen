@@ -23,6 +23,8 @@ from codegen.extensions.langchain.tools import (
     SearchTool,
     # SemanticEditTool,
     ViewFileTool,
+    WebPageViewTool,
+    WebSearchTool,
 )
 
 from .graph import create_react_agent
@@ -76,6 +78,8 @@ def create_codebase_agent(
         ReplacementEditTool(codebase),
         RelaceEditTool(codebase),
         ReflectionTool(codebase),
+        WebSearchTool(codebase),
+        WebPageViewTool(codebase),
         # SemanticSearchTool(codebase),
         # =====[ Github Integration ]=====
         # Enable Github integration
@@ -134,6 +138,8 @@ def create_chat_agent(
         MoveSymbolTool(codebase),
         RevealSymbolTool(codebase),
         RelaceEditTool(codebase),
+        WebSearchTool(codebase),
+        WebPageViewTool(codebase),
     ]
 
     if additional_tools:
