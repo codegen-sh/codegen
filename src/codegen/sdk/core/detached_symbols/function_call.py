@@ -235,7 +235,7 @@ class FunctionCall(Expression[Parent], HasName, Resolvable, Generic[Parent]):
         """
         if not self.is_awaited:
             return
-            
+
         # Find the await keyword and remove it along with any surrounding parentheses
         parent = self.ts_node.parent
         if parent and parent.type == "await_expression":

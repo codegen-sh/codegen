@@ -93,7 +93,7 @@ class TSFunctionType(Type[Parent], Generic[Parent]):
             # Check if it's a generic Promise<T>
             if "<" in self.return_type.source and ">" in self.return_type.source:
                 # Extract the type inside Promise<T>
-                inner_type = self.return_type.source[self.return_type.source.find("<") + 1:self.return_type.source.rfind(">")]
+                inner_type = self.return_type.source[self.return_type.source.find("<") + 1 : self.return_type.source.rfind(">")]
                 if inner_type.strip():
                     # Replace Promise<T> with T
                     self.return_type.edit(inner_type)

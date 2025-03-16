@@ -319,19 +319,19 @@ class TSFunction(Function[TSDecorator, "TSCodeBlock", TSParameter, TSType], TSHa
         """
         if not self.is_async:
             return
-        
+
         # Remove the 'async' keyword
         for child in self.ts_node.children:
             if child.type == "async":
                 self.remove_byte_range(child.start_byte, child.end_byte)
                 break
-        
+
         # Unwrap the return type from Promise if it exists
         if self.return_type and self.return_type.name == "Promise":
             # Check if it's a generic Promise<T>
             if "<" in self.return_type.source and ">" in self.return_type.source:
                 # Extract the type inside Promise<T>
-                inner_type = self.return_type.source[self.return_type.source.find("<") + 1:self.return_type.source.rfind(">")]
+                inner_type = self.return_type.source[self.return_type.source.find("<") + 1 : self.return_type.source.rfind(">")]
                 if inner_type.strip():
                     # Replace Promise<T> with T
                     self.return_type.edit(inner_type)
