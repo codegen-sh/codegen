@@ -221,6 +221,33 @@ class FunctionCall(Expression[Parent], HasName, Resolvable, Generic[Parent]):
         self.insert_before("await (", newline=False)
         self.insert_after(")", newline=False)
 
+    @writer
+    def deAsyncify(self) -> None:
+        """Removes the 'await' keyword from an awaited function call.
+
+        This method removes the 'await' syntax from a function call if it is awaited, converting it back to a regular function call.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        if not self.is_awaited:
+            return
+            
+        # Find the await keyword and remove it along with any surrounding parentheses
+        parent = self.ts_node.parent
+        if parent and parent.type == "await_expression":
+            # Check if the await expression is wrapped in parentheses
+            if parent.parent and parent.parent.type == "parenthesized_expression":
+                # Remove the await keyword and both parentheses
+                self.remove_byte_range(parent.parent.start_byte, self.ts_node.start_byte)
+                self.remove_byte_range(self.ts_node.end_byte, parent.parent.end_byte)
+            else:
+                # Remove just the await keyword
+                self.remove_byte_range(parent.start_byte, self.ts_node.start_byte)
+
     @property
     @reader
     def predecessor(self) -> FunctionCall[Parent] | None:

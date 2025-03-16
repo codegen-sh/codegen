@@ -305,6 +305,44 @@ class TSFunction(Function[TSDecorator, "TSCodeBlock", TSParameter, TSType], TSHa
             self.return_type.insert_after(">", newline=False)
 
     @writer
+    def deAsyncify(self) -> None:
+        """Modifies the function to be synchronous, if it is asynchronous.
+
+        This method converts an asynchronous function to be synchronous by removing the 'async' keyword and unwrapping
+        the return type from a Promise if a return type exists.
+
+        Returns:
+            None
+
+        Note:
+            If the function is already synchronous, this method does nothing.
+        """
+        if not self.is_async:
+            return
+        
+        # Remove the 'async' keyword
+        for child in self.ts_node.children:
+            if child.type == "async":
+                self.remove_byte_range(child.start_byte, child.end_byte)
+                break
+        
+        # Unwrap the return type from Promise if it exists
+        if self.return_type and self.return_type.name == "Promise":
+            # Check if it's a generic Promise<T>
+            if "<" in self.return_type.source and ">" in self.return_type.source:
+                # Extract the type inside Promise<T>
+                inner_type = self.return_type.source[self.return_type.source.find("<") + 1:self.return_type.source.rfind(">")]
+                if inner_type.strip():
+                    # Replace Promise<T> with T
+                    self.return_type.edit(inner_type)
+                else:
+                    # If Promise<> is empty or just whitespace, remove the return type
+                    self.return_type.edit("")
+            else:
+                # If it's just Promise without generic type, remove it
+                self.return_type.edit("")
+
+    @writer
     def arrow_to_named(self, name: str | None = None) -> None:
         """Converts an arrow function to a named function in TypeScript/JavaScript.
 

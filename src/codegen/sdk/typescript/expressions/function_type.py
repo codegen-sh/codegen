@@ -75,6 +75,35 @@ class TSFunctionType(Type[Parent], Generic[Parent]):
             self.return_type.insert_before("Promise<", newline=False)
             self.return_type.insert_after(">", newline=False)
 
+    @writer
+    def deAsyncify(self) -> None:
+        """Modifies the function type to be synchronous by unwrapping its return type from a Promise.
+
+        This method transforms an asynchronous function type into a synchronous one by modifying
+        its return type. It unwraps the existing return type from a Promise, effectively changing
+        'Promise<T>' to 'T'.
+
+        Args:
+            self: The TSFunctionType instance to modify.
+
+        Returns:
+            None
+        """
+        if self.return_type and self.return_type.name == "Promise":
+            # Check if it's a generic Promise<T>
+            if "<" in self.return_type.source and ">" in self.return_type.source:
+                # Extract the type inside Promise<T>
+                inner_type = self.return_type.source[self.return_type.source.find("<") + 1:self.return_type.source.rfind(">")]
+                if inner_type.strip():
+                    # Replace Promise<T> with T
+                    self.return_type.edit(inner_type)
+                else:
+                    # If Promise<> is empty or just whitespace, remove the return type
+                    self.return_type.edit("")
+            else:
+                # If it's just Promise without generic type, remove it
+                self.return_type.edit("")
+
     def _compute_dependencies(self, usage_type: UsageKind | None = None, dest: Importable | None = None):
         if self.return_type:
             self.return_type._compute_dependencies(UsageKind.GENERIC, dest)
