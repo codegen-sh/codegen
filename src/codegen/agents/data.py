@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
-from typing import Literal, Optional, Union
 from datetime import UTC, datetime
+from typing import Literal, Optional, Union
+
 
 # Base dataclass for all message types
 @dataclass
