@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
-from datetime import datetime
 from typing import Literal, Optional, Union
-
+from datetime import datetime, UTC
 
 # Base dataclass for all message types
 @dataclass
@@ -9,7 +8,7 @@ class BaseMessage:
     """Base class for all message types."""
 
     type: str
-    timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(tz=UTC).isoformat())
     content: str = ""
 
 
