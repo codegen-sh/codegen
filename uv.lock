@@ -720,7 +720,7 @@ requires-dist = [
     { name = "rich", specifier = ">=13.7.1,<14.0.0" },
     { name = "rich-click", specifier = ">=1.8.5" },
     { name = "rustworkx", specifier = ">=0.15.1" },
-    { name = "sentry-sdk", specifier = "==2.23.0" },
+    { name = "sentry-sdk", specifier = "==2.23.1" },
     { name = "slack-sdk" },
     { name = "starlette", specifier = ">=0.16.0,<1.0.0" },
     { name = "tabulate", specifier = ">=0.9.0,<1.0.0" },
@@ -4046,15 +4046,15 @@ wheels = [
 
 [[package]]
 name = "sentry-sdk"
-version = "2.23.0"
+version = "2.23.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "certifi" },
     { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/7b/d7/899d392a439364bba3c37d859d7840dcb3b3292bbef75a4e9b2882013d86/sentry_sdk-2.23.0.tar.gz", hash = "sha256:ab0702469f0665bf219c32d0dff8aa9f0ab5edd76d9e257549216c8d35405dff", size = 316201 }
+sdist = { url = "https://files.pythonhosted.org/packages/60/fd/2c5f7161dbea1fa03381f139c443b4524f3a15d58e50c96a65d19f454ba2/sentry_sdk-2.23.1.tar.gz", hash = "sha256:2288320465065f3f056630ce55936426204f96f63f1208edb79e033ed03774db", size = 316248 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0e/86/0fbc06d25330840f5677a917dcaa7b05d4ed2d90e832d644ae23665a79a0/sentry_sdk-2.23.0-py2.py3-none-any.whl", hash = "sha256:ee8d614883f22c45f36ee6209d64f0403b57663cd89169a99aea5508ee483310", size = 336327 },
+    { url = "https://files.pythonhosted.org/packages/4e/00/9a9a2ab9020ee824d787f7e82a539305bf926393fe139baedbcf34356770/sentry_sdk-2.23.1-py2.py3-none-any.whl", hash = "sha256:42ef3a6cc1db3d22cb2ab24163d75b23f291ad9892b1a8c44075ce809a32b191", size = 336327 },
 ]
 
 [[package]]
