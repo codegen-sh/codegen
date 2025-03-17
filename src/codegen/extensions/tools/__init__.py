@@ -8,6 +8,7 @@ from .github.create_pr import create_pr
 from .github.create_pr_comment import create_pr_comment
 from .github.create_pr_review_comment import create_pr_review_comment
 from .github.view_pr import view_pr
+from .global_replacement_edit import replacement_edit_global
 from .linear import (
     linear_comment_on_issue_tool,
     linear_get_issue_comments_tool,
@@ -49,6 +50,7 @@ __all__ = [
     "perform_reflection",
     "rename_file",
     "replacement_edit",
+    "replacement_edit_global",
     "reveal_symbol",
     "run_codemod",
     # Search operations
