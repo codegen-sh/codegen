@@ -22,6 +22,9 @@ def test_codebase_git(tmpdir, commit: bool, sync: bool) -> None:
         codebase.get_file("dir/file0.py").insert_after("a = 1")
     c2 = codebase.git_commit("boop")
     commit = codebase.op.head_commit
+    message = commit.message
+    assert "Co-authored-by:" in message
+    assert f"Co-authored-by: {commit.author.name} <{commit.author.email}>" not in message
     codebase.sync_to_commit(commit)
     assert c1 != c2
     assert codebase.get_symbol("a", optional=True) is not None

@@ -472,22 +472,24 @@ class RepoOperator:
         return self.commit_changes(message, verify)
 
     def _get_username_email(self) -> tuple[str, str] | None:
-        with self.git_cli.config_reader("user") as reader:
-            user, email = reader.get_value("user", "name"), reader.get_value("user", "email")
-            if isinstance(user, str) and isinstance(email, str) and user != CODEGEN_BOT_NAME and email != CODEGEN_BOT_EMAIL:
-                return user, email
+        for level in ["user", "global", "system"]:
+            with self.git_cli.config_reader(level) as reader:
+                if reader.has_section("user"):
+                    user, email = reader.get_value("user", "name"), reader.get_value("user", "email")
+                    if isinstance(user, str) and isinstance(email, str) and user != CODEGEN_BOT_NAME and email != CODEGEN_BOT_EMAIL:
+                        return user, email
         return None
 
     def commit_changes(self, message: str, verify: bool = False) -> bool:
         """Returns True if a commit was made and False otherwise."""
         staged_changes = self.git_cli.git.diff("--staged")
         if staged_changes:
+            if self.bot_commit and (info := self._get_username_email()):
+                user, email = info
+                message += f"\n\n Co-authored-by: {user} <{email}>"
             commit_args = ["-m", message]
             if self.bot_commit:
                 commit_args.append(f"--author='{CODEGEN_BOT_NAME} <{CODEGEN_BOT_EMAIL}>'")
-                if info := self._get_username_email():
-                    user, email = info
-                    message += f"\n\n Co-authored-by: {user} <{email}>"
             if not verify:
                 commit_args.append("--no-verify")
             self.git_cli.git.commit(*commit_args)
