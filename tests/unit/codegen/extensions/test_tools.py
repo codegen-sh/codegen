@@ -15,6 +15,7 @@ from codegen.extensions.tools import (
     replacement_edit,
     reveal_symbol,
     run_codemod,
+    search_files_by_name,
     semantic_edit,
     semantic_search,
     view_file,
@@ -280,6 +281,21 @@ def test_move_symbol(codebase):
     assert result.symbol_name == "hello"
     assert result.source_file == "src/main.py"
     assert result.target_file == "src/target.py"
+
+
+def test_search_files_by_name(codebase):
+    """Test searching files by name."""
+    create_file(codebase, "src/main.py", "print('hello')")
+    create_file(codebase, "src/target.py", "print('world')")
+    result = search_files_by_name(codebase, "*.py")
+    assert result.status == "success"
+    assert len(result.files) == 2
+    assert "src/main.py" in result.files
+    assert "src/target.py" in result.files
+    result = search_files_by_name(codebase, "main.py")
+    assert result.status == "success"
+    assert len(result.files) == 1
+    assert "src/main.py" in result.files
 
 
 def test_reveal_symbol(codebase):
