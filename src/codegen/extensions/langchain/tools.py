@@ -23,6 +23,7 @@ from codegen.extensions.tools.relace_edit import relace_edit
 from codegen.extensions.tools.replacement_edit import replacement_edit
 from codegen.extensions.tools.reveal_symbol import reveal_symbol
 from codegen.extensions.tools.search import search
+from codegen.extensions.tools.search_files_by_name import search_files_by_name
 from codegen.extensions.tools.semantic_edit import semantic_edit
 from codegen.extensions.tools.semantic_search import semantic_search
 from codegen.sdk.core.codebase import Codebase
@@ -1024,3 +1025,30 @@ class ReflectionTool(BaseTool):
         result = perform_reflection(context_summary=context_summary, findings_so_far=findings_so_far, current_challenges=current_challenges, reflection_focus=reflection_focus, codebase=self.codebase)
 
         return result.render()
+
+
+class SearchFilesByNameInput(BaseModel):
+    """Input for searching files by name pattern."""
+
+    pattern: str = Field(..., description="Glob pattern to search for (e.g. '*.py', 'test_*.py')")
+
+
+class SearchFilesByNameTool(BaseTool):
+    """Tool for searching files by filename across a codebase."""
+
+    name: ClassVar[str] = "search_files_by_name"
+    description: ClassVar[str] = """
+    Search for files and directories by glob pattern across the active codebase. This is useful when you need to:
+    - Find specific file types (e.g., '*.py', '*.tsx')
+    - Locate configuration files (e.g., 'package.json', 'requirements.txt')
+    - Find files with specific names (e.g., 'README.md', 'Dockerfile')
+    """
+    args_schema: ClassVar[type[BaseModel]] = SearchFilesByNameInput
+    codebase: Codebase = Field(exclude=True)
+
+    def __init__(self, codebase: Codebase):
+        super().__init__(codebase=codebase)
+
+    def _run(self, pattern: str) -> str:
+        """Execute the glob pattern search using fd."""
+        return search_files_by_name(self.codebase, pattern).render()
