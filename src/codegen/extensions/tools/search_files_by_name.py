@@ -1,3 +1,4 @@
+import shutil
 import subprocess
 from typing import ClassVar
 
@@ -38,12 +39,20 @@ def search_files_by_name(
         pattern: Glob pattern to search for (e.g. "*.py", "test_*.py")
     """
     try:
-        logger.info(f"Searching for files with pattern: {pattern}")
-        results = subprocess.check_output(
-            ["fd", "-g", pattern],
-            cwd=codebase.repo_path,
-            timeout=30,
-        )
+        if shutil.which("fd") is None:
+            logger.warning("fd is not installed, falling back to find")
+            results = subprocess.check_output(
+                ["find", "-name", pattern],
+                cwd=codebase.repo_path,
+                timeout=30,
+            )
+        else:
+            logger.info(f"Searching for files with pattern: {pattern}")
+            results = subprocess.check_output(
+                ["fd", "-g", pattern],
+                cwd=codebase.repo_path,
+                timeout=30,
+            )
 
         files = results.decode("utf-8").strip().split("\n") if results.strip() else []
 
