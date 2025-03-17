@@ -28,7 +28,6 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
-      - uses: fregante/setup-git-user@v2
 
       - name: Setup environment
         uses: ./.github/actions/setup-environment
