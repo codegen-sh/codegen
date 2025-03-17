@@ -46,6 +46,8 @@ def search_files_by_name(
                 cwd=codebase.repo_path,
                 timeout=30,
             )
+            files = [path.removeprefix("./") for path in results.decode("utf-8").strip().split("\n")] if results.strip() else []
+
         else:
             logger.info(f"Searching for files with pattern: {pattern}")
             results = subprocess.check_output(
@@ -53,8 +55,7 @@ def search_files_by_name(
                 cwd=codebase.repo_path,
                 timeout=30,
             )
-
-        files = results.decode("utf-8").strip().split("\n") if results.strip() else []
+            files = results.decode("utf-8").strip().split("\n") if results.strip() else []
 
         return SearchFilesByNameResultObservation(
             status="success",
