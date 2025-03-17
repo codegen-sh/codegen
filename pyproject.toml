@@ -36,7 +36,7 @@ dependencies = [
   "rustworkx>=0.15.1",
   "typing-extensions>=4.12.2",
   "termcolor>=2.4.0",
-  "sentry-sdk==2.22.0",
+  "sentry-sdk==2.23.0",
   "click>=8.1.7",
   "requests>=2.32.3",
   "lazy-object-proxy>=0.0.0",
