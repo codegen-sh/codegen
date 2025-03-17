@@ -1102,6 +1102,8 @@ class SearchFilesByNameTool(BaseTool):
     - Find specific file types (e.g., '*.py', '*.tsx')
     - Locate configuration files (e.g., 'package.json', 'requirements.txt')
     - Find files with specific names (e.g., 'README.md', 'Dockerfile')
+
+    Uses fd under the hood
     """
     args_schema: ClassVar[type[BaseModel]] = SearchFilesByNameInput
     codebase: Codebase = Field(exclude=True)
@@ -1109,6 +1111,6 @@ class SearchFilesByNameTool(BaseTool):
     def __init__(self, codebase: Codebase):
         super().__init__(codebase=codebase)
 
-    def _run(self, pattern: str) -> str:
+    def _run(self, pattern: str, full_path: bool = False) -> str:
         """Execute the glob pattern search using fd."""
-        return search_files_by_name(self.codebase, pattern).render()
+        return search_files_by_name(self.codebase, pattern, full_path).render()

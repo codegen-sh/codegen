@@ -455,11 +455,11 @@ def greet():
     # Test basic global replacement across files
     result = replacement_edit_global(
         codebase,
-        file_pattern="src/*.py",
+        file_pattern="*.py",
         pattern=r'print\("Hello.*?"\)',
         replacement='print("Goodbye!")',
     )
-    print(f"Found files: {search_files_by_name(codebase, 'src/*.py').files}")  # Debug print
+    print(f"Found files: {search_files_by_name(codebase, '*.py').files}")  # Debug print
     assert result.status == "success"
     assert result.diff  # Should have modified both files
     assert 'print("Goodbye!")' in result.diff
@@ -467,7 +467,7 @@ def greet():
     # Test with count limit
     result = replacement_edit_global(
         codebase,
-        file_pattern="src/*.py",
+        file_pattern="*.py",
         pattern=r"def",
         replacement="async def",
         count=1,  # Only replace first occurrence in each file
@@ -478,7 +478,7 @@ def greet():
     # Test invalid regex pattern
     result = replacement_edit_global(
         codebase,
-        file_pattern="src/*.py",
+        file_pattern="*.py",
         pattern=r"[invalid",  # Invalid regex pattern
         replacement="replacement",
     )
@@ -489,7 +489,7 @@ def greet():
     # Test no matches
     result = replacement_edit_global(
         codebase,
-        file_pattern="src/*.py",
+        file_pattern="*.py",
         pattern=r"nonexistent_pattern",
         replacement="replacement",
     )
