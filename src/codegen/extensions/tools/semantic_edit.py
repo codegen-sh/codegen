@@ -66,7 +66,7 @@ class SemanticEditObservation(Observation):
                 status=self.status,
                 tool_name="semantic_edit",
                 tool_call_id=tool_call_id,
-                artifacts=artifacts,
+                artifact=artifacts,
             )
 
         return ToolMessage(
@@ -74,7 +74,7 @@ class SemanticEditObservation(Observation):
             status=self.status,
             tool_name="semantic_edit",
             tool_call_id=tool_call_id,
-            artifacts=artifacts,
+            artifact=artifacts,
         )
 
 

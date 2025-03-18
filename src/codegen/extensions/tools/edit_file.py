@@ -35,7 +35,7 @@ class EditFileObservation(Observation):
                 content=f"[ERROR EDITING FILE]: {self.filepath}: {self.error}",
                 status=self.status,
                 tool_name="edit_file",
-                artifacts=artifacts_error,
+                artifact=artifacts_error,
                 tool_call_id=tool_call_id,
             )
 
@@ -45,7 +45,7 @@ class EditFileObservation(Observation):
             content=f"""[EDIT FILE]: {self.filepath}\n\n{self.diff}""",
             status=self.status,
             tool_name="edit_file",
-            artifacts=artifacts_success,
+            artifact=artifacts_success,
             tool_call_id=tool_call_id,
         )
 

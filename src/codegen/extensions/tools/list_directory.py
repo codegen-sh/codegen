@@ -148,7 +148,7 @@ class ListDirectoryObservation(Observation):
                 content=f"[ERROR LISTING DIRECTORY]: {self.directory_info.path}: {self.error}",
                 status=self.status,
                 tool_name="list_directory",
-                artifacts=error_artifacts,
+                artifact=error_artifacts,
                 tool_call_id=tool_call_id,
             )
 
@@ -156,7 +156,7 @@ class ListDirectoryObservation(Observation):
             content=self.directory_info.render_as_string(),
             status=self.status,
             tool_name="list_directory",
-            artifacts=self.directory_info.to_artifacts(),
+            artifact=self.directory_info.to_artifacts(),
             tool_call_id=tool_call_id,
         )
 

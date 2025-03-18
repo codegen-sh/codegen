@@ -75,7 +75,7 @@ class MessageStreamTracer:
                 type=message_type,
                 content=content,
                 tool_name=getattr(latest_message, "name", None),
-                tool_response=content,
+                tool_response=getattr(latest_message, "artifact", content),
                 tool_id=getattr(latest_message, "tool_call_id", None),
                 status=getattr(latest_message, "status", None),
             )

@@ -128,7 +128,7 @@ class SearchObservation(Observation):
                 status=self.status,
                 tool_name="search",
                 tool_call_id=tool_call_id,
-                artifacts=artifacts,
+                artifact=artifacts,
             )
 
         # Build matches and file paths for success case
@@ -164,7 +164,7 @@ class SearchObservation(Observation):
             status=self.status,
             tool_name="search",
             tool_call_id=tool_call_id,
-            artifacts=artifacts,
+            artifact=artifacts,
         )
 
 

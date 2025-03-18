@@ -54,7 +54,7 @@ class ViewFileObservation(Observation):
                 status=self.status,
                 tool_call_id=tool_call_id,
                 tool_name="view_file",
-                artifacts=error_artifacts,
+                artifact=error_artifacts,
                 additional_kwargs={
                     "error": self.error,
                 },
@@ -83,7 +83,7 @@ class ViewFileObservation(Observation):
             status=self.status,
             tool_name="view_file",
             tool_call_id=tool_call_id,
-            artifacts=success_artifacts,
+            artifact=success_artifacts,
         )
 
 
