@@ -1090,7 +1090,7 @@ class ReflectionTool(BaseTool):
 class SearchFilesByNameInput(BaseModel):
     """Input for searching files by name pattern."""
 
-    pattern: str = Field(..., description="Glob pattern to search for (e.g. '*.py', 'test_*.py')")
+    pattern: str = Field(..., description="`fd`-compatible glob pattern to search for (e.g. '*.py', 'test_*.py')")
 
 
 class SearchFilesByNameTool(BaseTool):
@@ -1098,19 +1098,17 @@ class SearchFilesByNameTool(BaseTool):
 
     name: ClassVar[str] = "search_files_by_name"
     description: ClassVar[str] = """
-    Search for files and directories by glob pattern across the active codebase. This is useful when you need to:
-    - Find specific file types (e.g., '*.py', '*.tsx')
-    - Locate configuration files (e.g., 'package.json', 'requirements.txt')
-    - Find files with specific names (e.g., 'README.md', 'Dockerfile')
-
-    Uses fd under the hood
-    """
+Search for files and directories by glob pattern across the active codebase. This is useful when you need to:
+- Find specific file types (e.g., '*.py', '*.tsx')
+- Locate configuration files (e.g., 'package.json', 'requirements.txt')
+- Find files with specific names (e.g., 'README.md', 'Dockerfile')
+"""
     args_schema: ClassVar[type[BaseModel]] = SearchFilesByNameInput
     codebase: Codebase = Field(exclude=True)
 
     def __init__(self, codebase: Codebase):
         super().__init__(codebase=codebase)
 
-    def _run(self, pattern: str, full_path: bool = False) -> str:
+    def _run(self, pattern: str) -> str:
         """Execute the glob pattern search using fd."""
-        return search_files_by_name(self.codebase, pattern, full_path).render()
+        return search_files_by_name(self.codebase, pattern).render()
