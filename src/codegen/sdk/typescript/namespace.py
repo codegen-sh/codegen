@@ -39,6 +39,7 @@ if TYPE_CHECKING:
 
 logger = get_logger(__name__)
 
+
 @ts_apidoc
 class TSNamespace(TSSymbol, TSHasBlock, HasName, HasAttribute):
     """Representation of a namespace module in TypeScript.
@@ -364,12 +365,11 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName, HasAttribute):
         for namespace imports.
         """
         valid_export_names = {}
-        valid_export_names[self.name]=self
+        valid_export_names[self.name] = self
         for export in self.exports:
             for name, dest in export.names:
                 valid_export_names[name] = dest
         return valid_export_names
-
 
     def resolve_import(self, import_name: str) -> Symbol | None:
         """Resolves an import name to a symbol within this namespace.
@@ -404,4 +404,3 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName, HasAttribute):
             The resolved symbol or None if not found
         """
         return self.valid_import_names.get(name, None)
-
