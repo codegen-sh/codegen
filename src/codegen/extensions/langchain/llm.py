@@ -89,7 +89,7 @@ class LLM(BaseChatModel):
             if not os.getenv("ANTHROPIC_API_KEY"):
                 msg = "ANTHROPIC_API_KEY not found in environment. Please set it in your .env file or environment variables."
                 raise ValueError(msg)
-            max_tokens = 12000 if "claude-3-7" in self.model_name else 8192
+            max_tokens = 16384 if "claude-3-7" in self.model_name else 8192
             return ChatAnthropic(**self._get_model_kwargs(), max_tokens=max_tokens, max_retries=10, timeout=1000)
 
         elif self.model_provider == "openai":
