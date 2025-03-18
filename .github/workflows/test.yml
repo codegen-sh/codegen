@@ -32,15 +32,21 @@ jobs:
       - name: Setup environment
         uses: ./.github/actions/setup-environment
 
-      - name: Run ATS and Tests
-        uses: ./.github/actions/run-ats
-        timeout-minutes: 15
+      - name: Run tests
+        shell: bash
+        run: |
+          uv run --frozen pytest --cov \
+            -o junit_suite_name="${{ github.job }}" \
+            -n auto \
+            -vv \
+            --cov-append \
+            --timeout 15 \
+            "tests/unit"
+
+      - uses: ./.github/actions/report
         with:
-          default_tests: "tests/unit"
-          codecov_static_token: ${{ secrets.CODECOV_STATIC_TOKEN }}
+          flag: unit-tests
           codecov_token: ${{ secrets.CODECOV_TOKEN }}
-          collect_args: "--timeout 15"
-          codecov_flags: unit-tests
 
   codemod-tests:
     needs: access-check
@@ -71,18 +77,24 @@ jobs:
       - name: Cache oss-repos
         uses: ./.github/actions/setup-oss-repos
 
-      - name: Run ATS and Tests
-        uses: ./.github/actions/run-ats
+      - name: Run tests
         timeout-minutes: 15
+        shell: bash
+        run: |
+          TESTS_TO_RUN=$(uv run --frozen pytest --collect-only --size=${{matrix.size}} --sync-graph=${{matrix.sync_graph}} -q --disable-warnings --no-summary --no-header)
+          TESTS_TO_RUN=$(echo "${TESTS_TO_RUN}" | head -n -2)
+          echo $TESTS_TO_RUN | xargs uv run --frozen pytest --cov \
+            -o junit_suite_name="${{ github.job }}" \
+            -n auto \
+            -vv \
+            --cov-append \
+            --timeout 15 \
+            "tests/integration/codemod/test_codemods.py"
+
+      - uses: ./.github/actions/report
         with:
-          default_tests: "tests/integration/codemod/test_codemods.py"
-          codecov_static_token: ${{ secrets.CODECOV_STATIC_TOKEN }}
+          flag: codemod-tests-${{matrix.size}}-${{matrix.sync_graph}}
           codecov_token: ${{ secrets.CODECOV_TOKEN }}
-          collect_args: "--size=${{matrix.size}} --sync-graph=${{matrix.sync_graph}}"
-          ats_collect_args: "--size=${{matrix.size}},--sync-graph=${{matrix.sync_graph}},"
-          codecov_flags: codemod-tests-${{matrix.size}}-${{matrix.sync_graph}}
-        env:
-          GITHUB_WORKSPACE: $GITHUB_WORKSPACE
 
   parse-tests:
     needs: access-check
