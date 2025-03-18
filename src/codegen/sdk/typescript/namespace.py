@@ -19,6 +19,7 @@ from codegen.sdk.typescript.interfaces.has_block import TSHasBlock
 from codegen.sdk.typescript.symbol import TSSymbol
 from codegen.sdk.typescript.type_alias import TSTypeAlias
 from codegen.shared.decorators.docs import noapidoc, ts_apidoc
+from codegen.shared.logging.get_logger import get_logger
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -33,7 +34,10 @@ if TYPE_CHECKING:
     from codegen.sdk.core.symbol import Symbol
     from codegen.sdk.typescript.detached_symbols.code_block import TSCodeBlock
     from codegen.sdk.typescript.export import TSExport
+    from codegen.sdk.typescript.import_resolution import TSImport
 
+
+logger = get_logger(__name__)
 
 @ts_apidoc
 class TSNamespace(TSSymbol, TSHasBlock, HasName, HasAttribute):
@@ -318,7 +322,7 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName, HasAttribute):
             # Remove from code block statements
             for i, stmt in enumerate(self.code_block.statements):
                 if symbol.source == stmt.source:
-                    print("stmt to be removed: ", stmt)
+                    logger.debug(f"stmt to be removed: {stmt}")
                     self.code_block.statements.pop(i)
                     return symbol
         return None
@@ -336,6 +340,7 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName, HasAttribute):
             symbol.rename(new_name)
 
     @commiter
+    @noapidoc
     def export_symbol(self, name: str) -> None:
         """Marks a symbol as exported in the namespace.
 
@@ -349,19 +354,22 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName, HasAttribute):
         export_source = f"export {symbol.source}"
         symbol.parent.edit(export_source)
 
-    @property
-    def valid_import_names(self) -> set[str]:
+    @cached_property
+    @noapidoc
+    @reader(cache=True)
+    def valid_import_names(self) -> dict[str, TSSymbol | TSImport]:
         """Returns set of valid import names for this namespace.
 
         This includes all exported symbols plus the namespace name itself
         for namespace imports.
         """
-        names = {self.name}  # Namespace itself can be imported
-        for stmt in self.code_block.statements:
-            if stmt.ts_node_type == "export_statement":
-                for export in stmt.exports:
-                    names.add(export.name)
-        return names
+        valid_export_names = {}
+        valid_export_names[self.name]=self
+        for export in self.exports:
+            for name, dest in export.names:
+                valid_export_names[name] = dest
+        return valid_export_names
+
 
     def resolve_import(self, import_name: str) -> Symbol | None:
         """Resolves an import name to a symbol within this namespace.
@@ -395,13 +403,5 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName, HasAttribute):
         Returns:
             The resolved symbol or None if not found
         """
-        # First check direct symbols
-        if symbol := self.get_symbol(name):
-            return symbol
+        return self.valid_import_names.get(name, None)
 
-        # Then check nested namespaces recursively
-        for nested in self.get_nested_namespaces():
-            if symbol := nested.get_symbol(name):
-                return symbol
-
-        return None

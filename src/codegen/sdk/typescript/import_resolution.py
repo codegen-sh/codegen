@@ -25,6 +25,7 @@ if TYPE_CHECKING:
     from codegen.sdk.core.statements.import_statement import ImportStatement
     from codegen.sdk.core.symbol import Symbol
     from codegen.sdk.typescript.file import TSFile
+    from codegen.sdk.typescript.namespace import TSNamespace
     from codegen.sdk.typescript.statements.import_statement import TSImportStatement
 
 
@@ -591,6 +592,8 @@ class TSImport(Import["TSFile"], Exportable):
         """
         if not self.is_namespace_import():
             return []
+
+        from codegen.sdk.typescript.namespace import TSNamespace
 
         resolved = self.resolved_symbol
         if resolved is None or not isinstance(resolved, TSNamespace):

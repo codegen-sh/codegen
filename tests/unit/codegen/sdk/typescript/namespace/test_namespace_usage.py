@@ -43,8 +43,8 @@ def test_namespace_same_file_usage(tmpdir) -> None:
         assert set(square.symbol_usages) == {square.export, calc_area}
 
         # Verify attribute resolution
-        assert namespace.resolve_attribute("PI") == pi
-        assert namespace.resolve_attribute("square") == square
+        assert namespace.resolve_attribute("PI") == pi.export
+        assert namespace.resolve_attribute("square") == square.export
 
 
 def test_namespace_cross_file_usage(tmpdir) -> None:
@@ -98,6 +98,6 @@ def test_namespace_cross_file_usage(tmpdir) -> None:
         assert {calc_area}.issubset(square.symbol_usages(UsageType.CHAINED))
 
         # Verify attribute resolution
-        assert namespace.resolve_attribute("PI") == pi
-        assert namespace.resolve_attribute("square") == square
+        assert namespace.resolve_attribute("PI") == pi.export
+        assert namespace.resolve_attribute("square") == square.export
         assert namespace.resolve_attribute("internal") is None
