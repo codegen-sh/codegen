@@ -8,6 +8,8 @@ from langchain_core.runnables.config import RunnableConfig
 from langgraph.graph.graph import CompiledGraph
 from langsmith import Client
 
+from codegen.agents.loggers import ExternalLogger
+from codegen.agents.tracer import MessageStreamTracer
 from codegen.extensions.langchain.agent import create_codebase_agent
 from codegen.extensions.langchain.utils.get_langsmith_url import (
     find_and_print_langsmith_run_url,
@@ -30,6 +32,7 @@ class CodeAgent:
     run_id: str | None = None
     instance_id: str | None = None
     difficulty: int | None = None
+    logger: Optional[ExternalLogger] = None
 
     def __init__(
         self,
@@ -42,6 +45,7 @@ class CodeAgent:
         metadata: Optional[dict] = {},
         agent_config: Optional[AgentConfig] = None,
         thread_id: Optional[str] = None,
+        logger: Optional[ExternalLogger] = None,
         **kwargs,
     ):
         """Initialize a CodeAgent.
@@ -92,6 +96,9 @@ class CodeAgent:
         # Initialize tags for agent trace
         self.tags = [*tags, self.model_name]
 
+        # set logger if provided
+        self.logger = logger
+
         # Initialize metadata for agent trace
         self.metadata = {
             "project": self.project_name,
@@ -123,19 +130,26 @@ class CodeAgent:
 
         config = RunnableConfig(configurable={"thread_id": self.thread_id}, tags=self.tags, metadata=self.metadata, recursion_limit=200)
         # we stream the steps instead of invoke because it allows us to access intermediate nodes
+
         stream = self.agent.stream(input, config=config, stream_mode="values")
+
+        _tracer = MessageStreamTracer(logger=self.logger)
+
+        # Process the stream with the tracer
+        traced_stream = _tracer.process_stream(stream)
 
         # Keep track of run IDs from the stream
         run_ids = []
 
-        for s in stream:
+        for s in traced_stream:
             if len(s["messages"]) == 0 or isinstance(s["messages"][-1], HumanMessage):
                 message = HumanMessage(content=prompt)
             else:
                 message = s["messages"][-1]
 
             if isinstance(message, tuple):
-                print(message)
+                # print(message)
+                pass
             else:
                 if isinstance(message, AIMessage) and isinstance(message.content, list) and len(message.content) > 0 and "text" in message.content[0]:
                     AIMessage(message.content[0]["text"]).pretty_print()
@@ -149,7 +163,7 @@ class CodeAgent:
         # Get the last message content
         result = s["final_answer"]
 
-        # Try to find run IDs in the LangSmith client's recent runs
+        # # Try to find run IDs in the LangSmith client's recent runs
         try:
             # Find and print the LangSmith run URL
             find_and_print_langsmith_run_url(self.langsmith_client, self.project_name)
