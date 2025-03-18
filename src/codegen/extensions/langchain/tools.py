@@ -1111,6 +1111,6 @@ Search for files and directories by glob pattern (with pagination) across the ac
     def __init__(self, codebase: Codebase):
         super().__init__(codebase=codebase)
 
-    def _run(self, pattern: str, page: int, files_per_page: int | float) -> str:
+    def _run(self, pattern: str, page: int = 1, files_per_page: int | float = 10) -> str:
         """Execute the glob pattern search using fd."""
         return search_files_by_name(self.codebase, pattern, page=page, files_per_page=files_per_page).render()
