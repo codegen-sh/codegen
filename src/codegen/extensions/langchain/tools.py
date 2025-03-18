@@ -1,7 +1,9 @@
 """Langchain tools for workspace operations."""
 
-from typing import Callable, ClassVar, Literal, Optional
+from typing import Annotated, Callable, ClassVar, Literal, Optional
 
+from langchain_core.messages import ToolMessage
+from langchain_core.tools import InjectedToolCallId
 from langchain_core.tools.base import BaseTool
 from pydantic import BaseModel, Field
 
@@ -53,6 +55,7 @@ class ViewFileInput(BaseModel):
     end_line: Optional[int] = Field(None, description="Ending line number to view (1-indexed, inclusive)")
     max_lines: Optional[int] = Field(None, description="Maximum number of lines to view at once, defaults to 250")
     line_numbers: Optional[bool] = Field(True, description="If True, add line numbers to the content (1-indexed)")
+    tool_call_id: Annotated[str, InjectedToolCallId]
 
 
 class ViewFileTool(BaseTool):
@@ -70,12 +73,13 @@ The response will indicate if there are more lines available to view."""
 
     def _run(
         self,
+        tool_call_id: str,
         filepath: str,
         start_line: Optional[int] = None,
         end_line: Optional[int] = None,
         max_lines: Optional[int] = None,
         line_numbers: Optional[bool] = True,
-    ) -> str:
+    ) -> ToolMessage:
         result = view_file(
             self.codebase,
             filepath,
@@ -85,7 +89,7 @@ The response will indicate if there are more lines available to view."""
             max_lines=max_lines if max_lines is not None else 250,
         )
 
-        return result.render()
+        return result.render(tool_call_id)
 
 
 class ListDirectoryInput(BaseModel):
@@ -93,6 +97,7 @@ class ListDirectoryInput(BaseModel):
 
     dirpath: str = Field(default="./", description="Path to directory relative to workspace root")
     depth: int = Field(default=1, description="How deep to traverse. Use -1 for unlimited depth.")
+    tool_call_id: Annotated[str, InjectedToolCallId]
 
 
 class ListDirectoryTool(BaseTool):
@@ -106,9 +111,9 @@ class ListDirectoryTool(BaseTool):
     def __init__(self, codebase: Codebase) -> None:
         super().__init__(codebase=codebase)
 
-    def _run(self, dirpath: str = "./", depth: int = 1) -> str:
+    def _run(self, tool_call_id: str, dirpath: str = "./", depth: int = 1) -> ToolMessage:
         result = list_directory(self.codebase, dirpath, depth)
-        return result.render()
+        return result.render(tool_call_id)
 
 
 class SearchInput(BaseModel):
@@ -123,6 +128,7 @@ class SearchInput(BaseModel):
     page: int = Field(default=1, description="Page number to return (1-based, default: 1)")
     files_per_page: int = Field(default=10, description="Number of files to return per page (default: 10)")
     use_regex: bool = Field(default=False, description="Whether to treat query as a regex pattern (default: False)")
+    tool_call_id: Annotated[str, InjectedToolCallId]
 
 
 class SearchTool(BaseTool):
@@ -136,9 +142,9 @@ class SearchTool(BaseTool):
     def __init__(self, codebase: Codebase) -> None:
         super().__init__(codebase=codebase)
 
-    def _run(self, query: str, file_extensions: Optional[list[str]] = None, page: int = 1, files_per_page: int = 10, use_regex: bool = False) -> str:
+    def _run(self, tool_call_id: str, query: str, file_extensions: Optional[list[str]] = None, page: int = 1, files_per_page: int = 10, use_regex: bool = False) -> ToolMessage:
         result = search(self.codebase, query, file_extensions=file_extensions, page=page, files_per_page=files_per_page, use_regex=use_regex)
-        return result.render()
+        return result.render(tool_call_id)
 
 
 class EditFileInput(BaseModel):
@@ -146,6 +152,7 @@ class EditFileInput(BaseModel):
 
     filepath: str = Field(..., description="Path to the file to edit")
     content: str = Field(..., description="New content for the file")
+    tool_call_id: Annotated[str, InjectedToolCallId]
 
 
 class EditFileTool(BaseTool):
@@ -178,9 +185,9 @@ Input for searching the codebase.
     def __init__(self, codebase: Codebase) -> None:
         super().__init__(codebase=codebase)
 
-    def _run(self, filepath: str, content: str) -> str:
+    def _run(self, filepath: str, content: str, tool_call_id: str) -> str:
         result = edit_file(self.codebase, filepath, content)
-        return result.render()
+        return result.render(tool_call_id)
 
 
 class CreateFileInput(BaseModel):
@@ -337,6 +344,7 @@ class SemanticEditInput(BaseModel):
     edit_content: str = Field(..., description=FILE_EDIT_PROMPT)
     start: int = Field(default=1, description="Starting line number (1-indexed, inclusive). Default is 1.")
     end: int = Field(default=-1, description="Ending line number (1-indexed, inclusive). Default is -1 (end of file).")
+    tool_call_id: Annotated[str, InjectedToolCallId]
 
 
 class SemanticEditTool(BaseTool):
@@ -350,10 +358,10 @@ class SemanticEditTool(BaseTool):
     def __init__(self, codebase: Codebase) -> None:
         super().__init__(codebase=codebase)
 
-    def _run(self, filepath: str, edit_content: str, start: int = 1, end: int = -1) -> str:
+    def _run(self, filepath: str, tool_call_id: str, edit_content: str, start: int = 1, end: int = -1) -> ToolMessage:
         # Create the the draft editor mini llm
         result = semantic_edit(self.codebase, filepath, edit_content, start=start, end=end)
-        return result.render()
+        return result.render(tool_call_id)
 
 
 class RenameFileInput(BaseModel):
