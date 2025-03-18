@@ -81,7 +81,7 @@ class ViewFileObservation(Observation):
         return ToolMessage(
             content=f"{header}\n\n{self.content}" if self.content else f"{header}\n<Empty Content>",
             status=self.status,
-            tool_name="view_file",
+            name="view_file",
             tool_call_id=tool_call_id,
             artifact=success_artifacts,
         )
