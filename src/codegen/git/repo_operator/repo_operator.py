@@ -171,7 +171,7 @@ class RepoOperator:
             return self.git_cli.head.commit
         except ValueError as e:
             if "Reference at 'refs/heads/main' does not exist" in str(e):
-                logger.info("No commit exists in the repository yet")
+                logger.info(f"Ref: {op.git_cli.head.ref.name} has no commits")
                 return None
             raise
 
