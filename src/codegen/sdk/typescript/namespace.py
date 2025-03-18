@@ -167,9 +167,6 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName, HasAttribute):
             name: Name of the function to find
             recursive: If True, also search in nested namespaces
         """
-        # Import here to avoid circular import
-        from codegen.sdk.typescript.function import TSFunction
-
         symbol = self.get_symbol(name, recursive=recursive)
         return symbol if isinstance(symbol, TSFunction) else None
 
@@ -189,9 +186,6 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName, HasAttribute):
             name: Name of the class to find
             recursive: If True, also search in nested namespaces
         """
-        # Import here to avoid circular import
-        from codegen.sdk.typescript.class_definition import TSClass
-
         symbol = self.get_symbol(name, recursive=recursive)
         return symbol if isinstance(symbol, TSClass) else None
 

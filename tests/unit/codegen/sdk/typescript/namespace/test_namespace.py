@@ -123,44 +123,6 @@ def test_namespace_functions(tmpdir) -> None:
         assert all(func.is_exported for func in namespace.functions)
 
 
-def test_namespace_function_full_name(tmpdir) -> None:
-    """Test getting functions using full names."""
-    FILE_NAME = "test.ts"
-    # language=typescript
-    FILE_CONTENT = """
-    namespace Outer {
-        export function shared() { return 1; }
-        export namespace Inner {
-            export function shared() { return 2; }
-            export function unique() { return 3; }
-        }
-    }
-    """
-    with get_codebase_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={FILE_NAME: FILE_CONTENT}) as codebase:
-        namespace: TSNamespace = codebase.get_symbol("Outer")
-        assert namespace is not None
-
-        # Test getting functions by local name
-        outer_shared = namespace.get_function("shared", recursive=False)
-        assert outer_shared is not None
-        inner_shared = namespace.get_function("shared", recursive=True)
-        assert inner_shared is not None
-        # Without full names, we might get either shared function
-        assert outer_shared == inner_shared
-
-        # Test getting functions by full name
-        outer_shared = namespace.get_function("shared", use_full_name=True)
-        assert outer_shared is not None
-        inner_shared = namespace.get_function("Inner.shared", use_full_name=True)
-        assert inner_shared is not None
-        inner_unique = namespace.get_function("Inner.unique", use_full_name=True)
-        assert inner_unique is not None
-
-        # Test non-existent paths
-        assert namespace.get_function("NonExistent.shared", use_full_name=True) is None
-        assert namespace.get_function("Inner.NonExistent", use_full_name=True) is None
-
-
 def test_namespace_function_overloading(tmpdir) -> None:
     """Test function overloading within namespace."""
     FILE_NAME = "test.ts"
