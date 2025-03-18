@@ -9,6 +9,7 @@ from codegen.sdk.core.expressions import Name
 from codegen.sdk.core.import_resolution import Import, ImportResolution, WildcardImport
 from codegen.sdk.core.interfaces.exportable import Exportable
 from codegen.sdk.enums import ImportType, NodeType, SymbolType
+from codegen.sdk.typescript.namespace import TSNamespace
 from codegen.sdk.utils import find_all_descendants, find_first_ancestor, find_first_descendant
 from codegen.shared.decorators.docs import noapidoc, ts_apidoc
 

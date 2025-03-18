@@ -155,21 +155,15 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName, HasAttribute):
         """
         return [symbol for symbol in self.symbols if isinstance(symbol, TSFunction)]
 
-    def get_function(self, name: str, recursive: bool = True, use_full_name: bool = False) -> TSFunction | None:
+    def get_function(self, name: str, recursive: bool = True) -> TSFunction | None:
         """Get a function by name from this namespace.
 
         Args:
-            name: Name of the function to find (can be fully qualified like 'Outer.Inner.func')
+            name: Name of the function to find
             recursive: If True, also search in nested namespaces
-            use_full_name: If True, match against the full qualified name
-
-        Returns:
-            TSFunction | None: The found function, or None if not found
         """
-        if use_full_name and "." in name:
-            namespace_path, func_name = name.rsplit(".", 1)
-            target_ns = self.get_namespace(namespace_path)
-            return target_ns.get_function(func_name, recursive=False) if target_ns else None
+        # Import here to avoid circular import
+        from codegen.sdk.typescript.function import TSFunction
 
         symbol = self.get_symbol(name, recursive=recursive)
         return symbol if isinstance(symbol, TSFunction) else None
@@ -190,6 +184,9 @@ class TSNamespace(TSSymbol, TSHasBlock, HasName, HasAttribute):
             name: Name of the class to find
             recursive: If True, also search in nested namespaces
         """
+        # Import here to avoid circular import
+        from codegen.sdk.typescript.class_definition import TSClass
+
         symbol = self.get_symbol(name, recursive=recursive)
         return symbol if isinstance(symbol, TSClass) else None
 
