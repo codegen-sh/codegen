@@ -39,22 +39,18 @@ component_management:
 flag_management:
   default_rules:
     carryforward: true
-    carryforward_mode: 'labels'
     statuses:
       - type: project
   individual_flags:
     - name: unit-tests
       carryforward: true
-      carryforward_mode: 'labels'
       statuses:
         - type: 'project'
         - type: 'patch'
     - name: codemod-tests
       carryforward: true
-      carryforward_mode: 'labels'
     - name: integration-tests
       carryforward: true
-      carryforward_mode: 'labels'
 comment:
   layout: "condensed_header, condensed_files"
   hide_project_coverage: true
