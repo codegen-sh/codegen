@@ -106,11 +106,12 @@ class CodeAgent:
             **metadata,
         }
 
-    def run(self, prompt: str) -> str:
-        """Run the agent with a prompt.
+    def run(self, prompt: str, image_urls: Optional[list[str]] = None) -> str:
+        """Run the agent with a prompt and optional images.
 
         Args:
             prompt: The prompt to run
+            image_urls: Optional list of base64-encoded image strings. Example: ["data:image/png;base64,<base64_str>"]
             thread_id: Optional thread ID for message history
 
         Returns:
@@ -124,14 +125,15 @@ class CodeAgent:
             "recursion_limit": 100,
         }
 
-        # this message has a reducer which appends the current message to the existing history
-        # see more https://langchain-ai.github.io/langgraph/concepts/low_level/#reducers
-        input = {"query": prompt}
+        # Prepare content with prompt and images if provided
+        content = [{"type": "text", "text": prompt}]
+        if image_urls:
+            content += [{"type": "image_url", "image_url": {"url": image_url}} for image_url in image_urls]
 
         config = RunnableConfig(configurable={"thread_id": self.thread_id}, tags=self.tags, metadata=self.metadata, recursion_limit=200)
         # we stream the steps instead of invoke because it allows us to access intermediate nodes
 
-        stream = self.agent.stream(input, config=config, stream_mode="values")
+        stream = self.agent.stream({"messages": [HumanMessage(content=content)]}, config=config, stream_mode="values")
 
         _tracer = MessageStreamTracer(logger=self.logger)
 
@@ -143,7 +145,7 @@ class CodeAgent:
 
         for s in traced_stream:
             if len(s["messages"]) == 0 or isinstance(s["messages"][-1], HumanMessage):
-                message = HumanMessage(content=prompt)
+                message = HumanMessage(content=content)
             else:
                 message = s["messages"][-1]
 
