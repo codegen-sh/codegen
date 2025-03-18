@@ -899,7 +899,7 @@ class Codebase(
         if result == CheckoutResult.SUCCESS:
             logger.info(f"Checked out {branch or commit}")
             if self._op.head_commit is None:
-                logger.info("No commit exists in the repository yet")
+                logger.info(f"Ref: {self._op.git_cli.head.ref.name} has no commits")
                 return CheckoutResult.SUCCESS
 
             self.sync_to_commit(self._op.head_commit)
