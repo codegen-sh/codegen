@@ -166,8 +166,14 @@ class RepoOperator:
         return git_cli
 
     @property
-    def head_commit(self) -> GitCommit:
-        return self.git_cli.head.commit
+    def head_commit(self) -> GitCommit | None:
+        try:
+            return self.git_cli.head.commit
+        except ValueError as e:
+            if "Reference at 'refs/heads/main' does not exist" in str(e):
+                logger.info("No commit exists in the repository yet")
+                return None
+            raise
 
     @property
     def git_diff(self) -> str:
