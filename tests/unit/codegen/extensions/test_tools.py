@@ -13,8 +13,10 @@ from codegen.extensions.tools import (
     move_symbol,
     rename_file,
     replacement_edit,
+    replacement_edit_global,
     reveal_symbol,
     run_codemod,
+    search_files_by_name,
     semantic_edit,
     semantic_search,
     view_file,
@@ -282,6 +284,21 @@ def test_move_symbol(codebase):
     assert result.target_file == "src/target.py"
 
 
+def test_search_files_by_name(codebase):
+    """Test searching files by name."""
+    create_file(codebase, "src/main.py", "print('hello')")
+    create_file(codebase, "src/target.py", "print('world')")
+    result = search_files_by_name(codebase, "*.py")
+    assert result.status == "success"
+    assert len(result.files) == 2
+    assert "src/main.py" in result.files
+    assert "src/target.py" in result.files
+    result = search_files_by_name(codebase, "main.py")
+    assert result.status == "success"
+    assert len(result.files) == 1
+    assert "src/main.py" in result.files
+
+
 def test_reveal_symbol(codebase):
     """Test revealing symbol relationships."""
     result = reveal_symbol(
@@ -413,6 +430,71 @@ def test_replacement_edit(codebase):
     )
     assert result.status == "unchanged"
     assert "No matches found" in str(result)
+
+
+def test_replacement_edit_global(codebase):
+    """Test global regex-based replacement editing."""
+    # Create additional test file
+    create_file(
+        codebase,
+        filepath="src/other.py",
+        content="""
+def hello():
+    print("Hello, world!")
+
+def greet():
+    print("Hello!")
+""",
+    )
+    codebase.commit()  # Commit the new file so it can be found
+
+    # List directory to debug
+    print("Directory contents:")
+    print(list_directory(codebase, "src"))
+
+    # Test basic global replacement across files
+    result = replacement_edit_global(
+        codebase,
+        file_pattern="*.py",
+        pattern=r'print\("Hello.*?"\)',
+        replacement='print("Goodbye!")',
+    )
+    print(f"Found files: {search_files_by_name(codebase, '*.py').files}")  # Debug print
+    assert result.status == "success"
+    assert result.diff  # Should have modified both files
+    assert 'print("Goodbye!")' in result.diff
+
+    # Test with count limit
+    result = replacement_edit_global(
+        codebase,
+        file_pattern="*.py",
+        pattern=r"def",
+        replacement="async def",
+        count=1,  # Only replace first occurrence in each file
+    )
+    assert result.status == "success"
+    assert result.diff  # Should have modified both files
+
+    # Test invalid regex pattern
+    result = replacement_edit_global(
+        codebase,
+        file_pattern="*.py",
+        pattern=r"[invalid",  # Invalid regex pattern
+        replacement="replacement",
+    )
+    assert result.status == "error"
+    assert result.error_pattern == "[invalid"
+    assert "Invalid regex pattern" in result.message
+
+    # Test no matches
+    result = replacement_edit_global(
+        codebase,
+        file_pattern="*.py",
+        pattern=r"nonexistent_pattern",
+        replacement="replacement",
+    )
+    assert result.status == "success"
+    assert not result.diff  # Should be empty since no files were modified
 
 
 def test_run_codemod(codebase):

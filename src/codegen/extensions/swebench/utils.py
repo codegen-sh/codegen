@@ -73,6 +73,7 @@ def get_swe_bench_examples(
     split: Literal["train", "dev", "test"] = "test",
     length: int | None = None,
     instance_id: str | None = None,
+    instance_ids: list[str] = [],
     repo: str | None = None,
 ) -> list[SweBenchExample]:
     """Fetch examples from the SWE-bench dataset using the datasets library.
@@ -80,18 +81,19 @@ def get_swe_bench_examples(
     Args:
         dataset: The dataset to use ("lite", "full", or "verified")
         split: The dataset split to use
-        offset: Starting index for examples
         length: Number of examples to fetch
         instance_id: Optional specific instance ID to fetch
+        instance_ids: Optional list of instance IDs to fetch
+        repo: Optional specific repo to fetch
 
     Returns:
         List of SweBenchExample objects
     """
-    # Convert string dataset name to enum
-
     # Load the dataset with caching enabled
-    instance_ids = []
     if isinstance(dataset, SWEBenchLiteSubset):
+        if instance_ids:
+            msg = "instance_ids is not supported for lite subsets. Please pass a list of instance IDs instead."
+            raise ValueError(msg)
         swe_bench_dataset = load_dataset(SWEBenchDataset.LITE.value, download_mode="reuse_dataset_if_exists")
         instance_ids = LITE_SUBSETS[dataset]
     else:

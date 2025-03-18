@@ -5,10 +5,11 @@ Each matching line will be returned with its line number.
 Results are paginated with a default of 10 files per page.
 """
 
+import logging
 import os
 import re
 import subprocess
-from typing import ClassVar, Optional
+from typing import ClassVar
 
 from langchain_core.messages import ToolMessage
 from pydantic import Field
@@ -18,6 +19,8 @@ from codegen.extensions.tools.tool_output_types import SearchMatch as SearchMatc
 from codegen.sdk.core.codebase import Codebase
 
 from .observation import Observation
+
+logger = logging.getLogger(__name__)
 
 
 class SearchMatch(Observation):
@@ -168,7 +171,7 @@ class SearchObservation(Observation):
 def _search_with_ripgrep(
     codebase: Codebase,
     query: str,
-    file_extensions: Optional[list[str]] = None,
+    file_extensions: list[str] | None = None,
     page: int = 1,
     files_per_page: int = 10,
     use_regex: bool = False,
@@ -190,10 +193,10 @@ def _search_with_ripgrep(
         for ext in file_extensions:
             # Remove leading dot if present
             ext = ext[1:] if ext.startswith(".") else ext
-            cmd.extend(["--type-add", f"custom:{ext}", "--type", "custom"])
+            cmd.extend(["--type-add", f"custom:*.{ext}", "--type", "custom"])
 
     # Add target directories if specified
-    search_path = codebase.repo_path
+    search_path = str(codebase.repo_path)
 
     # Add the query and path
     cmd.append(f"{query}")
@@ -201,6 +204,7 @@ def _search_with_ripgrep(
 
     # Run ripgrep
     try:
+        logger.info(f"Running ripgrep command: {' '.join(cmd)}")
         # Use text mode and UTF-8 encoding
         result = subprocess.run(
             cmd,
@@ -310,7 +314,7 @@ def _search_with_ripgrep(
 def _search_with_python(
     codebase: Codebase,
     query: str,
-    file_extensions: Optional[list[str]] = None,
+    file_extensions: list[str] | None = None,
     page: int = 1,
     files_per_page: int = 10,
     use_regex: bool = False,
@@ -407,7 +411,7 @@ def _search_with_python(
 def search(
     codebase: Codebase,
     query: str,
-    file_extensions: Optional[list[str]] = None,
+    file_extensions: list[str] | None = None,
     page: int = 1,
     files_per_page: int = 10,
     use_regex: bool = False,
