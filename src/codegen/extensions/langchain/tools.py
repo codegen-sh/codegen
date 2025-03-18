@@ -1091,6 +1091,8 @@ class SearchFilesByNameInput(BaseModel):
     """Input for searching files by name pattern."""
 
     pattern: str = Field(..., description="`fd`-compatible glob pattern to search for (e.g. '*.py', 'test_*.py')")
+    page: int = Field(default=1, description="Page number to return (1-based, default: 1)")
+    files_per_page: int = Field(default=50, description="Number of files to return per page (default: 50)")
 
 
 class SearchFilesByNameTool(BaseTool):
@@ -1109,6 +1111,6 @@ Search for files and directories by glob pattern across the active codebase. Thi
     def __init__(self, codebase: Codebase):
         super().__init__(codebase=codebase)
 
-    def _run(self, pattern: str) -> str:
+    def _run(self, pattern: str, page: int = 1, files_per_page: int = 50) -> str:
         """Execute the glob pattern search using fd."""
-        return search_files_by_name(self.codebase, pattern).render()
+        return search_files_by_name(self.codebase, pattern, page, files_per_page).render()
