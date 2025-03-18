@@ -5,7 +5,9 @@ import rich_click as click
 from langchain_core.messages import SystemMessage
 from rich.console import Console
 from rich.markdown import Markdown
+from rich.panel import Panel
 from rich.prompt import Prompt
+from rich.text import Text
 
 from codegen.extensions.langchain.agent import create_agent_with_tools
 from codegen.extensions.langchain.tools import (
@@ -39,13 +41,31 @@ WELCOME_ART = r"""[bold blue]
 [/bold blue]
 """
 
+# List of suggested starting prompts
+SUGGESTED_PROMPTS = [
+    "What repositories can you see?",
+    "Show me the structure of this codebase",
+    "Find all files containing the function 'create_agent'",
+    "What capabilities do you have?",
+    "Help me understand the architecture of this project",
+    "Show me the main entry points of this application",
+]
+
 
 @click.command(name="agent")
 @click.option("--query", "-q", default=None, help="Initial query for the agent.")
-def agent_command(query: str):
+@click.option("--help-prompts", is_flag=True, help="Show suggested prompts and exit.")
+def agent_command(query: str, help_prompts: bool):
     """Start an interactive chat session with the Codegen AI agent."""
     # Show welcome message
     console.print(WELCOME_ART)
+
+    # If help-prompts flag is set, show suggested prompts and exit
+    if help_prompts:
+        console.print("[bold]Suggested Starting Prompts:[/bold]")
+        for i, prompt in enumerate(SUGGESTED_PROMPTS, 1):
+            console.print(f"  {i}. [cyan]{prompt}[/cyan]")
+        return
 
     # Initialize codebase from current directory
     with console.status("[bold green]Initializing codebase...[/bold green]"):
@@ -85,9 +105,29 @@ Always explain what you're planning to do before taking actions."""
         console.print("I'm an AI assistant that can help you explore and modify code in this repository.")
         console.print("I can help with tasks like viewing files, searching code, making edits, and more.")
         console.print()
+
+        # Display suggested prompts in a panel
+        prompt_text = Text()
+        prompt_text.append("Try asking me:\n", style="bold")
+        for i, prompt in enumerate(SUGGESTED_PROMPTS[:3], 1):  # Show only first 3 suggestions
+            prompt_text.append(f"{i}. ", style="bold cyan")
+            prompt_text.append(f"{prompt}\n", style="cyan")
+        prompt_text.append("\nOr type 'help' to see more suggested prompts", style="dim")
+
+        console.print(Panel(prompt_text, title="Suggested Prompts", border_style="blue"))
+        console.print()
+
         console.print("What would you like help with today?")
         console.print()
         query = Prompt.ask("[bold]>[/bold]")  # Simple arrow prompt
+
+        # Handle 'help' command to show more suggested prompts
+        if query.lower() in ["help", "--help", "man", "?", "examples"]:
+            console.print("[bold]Suggested Starting Prompts:[/bold]")
+            for i, prompt in enumerate(SUGGESTED_PROMPTS, 1):
+                console.print(f"  {i}. [cyan]{prompt}[/cyan]")
+            console.print()
+            query = Prompt.ask("[bold]>[/bold]")  # Ask again after showing help
 
     # Create the agent
     agent = create_agent_with_tools(codebase=codebase, tools=tools, system_message=system_message)
@@ -102,6 +142,13 @@ Always explain what you're planning to do before taking actions."""
 
         if user_input.lower() in ["exit", "quit"]:
             break
+
+        # Handle 'help' command to show suggested prompts
+        if user_input.lower() in ["help", "--help", "man", "?", "examples"]:
+            console.print("[bold]Suggested Starting Prompts:[/bold]")
+            for i, prompt in enumerate(SUGGESTED_PROMPTS, 1):
+                console.print(f"  {i}. [cyan]{prompt}[/cyan]")
+            continue
 
         # Invoke the agent
         with console.status("[bold green]Agent is thinking...") as status:
