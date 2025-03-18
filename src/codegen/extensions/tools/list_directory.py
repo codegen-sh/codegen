@@ -2,12 +2,13 @@
 
 from typing import ClassVar
 
+from langchain_core.messages import ToolMessage
 from pydantic import Field
 
+from codegen.extensions.tools.observation import Observation
+from codegen.extensions.tools.tool_output_types import ListDirectoryArtifacts
 from codegen.sdk.core.codebase import Codebase
 from codegen.sdk.core.directory import Directory
-
-from .observation import Observation
 
 
 class DirectoryInfo(Observation):
@@ -31,6 +32,14 @@ class DirectoryInfo(Observation):
         default=False,
         description="Whether this is a leaf node (at max depth)",
     )
+    depth: int = Field(
+        default=0,
+        description="Current depth in the tree",
+    )
+    max_depth: int = Field(
+        default=1,
+        description="Maximum depth allowed",
+    )
 
     str_template: ClassVar[str] = "Directory {path} ({file_count} files, {dir_count} subdirs)"
 
@@ -41,7 +50,7 @@ class DirectoryInfo(Observation):
             "dir_count": len(self.subdirectories),
         }
 
-    def render(self) -> str:
+    def render_as_string(self) -> str:
         """Render directory listing as a file tree."""
         lines = [
             f"[LIST DIRECTORY]: {self.path}",
@@ -97,6 +106,26 @@ class DirectoryInfo(Observation):
 
         return "\n".join(lines)
 
+    def to_artifacts(self) -> ListDirectoryArtifacts:
+        """Convert directory info to artifacts for UI."""
+        artifacts: ListDirectoryArtifacts = {
+            "dirpath": self.path,
+            "name": self.name,
+            "is_leaf": self.is_leaf,
+            "depth": self.depth,
+            "max_depth": self.max_depth,
+        }
+
+        if self.files is not None:
+            artifacts["files"] = self.files
+            artifacts["file_paths"] = [f"{self.path}/{f}" for f in self.files]
+
+        if self.subdirectories:
+            artifacts["subdirs"] = [d.name for d in self.subdirectories]
+            artifacts["subdir_paths"] = [d.path for d in self.subdirectories]
+
+        return artifacts
+
 
 class ListDirectoryObservation(Observation):
     """Response from listing directory contents."""
@@ -107,9 +136,29 @@ class ListDirectoryObservation(Observation):
 
     str_template: ClassVar[str] = "{directory_info}"
 
-    def render(self) -> str:
-        """Render directory listing."""
-        return self.directory_info.render()
+    def render(self, tool_call_id: str) -> ToolMessage:
+        """Render directory listing with artifacts for UI."""
+        if self.status == "error":
+            error_artifacts: ListDirectoryArtifacts = {
+                "dirpath": self.directory_info.path,
+                "name": self.directory_info.name,
+                "error": self.error,
+            }
+            return ToolMessage(
+                content=f"[ERROR LISTING DIRECTORY]: {self.directory_info.path}: {self.error}",
+                status=self.status,
+                tool_name="list_directory",
+                artifact=error_artifacts,
+                tool_call_id=tool_call_id,
+            )
+
+        return ToolMessage(
+            content=self.directory_info.render_as_string(),
+            status=self.status,
+            tool_name="list_directory",
+            artifact=self.directory_info.to_artifacts(),
+            tool_call_id=tool_call_id,
+        )
 
 
 def list_directory(codebase: Codebase, path: str = "./", depth: int = 2) -> ListDirectoryObservation:
@@ -136,7 +185,7 @@ def list_directory(codebase: Codebase, path: str = "./", depth: int = 2) -> List
             ),
         )
 
-    def get_directory_info(dir_obj: Directory, current_depth: int) -> DirectoryInfo:
+    def get_directory_info(dir_obj: Directory, current_depth: int, max_depth: int) -> DirectoryInfo:
         """Helper function to get directory info recursively."""
         # Get direct files (always include files unless at max depth)
         all_files = []
@@ -151,7 +200,7 @@ def list_directory(codebase: Codebase, path: str = "./", depth: int = 2) -> List
                 if current_depth > 1 or current_depth == -1:
                     # For deeper traversal, get full directory info
                     new_depth = current_depth - 1 if current_depth > 1 else -1
-                    subdirs.append(get_directory_info(subdir, new_depth))
+                    subdirs.append(get_directory_info(subdir, new_depth, max_depth))
                 else:
                     # At max depth, return a leaf node
                     subdirs.append(
@@ -161,6 +210,8 @@ def list_directory(codebase: Codebase, path: str = "./", depth: int = 2) -> List
                             path=subdir.dirpath,
                             files=None,  # Don't include files at max depth
                             is_leaf=True,
+                            depth=current_depth,
+                            max_depth=max_depth,
                         )
                     )
 
@@ -170,9 +221,11 @@ def list_directory(codebase: Codebase, path: str = "./", depth: int = 2) -> List
             path=dir_obj.dirpath,
             files=sorted(all_files),
             subdirectories=subdirs,
+            depth=current_depth,
+            max_depth=max_depth,
         )
 
-    dir_info = get_directory_info(directory, depth)
+    dir_info = get_directory_info(directory, depth, depth)
     return ListDirectoryObservation(
         status="success",
         directory_info=dir_info,
