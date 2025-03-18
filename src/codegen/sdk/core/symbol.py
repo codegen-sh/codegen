@@ -267,9 +267,10 @@ class Symbol(Usable[Statement["CodeBlock[Parent, ...]"]], Generic[Parent, TCodeB
                 return first_node.insert_before(new_src, fix_indentation, newline, priority, dedupe)
         return super().insert_before(new_src, fix_indentation, newline, priority, dedupe)
 
-    def _post_move_import_cleanup(self,encountered_symbols,strategy):
+    def _post_move_import_cleanup(self, encountered_symbols, strategy):
         # =====[ Remove any imports that are no longer used ]=====
         from codegen.sdk.core.import_resolution import Import
+
         for dep in self.dependencies:
             if strategy != "duplicate_dependencies":
                 other_usages = [usage.usage_symbol for usage in dep.usages if usage.usage_symbol not in encountered_symbols]
@@ -324,7 +325,7 @@ class Symbol(Usable[Statement["CodeBlock[Parent, ...]"]], Generic[Parent, TCodeB
             AssertionError: If an invalid strategy is provided.
         """
         encountered_symbols = {self}
-        self._move_to_file(file, encountered_symbols, include_dependencies, strategy,cleanup_unused_imports)
+        self._move_to_file(file, encountered_symbols, include_dependencies, strategy, cleanup_unused_imports)
 
     @noapidoc
     def _move_to_file(
@@ -427,7 +428,7 @@ class Symbol(Usable[Statement["CodeBlock[Parent, ...]"]], Generic[Parent, TCodeB
             self.remove()
 
         if cleanup_unused_imports:
-            self._post_move_import_cleanup(encountered_symbols,strategy)
+            self._post_move_import_cleanup(encountered_symbols, strategy)
 
     @property
     @reader

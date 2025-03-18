@@ -327,13 +327,12 @@ class TSSymbol(Symbol["TSHasBlock", "TSCodeBlock"], Exportable):
         # This will update all edges etc.
         should_export = False
 
-
         if self.is_exported or [
-                usage
-                for usage in self.usages
-                if usage.usage_symbol not in encountered_symbols
-                and not self.transaction_manager.get_transaction_containing_range(usage.usage_symbol.file.path, usage.usage_symbol.start_byte, usage.usage_symbol.end_byte, TransactionPriority.Remove)
-            ]:
+            usage
+            for usage in self.usages
+            if usage.usage_symbol not in encountered_symbols
+            and not self.transaction_manager.get_transaction_containing_range(usage.usage_symbol.file.path, usage.usage_symbol.start_byte, usage.usage_symbol.end_byte, TransactionPriority.Remove)
+        ]:
             should_export = True
 
         file.add_symbol(self, should_export=should_export)
@@ -387,8 +386,7 @@ class TSSymbol(Symbol["TSHasBlock", "TSCodeBlock"], Exportable):
             # Delete the original symbol
             self.remove()
         if cleanup_unused_imports:
-            self._post_move_import_cleanup(encountered_symbols,strategy)
-
+            self._post_move_import_cleanup(encountered_symbols, strategy)
 
     def _convert_proptype_to_typescript(self, prop_type: Editable, param: Parameter | None, level: int) -> str:
         """Converts a PropType definition to its TypeScript equivalent."""
