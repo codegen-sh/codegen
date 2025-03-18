@@ -39,7 +39,7 @@ uv sync --dev
 > [!TIP]
 >
 > - If sync fails with `missing field 'version'`, you may need to delete lockfile and rerun `rm uv.lock && uv sync --dev`.
-> - If sync fails with failed compilation, you may need to install clang and rerun `uv sync --dev`.
+> - If sync fails with failed compilation, you may need to install dependencies (see [install-deps.sh](scripts/install-deps.sh)) and rerun `uv sync --dev`.
 
 ### Running Tests
 

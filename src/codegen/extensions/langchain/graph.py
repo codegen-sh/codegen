@@ -1,17 +1,72 @@
 """Demo implementation of an agent with Codegen tools."""
 
-from typing import TYPE_CHECKING, Annotated, Any, Literal, Optional
+import uuid
+from typing import Annotated, Any, Literal, Optional, Union
 
 import anthropic
 import openai
 from langchain.tools import BaseTool
-from langchain_core.messages import AIMessage, AnyMessage, HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage, AnyMessage, HumanMessage, SystemMessage, ToolMessage
+from langchain_core.prompts import ChatPromptTemplate
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START
-from langgraph.graph.message import add_messages
 from langgraph.graph.state import CompiledGraph, StateGraph
 from langgraph.prebuilt import ToolNode
 from langgraph.pregel import RetryPolicy
+
+from codegen.agents.utils import AgentConfig
+from codegen.extensions.langchain.llm import LLM
+from codegen.extensions.langchain.prompts import SUMMARIZE_CONVERSATION_PROMPT
+from codegen.extensions.langchain.utils.utils import get_max_model_input_tokens
+
+
+def manage_messages(existing: list[AnyMessage], updates: Union[list[AnyMessage], dict]) -> list[AnyMessage]:
+    """Custom reducer for managing message history with summarization.
+
+    Args:
+        existing: Current list of messages
+        updates: Either new messages to append or a dict specifying how to update messages
+
+    Returns:
+        Updated list of messages
+    """
+    if isinstance(updates, list):
+        # Ensure all messages have IDs
+        for msg in existing + updates:
+            if not hasattr(msg, "id") or msg.id is None:
+                msg.id = str(uuid.uuid4())
+
+        # Create a map of existing messages by ID
+        existing_by_id = {msg.id: i for i, msg in enumerate(existing)}
+
+        # Start with copy of existing messages
+        result = existing.copy()
+
+        # Update or append new messages
+        for msg in updates:
+            if msg.id in existing_by_id:
+                # Update existing message
+                result[existing_by_id[msg.id]] = msg
+            else:
+                # Append new message
+                result.append(msg)
+
+        return result
+
+    if isinstance(updates, dict):
+        if updates.get("type") == "summarize":
+            # Create summary message and mark it with additional_kwargs
+            summary_msg = AIMessage(
+                content=f"""Here is a summary of the conversation
+            from a previous timestep to aid for the continuing conversation: \n{updates["summary"]}\n\n""",
+                additional_kwargs={"is_summary": True},  # Use additional_kwargs for custom metadata
+            )
+            summary_msg.id = str(uuid.uuid4())
+            updates["tail"][-1].additional_kwargs["just_summarized"] = True
+            result = updates["head"] + [summary_msg] + updates["tail"]
+            return result
+
+    return existing
 
 
 class GraphState(dict[str, Any]):
@@ -19,16 +74,19 @@ class GraphState(dict[str, Any]):
 
     query: str
     final_answer: str
-    messages: Annotated[list[AnyMessage], add_messages]
+    messages: Annotated[list[AnyMessage], manage_messages]
 
 
 class AgentGraph:
     """Main graph class for the agent."""
 
-    def __init__(self, model: "LLM", tools: list[BaseTool], system_message: SystemMessage):
+    def __init__(self, model: "LLM", tools: list[BaseTool], system_message: SystemMessage, config: AgentConfig | None = None):
         self.model = model.bind_tools(tools)
         self.tools = tools
         self.system_message = system_message
+        self.config = config
+        self.max_messages = config.get("max_messages", 100) if config else 100
+        self.keep_first_messages = config.get("keep_first_messages", 1) if config else 1
 
     # =================================== NODES ====================================
 
@@ -36,23 +94,109 @@ class AgentGraph:
     def reasoner(self, state: GraphState) -> dict[str, Any]:
         new_turn = len(state["messages"]) == 0 or isinstance(state["messages"][-1], AIMessage)
         messages = state["messages"]
+
         if new_turn:
             query = state["query"]
             messages.append(HumanMessage(content=query))
 
         result = self.model.invoke([self.system_message, *messages])
-
         if isinstance(result, AIMessage):
-            return {"messages": [*messages, result], "final_answer": result.content}
+            updated_messages = [*messages, result]
+            return {"messages": updated_messages, "final_answer": result.content}
 
-        return {"messages": [*messages, result]}
+        updated_messages = [*messages, result]
+        return {"messages": updated_messages}
+
+    def summarize_conversation(self, state: GraphState):
+        """Summarize conversation while preserving key context and recent messages."""
+        messages = state["messages"]
+        keep_first = self.keep_first_messages
+        target_size = len(messages) // 2
+        messages_from_tail = target_size - keep_first
+
+        head = messages[:keep_first]
+        tail = messages[-messages_from_tail:]
+        to_summarize = messages[: len(messages) - messages_from_tail]
+
+        # Handle tool message pairing at truncation point
+        truncation_idx = len(messages) - messages_from_tail
+        if truncation_idx > 0 and isinstance(messages[truncation_idx], ToolMessage):
+            # Keep the AI message right before it
+            tail = [messages[truncation_idx - 1], *tail]
+
+        # Skip if nothing to summarize
+        if not to_summarize:
+            return state
+
+        # Define constants
+        HEADER_WIDTH = 40
+        HEADER_TYPES = {"human": "HUMAN", "ai": "AI", "summary": "SUMMARY FROM PREVIOUS TIMESTEP", "tool_call": "TOOL CALL", "tool_response": "TOOL RESPONSE"}
+
+        def format_header(header_type: str) -> str:
+            """Format message header with consistent padding.
+
+            Args:
+                header_type: Type of header to format (must be one of HEADER_TYPES)
+
+            Returns:
+                Formatted header string with padding
+            """
+            header = HEADER_TYPES[header_type]
+            padding = "=" * ((HEADER_WIDTH - len(header)) // 2)
+            return f"{padding} {header} {padding}\n"
+
+        # Format messages with appropriate headers
+        formatted_messages = []
+        for msg in to_summarize:  # No need for slice when iterating full list
+            if isinstance(msg, HumanMessage):
+                formatted_messages.append(format_header("human") + msg.content)
+            elif isinstance(msg, AIMessage):
+                # Check for summary message using additional_kwargs
+                if msg.additional_kwargs.get("is_summary"):
+                    formatted_messages.append(format_header("summary") + msg.content)
+                elif isinstance(msg.content, list) and len(msg.content) > 0 and isinstance(msg.content[0], dict):
+                    for item in msg.content:  # No need for slice when iterating full list
+                        if item.get("type") == "text":
+                            formatted_messages.append(format_header("ai") + item["text"])
+                        elif item.get("type") == "tool_use":
+                            formatted_messages.append(format_header("tool_call") + f"Tool: {item['name']}\nInput: {item['input']}")
+                else:
+                    formatted_messages.append(format_header("ai") + msg.content)
+            elif isinstance(msg, ToolMessage):
+                formatted_messages.append(format_header("tool_response") + msg.content)
+
+        conversation = "\n".join(formatted_messages)  # No need for slice when joining full list
+
+        summary_llm = LLM(
+            model_provider="anthropic",
+            model_name="claude-3-5-sonnet-latest",
+            temperature=0.3,
+        )
+
+        chain = ChatPromptTemplate.from_template(SUMMARIZE_CONVERSATION_PROMPT) | summary_llm
+        new_summary = chain.invoke({"conversation": conversation}).content
+
+        return {"messages": {"type": "summarize", "summary": new_summary, "tail": tail, "head": head}}
 
     # =================================== EDGE CONDITIONS ====================================
-    def should_continue(self, state: GraphState) -> Literal["tools", END]:
+    def should_continue(self, state: GraphState) -> Literal["tools", "summarize_conversation", END]:
         messages = state["messages"]
         last_message = messages[-1]
-        if hasattr(last_message, "tool_calls") and last_message.tool_calls:
+        just_summarized = last_message.additional_kwargs.get("just_summarized")
+        curr_input_tokens = last_message.usage_metadata["input_tokens"]
+        max_input_tokens = get_max_model_input_tokens(self.model)
+
+        # Summarize if the number of messages passed in exceeds the max_messages threshold (default 100)
+        if len(messages) > self.max_messages:
+            return "summarize_conversation"
+
+        # Summarize if the last message exceeds the max input tokens of the model - 10000 tokens
+        elif isinstance(last_message, AIMessage) and not just_summarized and curr_input_tokens > (max_input_tokens - 10000):
+            return "summarize_conversation"
+
+        elif hasattr(last_message, "tool_calls") and last_message.tool_calls:
             return "tools"
+
         return END
 
     # =================================== COMPILE GRAPH ====================================
@@ -63,7 +207,7 @@ class AgentGraph:
         # the retry policy has an initial interval, a backoff factor, and a max interval of controlling the
         # amount of time between retries
         retry_policy = RetryPolicy(
-            retry_on=[anthropic.RateLimitError, openai.RateLimitError, anthropic.InternalServerError],
+            retry_on=[anthropic.RateLimitError, openai.RateLimitError, anthropic.InternalServerError, anthropic.BadRequestError],
             max_attempts=10,
             initial_interval=30.0,  # Start with 30 second wait
             backoff_factor=2,  # Double the wait time each retry
@@ -86,6 +230,7 @@ class AgentGraph:
                     return field_descriptions
 
                 try:
+                    # Get all field descriptions from the tool
                     schema_cls = tool_obj.args_schema
 
                     # Handle Pydantic v2
@@ -129,8 +274,8 @@ class AgentGraph:
                     import json
 
                     tool_input = json.loads(input_str)
-                except:
-                    pass
+                except Exception as e:
+                    print(f"Failed to parse tool input: {e}")
 
             # Handle validation errors with more helpful messages
             if "validation error" in error_msg.lower():
@@ -315,6 +460,7 @@ class AgentGraph:
         # Add nodes
         builder.add_node("reasoner", self.reasoner, retry=retry_policy)
         builder.add_node("tools", ToolNode(self.tools, handle_tool_errors=handle_tool_errors), retry=retry_policy)
+        builder.add_node("summarize_conversation", self.summarize_conversation, retry=retry_policy)
 
         # Add edges
         builder.add_edge(START, "reasoner")
@@ -323,6 +469,7 @@ class AgentGraph:
             "reasoner",
             self.should_continue,
         )
+        builder.add_conditional_edges("summarize_conversation", self.should_continue)
 
         return builder.compile(checkpointer=checkpointer, debug=debug)
 
@@ -333,11 +480,8 @@ def create_react_agent(
     system_message: SystemMessage,
     checkpointer: Optional[MemorySaver] = None,
     debug: bool = False,
+    config: Optional[dict[str, Any]] = None,
 ) -> CompiledGraph:
     """Create a reactive agent graph."""
-    graph = AgentGraph(model, tools, system_message)
+    graph = AgentGraph(model, tools, system_message, config=config)
     return graph.create(checkpointer=checkpointer, debug=debug)
-
-
-if TYPE_CHECKING:
-    from codegen.extensions.langchain.llm import LLM

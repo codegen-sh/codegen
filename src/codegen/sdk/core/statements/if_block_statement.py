@@ -299,3 +299,10 @@ class IfBlockStatement(ConditionalBlock, Statement[TCodeBlock], Generic[TCodeBlo
         if self.is_if_statement:
             return self.consequence_block.end_byte
         return self.end_byte
+
+    @property
+    @noapidoc
+    def start_byte_for_condition_block(self) -> int:
+        if self.is_if_statement:
+            return self.consequence_block.start_byte
+        return self.start_byte

@@ -60,6 +60,10 @@
     {
       "name": "Changelog",
       "url": "/changelog"
+    },
+    {
+      "name": "codegen",
+      "url": "/gen"
     }
   ],
   "navigation": [
@@ -87,6 +91,7 @@
         "tutorials/slack-bot",
         "tutorials/github-review-bot",
         "tutorials/deep-code-research",
+        "tutorials/codebase-analytics-dashboard",
         "tutorials/training-data",
         "tutorials/codebase-visualization",
         "tutorials/migrating-apis",
@@ -173,6 +178,15 @@
         "blog/act-via-code",
         "blog/promise-to-async-await-twilio",
         "blog/fixing-import-loops"
+      ]
+    },
+    {
+      "group": "codegen",
+      "pages": [
+        "gen/introduction",
+        "gen/capabilities",
+        "gen/integrations",
+        "gen/faq"
       ]
     },
     {

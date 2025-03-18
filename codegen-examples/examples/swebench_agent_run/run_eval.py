@@ -278,13 +278,14 @@ async def run_eval(
     repo: str | None = None,
     num_workers: int = 2,
     model: str = "claude-3-7-sonnet-latest",
+    instance_ids: list[str] = [],
 ):
     run_id = use_existing_preds or str(uuid.uuid4())
     print(f"Run ID: {run_id}")
     predictions_dir = PREDS_DNAME / f"results_{run_id}"
 
     dataset_enum = DATASET_DICT[dataset]
-    examples = get_swe_bench_examples(dataset=dataset_enum, length=length, instance_id=instance_id, repo=repo)
+    examples = get_swe_bench_examples(dataset=dataset_enum, length=length, instance_id=instance_id, repo=repo, instance_ids=instance_ids)
 
     try:
         if use_existing_preds is None:
@@ -352,6 +353,12 @@ async def run_eval(
         raise
 
 
+def list_of_strings(value: str) -> list[str]:
+    if value == "":
+        return []
+    return value.split(",")
+
+
 @click.command()
 @click.option("--dataset", help="The dataset to use.", type=click.Choice(["lite", "full", "verified", "lite_small", "lite_medium", "lite_large"]), default="lite")
 @click.option("--use-existing-preds", help="The run ID of the existing predictions to use.", type=str, default=None)
@@ -363,10 +370,15 @@ async def run_eval(
     "--num-workers", help="The number of workers to use. This is the number of examples that will be processed concurrently. A large number may lead to rate limiting issues.", type=int, default=5
 )
 @click.option("--model", help="The model to use.", type=str, default="claude-3-7-sonnet-latest")
-def run_eval_command(dataset, use_existing_preds, length, instance_id, local, repo, num_workers, model):
+@click.option("--instance-ids", help="The instance IDs of the examples to process. Example: --instance-ids <instance_id1>,<instance_id2>,...", type=list_of_strings, default="")
+def run_eval_command(dataset, use_existing_preds, length, instance_id, local, repo, num_workers, model, instance_ids):
     print(f"Repo: {repo}")
     print(f"Model: {model}")
-    asyncio.run(run_eval(dataset=dataset, use_existing_preds=use_existing_preds, length=length, instance_id=instance_id, local=local, repo=repo, num_workers=num_workers, model=model))
+    asyncio.run(
+        run_eval(
+            dataset=dataset, use_existing_preds=use_existing_preds, length=length, instance_id=instance_id, local=local, repo=repo, num_workers=num_workers, model=model, instance_ids=instance_ids
+        )
+    )
 
 
 if __name__ == "__main__":

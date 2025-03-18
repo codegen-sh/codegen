@@ -135,7 +135,7 @@ import {Attribute} from '/snippets/Attribute.mdx';
 <HorizontalDivider />
 ### <span className="text-primary">ancestors</span>
 Find all ancestors of the node of the given type. Does not return itself
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1110-L1118" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1119-L1127" />
 
 
 <Return return_type={ <><span>list[</span> <a href="/api-reference/core/Editable" style={ {fontWeight: "inherit", fontSize: "inherit"} }>Editable</a> <span>]</span></> } description=""/>
@@ -407,6 +407,14 @@ Returns True if this import is aliased.
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">bool</code> } description="True if the import has an alias different from its original name, False otherwise."/>
+
+
+### <span className="text-primary">is_child_of</span>
+Checks if this node is a descendant of the given editable instance in the AST.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1109-L1116" />
+
+
+<Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">bool</code> } description=""/>
 
 
 ### <span className="text-primary">is_module_import</span>

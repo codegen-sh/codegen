@@ -5,8 +5,11 @@ from uuid import uuid4
 from langchain.tools import BaseTool
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.runnables.config import RunnableConfig
+from langgraph.graph.graph import CompiledGraph
 from langsmith import Client
 
+from codegen.agents.loggers import ExternalLogger
+from codegen.agents.tracer import MessageStreamTracer
 from codegen.extensions.langchain.agent import create_codebase_agent
 from codegen.extensions.langchain.utils.get_langsmith_url import (
     find_and_print_langsmith_run_url,
@@ -15,16 +18,21 @@ from codegen.extensions.langchain.utils.get_langsmith_url import (
 if TYPE_CHECKING:
     from codegen import Codebase
 
+from codegen.agents.utils import AgentConfig
+
 
 class CodeAgent:
     """Agent for interacting with a codebase."""
 
     codebase: "Codebase"
-    agent: any
+    agent: CompiledGraph
     langsmith_client: Client
     project_name: str
     thread_id: str | None = None
-    config: dict = {}
+    run_id: str | None = None
+    instance_id: str | None = None
+    difficulty: int | None = None
+    logger: Optional[ExternalLogger] = None
 
     def __init__(
         self,
@@ -35,6 +43,9 @@ class CodeAgent:
         tools: Optional[list[BaseTool]] = None,
         tags: Optional[list[str]] = [],
         metadata: Optional[dict] = {},
+        agent_config: Optional[AgentConfig] = None,
+        thread_id: Optional[str] = None,
+        logger: Optional[ExternalLogger] = None,
         **kwargs,
     ):
         """Initialize a CodeAgent.
@@ -60,17 +71,33 @@ class CodeAgent:
             model_name=model_name,
             memory=memory,
             additional_tools=tools,
+            config=agent_config,
             **kwargs,
         )
         self.model_name = model_name
         self.langsmith_client = Client()
 
+        if thread_id is None:
+            self.thread_id = str(uuid4())
+        else:
+            self.thread_id = thread_id
+
         # Get project name from environment variable or use a default
         self.project_name = os.environ.get("LANGCHAIN_PROJECT", "RELACE")
         print(f"Using LangSmith project: {self.project_name}")
 
+        # Store SWEBench metadata if provided
+        self.run_id = metadata.get("run_id")
+        self.instance_id = metadata.get("instance_id")
+        # Extract difficulty value from "difficulty_X" format
+        difficulty_str = metadata.get("difficulty", "")
+        self.difficulty = int(difficulty_str.split("_")[1]) if difficulty_str and "_" in difficulty_str else None
+
         # Initialize tags for agent trace
         self.tags = [*tags, self.model_name]
+
+        # set logger if provided
+        self.logger = logger
 
         # Initialize metadata for agent trace
         self.metadata = {
@@ -79,46 +106,52 @@ class CodeAgent:
             **metadata,
         }
 
-    def run(self, prompt: str, thread_id: Optional[str] = None) -> str:
-        """Run the agent with a prompt.
+    def run(self, prompt: str, image_urls: Optional[list[str]] = None) -> str:
+        """Run the agent with a prompt and optional images.
 
         Args:
             prompt: The prompt to run
+            image_urls: Optional list of base64-encoded image strings. Example: ["data:image/png;base64,<base64_str>"]
             thread_id: Optional thread ID for message history
 
         Returns:
             The agent's response
         """
-        if thread_id is None:
-            thread_id = str(uuid4())
-        self.thread_id = thread_id
         self.config = {
             "configurable": {
-                "thread_id": thread_id,
+                "thread_id": self.thread_id,
                 "metadata": {"project": self.project_name},
             },
             "recursion_limit": 100,
         }
 
-        # this message has a reducer which appends the current message to the existing history
-        # see more https://langchain-ai.github.io/langgraph/concepts/low_level/#reducers
-        input = {"query": prompt}
+        # Prepare content with prompt and images if provided
+        content = [{"type": "text", "text": prompt}]
+        if image_urls:
+            content += [{"type": "image_url", "image_url": {"url": image_url}} for image_url in image_urls]
 
-        config = RunnableConfig(configurable={"thread_id": thread_id}, tags=self.tags, metadata=self.metadata, recursion_limit=100)
+        config = RunnableConfig(configurable={"thread_id": self.thread_id}, tags=self.tags, metadata=self.metadata, recursion_limit=200)
         # we stream the steps instead of invoke because it allows us to access intermediate nodes
-        stream = self.agent.stream(input, config=config, stream_mode="values")
+
+        stream = self.agent.stream({"messages": [HumanMessage(content=content)]}, config=config, stream_mode="values")
+
+        _tracer = MessageStreamTracer(logger=self.logger)
+
+        # Process the stream with the tracer
+        traced_stream = _tracer.process_stream(stream)
 
         # Keep track of run IDs from the stream
         run_ids = []
 
-        for s in stream:
-            if len(s["messages"]) == 0:
-                message = HumanMessage(content=prompt)
+        for s in traced_stream:
+            if len(s["messages"]) == 0 or isinstance(s["messages"][-1], HumanMessage):
+                message = HumanMessage(content=content)
             else:
                 message = s["messages"][-1]
 
             if isinstance(message, tuple):
-                print(message)
+                # print(message)
+                pass
             else:
                 if isinstance(message, AIMessage) and isinstance(message.content, list) and len(message.content) > 0 and "text" in message.content[0]:
                     AIMessage(message.content[0]["text"]).pretty_print()
@@ -132,7 +165,7 @@ class CodeAgent:
         # Get the last message content
         result = s["final_answer"]
 
-        # Try to find run IDs in the LangSmith client's recent runs
+        # # Try to find run IDs in the LangSmith client's recent runs
         try:
             # Find and print the LangSmith run URL
             find_and_print_langsmith_run_url(self.langsmith_client, self.project_name)

@@ -140,3 +140,193 @@ function foo(): void {
         assert len(alt_blocks[2].alternative_blocks) == 0
         assert len(alt_blocks[2].elif_statements) == 0
         assert alt_blocks[2].else_statement is None
+
+
+def test_if_else_reassignment_handling(tmpdir) -> None:
+    # language=typescript
+    content = """
+if (true) {
+    PYSPARK = true;
+} else if (false) {
+    PYSPARK = false;
+} else {
+    PYSPARK = null;
+}
+
+console.log(PYSPARK);
+    """
+    with get_codebase_session(tmpdir=tmpdir, files={"test.ts": content}, programming_language=ProgrammingLanguage.TYPESCRIPT) as codebase:
+        file = codebase.get_file("test.ts")
+        symbol = file.get_symbol("PYSPARK")
+        func_call = file.function_calls[0]
+        pyspark_arg = func_call.args.children[0]
+        for symb in file.symbols:
+            usage = symb.usages[0]
+            assert usage.match == pyspark_arg
+
+
+def test_if_else_reassignment_handling_function(tmpdir) -> None:
+    # language=typescript
+    content = """
+if (true) {
+    function foo() {
+        console.log('t');
+    }
+} else if (false) {
+    function foo() {
+        console.log('t');
+    }
+} else {
+    function foo() {
+        console.log('t');
+    }
+}
+foo();
+    """
+    with get_codebase_session(tmpdir=tmpdir, files={"test.ts": content}, programming_language=ProgrammingLanguage.TYPESCRIPT) as codebase:
+        file = codebase.get_file("test.ts")
+        foo = file.get_function("foo")
+        func_call = file.function_calls[3]
+        for func in file.functions:
+            usage = func.usages[0]
+            assert usage.match == func_call
+
+
+def test_if_else_reassignment_handling_inside_func(tmpdir) -> None:
+    # language=typescript
+    content = """
+function foo(a) {
+    a = 1;
+    if (xyz) {
+        b = 1;
+    } else {
+        b = 2;
+    }
+    f(a); // a resolves to 1 name
+    f(b); // b resolves to 2 possible names
+}
+    """
+    with get_codebase_session(tmpdir=tmpdir, files={"test.ts": content}, programming_language=ProgrammingLanguage.TYPESCRIPT) as codebase:
+        file = codebase.get_file("test.ts")
+        foo = file.get_function("foo")
+        assert foo
+        assert len(foo.parameters[0].usages) == 0
+        func_call_a = foo.function_calls[0].args[0]
+        func_call_b = foo.function_calls[1]
+        for symbol in file.symbols(True):
+            if symbol.name == "a":
+                assert len(symbol.usages) == 1
+                symbol.usages[0].match == func_call_a
+            elif symbol.name == "b":
+                assert len(symbol.usages) == 1
+                symbol.usages[0].match == func_call_b
+
+
+def test_if_else_reassignment_handling_partial_if(tmpdir) -> None:
+    # language=typescript
+    content = """
+PYSPARK = "TEST";
+if (true) {
+    PYSPARK = true;
+} else if (null) {
+    PYSPARK = false;
+}
+
+console.log(PYSPARK);
+    """
+    with get_codebase_session(tmpdir=tmpdir, files={"test.ts": content}, programming_language=ProgrammingLanguage.TYPESCRIPT) as codebase:
+        file = codebase.get_file("test.ts")
+        symbol = file.get_symbol("PYSPARK")
+        func_call = file.function_calls[0]
+        pyspark_arg = func_call.args.children[0]
+        for symb in file.symbols:
+            usage = symb.usages[0]
+            assert usage.match == pyspark_arg
+
+
+def test_if_else_reassignment_handling_solo_if(tmpdir) -> None:
+    # language=typescript
+    content = """
+PYSPARK = "TEST";
+if (true) {
+    PYSPARK = true;
+}
+console.log(PYSPARK);
+    """
+    with get_codebase_session(tmpdir=tmpdir, files={"test.ts": content}, programming_language=ProgrammingLanguage.TYPESCRIPT) as codebase:
+        file = codebase.get_file("test.ts")
+        symbol = file.get_symbol("PYSPARK")
+        func_call = file.function_calls[0]
+        pyspark_arg = func_call.args.children[0]
+        for symb in file.symbols:
+            usage = symb.usages[0]
+            assert usage.match == pyspark_arg
+
+
+def test_if_else_reassignment_handling_double(tmpdir) -> None:
+    # language=typescript
+    content = """
+if (false) {
+    PYSPARK = "TEST1";
+} else if (true) {
+    PYSPARK = "TEST2";
+}
+
+if (true) {
+    PYSPARK = true;
+} else if (null) {
+    PYSPARK = false;
+}
+
+console.log(PYSPARK);
+    """
+    with get_codebase_session(tmpdir=tmpdir, files={"test.ts": content}, programming_language=ProgrammingLanguage.TYPESCRIPT) as codebase:
+        file = codebase.get_file("test.ts")
+        symbol = file.get_symbol("PYSPARK")
+        func_call = file.function_calls[0]
+        pyspark_arg = func_call.args.children[0]
+        for symb in file.symbols:
+            usage = symb.usages[0]
+            assert usage.match == pyspark_arg
+
+
+def test_if_else_reassignment_handling_nested_usage(tmpdir) -> None:
+    # language=typescript
+    content = """
+if (true) {
+    PYSPARK = true;
+} else if (null) {
+    PYSPARK = false;
+    console.log(PYSPARK);
+}
+    """
+    with get_codebase_session(tmpdir=tmpdir, files={"test.ts": content}, programming_language=ProgrammingLanguage.TYPESCRIPT) as codebase:
+        file = codebase.get_file("test.ts")
+        func_call = file.function_calls[0]
+        pyspark_arg = func_call.args.children[0]
+        first = file.symbols[0]
+        second = file.symbols[1]
+        assert len(first.usages) == 0
+        assert second.usages[0].match == pyspark_arg
+
+
+def test_if_else_reassignment_inside_func_with_external_element(tmpdir) -> None:
+    # language=typescript
+    content = """
+PYSPARK = "0";
+function foo() {
+    if (true) {
+        PYSPARK = true;
+    } else {
+        PYSPARK = false;
+    }
+    console.log(PYSPARK);
+}
+    """
+    with get_codebase_session(tmpdir=tmpdir, files={"test.ts": content}, programming_language=ProgrammingLanguage.TYPESCRIPT) as codebase:
+        file = codebase.get_file("test.ts")
+        func_call = file.function_calls[0]
+        pyspark_arg = func_call.args.children[0]
+        func = file.get_function("foo")
+        for assign in func.valid_symbol_names[:-1]:
+            assign.usages[0] == pyspark_arg
