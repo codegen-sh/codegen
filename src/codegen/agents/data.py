@@ -52,7 +52,6 @@ class ToolMessageData(BaseMessage):
     tool_name: Optional[str] = None
     tool_response: Optional[str] = None
     tool_id: Optional[str] = None
-    status: Optional[str] = None
 
 
 @dataclass

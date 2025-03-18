@@ -1,16 +1,12 @@
 """Tool for viewing file contents and metadata."""
 
-from typing import TYPE_CHECKING, ClassVar, Optional
+from typing import ClassVar, Optional
 
-from langchain_core.messages import ToolMessage
 from pydantic import Field
 
 from codegen.sdk.core.codebase import Codebase
 
 from .observation import Observation
-
-if TYPE_CHECKING:
-    from .tool_output_types import ViewFileArtifacts
 
 
 class ViewFileObservation(Observation):
@@ -45,30 +41,8 @@ class ViewFileObservation(Observation):
 
     str_template: ClassVar[str] = "File {filepath} (showing lines {start_line}-{end_line} of {line_count})"
 
-    def render(self, tool_call_id: str) -> ToolMessage:
+    def render(self) -> str:
         """Render the file view with pagination information if applicable."""
-        if self.status == "error":
-            error_artifacts: ViewFileArtifacts = {"filepath": self.filepath}
-            return ToolMessage(
-                content=f"[ERROR VIEWING FILE]: {self.filepath}: {self.error}",
-                status=self.status,
-                tool_call_id=tool_call_id,
-                tool_name="view_file",
-                artifact=error_artifacts,
-                additional_kwargs={
-                    "error": self.error,
-                },
-            )
-
-        success_artifacts: ViewFileArtifacts = {
-            "filepath": self.filepath,
-            "start_line": self.start_line,
-            "end_line": self.end_line,
-            "total_lines": self.line_count,
-            "has_more": self.has_more,
-            "max_lines_per_page": self.max_lines_per_page,
-        }
-
         header = f"[VIEW FILE]: {self.filepath}"
         if self.line_count is not None:
             header += f" ({self.line_count} lines total)"
@@ -78,13 +52,10 @@ class ViewFileObservation(Observation):
             if self.has_more:
                 header += f" (more lines available, max {self.max_lines_per_page} lines per page)"
 
-        return ToolMessage(
-            content=f"{header}\n\n{self.content}" if self.content else f"{header}\n<Empty Content>",
-            status=self.status,
-            tool_name="view_file",
-            tool_call_id=tool_call_id,
-            artifact=success_artifacts,
-        )
+        if not self.content:
+            return f"{header}\n<empty content>"
+
+        return f"{header}\n\n{self.content}"
 
 
 def add_line_numbers(content: str) -> str:
@@ -121,12 +92,10 @@ def view_file(
     """
     try:
         file = codebase.get_file(filepath)
-
     except ValueError:
         return ViewFileObservation(
             status="error",
-            error=f"""File not found: {filepath}. Please use full filepath relative to workspace root.
-Ensure that this is indeed the correct filepath, else keep searching to find the correct fullpath.""",
+            error=f"File not found: {filepath}. Please use full filepath relative to workspace root.",
             filepath=filepath,
             content="",
             line_count=0,

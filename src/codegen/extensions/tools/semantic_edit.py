@@ -2,9 +2,8 @@
 
 import difflib
 import re
-from typing import TYPE_CHECKING, ClassVar, Optional
+from typing import ClassVar, Optional
 
-from langchain_core.messages import ToolMessage
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import Field
@@ -16,9 +15,6 @@ from .observation import Observation
 from .semantic_edit_prompts import _HUMAN_PROMPT_DRAFT_EDITOR, COMMANDER_SYSTEM_PROMPT
 from .view_file import add_line_numbers
 
-if TYPE_CHECKING:
-    from .tool_output_types import SemanticEditArtifacts
-
 
 class SemanticEditObservation(Observation):
     """Response from making semantic edits to a file."""
@@ -28,54 +24,18 @@ class SemanticEditObservation(Observation):
     )
     diff: Optional[str] = Field(
         default=None,
-        description="Unified diff of changes made to the file",
+        description="Unified diff showing the changes made",
     )
     new_content: Optional[str] = Field(
         default=None,
-        description="New content of the file with line numbers after edits",
+        description="New content with line numbers",
     )
     line_count: Optional[int] = Field(
         default=None,
-        description="Total number of lines in the edited file",
+        description="Total number of lines in file",
     )
 
     str_template: ClassVar[str] = "Edited file {filepath}"
-
-    def render(self, tool_call_id: str) -> ToolMessage:
-        """Render the observation as a ToolMessage.
-
-        Args:
-            tool_call_id: ID of the tool call that triggered this edit
-
-        Returns:
-            ToolMessage containing edit results or error
-        """
-        # Prepare artifacts dictionary with default values
-        artifacts: SemanticEditArtifacts = {
-            "filepath": self.filepath,
-            "diff": self.diff,
-            "new_content": self.new_content,
-            "line_count": self.line_count,
-            "error": self.error if self.status == "error" else None,
-        }
-
-        # Handle error case early
-        if self.status == "error":
-            return ToolMessage(
-                content=f"[EDIT ERROR]: {self.error}",
-                status=self.status,
-                tool_name="semantic_edit",
-                tool_call_id=tool_call_id,
-                artifact=artifacts,
-            )
-
-        return ToolMessage(
-            content=self.render_as_string(),
-            status=self.status,
-            tool_name="semantic_edit",
-            tool_call_id=tool_call_id,
-            artifact=artifacts,
-        )
 
 
 def generate_diff(original: str, modified: str) -> str:

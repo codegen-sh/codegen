@@ -225,14 +225,14 @@ def test_list_directory(codebase):
     core_dir = next(d for d in src_dir.subdirectories if d.name == "core")
 
     # Verify rendered output has proper tree structure
-    rendered = result.render(tool_call_id="test")
+    rendered = result.render()
     print(rendered)
     expected_tree = """
 └── src/
     ├── main.py
     ├── utils.py
     └── core/"""
-    assert expected_tree in rendered.content.strip()
+    assert expected_tree in rendered.strip()
 
 
 def test_edit_file(codebase):

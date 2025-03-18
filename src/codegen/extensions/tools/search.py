@@ -11,11 +11,8 @@ import re
 import subprocess
 from typing import ClassVar
 
-from langchain_core.messages import ToolMessage
 from pydantic import Field
 
-from codegen.extensions.tools.tool_output_types import SearchArtifacts
-from codegen.extensions.tools.tool_output_types import SearchMatch as SearchMatchDict
 from codegen.sdk.core.codebase import Codebase
 
 from .observation import Observation
@@ -37,17 +34,9 @@ class SearchMatch(Observation):
     )
     str_template: ClassVar[str] = "Line {line_number}: {match}"
 
-    def render_as_string(self) -> str:
+    def render(self) -> str:
         """Render match in a VSCode-like format."""
         return f"{self.line_number:>4}:  {self.line}"
-
-    def to_dict(self) -> SearchMatchDict:
-        """Convert to SearchMatch TypedDict format."""
-        return {
-            "line_number": self.line_number,
-            "line": self.line,
-            "match": self.match,
-        }
 
 
 class SearchFileResult(Observation):
@@ -62,13 +51,13 @@ class SearchFileResult(Observation):
 
     str_template: ClassVar[str] = "{filepath}: {match_count} matches"
 
-    def render_as_string(self) -> str:
+    def render(self) -> str:
         """Render file results in a VSCode-like format."""
         lines = [
             f"📄 {self.filepath}",
         ]
         for match in self.matches:
-            lines.append(match.render_as_string())
+            lines.append(match.render())
         return "\n".join(lines)
 
     def _get_details(self) -> dict[str, str | int]:
@@ -100,47 +89,11 @@ class SearchObservation(Observation):
 
     str_template: ClassVar[str] = "Found {total_files} files with matches for '{query}' (page {page}/{total_pages})"
 
-    def render(self, tool_call_id: str) -> ToolMessage:
-        """Render search results in a VSCode-like format.
-
-        Args:
-            tool_call_id: ID of the tool call that triggered this search
-
-        Returns:
-            ToolMessage containing search results or error
-        """
-        # Prepare artifacts dictionary with default values
-        artifacts: SearchArtifacts = {
-            "query": self.query,
-            "error": self.error if self.status == "error" else None,
-            "matches": [],  # List[SearchMatchDict] - match data as TypedDict
-            "file_paths": [],  # List[str] - file paths with matches
-            "page": self.page,
-            "total_pages": self.total_pages if self.status == "success" else 0,
-            "total_files": self.total_files if self.status == "success" else 0,
-            "files_per_page": self.files_per_page,
-        }
-
-        # Handle error case early
+    def render(self) -> str:
+        """Render search results in a VSCode-like format."""
         if self.status == "error":
-            return ToolMessage(
-                content=f"[SEARCH ERROR]: {self.error}",
-                status=self.status,
-                tool_name="search",
-                tool_call_id=tool_call_id,
-                artifact=artifacts,
-            )
+            return f"[SEARCH ERROR]: {self.error}"
 
-        # Build matches and file paths for success case
-        for result in self.results:
-            artifacts["file_paths"].append(result.filepath)
-            for match in result.matches:
-                # Convert match to SearchMatchDict format
-                match_dict = match.to_dict()
-                match_dict["filepath"] = result.filepath
-                artifacts["matches"].append(match_dict)
-
-        # Build content lines
         lines = [
             f"[SEARCH RESULTS]: {self.query}",
             f"Found {self.total_files} files with matches (showing page {self.page} of {self.total_pages})",
@@ -149,23 +102,16 @@ class SearchObservation(Observation):
 
         if not self.results:
             lines.append("No matches found")
-        else:
-            # Add results with blank lines between files
-            for result in self.results:
-                lines.append(result.render_as_string())
-                lines.append("")  # Add blank line between files
+            return "\n".join(lines)
 
-            # Add pagination info if there are multiple pages
-            if self.total_pages > 1:
-                lines.append(f"Page {self.page}/{self.total_pages} (use page parameter to see more results)")
+        for result in self.results:
+            lines.append(result.render())
+            lines.append("")  # Add blank line between files
 
-        return ToolMessage(
-            content="\n".join(lines),
-            status=self.status,
-            tool_name="search",
-            tool_call_id=tool_call_id,
-            artifact=artifacts,
-        )
+        if self.total_pages > 1:
+            lines.append(f"Page {self.page}/{self.total_pages} (use page parameter to see more results)")
+
+        return "\n".join(lines)
 
 
 def _search_with_ripgrep(
