@@ -46,6 +46,7 @@ class CodeAgent:
         agent_config: Optional[AgentConfig] = None,
         thread_id: Optional[str] = None,
         logger: Optional[ExternalLogger] = None,
+        enable_prompt_caching: bool = True,
         **kwargs,
     ):
         """Initialize a CodeAgent.
@@ -58,6 +59,10 @@ class CodeAgent:
             tools: Additional tools to use
             tags: Tags to add to the agent trace. Must be of the same type.
             metadata: Metadata to use for the agent. Must be a dictionary.
+            agent_config: Configuration for the agent
+            thread_id: Optional thread ID for message history
+            logger: Optional external logger
+            enable_prompt_caching: Whether to enable prompt caching for Anthropic models
             **kwargs: Additional LLM configuration options. Supported options:
                 - temperature: Temperature parameter (0-1)
                 - top_p: Top-p sampling parameter (0-1)
@@ -65,6 +70,11 @@ class CodeAgent:
                 - max_tokens: Maximum number of tokens to generate
         """
         self.codebase = codebase
+
+        # Add prompt caching to kwargs if using Anthropic
+        if model_provider == "anthropic" and enable_prompt_caching:
+            kwargs["enable_prompt_caching"] = True
+
         self.agent = create_codebase_agent(
             self.codebase,
             model_provider=model_provider,
