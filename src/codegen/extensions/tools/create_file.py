@@ -35,12 +35,14 @@ def create_file(codebase: Codebase, filepath: str, content: str, max_tokens: Opt
         CreateFileObservation containing new file state, or error if file exists
     """
     if max_tokens:
-        error = f"Your response reached the max output tokens limit of {max_tokens} tokens (~{max_tokens * 0.75 / 20} lines). Consider breaking upt the content into smaller files."
+        error = f"""Your response reached the max output tokens limit of {max_tokens} tokens (~ {max_tokens / 10} lines).
+Create the file in chunks or break up the content into smaller files.
+        """
         return CreateFileObservation(
             status="error",
             error=error,
             filepath=filepath,
-            file_info=ViewFileObservation(status="error", error=error, filepath=filepath, content="", line_count=0),
+            file_info=ViewFileObservation(status="error", error=error, filepath=filepath, content="", raw_content="", line_count=0),
         )
     if codebase.has_file(filepath):
         return CreateFileObservation(
