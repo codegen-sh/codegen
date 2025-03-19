@@ -38,6 +38,7 @@ jobs:
           uv run pytest \
             -n auto \
             --cov src \
+            --timeout 15 \
             -o junit_suite_name="${{github.job}}" \
             tests/unit
 
