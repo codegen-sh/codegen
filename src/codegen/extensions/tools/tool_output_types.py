@@ -89,3 +89,17 @@ class SemanticEditArtifacts(TypedDict, total=False):
     new_content: Optional[str]  # New content of the file after edits
     line_count: Optional[int]  # Total number of lines in the edited file
     error: Optional[str]  # Error message (only present on error)
+
+
+class RelaceEditArtifacts(TypedDict, total=False):
+    """Artifacts for relace edit operations.
+
+    All fields are optional to support both success and error cases.
+    Includes metadata useful for UI diff view and file content.
+    """
+
+    filepath: str  # Path to the edited file
+    diff: Optional[str]  # Unified diff of changes made to the file
+    new_content: Optional[str]  # New content of the file after edits
+    line_count: Optional[int]  # Total number of lines in the edited file
+    error: Optional[str]  # Error message (only present on error)

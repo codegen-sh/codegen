@@ -7,10 +7,12 @@ from typing import ClassVar, Optional
 import requests
 from pydantic import Field
 
+from codegen.extensions.tools.tool_output_types import RelaceEditArtifacts
 from codegen.sdk.core.codebase import Codebase
 
 from .observation import Observation
 from .view_file import add_line_numbers
+from langchain_core.messages import ToolMessage
 
 
 class RelaceEditObservation(Observation):
@@ -33,6 +35,34 @@ class RelaceEditObservation(Observation):
     )
 
     str_template: ClassVar[str] = "Edited file {filepath} using Relace Instant Apply"
+
+
+    def render(self, tool_call_id: str) -> ToolMessage:
+        """Render the relace edit observation as a ToolMessage."""
+
+        artifacts: RelaceEditArtifacts = {
+            "filepath": self.filepath,
+            "diff": self.diff,
+            "new_content": self.new_content,
+            "line_count": self.line_count,
+            "error": self.error,
+        }
+
+        if self.status == "error":
+            return ToolMessage(
+                content=f"[ERROR EDITING FILE]: {self.filepath}: {self.error}",
+                status=self.status,
+                name="relace_edit",
+                artifact=artifacts,
+                tool_call_id=tool_call_id,
+            )
+
+        return ToolMessage(
+            content=self.render_as_string(),
+            status=self.status,
+            tool_call_id=tool_call_id,
+            artifact=artifacts,
+        )
 
 
 def generate_diff(original: str, modified: str) -> str:

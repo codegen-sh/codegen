@@ -1054,9 +1054,9 @@ class RelaceEditTool(BaseTool):
     def __init__(self, codebase: Codebase) -> None:
         super().__init__(codebase=codebase)
 
-    def _run(self, filepath: str, edit_snippet: str) -> str:
+    def _run(self, filepath: str, edit_snippet: str, tool_call_id: str) -> ToolMessage:
         result = relace_edit(self.codebase, filepath, edit_snippet)
-        return result.render()
+        return result.render(tool_call_id=tool_call_id)
 
 
 class ReflectionInput(BaseModel):
