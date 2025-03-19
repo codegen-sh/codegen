@@ -45,6 +45,7 @@ def create_file(codebase: Codebase, filepath: str, content: str) -> CreateFileOb
                 filepath=filepath,
                 content="",
                 line_count=0,
+                raw_content="",
             ),
         )
 
@@ -72,5 +73,6 @@ def create_file(codebase: Codebase, filepath: str, content: str) -> CreateFileOb
                 filepath=filepath,
                 content="",
                 line_count=0,
+                raw_content="",
             ),
         )
