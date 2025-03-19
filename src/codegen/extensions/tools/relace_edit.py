@@ -2,7 +2,7 @@
 
 import difflib
 import os
-from typing import ClassVar, Optional
+from typing import ClassVar
 
 import requests
 from pydantic import Field
@@ -19,15 +19,15 @@ class RelaceEditObservation(Observation):
     filepath: str = Field(
         description="Path to the edited file",
     )
-    diff: Optional[str] = Field(
+    diff: str | None = Field(
         default=None,
         description="Unified diff showing the changes made",
     )
-    new_content: Optional[str] = Field(
+    new_content: str | None = Field(
         default=None,
         description="New content with line numbers",
     )
-    line_count: Optional[int] = Field(
+    line_count: int | None = Field(
         default=None,
         description="Total number of lines in file",
     )
@@ -104,7 +104,7 @@ def apply_relace_edit(api_key: str, initial_code: str, edit_snippet: str, stream
         raise Exception(msg)
 
 
-def relace_edit(codebase: Codebase, filepath: str, edit_snippet: str, api_key: Optional[str] = None) -> RelaceEditObservation:
+def relace_edit(codebase: Codebase, filepath: str, edit_snippet: str, api_key: str | None = None) -> RelaceEditObservation:
     """Edit a file using the Relace Instant Apply API.
 
     Args:
@@ -145,6 +145,8 @@ def relace_edit(codebase: Codebase, filepath: str, edit_snippet: str, api_key: O
     # Apply the edit using Relace API
     try:
         merged_code = apply_relace_edit(api_key, original_content, edit_snippet)
+        if original_content.endswith("\n") and not merged_code.endswith("\n"):
+            merged_code += "\n"
     except Exception as e:
         return RelaceEditObservation(
             status="error",
