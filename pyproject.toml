@@ -6,7 +6,7 @@ readme = "README.md"
 # renovate: datasource=python-version depName=python
 requires-python = ">=3.12, <3.14"
 dependencies = [
-  "openai==1.66.5",
+  "openai==1.67.0",
   "tiktoken<1.0.0,>=0.5.1",
   "tabulate>=0.9.0,<1.0.0",
   "codeowners<1.0.0,>=0.6.0",
