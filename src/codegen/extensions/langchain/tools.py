@@ -56,7 +56,7 @@ class ViewFileInput(BaseModel):
     filepath: str = Field(..., description="Path to the file relative to workspace root")
     start_line: Optional[int] = Field(None, description="Starting line number to view (1-indexed, inclusive)")
     end_line: Optional[int] = Field(None, description="Ending line number to view (1-indexed, inclusive)")
-    max_lines: Optional[int] = Field(None, description="Maximum number of lines to view at once, defaults to 250")
+    max_lines: Optional[int] = Field(None, description="Maximum number of lines to view at once, defaults to 500")
     line_numbers: Optional[bool] = Field(True, description="If True, add line numbers to the content (1-indexed)")
     tool_call_id: Annotated[str, InjectedToolCallId]
 
@@ -66,7 +66,7 @@ class ViewFileTool(BaseTool):
 
     name: ClassVar[str] = "view_file"
     description: ClassVar[str] = """View the contents and metadata of a file in the codebase.
-For large files (>250 lines), content will be paginated. Use start_line and end_line to navigate through the file.
+For large files (>500 lines), content will be paginated. Use start_line and end_line to navigate through the file.
 The response will indicate if there are more lines available to view."""
     args_schema: ClassVar[type[BaseModel]] = ViewFileInput
     codebase: Codebase = Field(exclude=True)
@@ -89,7 +89,7 @@ The response will indicate if there are more lines available to view."""
             line_numbers=line_numbers if line_numbers is not None else True,
             start_line=start_line,
             end_line=end_line,
-            max_lines=max_lines if max_lines is not None else 250,
+            max_lines=max_lines if max_lines is not None else 500,
         )
 
         return result.render(tool_call_id)
@@ -1100,6 +1100,8 @@ class SearchFilesByNameInput(BaseModel):
     """Input for searching files by name pattern."""
 
     pattern: str = Field(..., description="`fd`-compatible glob pattern to search for (e.g. '*.py', 'test_*.py')")
+    page: int = Field(default=1, description="Page number to return (1-based)")
+    files_per_page: int | float = Field(default=10, description="Number of files per page to return, use math.inf to return all files")
 
 
 class SearchFilesByNameTool(BaseTool):
@@ -1107,7 +1109,7 @@ class SearchFilesByNameTool(BaseTool):
 
     name: ClassVar[str] = "search_files_by_name"
     description: ClassVar[str] = """
-Search for files and directories by glob pattern across the active codebase. This is useful when you need to:
+Search for files and directories by glob pattern (with pagination) across the active codebase. This is useful when you need to:
 - Find specific file types (e.g., '*.py', '*.tsx')
 - Locate configuration files (e.g., 'package.json', 'requirements.txt')
 - Find files with specific names (e.g., 'README.md', 'Dockerfile')
@@ -1118,6 +1120,6 @@ Search for files and directories by glob pattern across the active codebase. Thi
     def __init__(self, codebase: Codebase):
         super().__init__(codebase=codebase)
 
-    def _run(self, pattern: str) -> str:
+    def _run(self, pattern: str, page: int = 1, files_per_page: int | float = 10) -> str:
         """Execute the glob pattern search using fd."""
-        return search_files_by_name(self.codebase, pattern).render()
+        return search_files_by_name(self.codebase, pattern, page=page, files_per_page=files_per_page).render()

@@ -2,6 +2,7 @@
 
 import difflib
 import logging
+import math
 import re
 from typing import ClassVar
 
@@ -103,7 +104,7 @@ def replacement_edit_global(
         )
 
     diffs = []
-    for file in search_files_by_name(codebase, file_pattern).files:
+    for file in search_files_by_name(codebase, file_pattern, page=1, files_per_page=math.inf).files:
         if count is not None and count <= 0:
             break
         try:
