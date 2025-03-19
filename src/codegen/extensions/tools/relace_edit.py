@@ -2,7 +2,7 @@
 
 import difflib
 import os
-from typing import TYPE_CHECKING, ClassVar, Optional
+from typing import TYPE_CHECKING, ClassVar
 
 import requests
 from langchain_core.messages import ToolMessage
