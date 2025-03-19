@@ -11,7 +11,7 @@ import {HorizontalDivider} from '/snippets/HorizontalDivider.mdx';
 import {GithubLinkNote} from '/snippets/GithubLinkNote.mdx';
 import {Attribute} from '/snippets/Attribute.mdx';
 
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/namespace.py#L31-L208" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/namespace.py#L44-L400" />
 
 ### Inherits from
 [HasName](/api-reference/core/HasName), [TSHasBlock](/api-reference/typescript/TSHasBlock), [TSSymbol](/api-reference/typescript/TSSymbol), [HasBlock](/api-reference/core/HasBlock), [Exportable](/api-reference/core/Exportable), [Symbol](/api-reference/core/Symbol), [Expression](/api-reference/core/Expression), [Usable](/api-reference/core/Usable), [Editable](/api-reference/core/Editable), [Importable](/api-reference/core/Importable)
@@ -45,6 +45,10 @@ import {Attribute} from '/snippets/Attribute.mdx';
 ### <span className="text-primary">exported_name</span>
 <HorizontalDivider light={true} />
 <Attribute type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">str | None</code> } description="Retrieves the exported name of a symbol from its file." />
+
+### <span className="text-primary">exports</span>
+<HorizontalDivider light={true} />
+<Attribute type={ <><span>list[</span> <a href="/api-reference/typescript/TSExport" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSExport</a> <span>]</span></> } description="Returns all Export symbols in the namespace." />
 
 ### <span className="text-primary">extended</span>
 <HorizontalDivider light={true} />
@@ -224,6 +228,31 @@ Insert a keyword in the appropriate place before this symbol if it doesn't alrea
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
 
 
+### <span className="text-primary">add_symbol</span>
+Adds a new symbol to the namespace, optionally exporting it if applicable. If the symbol already exists in the namespace, returns the existing symbol.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/namespace.py#L278-L303" />
+
+
+<Return return_type={ <><a href="/api-reference/typescript/TSSymbol" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSSymbol</a> <span>| None</span></> } description="The existing symbol if it already exists in the file or None if it was added."/>
+
+
+### <span className="text-primary">add_symbol_from_source</span>
+Adds a symbol to a namespace from a string representation.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/namespace.py#L258-L275" />
+
+<ParameterWrapper>
+<Parameter
+    name="source"
+    type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">str</code> }
+    description="String representation of the symbol to be added. This should be valid source code for"
+    defaultValue=""
+/>
+</ParameterWrapper>
+
+
+<Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description="The symbol is added directly to the namespace's content."/>
+
+
 ### <span className="text-primary">ancestors</span>
 Find all ancestors of the node of the given type. Does not return itself
 <GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/interfaces/editable.py#L1119-L1127" />
@@ -346,7 +375,7 @@ Flags a TypeScript symbol by adding a flag comment and returning a CodeFlag.
 
 ### <span className="text-primary">get_class</span>
 Get a class by name from this namespace.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/namespace.py#L135-L143" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/namespace.py#L182-L190" />
 
 
 <Return return_type={ <><a href="/api-reference/typescript/TSClass" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSClass</a> <span>| None</span></> } description=""/>
@@ -371,7 +400,7 @@ Returns a specific JSX element from within this symbol's JSX elements.
 
 ### <span className="text-primary">get_enum</span>
 Get an enum by name from this namespace.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/namespace.py#L165-L173" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/namespace.py#L212-L220" />
 
 
 <Return return_type={ <><a href="/api-reference/typescript/TSEnum" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSEnum</a> <span>| None</span></> } description=""/>
@@ -379,10 +408,10 @@ Get an enum by name from this namespace.
 
 ### <span className="text-primary">get_function</span>
 Get a function by name from this namespace.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/namespace.py#L107-L124" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/namespace.py#L163-L171" />
 
 
-<Return return_type={ <><a href="/api-reference/typescript/TSFunction" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSFunction</a> <span>| None</span></> } description="The found function, or None if not found"/>
+<Return return_type={ <><a href="/api-reference/typescript/TSFunction" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSFunction</a> <span>| None</span></> } description=""/>
 
 
 ### <span className="text-primary">get_import_string</span>
@@ -422,7 +451,7 @@ Generates the appropriate import string for a symbol.
 
 ### <span className="text-primary">get_interface</span>
 Get an interface by name from this namespace.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/namespace.py#L145-L153" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/namespace.py#L192-L200" />
 
 
 <Return return_type={ <><a href="/api-reference/typescript/TSInterface" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSInterface</a> <span>| None</span></> } description=""/>
@@ -438,7 +467,7 @@ Returns the name node of the object.
 
 ### <span className="text-primary">get_namespace</span>
 Get a namespace by name from this namespace.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/namespace.py#L175-L195" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/namespace.py#L222-L242" />
 
 
 <Return return_type={ <><a href="/api-reference/typescript/TSNamespace" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSNamespace</a> <span>| None</span></> } description="The found namespace, or None if not found"/>
@@ -446,15 +475,15 @@ Get a namespace by name from this namespace.
 
 ### <span className="text-primary">get_nested_namespaces</span>
 Get all nested namespaces within this namespace.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/namespace.py#L197-L208" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/namespace.py#L244-L255" />
 
 
 <Return return_type={ <><span>list[</span> <a href="/api-reference/typescript/TSNamespace" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSNamespace</a> <span>]</span></> } description="List of all nested namespace objects"/>
 
 
 ### <span className="text-primary">get_symbol</span>
-Get a symbol by name from this namespace.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/namespace.py#L76-L96" />
+Get an exported or private symbol by name from this namespace. Returns only exported symbols by default.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/namespace.py#L88-L123" />
 
 
 <Return return_type={ <><a href="/api-reference/typescript/TSSymbol" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSSymbol</a> <span>| None</span></> } description="The found symbol, or None if not found"/>
@@ -462,7 +491,7 @@ Get a symbol by name from this namespace.
 
 ### <span className="text-primary">get_type</span>
 Get a type alias by name from this namespace.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/namespace.py#L155-L163" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/namespace.py#L202-L210" />
 
 
 <Return return_type={ <><a href="/api-reference/typescript/TSTypeAlias" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSTypeAlias</a> <span>| None</span></> } description=""/>
@@ -677,6 +706,14 @@ Deletes this Node and its related extended nodes (e.g. decorators, comments).
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
 
 
+### <span className="text-primary">remove_symbol</span>
+Removes a symbol from the namespace by name.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/namespace.py#L306-L323" />
+
+
+<Return return_type={ <><a href="/api-reference/typescript/TSSymbol" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSSymbol</a> <span>| None</span></> } description=""/>
+
+
 ### <span className="text-primary">rename</span>
 Sets the name of an object and updates all its usages.
 <GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/core/interfaces/has_name.py#L80-L89" />
@@ -689,6 +726,14 @@ Sets the name of an object and updates all its usages.
     defaultValue=""
 />
 </ParameterWrapper>
+
+
+<Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
+
+
+### <span className="text-primary">rename_symbol</span>
+Renames a symbol within the namespace.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/namespace.py#L326-L335" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">None</code> } description=""/>
@@ -733,6 +778,22 @@ Search and replace occurrences of text within this node's source and its extende
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">int</code> } description="The total number of replacements made."/>
+
+
+### <span className="text-primary">resolve_attribute</span>
+Resolves an attribute access on the namespace.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/namespace.py#L391-L400" />
+
+
+<Return return_type={ <><a href="/api-reference/typescript/TSSymbol" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSSymbol</a> <span>| None</span></> } description=""/>
+
+
+### <span className="text-primary">resolve_import</span>
+Resolves an import name to a symbol within this namespace.
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/namespace.py#L368-L388" />
+
+
+<Return return_type={ <><a href="/api-reference/typescript/TSSymbol" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSSymbol</a> <span>| None</span></> } description=""/>
 
 
 ### <span className="text-primary">search</span>

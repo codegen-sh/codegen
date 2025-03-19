@@ -11,7 +11,7 @@ import {HorizontalDivider} from '/snippets/HorizontalDivider.mdx';
 import {GithubLinkNote} from '/snippets/GithubLinkNote.mdx';
 import {Attribute} from '/snippets/Attribute.mdx';
 
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/import_resolution.py#L31-L605" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/import_resolution.py#L32-L648" />
 
 ### Inherits from
 [Exportable](/api-reference/core/Exportable), [Import](/api-reference/core/Import), [Usable](/api-reference/core/Usable), [Importable](/api-reference/core/Importable), [Editable](/api-reference/core/Editable), [Expression](/api-reference/core/Expression), [HasName](/api-reference/core/HasName)
@@ -86,6 +86,10 @@ import {Attribute} from '/snippets/Attribute.mdx';
 <HorizontalDivider light={true} />
 <Attribute type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">bool</code> } description="Indicates if the symbol is exported from its defining file." />
 
+### <span className="text-primary">is_namespace_import</span>
+<HorizontalDivider light={true} />
+<Attribute type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">bool</code> } description="Returns True if this import is importing a namespace." />
+
 ### <span className="text-primary">is_reexported</span>
 <HorizontalDivider light={true} />
 <Attribute type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">bool</code> } description="Determines if the symbol is re-exported from a different file." />
@@ -101,6 +105,10 @@ import {Attribute} from '/snippets/Attribute.mdx';
 ### <span className="text-primary">namespace</span>
 <HorizontalDivider light={true} />
 <Attribute type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">str | None</code> } description="If import is a module import, returns any namespace prefix that must be used with import reference." />
+
+### <span className="text-primary">namespace_imports</span>
+<HorizontalDivider light={true} />
+<Attribute type={ <><span>list[</span> <a href="/api-reference/typescript/TSNamespace" style={ {fontWeight: "inherit", fontSize: "inherit"} }>TSNamespace</a> <span>]</span></> } description="Returns any namespace objects imported by this import statement." />
 
 ### <span className="text-primary">parent</span>
 <HorizontalDivider light={true} />
@@ -271,7 +279,7 @@ Adds a visual flag comment to the end of this Editable's source text.
 
 ### <span className="text-primary">get_import_string</span>
 Generates an import string for an import statement.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/import_resolution.py#L548-L571" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/import_resolution.py#L549-L572" />
 
 <ParameterWrapper>
 <Parameter
@@ -435,7 +443,7 @@ Checks if this node is a descendant of the given editable instance in the AST.
 
 ### <span className="text-primary">is_default_import</span>
 Determines whether the import is a default export import.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/import_resolution.py#L78-L90" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/import_resolution.py#L79-L91" />
 
 <ParameterWrapper>
 <Parameter
@@ -452,7 +460,7 @@ Determines whether the import is a default export import.
 
 ### <span className="text-primary">is_module_import</span>
 Determines if an import represents a module-level import.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/import_resolution.py#L58-L75" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/import_resolution.py#L59-L76" />
 
 <ParameterWrapper>
 <Parameter
@@ -485,7 +493,7 @@ Returns True if this import is importing a symbol rather than a module.
 
 ### <span className="text-primary">is_type_import</span>
 Checks if an import is a type import.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/import_resolution.py#L35-L55" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/import_resolution.py#L36-L56" />
 
 
 <Return return_type={ <code className="text-sm bg-gray-100 px-2 py-0.5 rounded">bool</code> } description="True if the import is a type import, False otherwise."/>
@@ -626,7 +634,7 @@ Search and replace occurrences of text within this node's source and its extende
 
 ### <span className="text-primary">resolve_import</span>
 Resolves an import statement to its target file and symbol.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/import_resolution.py#L200-L278" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/import_resolution.py#L201-L279" />
 
 <ParameterWrapper>
 <Parameter
@@ -672,7 +680,7 @@ Returns a list of all regex match of `regex_pattern`, similar to python's re.sea
 
 ### <span className="text-primary">set_import_module</span>
 Sets the module of an import.
-<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/import_resolution.py#L582-L605" />
+<GithubLinkNote link="https://github.com/codegen-sh/codegen/blob/develop/src/codegen/sdk/typescript/import_resolution.py#L625-L648" />
 
 <ParameterWrapper>
 <Parameter

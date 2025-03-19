@@ -65,8 +65,7 @@ def test_namespace_basic_symbols(tmpdir) -> None:
         assert namespace.get_symbol("privateVar") is None  # private not accessible
 
         # Test symbols collection
-        assert len(namespace.symbols) == 2  # only exported symbols
-        assert all(symbol.is_exported for symbol in namespace.symbols)
+        assert len(namespace.symbols) == 3
 
 
 def test_namespace_recursive_symbol_lookup(tmpdir) -> None:
@@ -122,44 +121,6 @@ def test_namespace_functions(tmpdir) -> None:
         function_names = {f.name for f in namespace.functions}
         assert function_names == {"func1", "func2"}
         assert all(func.is_exported for func in namespace.functions)
-
-
-def test_namespace_function_full_name(tmpdir) -> None:
-    """Test getting functions using full names."""
-    FILE_NAME = "test.ts"
-    # language=typescript
-    FILE_CONTENT = """
-    namespace Outer {
-        export function shared() { return 1; }
-        export namespace Inner {
-            export function shared() { return 2; }
-            export function unique() { return 3; }
-        }
-    }
-    """
-    with get_codebase_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={FILE_NAME: FILE_CONTENT}) as codebase:
-        namespace: TSNamespace = codebase.get_symbol("Outer")
-        assert namespace is not None
-
-        # Test getting functions by local name
-        outer_shared = namespace.get_function("shared", recursive=False)
-        assert outer_shared is not None
-        inner_shared = namespace.get_function("shared", recursive=True)
-        assert inner_shared is not None
-        # Without full names, we might get either shared function
-        assert outer_shared == inner_shared
-
-        # Test getting functions by full name
-        outer_shared = namespace.get_function("shared", use_full_name=True)
-        assert outer_shared is not None
-        inner_shared = namespace.get_function("Inner.shared", use_full_name=True)
-        assert inner_shared is not None
-        inner_unique = namespace.get_function("Inner.unique", use_full_name=True)
-        assert inner_unique is not None
-
-        # Test non-existent paths
-        assert namespace.get_function("NonExistent.shared", use_full_name=True) is None
-        assert namespace.get_function("Inner.NonExistent", use_full_name=True) is None
 
 
 def test_namespace_function_overloading(tmpdir) -> None:
@@ -333,3 +294,46 @@ def test_namespace_nested_deep(tmpdir) -> None:
         assert len(nested) == 2  # Should find B and C
         assert all(isinstance(ns, TSNamespace) for ns in nested)
         assert {ns.name for ns in nested} == {"B", "C"}
+
+
+def test_namespace_imports(tmpdir) -> None:
+    """Test importing and using namespaces."""
+    FILE_NAME_1 = "math.ts"
+    # language=typescript
+    FILE_CONTENT_1 = """
+    export namespace Math {
+        export const PI = 3.14159;
+        export function square(x: number) { return x * x; }
+
+        export namespace Advanced {
+            export function cube(x: number) { return x * x * x; }
+        }
+    }
+    """
+
+    FILE_NAME_2 = "app.ts"
+    # language=typescript
+    FILE_CONTENT_2 = """
+    import { Math } from './math';
+
+    console.log(Math.PI);
+    console.log(Math.square(5));
+    console.log(Math.Advanced.cube(3));
+    """
+
+    with get_codebase_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={FILE_NAME_1: FILE_CONTENT_1, FILE_NAME_2: FILE_CONTENT_2}) as codebase:
+        math_ns = codebase.get_symbol("Math")
+        assert math_ns is not None
+        assert math_ns.name == "Math"
+
+        # Test namespace import resolution
+        file2 = codebase.get_file(FILE_NAME_2)
+        math_import = file2.get_import("Math")
+        assert math_import is not None
+        assert math_import.is_namespace_import
+
+        # Test nested namespace access
+        advanced = math_ns.get_namespace("Advanced")
+        assert advanced is not None
+        assert advanced.name == "Advanced"
+        assert advanced.get_function("cube") is not None

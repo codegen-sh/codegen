@@ -133,6 +133,7 @@ def view_file(
 Ensure that this is indeed the correct filepath, else keep searching to find the correct fullpath.""",
             filepath=filepath,
             content="",
+            raw_content="",
             line_count=0,
             start_line=start_line,
             end_line=end_line,

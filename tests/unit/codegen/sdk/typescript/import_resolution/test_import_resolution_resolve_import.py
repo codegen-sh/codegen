@@ -834,3 +834,32 @@ export function bar() {
         assert len(bar.call_sites) == 1
         assert foo.call_sites[0].source == "myFile2.foo()"
         assert bar.call_sites[0].source == "myFile3.bar()"
+
+
+def test_resolve_namespace_import(tmpdir) -> None:
+    # language=typescript
+    content = """
+import { CONSTS } from './file2'
+
+let use_a = CONSTS.a
+let use_b = CONSTS.b
+let use_c = CONSTS.c
+
+    """
+    # language=typescript
+    content2 = """
+export namespace CONSTS {
+    export const a = 2;
+    export const b = 3;
+    export const c = 4;
+}
+    """
+    with get_codebase_session(tmpdir=tmpdir, files={"file.ts": content, "file2.ts": content2}, programming_language=ProgrammingLanguage.TYPESCRIPT) as codebase:
+        file = codebase.get_file("file.ts")
+        file2 = codebase.get_file("file2.ts")
+        assert len(file.imports) == 1
+
+        consts = file2.get_namespace("CONSTS")
+
+        assert file.imports[0].resolved_symbol == consts
+        assert file.get_symbol("use_a").resolved_value == consts.get_symbol("a").resolved_value
