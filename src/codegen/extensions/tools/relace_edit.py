@@ -2,17 +2,19 @@
 
 import difflib
 import os
-from typing import ClassVar, Optional
+from typing import TYPE_CHECKING, ClassVar, Optional
 
 import requests
+from langchain_core.messages import ToolMessage
 from pydantic import Field
 
-from codegen.extensions.tools.tool_output_types import RelaceEditArtifacts
 from codegen.sdk.core.codebase import Codebase
 
 from .observation import Observation
 from .view_file import add_line_numbers
-from langchain_core.messages import ToolMessage
+
+if TYPE_CHECKING:
+    from codegen.extensions.tools.tool_output_types import RelaceEditArtifacts
 
 
 class RelaceEditObservation(Observation):
@@ -36,10 +38,8 @@ class RelaceEditObservation(Observation):
 
     str_template: ClassVar[str] = "Edited file {filepath} using Relace Instant Apply"
 
-
     def render(self, tool_call_id: str) -> ToolMessage:
         """Render the relace edit observation as a ToolMessage."""
-
         artifacts: RelaceEditArtifacts = {
             "filepath": self.filepath,
             "diff": self.diff,
