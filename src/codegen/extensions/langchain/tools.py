@@ -1041,6 +1041,7 @@ class RelaceEditInput(BaseModel):
 
     filepath: str = Field(..., description="Path of the file relative to workspace root")
     edit_snippet: str = Field(..., description=RELACE_EDIT_PROMPT)
+    tool_call_id: Annotated[str, InjectedToolCallId]
 
 
 class RelaceEditTool(BaseTool):

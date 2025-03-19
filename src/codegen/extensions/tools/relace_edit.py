@@ -60,6 +60,7 @@ class RelaceEditObservation(Observation):
         return ToolMessage(
             content=self.render_as_string(),
             status=self.status,
+            name="relace_edit",
             tool_call_id=tool_call_id,
             artifact=artifacts,
         )
