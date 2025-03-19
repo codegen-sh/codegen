@@ -126,7 +126,7 @@ class SearchObservation(Observation):
             return ToolMessage(
                 content=f"[SEARCH ERROR]: {self.error}",
                 status=self.status,
-                tool_name="search",
+                name="search",
                 tool_call_id=tool_call_id,
                 artifact=artifacts,
             )
@@ -162,7 +162,7 @@ class SearchObservation(Observation):
         return ToolMessage(
             content="\n".join(lines),
             status=self.status,
-            tool_name="search",
+            name="search",
             tool_call_id=tool_call_id,
             artifact=artifacts,
         )

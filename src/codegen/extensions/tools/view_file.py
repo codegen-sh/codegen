@@ -22,6 +22,9 @@ class ViewFileObservation(Observation):
     content: str = Field(
         description="Content of the file",
     )
+    raw_content: str = Field(
+        description="Raw content of the file",
+    )
     line_count: Optional[int] = Field(
         default=None,
         description="Number of lines in the file",
@@ -53,7 +56,7 @@ class ViewFileObservation(Observation):
                 content=f"[ERROR VIEWING FILE]: {self.filepath}: {self.error}",
                 status=self.status,
                 tool_call_id=tool_call_id,
-                tool_name="view_file",
+                name="view_file",
                 artifact=error_artifacts,
                 additional_kwargs={
                     "error": self.error,
@@ -64,6 +67,7 @@ class ViewFileObservation(Observation):
             "filepath": self.filepath,
             "start_line": self.start_line,
             "end_line": self.end_line,
+            "content": self.raw_content,
             "total_lines": self.line_count,
             "has_more": self.has_more,
             "max_lines_per_page": self.max_lines_per_page,
@@ -81,7 +85,7 @@ class ViewFileObservation(Observation):
         return ToolMessage(
             content=f"{header}\n\n{self.content}" if self.content else f"{header}\n<Empty Content>",
             status=self.status,
-            tool_name="view_file",
+            name="view_file",
             tool_call_id=tool_call_id,
             artifact=success_artifacts,
         )
@@ -107,7 +111,7 @@ def view_file(
     line_numbers: bool = True,
     start_line: Optional[int] = None,
     end_line: Optional[int] = None,
-    max_lines: int = 250,
+    max_lines: int = 500,
 ) -> ViewFileObservation:
     """View the contents and metadata of a file.
 
@@ -117,7 +121,7 @@ def view_file(
         line_numbers: If True, add line numbers to the content (1-indexed)
         start_line: Starting line number to view (1-indexed, inclusive)
         end_line: Ending line number to view (1-indexed, inclusive)
-        max_lines: Maximum number of lines to view at once, defaults to 250
+        max_lines: Maximum number of lines to view at once, defaults to 500
     """
     try:
         file = codebase.get_file(filepath)
@@ -129,6 +133,7 @@ def view_file(
 Ensure that this is indeed the correct filepath, else keep searching to find the correct fullpath.""",
             filepath=filepath,
             content="",
+            raw_content="",
             line_count=0,
             start_line=start_line,
             end_line=end_line,
@@ -172,6 +177,7 @@ Ensure that this is indeed the correct filepath, else keep searching to find the
         status="success",
         filepath=file.filepath,
         content=content,
+        raw_content=file.content,
         line_count=total_lines,
     )
 

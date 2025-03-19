@@ -188,7 +188,7 @@ Codebase Context:
         # Initialize the LLM
         llm = LLM(
             model_provider="anthropic",
-            model_name="claude-3-5-sonnet-latest",
+            model_name="claude-3-7-sonnet-latest",
             temperature=0.2,  # Slightly higher temperature for more creative reflection
             max_tokens=4000,
         )

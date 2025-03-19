@@ -32,15 +32,20 @@ jobs:
       - name: Setup environment
         uses: ./.github/actions/setup-environment
 
-      - name: Run ATS and Tests
-        uses: ./.github/actions/run-ats
-        timeout-minutes: 15
+      - name: Test with pytest
+        timeout-minutes: 5
+        run: |
+          uv run pytest \
+            -n auto \
+            --cov src \
+            --timeout 15 \
+            -o junit_suite_name="${{github.job}}" \
+            tests/unit
+
+      - uses: ./.github/actions/report
         with:
-          default_tests: "tests/unit"
-          codecov_static_token: ${{ secrets.CODECOV_STATIC_TOKEN }}
+          flag: unit-tests
           codecov_token: ${{ secrets.CODECOV_TOKEN }}
-          collect_args: "--timeout 15"
-          codecov_flags: unit-tests
 
   codemod-tests:
     needs: access-check

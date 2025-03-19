@@ -48,7 +48,7 @@ for file in codebase.files[:5]:
         assert remote_branch is not None
         assert remote_branch.name == branch.head_ref
         assert remote_branch.commit.commit.message == f"[Codegen] {commit_msg}"
-        assert remote_branch.commit.commit.author.name == "codegen-bot"
+        assert remote_branch.commit.commit.author.name == "codegen-sh[bot]"
 
         comparison = git_repo_client.repo.compare(base=branch.base_branch, head=branch.head_ref)
         assert "+🌈" in comparison.files[0].patch
