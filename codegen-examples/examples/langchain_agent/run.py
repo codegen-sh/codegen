@@ -1,6 +1,9 @@
 """Demo implementation of an agent with Codegen tools."""
 
 from codegen import Codebase
+from codegen.extensions.langchain.graph import create_react_agent
+from codegen.extensions.langchain.llm import LLM
+from codegen.extensions.langchain.prompts import REASONER_SYSTEM_MESSAGE
 from codegen.extensions.langchain.tools import (
     CommitTool,
     CreateFileTool,
@@ -10,18 +13,13 @@ from codegen.extensions.langchain.tools import (
     MoveSymbolTool,
     RenameFileTool,
     RevealSymbolTool,
-    SearchTool,
+    RipGrepTool,
     SemanticEditTool,
     ViewFileTool,
 )
-
-from codegen.extensions.langchain.llm import LLM
-from codegen.extensions.langchain.prompts import REASONER_SYSTEM_MESSAGE
-
+from langchain_core.messages import SystemMessage
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph.graph import CompiledGraph
-from codegen.extensions.langchain.graph import create_react_agent
-from langchain_core.messages import SystemMessage
 
 
 def create_codebase_agent(
@@ -57,7 +55,7 @@ def create_codebase_agent(
     tools = [
         ViewFileTool(codebase),
         ListDirectoryTool(codebase),
-        SearchTool(codebase),
+        RipGrepTool(codebase),
         EditFileTool(codebase),
         CreateFileTool(codebase),
         DeleteFileTool(codebase),

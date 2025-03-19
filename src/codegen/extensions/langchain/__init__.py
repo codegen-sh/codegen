@@ -11,7 +11,7 @@ from .tools import (
     EditFileTool,
     ListDirectoryTool,
     RevealSymbolTool,
-    SearchTool,
+    RipGrepTool,
     SemanticEditTool,
     ViewFileTool,
 )
@@ -24,7 +24,7 @@ __all__ = [
     "EditFileTool",
     "ListDirectoryTool",
     "RevealSymbolTool",
-    "SearchTool",
+    "RipGrepTool",
     "SemanticEditTool",
     "ViewFileTool",
     # Helper functions
@@ -44,7 +44,7 @@ def get_workspace_tools(codebase: Codebase) -> list[BaseTool]:
     return [
         ViewFileTool(codebase),
         ListDirectoryTool(codebase),
-        SearchTool(codebase),
+        RipGrepTool(codebase),
         EditFileTool(codebase),
         CreateFileTool(codebase),
         DeleteFileTool(codebase),

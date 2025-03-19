@@ -126,8 +126,7 @@ class SearchInput(BaseModel):
 
     query: str = Field(
         ...,
-        description="""The search query to find in the codebase. When ripgrep is available, this will be passed as a ripgrep pattern. For regex searches, set use_regex=True.
-        Ripgrep is the preferred method.""",
+        description="""ripgrep query (or regex pattern) to run. For regex searches, set use_regex=True. Ripgrep is the preferred method.""",
     )
     file_extensions: list[str] | None = Field(default=None, description="Optional list of file extensions to search (e.g. ['.py', '.ts'])")
     page: int = Field(default=1, description="Page number to return (1-based, default: 1)")
@@ -136,11 +135,11 @@ class SearchInput(BaseModel):
     tool_call_id: Annotated[str, InjectedToolCallId]
 
 
-class SearchTool(BaseTool):
-    """Tool for searching the codebase."""
+class RipGrepTool(BaseTool):
+    """Tool for searching the codebase via RipGrep."""
 
     name: ClassVar[str] = "search"
-    description: ClassVar[str] = "Search the codebase using text search or regex pattern matching"
+    description: ClassVar[str] = "Search the codebase using `ripgrep` or regex pattern matching"
     args_schema: ClassVar[type[BaseModel]] = SearchInput
     codebase: Codebase = Field(exclude=True)
 
@@ -867,7 +866,7 @@ def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
         RevealSymbolTool(codebase),
         GlobalReplacementEditTool(codebase),
         RunBashCommandTool(),  # Note: This tool doesn't need the codebase
-        SearchTool(codebase),
+        RipGrepTool(codebase),
         SearchFilesByNameTool(codebase),
         # SemanticEditTool(codebase),
         # SemanticSearchTool(codebase),

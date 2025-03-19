@@ -21,8 +21,8 @@ from codegen.extensions.langchain.tools import (
     RenameFileTool,
     ReplacementEditTool,
     RevealSymbolTool,
+    RipGrepTool,
     SearchFilesByNameTool,
-    SearchTool,
     # SemanticEditTool,
     ViewFileTool,
 )
@@ -67,7 +67,7 @@ def create_codebase_agent(
     tools = [
         ViewFileTool(codebase),
         ListDirectoryTool(codebase),
-        SearchTool(codebase),
+        RipGrepTool(codebase),
         # EditFileTool(codebase),
         CreateFileTool(codebase),
         DeleteFileTool(codebase),
@@ -131,7 +131,7 @@ def create_chat_agent(
     tools = [
         ViewFileTool(codebase),
         ListDirectoryTool(codebase),
-        SearchTool(codebase),
+        RipGrepTool(codebase),
         CreateFileTool(codebase),
         DeleteFileTool(codebase),
         RenameFileTool(codebase),
@@ -177,7 +177,7 @@ def create_codebase_inspector_agent(
     tools = [
         ViewFileTool(codebase),
         ListDirectoryTool(codebase),
-        SearchTool(codebase),
+        RipGrepTool(codebase),
         DeleteFileTool(codebase),
         RevealSymbolTool(codebase),
     ]
