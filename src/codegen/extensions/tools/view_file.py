@@ -22,6 +22,9 @@ class ViewFileObservation(Observation):
     content: str = Field(
         description="Content of the file",
     )
+    raw_content: str = Field(
+        description="Raw content of the file",
+    )
     line_count: Optional[int] = Field(
         default=None,
         description="Number of lines in the file",
@@ -64,7 +67,7 @@ class ViewFileObservation(Observation):
             "filepath": self.filepath,
             "start_line": self.start_line,
             "end_line": self.end_line,
-            "content": self.content,
+            "content": self.raw_content,
             "total_lines": self.line_count,
             "has_more": self.has_more,
             "max_lines_per_page": self.max_lines_per_page,
@@ -173,6 +176,7 @@ Ensure that this is indeed the correct filepath, else keep searching to find the
         status="success",
         filepath=file.filepath,
         content=content,
+        raw_content=file.content,
         line_count=total_lines,
     )
 
