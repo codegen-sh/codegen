@@ -1,9 +1,11 @@
 """Langchain tools for workspace operations."""
 
 from collections.abc import Callable
-from typing import ClassVar, Literal
+from typing import Annotated, ClassVar, Literal
 
+from langchain_core.stores import InMemoryBaseStore
 from langchain_core.tools.base import BaseTool
+from langgraph.prebuilt import InjectedStore
 from pydantic import BaseModel, Field
 
 from codegen.extensions.linear.linear_client import LinearClient
@@ -189,11 +191,13 @@ Input for searching the codebase.
 class CreateFileInput(BaseModel):
     """Input for creating a file."""
 
+    model_config = {"arbitrary_types_allowed": True}
     filepath: str = Field(..., description="Path where to create the file")
+    store: Annotated[InMemoryBaseStore, InjectedStore()]
     content: str = Field(
-        ...,
+        default="",
         description="""
-Content for the new file (REQUIRED).
+Content for the new file.
 
 ⚠️ IMPORTANT: This parameter MUST be a STRING, not a dictionary, JSON object, or any other data type.
 Example: content="print('Hello world')"
@@ -207,19 +211,14 @@ class CreateFileTool(BaseTool):
 
     name: ClassVar[str] = "create_file"
     description: ClassVar[str] = """
-Create a new file in the codebase. Always provide content for the new file, even if minimal.
-
-⚠️ CRITICAL WARNING ⚠️
-Both parameters MUST be provided as STRINGS:
-The content for the new file always needs to be provided.
+Create a new file in the codebase.
 
 1. filepath: The path where to create the file (as a string)
 2. content: The content for the new file (as a STRING, NOT as a dictionary or JSON object)
 
 ✅ CORRECT usage:
 create_file(filepath="path/to/file.py", content="print('Hello world')")
-
-The content parameter is REQUIRED and MUST be a STRING. If you receive a validation error about
+If you receive a validation error about
 missing content, you are likely trying to pass a dictionary instead of a string.
 """
     args_schema: ClassVar[type[BaseModel]] = CreateFileInput
@@ -228,8 +227,15 @@ missing content, you are likely trying to pass a dictionary instead of a string.
     def __init__(self, codebase: Codebase) -> None:
         super().__init__(codebase=codebase)
 
-    def _run(self, filepath: str, content: str) -> str:
-        result = create_file(self.codebase, filepath, content)
+    def _run(self, filepath: str, store: InMemoryBaseStore, content: str = "") -> str:
+        create_file_tool_status = store.mget([self.name])[0]
+        if create_file_tool_status and create_file_tool_status.get("max_tokens_reached", False):
+            max_tokens = create_file_tool_status.get("max_tokens", None)
+            store.mset([(self.name, {"max_tokens": max_tokens, "max_tokens_reached": False})])
+            result = create_file(self.codebase, filepath, content, max_tokens=max_tokens)
+        else:
+            result = create_file(self.codebase, filepath, content)
+
         return result.render()
 
 
@@ -1094,6 +1100,7 @@ class SearchFilesByNameInput(BaseModel):
     page: int = Field(default=1, description="Page number to return (1-based)")
     files_per_page: int | float = Field(default=10, description="Number of files per page to return, use math.inf to return all files")
 
+
 class SearchFilesByNameTool(BaseTool):
     """Tool for searching files by filename across a codebase."""
 
@@ -1106,8 +1113,6 @@ Search for files and directories by glob pattern (with pagination) across the ac
 """
     args_schema: ClassVar[type[BaseModel]] = SearchFilesByNameInput
     codebase: Codebase = Field(exclude=True)
-
-    
 
     def __init__(self, codebase: Codebase):
         super().__init__(codebase=codebase)

@@ -6,17 +6,24 @@ from typing import Annotated, Any, Literal, Optional, Union
 import anthropic
 import openai
 from langchain.tools import BaseTool
-from langchain_core.messages import AIMessage, AnyMessage, HumanMessage, SystemMessage, ToolMessage
+from langchain_core.messages import (
+    AIMessage,
+    AnyMessage,
+    HumanMessage,
+    SystemMessage,
+    ToolMessage,
+)
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.stores import InMemoryBaseStore
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START
 from langgraph.graph.state import CompiledGraph, StateGraph
-from langgraph.prebuilt import ToolNode
 from langgraph.pregel import RetryPolicy
 
 from codegen.agents.utils import AgentConfig
 from codegen.extensions.langchain.llm import LLM
 from codegen.extensions.langchain.prompts import SUMMARIZE_CONVERSATION_PROMPT
+from codegen.extensions.langchain.utils.custom_tool_node import CustomToolNode
 from codegen.extensions.langchain.utils.utils import get_max_model_input_tokens
 
 
@@ -87,6 +94,7 @@ class AgentGraph:
         self.config = config
         self.max_messages = config.get("max_messages", 100) if config else 100
         self.keep_first_messages = config.get("keep_first_messages", 1) if config else 1
+        self.store = InMemoryBaseStore()
 
     # =================================== NODES ====================================
 
@@ -459,7 +467,7 @@ class AgentGraph:
 
         # Add nodes
         builder.add_node("reasoner", self.reasoner, retry=retry_policy)
-        builder.add_node("tools", ToolNode(self.tools, handle_tool_errors=handle_tool_errors), retry=retry_policy)
+        builder.add_node("tools", CustomToolNode(self.tools, handle_tool_errors=handle_tool_errors), retry=retry_policy)
         builder.add_node("summarize_conversation", self.summarize_conversation, retry=retry_policy)
 
         # Add edges
@@ -471,7 +479,7 @@ class AgentGraph:
         )
         builder.add_conditional_edges("summarize_conversation", self.should_continue)
 
-        return builder.compile(checkpointer=checkpointer, debug=debug)
+        return builder.compile(checkpointer=checkpointer, store=self.store, debug=debug)
 
 
 def create_react_agent(
