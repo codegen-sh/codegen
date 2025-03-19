@@ -188,10 +188,9 @@ class AgentGraph:
         # Choose template based on whether we have images
         summarizer_content = [{"type": "text", "text": SUMMARIZE_CONVERSATION_PROMPT}]
         for image_url in image_urls:
-            summarizer_content.append({"type": "image_url", "image_url": {"url": image_url}})
+            summarizer_content.append(image_url)
 
-        summarizer_messages = [HumanMessage(content=summarizer_content)]
-        chain = ChatPromptTemplate.from_messages(summarizer_messages) | summary_llm
+        chain = ChatPromptTemplate([("human", summarizer_content)]) | summary_llm
         new_summary = chain.invoke(
             {
                 "conversation": conversation,
@@ -213,7 +212,7 @@ class AgentGraph:
             return "summarize_conversation"
 
         # Summarize if the last message exceeds the max input tokens of the model - 10000 tokens
-        elif isinstance(last_message, AIMessage) and not just_summarized and curr_input_tokens > (max_input_tokens - 10000):
+        elif isinstance(last_message, AIMessage) and not just_summarized and curr_input_tokens > (max_input_tokens - 30000):
             return "summarize_conversation"
 
         elif hasattr(last_message, "tool_calls") and last_message.tool_calls:
