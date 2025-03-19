@@ -53,7 +53,7 @@ class ViewFileObservation(Observation):
                 content=f"[ERROR VIEWING FILE]: {self.filepath}: {self.error}",
                 status=self.status,
                 tool_call_id=tool_call_id,
-                tool_name="view_file",
+                name="view_file",
                 artifact=error_artifacts,
                 additional_kwargs={
                     "error": self.error,
@@ -64,6 +64,7 @@ class ViewFileObservation(Observation):
             "filepath": self.filepath,
             "start_line": self.start_line,
             "end_line": self.end_line,
+            "content": self.content,
             "total_lines": self.line_count,
             "has_more": self.has_more,
             "max_lines_per_page": self.max_lines_per_page,

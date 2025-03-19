@@ -64,7 +64,7 @@ class SemanticEditObservation(Observation):
             return ToolMessage(
                 content=f"[EDIT ERROR]: {self.error}",
                 status=self.status,
-                tool_name="semantic_edit",
+                name="semantic_edit",
                 tool_call_id=tool_call_id,
                 artifact=artifacts,
             )
@@ -72,7 +72,7 @@ class SemanticEditObservation(Observation):
         return ToolMessage(
             content=self.render_as_string(),
             status=self.status,
-            tool_name="semantic_edit",
+            name="semantic_edit",
             tool_call_id=tool_call_id,
             artifact=artifacts,
         )

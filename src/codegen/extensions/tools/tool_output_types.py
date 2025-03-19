@@ -24,6 +24,7 @@ class ViewFileArtifacts(TypedDict, total=False):
     filepath: str  # Path to the viewed file
     start_line: Optional[int]  # Starting line number viewed
     end_line: Optional[int]  # Ending line number viewed
+    content: Optional[str]  # Content of the file
     total_lines: Optional[int]  # Total number of lines in file
     has_more: Optional[bool]  # Whether there are more lines to view
     max_lines_per_page: Optional[int]  # Maximum lines that can be viewed at once
