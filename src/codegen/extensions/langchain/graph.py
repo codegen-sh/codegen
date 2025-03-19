@@ -100,7 +100,7 @@ class AgentGraph:
             messages.append(HumanMessage(content=query))
 
         result = self.model.invoke([self.system_message, *messages])
-        if isinstance(result, AIMessage):
+        if isinstance(result, AIMessage) and not result.tool_calls:
             updated_messages = [*messages, result]
             return {"messages": updated_messages, "final_answer": result.content}
 
@@ -455,7 +455,7 @@ class AgentGraph:
                     return f"Error: Could not identify the tool you're trying to use.\n\nAvailable tools:\n{available_tools}\n\nPlease use one of the available tools with the correct parameters."
 
             # For other types of errors
-            return f"Error executing tool: {error_msg}\n\nPlease check your tool usage and try again with the correct parameters."
+            return f"Error executing tool: {exception!s}\n\nPlease check your tool usage and try again with the correct parameters."
 
         # Add nodes
         builder.add_node("reasoner", self.reasoner, retry=retry_policy)

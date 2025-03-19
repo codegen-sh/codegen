@@ -71,7 +71,14 @@ class MessageStreamTracer:
             tool_calls = [ToolCall(name=tc.get("name"), arguments=tc.get("arguments"), id=tc.get("id")) for tc in tool_calls_data]
             return AssistantMessage(type=message_type, content=content, tool_calls=tool_calls)
         elif message_type == "tool":
-            return ToolMessageData(type=message_type, content=content, tool_name=getattr(latest_message, "name", None), tool_response=content, tool_id=getattr(latest_message, "tool_call_id", None))
+            return ToolMessageData(
+                type=message_type,
+                content=content,
+                tool_name=getattr(latest_message, "name", None),
+                tool_response=getattr(latest_message, "artifact", content),
+                tool_id=getattr(latest_message, "tool_call_id", None),
+                status=getattr(latest_message, "status", None),
+            )
         elif message_type == "function":
             return FunctionMessageData(type=message_type, content=content)
         else:
