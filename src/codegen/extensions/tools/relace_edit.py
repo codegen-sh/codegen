@@ -2,15 +2,19 @@
 
 import difflib
 import os
-from typing import ClassVar, Optional
+from typing import TYPE_CHECKING, ClassVar
 
 import requests
+from langchain_core.messages import ToolMessage
 from pydantic import Field
 
 from codegen.sdk.core.codebase import Codebase
 
 from .observation import Observation
 from .view_file import add_line_numbers
+
+if TYPE_CHECKING:
+    from codegen.extensions.tools.tool_output_types import RelaceEditArtifacts
 
 
 class RelaceEditObservation(Observation):
@@ -19,20 +23,47 @@ class RelaceEditObservation(Observation):
     filepath: str = Field(
         description="Path to the edited file",
     )
-    diff: Optional[str] = Field(
+    diff: str | None = Field(
         default=None,
         description="Unified diff showing the changes made",
     )
-    new_content: Optional[str] = Field(
+    new_content: str | None = Field(
         default=None,
         description="New content with line numbers",
     )
-    line_count: Optional[int] = Field(
+    line_count: int | None = Field(
         default=None,
         description="Total number of lines in file",
     )
 
     str_template: ClassVar[str] = "Edited file {filepath} using Relace Instant Apply"
+
+    def render(self, tool_call_id: str) -> ToolMessage:
+        """Render the relace edit observation as a ToolMessage."""
+        artifacts: RelaceEditArtifacts = {
+            "filepath": self.filepath,
+            "diff": self.diff,
+            "new_content": self.new_content,
+            "line_count": self.line_count,
+            "error": self.error,
+        }
+
+        if self.status == "error":
+            return ToolMessage(
+                content=f"[ERROR EDITING FILE]: {self.filepath}: {self.error}",
+                status=self.status,
+                name="relace_edit",
+                artifact=artifacts,
+                tool_call_id=tool_call_id,
+            )
+
+        return ToolMessage(
+            content=self.render_as_string(),
+            status=self.status,
+            name="relace_edit",
+            tool_call_id=tool_call_id,
+            artifact=artifacts,
+        )
 
 
 def generate_diff(original: str, modified: str) -> str:
@@ -104,7 +135,7 @@ def apply_relace_edit(api_key: str, initial_code: str, edit_snippet: str, stream
         raise Exception(msg)
 
 
-def relace_edit(codebase: Codebase, filepath: str, edit_snippet: str, api_key: Optional[str] = None) -> RelaceEditObservation:
+def relace_edit(codebase: Codebase, filepath: str, edit_snippet: str, api_key: str | None = None) -> RelaceEditObservation:
     """Edit a file using the Relace Instant Apply API.
 
     Args:
@@ -145,6 +176,8 @@ def relace_edit(codebase: Codebase, filepath: str, edit_snippet: str, api_key: O
     # Apply the edit using Relace API
     try:
         merged_code = apply_relace_edit(api_key, original_content, edit_snippet)
+        if original_content.endswith("\n") and not merged_code.endswith("\n"):
+            merged_code += "\n"
     except Exception as e:
         return RelaceEditObservation(
             status="error",

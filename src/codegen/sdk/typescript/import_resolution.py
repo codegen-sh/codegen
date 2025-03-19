@@ -8,7 +8,7 @@ from codegen.sdk.core.autocommit import reader
 from codegen.sdk.core.expressions import Name
 from codegen.sdk.core.import_resolution import Import, ImportResolution, WildcardImport
 from codegen.sdk.core.interfaces.exportable import Exportable
-from codegen.sdk.enums import ImportType, NodeType
+from codegen.sdk.enums import ImportType, NodeType, SymbolType
 from codegen.sdk.utils import find_all_descendants, find_first_ancestor, find_first_descendant
 from codegen.shared.decorators.docs import noapidoc, ts_apidoc
 
@@ -24,6 +24,7 @@ if TYPE_CHECKING:
     from codegen.sdk.core.statements.import_statement import ImportStatement
     from codegen.sdk.core.symbol import Symbol
     from codegen.sdk.typescript.file import TSFile
+    from codegen.sdk.typescript.namespace import TSNamespace
     from codegen.sdk.typescript.statements.import_statement import TSImportStatement
 
 
@@ -577,6 +578,48 @@ class TSImport(Import["TSFile"], Exportable):
         if self.import_type == ImportType.SIDE_EFFECT:
             return
         yield from super().names
+
+    @property
+    def namespace_imports(self) -> list[TSNamespace]:
+        """Returns any namespace objects imported by this import statement.
+
+        For example:
+        import * as MyNS from './mymodule';
+
+        Returns:
+            List of namespace objects imported
+        """
+        if not self.is_namespace_import():
+            return []
+
+        from codegen.sdk.typescript.namespace import TSNamespace
+
+        resolved = self.resolved_symbol
+        if resolved is None or not isinstance(resolved, TSNamespace):
+            return []
+
+        return [resolved]
+
+    @property
+    def is_namespace_import(self) -> bool:
+        """Returns True if this import is importing a namespace.
+
+        Examples:
+            import { MathUtils } from './file1';  # True if MathUtils is a namespace
+            import * as AllUtils from './utils';   # True
+        """
+        # For wildcard imports with namespace alias
+        if self.import_type == ImportType.WILDCARD and self.namespace:
+            return True
+
+        # For named imports, check if any imported symbol is a namespace
+        if self.import_type == ImportType.NAMED_EXPORT:
+            for name, _ in self.names:
+                symbol = self.resolved_symbol
+                if symbol and symbol.symbol_type == SymbolType.Namespace:
+                    return True
+
+        return False
 
     @override
     def set_import_module(self, new_module: str) -> None:

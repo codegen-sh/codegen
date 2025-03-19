@@ -898,6 +898,10 @@ class Codebase(
             result = self._op.checkout_commit(commit_hash=commit)
         if result == CheckoutResult.SUCCESS:
             logger.info(f"Checked out {branch or commit}")
+            if self._op.head_commit is None:
+                logger.info(f"Ref: {self._op.git_cli.head.ref.name} has no commits")
+                return CheckoutResult.SUCCESS
+
             self.sync_to_commit(self._op.head_commit)
         elif result == CheckoutResult.NOT_FOUND:
             logger.info(f"Could not find branch {branch or commit}")
@@ -1435,6 +1439,7 @@ class Codebase(
 
         with tempfile.TemporaryDirectory(prefix="codegen_") as tmp_dir:
             logger.info(f"Using directory: {tmp_dir}")
+
             codebase = CodebaseFactory.get_codebase_from_files(repo_path=tmp_dir, files=files, programming_language=prog_lang)
             logger.info("Codebase initialization complete")
             return codebase

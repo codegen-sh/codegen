@@ -133,3 +133,42 @@ def test_namespace_validators(tmpdir) -> None:
         # Verify non-exported items are not accessible
         assert namespace.get_symbol("lettersRegexp") is None
         assert namespace.get_symbol("numberRegexp") is None
+
+
+def test_namespace_wildcard_import(tmpdir) -> None:
+    """Test wildcard imports with namespaces."""
+    FILE_NAME_1 = "utils.ts"
+    # language=typescript
+    FILE_CONTENT_1 = """
+    export namespace Utils {
+        export const helper1 = () => "help1";
+        export const helper2 = () => "help2";
+        const internal = () => "internal";
+    }
+    """
+
+    FILE_NAME_2 = "app.ts"
+    # language=typescript
+    FILE_CONTENT_2 = """
+    import * as AllUtils from './utils';
+
+    function test() {
+        console.log(AllUtils.Utils.helper1());
+        console.log(AllUtils.Utils.helper2());
+    }
+    """
+
+    with get_codebase_session(tmpdir=tmpdir, programming_language=ProgrammingLanguage.TYPESCRIPT, files={FILE_NAME_1: FILE_CONTENT_1, FILE_NAME_2: FILE_CONTENT_2}) as codebase:
+        utils_file = codebase.get_file(FILE_NAME_1)
+        app_file = codebase.get_file(FILE_NAME_2)
+
+        # Verify namespace import
+        utils_import = app_file.get_import("AllUtils")
+        assert utils_import is not None
+        assert utils_import.namespace == "AllUtils"
+
+        # Verify access to exported symbols
+        utils_ns = utils_file.get_symbol("Utils")
+        assert "helper1" in utils_ns.valid_import_names
+        assert "helper2" in utils_ns.valid_import_names
+        assert "internal" not in utils_ns.valid_import_names

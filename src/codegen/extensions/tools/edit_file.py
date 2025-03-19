@@ -1,13 +1,17 @@
 """Tool for editing file contents."""
 
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar, Optional
 
+from langchain_core.messages import ToolMessage
 from pydantic import Field
 
 from codegen.sdk.core.codebase import Codebase
 
 from .observation import Observation
 from .replacement_edit import generate_diff
+
+if TYPE_CHECKING:
+    from .tool_output_types import EditFileArtifacts
 
 
 class EditFileObservation(Observation):
@@ -16,17 +20,34 @@ class EditFileObservation(Observation):
     filepath: str = Field(
         description="Path to the edited file",
     )
-    diff: str = Field(
+    diff: Optional[str] = Field(
+        default=None,
         description="Unified diff showing the changes made",
     )
 
     str_template: ClassVar[str] = "Edited file {filepath}"
 
-    def render(self) -> str:
+    def render(self, tool_call_id: str) -> ToolMessage:
         """Render edit results in a clean format."""
-        return f"""[EDIT FILE]: {self.filepath}
+        if self.status == "error":
+            artifacts_error: EditFileArtifacts = {"filepath": self.filepath, "error": self.error}
+            return ToolMessage(
+                content=f"[ERROR EDITING FILE]: {self.filepath}: {self.error}",
+                status=self.status,
+                name="edit_file",
+                artifact=artifacts_error,
+                tool_call_id=tool_call_id,
+            )
 
-{self.diff}"""
+        artifacts_success: EditFileArtifacts = {"filepath": self.filepath, "diff": self.diff}
+
+        return ToolMessage(
+            content=f"""[EDIT FILE]: {self.filepath}\n\n{self.diff}""",
+            status=self.status,
+            name="edit_file",
+            artifact=artifacts_success,
+            tool_call_id=tool_call_id,
+        )
 
 
 def edit_file(codebase: Codebase, filepath: str, new_content: str) -> EditFileObservation:
