@@ -1533,7 +1533,7 @@ class Codebase(
         cg_pr = CodegenPR(self._op, self, pr)
         patch = cg_pr.get_pr_diff()
         commit_sha = cg_pr.get_file_commit_shas()
-        return patch, commit_sha, cg_pr.modified_symbols
+        return patch, commit_sha, cg_pr.modified_symbols, pr.head.ref
 
     def create_pr_comment(self, pr_number: int, body: str) -> None:
         """Create a comment on a pull request"""
