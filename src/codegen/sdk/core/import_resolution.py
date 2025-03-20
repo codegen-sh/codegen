@@ -5,7 +5,6 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, ClassVar, Generic, Literal, Self, TypeVar, override
 
 from codegen.sdk.codebase.resolution_stack import ResolutionStack
-from codegen.sdk.codebase.transactions import TransactionPriority
 from codegen.sdk.core.autocommit import commiter, reader, remover, writer
 from codegen.sdk.core.dataclasses.usage import UsageKind
 from codegen.sdk.core.expressions.name import Name
@@ -682,13 +681,24 @@ class Import(Usable[ImportStatement], Chainable, Generic[TSourceFile], HasAttrib
 
     @noapidoc
     @reader
-    def remove_if_unused(self) -> None:
+    def remove_if_unused(self, force:bool=False) -> bool:
+        """Removes import if it is not being used. Considers current transaction removals.
+
+        Args:
+            force (bool, optional): If true removes the import even if we cannot ascertain the usage for sure. Defaults to False.
+
+        Returns:
+            bool: True if removed, False if not
+        """
         if all(
-            self.transaction_manager.get_transaction_containing_range(self.file.path, start_byte=usage.match.start_byte, end_byte=usage.match.end_byte, transaction_order=TransactionPriority.Remove)
+            usage.match.get_transaction_if_pending_removal()
             for usage in self.usages
         ):
+            if not force and not self.usage_is_ascertainable():
+                return False
             self.remove()
-
+            return True
+        return False
     @noapidoc
     @reader
     def resolve_attribute(self, attribute: str) -> TSourceFile | None:

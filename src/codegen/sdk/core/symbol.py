@@ -279,16 +279,13 @@ class Symbol(Usable[Statement["CodeBlock[Parent, ...]"]], Generic[Parent, TCodeB
             if isinstance(dep, Import):
                 dep.remove_if_unused()
 
-                if not other_usages:
-                    # Clean up forward...
-                    dep.remove()
             elif isinstance(dep, Symbol):
                 usages_in_file = [
                     symb
                     for symb in other_usages
-                    if symb.file == self.file and not self.transaction_manager.get_transaction_containing_range(symb.file.path, symb.start_byte, symb.end_byte, TransactionPriority.Remove)
+                    if symb.file == self.file and not symb.get_transaction_if_pending_removal()
                 ]
-                if self.transaction_manager.get_transaction_containing_range(dep.file.path, dep.start_byte, dep.end_byte, transaction_order=TransactionPriority.Remove):
+                if dep.get_transaction_if_pending_removal():
                     if not usages_in_file and strategy != "add_back_edge":
                         # We are going to assume there is only one such import
                         if imp_list := [import_str for import_str in self.file._pending_imports if dep.name and dep.name in import_str]:

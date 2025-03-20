@@ -88,6 +88,100 @@ def bar():
     assert file3.content.strip() == EXPECTED_FILE_3_CONTENT.strip()
 
 
+def test_move_to_file_update_all_imports_multi_layer_usage(tmpdir) -> None:
+    # ========== [ BEFORE ] ==========
+    # language=python
+    FILE_1_CONTENT = """
+def external_dep():
+    return 42
+"""
+
+    # language=python
+    FILE_2_CONTENT = """
+from file1 import external_dep
+
+def foo():
+    return foo_dep_wrapped() + foo_dep()
+
+def foo_dep_wrapped():
+    return foo_dep()+2
+
+def foo_dep():
+    return 24
+
+def bar():
+    return external_dep() + bar_dep()
+
+def bar_dep():
+    return 2
+"""
+
+    # language=python
+    FILE_3_CONTENT = """
+from file2 import bar
+
+def baz():
+    return bar() + 1
+"""
+
+    # ========== [ AFTER ] ==========
+    # language=python
+    EXPECTED_FILE_1_CONTENT = """
+def external_dep():
+    return 42
+"""
+
+    # language=python
+    EXPECTED_FILE_2_CONTENT = """
+from file1 import external_dep
+
+def bar():
+    return external_dep() + bar_dep()
+
+def bar_dep():
+    return 2
+"""
+
+    # language=python
+    EXPECTED_FILE_3_CONTENT = """
+from file2 import bar
+
+def baz():
+    return bar() + 1
+
+def foo_dep():
+    return 24
+
+def foo_dep_wrapped():
+    return foo_dep()+2
+
+def foo():
+    return foo_dep_wrapped() + foo_dep()
+
+"""
+    # ===============================
+    # TODO: [low] Missing newline after import
+
+    with get_codebase_session(
+        tmpdir=tmpdir,
+        files={
+            "file1.py": FILE_1_CONTENT,
+            "file2.py": FILE_2_CONTENT,
+            "file3.py": FILE_3_CONTENT,
+        },
+    ) as codebase:
+        file1 = codebase.get_file("file1.py")
+        file2 = codebase.get_file("file2.py")
+        file3 = codebase.get_file("file3.py")
+
+        foo = file2.get_function("foo")
+        foo.move_to_file(file3, include_dependencies=True, strategy="update_all_imports")
+
+    assert file1.content.strip() == EXPECTED_FILE_1_CONTENT.strip()
+    assert file2.content.strip() == EXPECTED_FILE_2_CONTENT.strip()
+    assert file3.content.strip() == EXPECTED_FILE_3_CONTENT.strip()
+
+
 def test_move_to_file_update_all_imports_include_dependencies(tmpdir) -> None:
     # ========== [ BEFORE ] ==========
     # language=python
@@ -1483,19 +1577,26 @@ def test_move_to_file_decorators(tmpdir) -> None:
     # ========== [ BEFORE ] ==========
     # language=python
     FILE_1_CONTENT = """
-    from test.foo import TEST
+from test.foo import TEST
 
-    test_decorator = TEST()
+test_decorator = TEST()
 
-    @test_decorator.foo()
-    def test_func():
-        pass
-"""
-
-    # language=python
-    FILE_2_CONTENT = """
-
+@test_decorator.foo()
+def test_func():
+    pass
     """
+
+    FILE_2_CONTENT = ""
+    EXPECTED_FILE_1_CONTENT = ""
+
+    EXPECTED_FILE_2_CONTENT = """from test.foo import TEST
+
+
+test_decorator = TEST()
+
+@test_decorator.foo()
+def test_func():
+    pass"""
 
     with get_codebase_session(
         tmpdir=tmpdir,
@@ -1513,6 +1614,9 @@ def test_move_to_file_decorators(tmpdir) -> None:
         codebase.commit()
         file1 = codebase.get_file("file1.py")
         file2 = codebase.get_file("file2.py")
+
+        assert file1.source==EXPECTED_FILE_1_CONTENT
+        assert file2.source==EXPECTED_FILE_2_CONTENT
 
 
 def test_move_to_file_multiple_same_transaction(tmpdir) -> None:

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal, Self, Unpack
 
-from codegen.sdk.codebase.transactions import TransactionPriority
 from codegen.sdk.core.assignment import Assignment
 from codegen.sdk.core.autocommit import reader, writer
 from codegen.sdk.core.dataclasses.usage import UsageKind, UsageType
@@ -331,7 +330,7 @@ class TSSymbol(Symbol["TSHasBlock", "TSCodeBlock"], Exportable):
             usage
             for usage in self.usages
             if usage.usage_symbol not in encountered_symbols
-            and not self.transaction_manager.get_transaction_containing_range(usage.usage_symbol.file.path, usage.usage_symbol.start_byte, usage.usage_symbol.end_byte, TransactionPriority.Remove)
+            and not usage.usage_symbol.get_transaction_if_pending_removal()
         ]:
             should_export = True
 
