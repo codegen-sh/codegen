@@ -32,6 +32,12 @@ from codegen.extensions.tools.search import search
 from codegen.extensions.tools.search_files_by_name import search_files_by_name
 from codegen.extensions.tools.semantic_edit import semantic_edit
 from codegen.extensions.tools.semantic_search import semantic_search
+from codegen.extensions.web.web import (
+    web_browse_page_tool,
+    web_extract_images_tool,
+    web_search_tool,
+)
+from codegen.extensions.web.web_client import WebClient
 from codegen.sdk.core.codebase import Codebase
 
 from ..tools import (
@@ -50,6 +56,7 @@ from ..tools import (
 )
 from ..tools.relace_edit_prompts import RELACE_EDIT_PROMPT
 from ..tools.semantic_edit_prompts import FILE_EDIT_PROMPT
+from .web_tools import WebBrowsePageTool, WebExtractImagesTool, WebSearchTool
 
 
 class ViewFileInput(BaseModel):
@@ -840,6 +847,59 @@ class SlackSendMessageTool(BaseTool):
 
 
 ########################################################################################################################
+# WEB
+########################################################################################################################
+
+
+class WebBrowsePageTool(BaseTool):
+    """Tool for browsing a web page."""
+
+    name: ClassVar[str] = "web_browse_page"
+    description: ClassVar[str] = "Browse a web page and extract relevant information"
+    args_schema: ClassVar[type[BaseModel]] = WebBrowsePageTool.args_schema
+    client: WebClient = Field(exclude=True)
+
+    def __init__(self, client: WebClient) -> None:
+        super().__init__(client=client)
+
+    def _run(self, url: str) -> str:
+        result = web_browse_page_tool(self.client, url)
+        return result.render()
+
+
+class WebSearchTool(BaseTool):
+    """Tool for searching the web."""
+
+    name: ClassVar[str] = "web_search"
+    description: ClassVar[str] = "Search the web for information"
+    args_schema: ClassVar[type[BaseModel]] = WebSearchTool.args_schema
+    client: WebClient = Field(exclude=True)
+
+    def __init__(self, client: WebClient) -> None:
+        super().__init__(client=client)
+
+    def _run(self, query: str) -> str:
+        result = web_search_tool(self.client, query)
+        return result.render()
+
+
+class WebExtractImagesTool(BaseTool):
+    """Tool for extracting images from a web page."""
+
+    name: ClassVar[str] = "web_extract_images"
+    description: ClassVar[str] = "Extract images from a web page"
+    args_schema: ClassVar[type[BaseModel]] = WebExtractImagesTool.args_schema
+    client: WebClient = Field(exclude=True)
+
+    def __init__(self, client: WebClient) -> None:
+        super().__init__(client=client)
+
+    def _run(self, url: str) -> str:
+        result = web_extract_images_tool(self.client, url)
+        return result.render()
+
+
+########################################################################################################################
 # EXPORT
 ########################################################################################################################
 
@@ -886,6 +946,10 @@ def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
         LinearSearchIssuesTool(codebase),
         LinearCreateIssueTool(codebase),
         LinearGetTeamsTool(codebase),
+        # Web
+        WebBrowsePageTool(WebClient()),
+        WebSearchTool(WebClient()),
+        WebExtractImagesTool(WebClient()),
     ]
 
 
