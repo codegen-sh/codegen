@@ -10,7 +10,7 @@ from rich.markup import escape
 from rich.pretty import Pretty
 
 from codegen.sdk.codebase.span import Span
-from codegen.sdk.codebase.transactions import EditTransaction, InsertTransaction, RemoveTransaction, Transaction, TransactionPriority
+from codegen.sdk.codebase.transactions import EditTransaction, InsertTransaction, RemoveTransaction, TransactionPriority
 from codegen.sdk.core.autocommit import commiter, reader, remover, repr_func, writer
 from codegen.sdk.core.placeholder.placeholder import Placeholder
 from codegen.sdk.extensions.utils import get_all_identifiers
@@ -1155,15 +1155,6 @@ class Editable(JSONable, Generic[Parent]):
         from codegen.sdk.core.class_definition import Class
 
         return self.parent_of_type(Class)
-
-    @noapidoc
-    def get_transaction_if_pending_removal(self) -> Transaction | None:
-        """Checks if this editable is being removed by some transaction and if so returns it.
-
-        Returns:
-            Transaction|None: The transaction removing the editable
-        """
-        return self.transaction_manager.get_transaction_containing_range(self.file.path, self.start_byte, self.end_byte, TransactionPriority.Remove)
 
     def _get_ast_children(self) -> list[tuple[str | None, AST]]:
         children = []

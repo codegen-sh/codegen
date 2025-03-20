@@ -83,6 +83,8 @@ export function externalDep() {
 
     # language=typescript
     EXPECTED_FILE_2_CONTENT = """
+import { externalDep } from 'file1';
+
 function foo() {
     return fooDep() + 1;
 }
@@ -95,11 +97,12 @@ function fooDep() {
     # language=typescript
     EXPECTED_FILE_3_CONTENT = """
 import { externalDep } from 'file1';
+import { bar } from 'file3';
 export function baz() {
     return bar() + 1;
 }
 
-function barDep() {
+export function barDep() {
     return 2;
 }
 
@@ -109,6 +112,8 @@ export function bar() {
 """
 
     # ===============================
+    # TODO: [!HIGH!] Self import of bar in file3
+    # TODO: [medium] Why is barDep exported?
     # TODO: [low] Missing newline after import
 
     with get_codebase_session(
@@ -176,7 +181,7 @@ function foo(): number {
     return 1;
 }
 
-function abc(): string {
+export function abc(): string {
     // dependency, gets moved
     return 'abc';
 }
@@ -205,6 +210,7 @@ function baz(): string {
 """
 
     # ===============================
+    # TODO: [medium] Why is abc exported?
     # TODO: [low] Missing newline after import
 
     with get_codebase_session(
@@ -388,6 +394,8 @@ export function externalDep() {
     # language=typescript
     EXPECTED_FILE_2_CONTENT = """
 export { bar } from 'file3'
+import { externalDep } from 'file1';
+
 function foo() {
     return fooDep() + 1;
 }
@@ -400,11 +408,13 @@ function fooDep() {
     # language=typescript
     EXPECTED_FILE_3_CONTENT = """
 import { externalDep } from 'file1';
+import { bar } from 'file2';
+
 export function baz() {
     return bar() + 1;
 }
 
-function barDep() {
+export function barDep() {
     return 2;
 }
 
@@ -414,7 +424,9 @@ export function bar() {
 """
 
     # ===============================
+    # TODO: [!HIGH!] Creates circular import for bar between file2 and file3
     # TODO: [medium] Missing semicolon in import on file3
+    # TODO: [medium] Why did barDep get changed to export?
 
     with get_codebase_session(
         tmpdir=tmpdir,
@@ -481,7 +493,7 @@ function foo(): number {
     return 1;
 }
 
-function abc(): string {
+export function abc(): string {
     // dependency, gets moved
     return 'abc';
 }
@@ -514,6 +526,7 @@ function baz(): string {
 
     # ===============================
     # TODO: [medium] Missing semicolon in import on file2
+    # TODO: [medium] Why is abc exported?
 
     with get_codebase_session(
         tmpdir=tmpdir,
@@ -698,6 +711,8 @@ export function externalDep() {
 
     # language=typescript
     EXPECTED_FILE_2_CONTENT = """
+import { externalDep } from 'file1';
+
 function foo() {
     return fooDep() + 1;
 }
@@ -706,19 +721,21 @@ function fooDep() {
     return 24;
 }
 
-function barDep() {
-    return 2;
+export function bar() {
+    return externalDep() + barDep();
 }
 """
 
     # language=typescript
     EXPECTED_FILE_3_CONTENT = """
 import { externalDep } from 'file1';
+import { bar } from 'file2';
+
 export function baz() {
     return bar() + 1;
 }
 
-function barDep() {
+export function barDep() {
     return 2;
 }
 
@@ -729,6 +746,7 @@ export function bar() {
 
     # ===============================
     # TODO: [!HIGH!] Incorrect deletion of bar's import and dependency
+    # TODO: [medium] Why is barDep exported?
 
     with get_codebase_session(
         tmpdir=tmpdir,
@@ -795,7 +813,7 @@ function foo(): number {
     return 1;
 }
 
-function abc(): string {
+export function abc(): string {
     // dependency, gets duplicated
     return 'abc';
 }
@@ -808,11 +826,6 @@ export function bar(): string {
 
     # language=typescript
     EXPECTED_FILE_2_CONTENT = """
-function abc(): string {
-    // dependency, gets duplicated
-    return 'abc';
-}
-
 export function bar(): string {
     // gets duplicated
     return abc();
@@ -835,6 +848,8 @@ function baz(): string {
 """
 
     # ===============================
+    # TODO: [!HIGH!] Incorrect deletion of bar's import and dependency
+    # TODO: [medium] Why is abc exported?
     # TODO: [low] Missing newline after import
 
     with get_codebase_session(
@@ -1375,7 +1390,8 @@ export function bar(): number {
     # ========== [ AFTER ] ==========
     # language=typescript
     EXPECTED_FILE_1_CONTENT = """
-export { foo } from 'File2';
+import { foo } from 'File2';
+export { foo }
 
 export function bar(): number {
     return foo() + 1;
@@ -1394,6 +1410,7 @@ export function foo(): number {
     # ===============================
     # TODO: [medium] Is the extra new lines here expected behavior?
     # TODO: [low] Missing semicolons
+    # TOOD: [low] Import and export should be changed to a re-export
 
     with get_codebase_session(
         tmpdir=tmpdir,
@@ -1430,7 +1447,8 @@ export function bar(): number {
     # ========== [ AFTER ] ==========
     # language=typescript
     EXPECTED_FILE_1_CONTENT = """
-export { foo } from 'File1';
+import { foo } from 'File1';
+export { foo }
 
 export function bar(): number {
     return foo() + 1;

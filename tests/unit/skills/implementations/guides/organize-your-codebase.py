@@ -416,7 +416,7 @@ function useSymbol() {
         SkillTestCaseTSFile(
             input="",
             output="""
-function dependencyFunction() {
+export function dependencyFunction() {
     console.log("I'm a dependency");
 }
 

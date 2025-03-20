@@ -105,7 +105,7 @@ function TestComponent(props: {
 
         test_component.move_to_file(tsx_file)
 
-    assert "function TestComponent" in tsx_file.content
+    assert "export function TestComponent" in tsx_file.content
 
 
 def test_jsx_element_attributes(tmpdir) -> None:

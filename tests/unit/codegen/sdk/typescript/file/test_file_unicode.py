@@ -47,7 +47,7 @@ function baz(): string {
         file3 = codebase.get_file("file3.ts")
 
         bar = file2.get_function("bar")
-        bar.move_to_file(file3, include_dependencies=True, strategy="add_back_edge", cleanup_unused_imports=False)
+        bar.move_to_file(file3, include_dependencies=True, strategy="add_back_edge")
 
     assert file1.content == content1
     # language=typescript
@@ -72,11 +72,13 @@ function fooDep(): string {
         file3.content
         == """
 import { externalDep } from 'file1';
+import { bar } from "./file2";
+
 function baz(): string {
     return bar() + "🤯" + 1;
 }
 
-function barDep(): string {
+export function barDep(): string {
     return "😀";
 }
 

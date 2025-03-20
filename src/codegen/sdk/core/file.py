@@ -943,13 +943,6 @@ class SourceFile(
             None
         """
 
-    def remove_unused_imports(self) -> None:
-        # Process each import statement
-        for import_stmt in self.imports:
-            # Don't remove imports we can't be sure about
-            if import_stmt.usage_is_ascertainable():
-                import_stmt.remove_if_unused()
-
     ####################################################################################################################
     # MANIPULATIONS
     ####################################################################################################################
