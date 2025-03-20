@@ -1,10 +1,13 @@
 """Base class for tool observations/responses."""
 
 import json
+import logging
 from typing import Any, ClassVar, Optional
 
 from langchain_core.messages import ToolMessage
 from pydantic import BaseModel, Field
+
+logger = logging.getLogger(__name__)
 
 
 class Observation(BaseModel):
@@ -44,14 +47,18 @@ class Observation(BaseModel):
         """Get detailed string representation of the observation."""
         return f"{self.__class__.__name__}({self.model_dump_json()})"
 
-    def render_as_string(self) -> str:
+    def render_as_string(self, max_tokens: int = 8000) -> str:
         """Render the observation as a string.
 
         This is used for string representation and as the content field
         in the ToolMessage. Subclasses can override this to customize
         their string output format.
         """
-        return json.dumps(self.model_dump(), indent=2)
+        rendered = json.dumps(self.model_dump(), indent=2)
+        if 3 * len(rendered) > max_tokens:
+            logger.error(f"Observation is too long to render: {len(rendered) * 3} tokens")
+            return rendered[:max_tokens] + "\n\n...truncated...\n\n"
+        return rendered
 
     def render(self, tool_call_id: Optional[str] = None) -> ToolMessage | str:
         """Render the observation as a ToolMessage or string.
