@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal, Self, Unpack
+from typing import TYPE_CHECKING, Literal, Self, Unpack, override
 
 from codegen.sdk.core.assignment import Assignment
 from codegen.sdk.core.autocommit import reader, writer
@@ -27,7 +27,6 @@ if TYPE_CHECKING:
     from codegen.sdk.core.file import SourceFile
     from codegen.sdk.core.import_resolution import Import
     from codegen.sdk.core.interfaces.editable import Editable
-    from codegen.sdk.core.node_id_factory import NodeId
     from codegen.sdk.typescript.detached_symbols.code_block import TSCodeBlock
     from codegen.sdk.typescript.interfaces.has_block import TSHasBlock
 
@@ -255,7 +254,30 @@ class TSSymbol(Symbol["TSHasBlock", "TSCodeBlock"], Exportable):
         return self.semicolon_node is not None
 
     @noapidoc
-    def _move_to_file(
+    @override
+    def _update_dependencies_on_move(self, file: SourceFile):
+        for dep in self.dependencies:
+            if isinstance(dep, Assignment):
+                msg = "Assignment not implemented yet"
+                raise NotImplementedError(msg)
+
+            # =====[ Symbols - move over ]=====
+            elif isinstance(dep, TSSymbol) and dep.is_top_level:
+                file.add_import(imp=dep, alias=dep.name, import_type=ImportType.NAMED_EXPORT, is_type_import=isinstance(dep, TypeAlias))
+
+                if not dep.is_exported:
+                    dep.file.add_export_to_symbol(dep)
+                pass
+            # =====[ Imports - copy over ]=====
+            elif isinstance(dep, TSImport):
+                if dep.imported_symbol:
+                    file.add_import(dep.imported_symbol, alias=dep.alias.source, import_type=dep.import_type, is_type_import=dep.is_type_import())
+                else:
+                    file.add_import(dep.source)
+
+    @noapidoc
+    @override
+    def _execute_post_move_correction_strategy(
         self,
         file: SourceFile,
         encountered_symbols: set[Symbol | Import],
@@ -331,7 +353,6 @@ class TSSymbol(Symbol["TSHasBlock", "TSCodeBlock"], Exportable):
 
         file.add_symbol(self, should_export=should_export)
         import_line = self.get_import_string(module=file.import_module_name)
-
         # =====[ Checks if symbol is used in original file ]=====
         # Takes into account that it's dependencies will be moved
         is_used_in_file = any(usage.file == self.file and usage.node_type == NodeType.SYMBOL and usage not in encountered_symbols for usage in self.symbol_usages)
@@ -388,6 +409,7 @@ class TSSymbol(Symbol["TSHasBlock", "TSCodeBlock"], Exportable):
         type_map = {"string": "string", "number": "number", "bool": "boolean", "object": "object", "array": "any[]", "func": "CallableFunction"}
         if prop_type.source in type_map:
             return type_map[prop_type.source]
+
         if isinstance(prop_type, ChainedAttribute):
             if prop_type.attribute.source == "node":
                 return "T"

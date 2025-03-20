@@ -517,6 +517,43 @@ def foo():
 
 def foo_dep():
     return 24
+
+def bar():
+    return external_dep() + bar_dep()
+
+def bar_dep():
+    return 2
+"""
+
+    # language=python
+    FILE_3_CONTENT = """
+from file2 import bar
+
+def baz():
+    return bar() + 1
+"""
+    FILE_4_CONTENT = """
+from file2 import bar
+
+def bla():
+    return bar() + 1
+"""
+
+    # ========== [ AFTER ] ==========
+    # language=python
+    EXPECTED_FILE_1_CONTENT = """
+def external_dep():
+    return 42
+"""
+
+    # language=python
+    EXPECTED_FILE_2_CONTENT = """
+from file3 import bar
+def foo():
+    return foo_dep() + 1
+
+def foo_dep():
+    return 24
 """
 
     # language=python
@@ -1583,14 +1620,13 @@ test_decorator = TEST()
 
 @test_decorator.foo()
 def test_func():
-    pass
-    """
+    pass"""
 
     FILE_2_CONTENT = ""
     EXPECTED_FILE_1_CONTENT = ""
 
-    EXPECTED_FILE_2_CONTENT = """from test.foo import TEST
-
+    EXPECTED_FILE_2_CONTENT = """
+from test.foo import TEST
 
 test_decorator = TEST()
 
