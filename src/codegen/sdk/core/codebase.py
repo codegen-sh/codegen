@@ -1527,7 +1527,7 @@ class Codebase(
             logger.info("Codebase initialization complete")
             return codebase
 
-    def get_modified_symbols_in_pr(self, pr_id: int) -> tuple[str, dict[str, str], list[str]]:
+    def get_modified_symbols_in_pr(self, pr_id: int) -> tuple[str, dict[str, str], list[str], str]:
         """Get all modified symbols in a pull request"""
         pr = self._op.get_pull_request(pr_id)
         cg_pr = CodegenPR(self._op, self, pr)
