@@ -46,8 +46,6 @@ def external_dep():
 
     # language=python
     EXPECTED_FILE_2_CONTENT = """
-from file1 import external_dep
-
 def foo():
     return foo_dep() + 1
 
@@ -68,7 +66,6 @@ def bar():
     return external_dep() + bar_dep()
 """
     # ===============================
-    # TODO: [low] Should maybe remove unused external_dep?
     # TODO: [low] Missing newline after import
 
     with get_codebase_session(
@@ -85,6 +82,100 @@ def bar():
 
         bar = file2.get_function("bar")
         bar.move_to_file(file3, include_dependencies=True, strategy="update_all_imports")
+
+    assert file1.content.strip() == EXPECTED_FILE_1_CONTENT.strip()
+    assert file2.content.strip() == EXPECTED_FILE_2_CONTENT.strip()
+    assert file3.content.strip() == EXPECTED_FILE_3_CONTENT.strip()
+
+
+def test_move_to_file_update_all_imports_multi_layer_usage(tmpdir) -> None:
+    # ========== [ BEFORE ] ==========
+    # language=python
+    FILE_1_CONTENT = """
+def external_dep():
+    return 42
+"""
+
+    # language=python
+    FILE_2_CONTENT = """
+from file1 import external_dep
+
+def foo():
+    return foo_dep_wrapped() + foo_dep()
+
+def foo_dep_wrapped():
+    return foo_dep()+2
+
+def foo_dep():
+    return 24
+
+def bar():
+    return external_dep() + bar_dep()
+
+def bar_dep():
+    return 2
+"""
+
+    # language=python
+    FILE_3_CONTENT = """
+from file2 import bar
+
+def baz():
+    return bar() + 1
+"""
+
+    # ========== [ AFTER ] ==========
+    # language=python
+    EXPECTED_FILE_1_CONTENT = """
+def external_dep():
+    return 42
+"""
+
+    # language=python
+    EXPECTED_FILE_2_CONTENT = """
+from file1 import external_dep
+
+def bar():
+    return external_dep() + bar_dep()
+
+def bar_dep():
+    return 2
+"""
+
+    # language=python
+    EXPECTED_FILE_3_CONTENT = """
+from file2 import bar
+
+def baz():
+    return bar() + 1
+
+def foo_dep():
+    return 24
+
+def foo_dep_wrapped():
+    return foo_dep()+2
+
+def foo():
+    return foo_dep_wrapped() + foo_dep()
+
+"""
+    # ===============================
+    # TODO: [low] Missing newline after import
+
+    with get_codebase_session(
+        tmpdir=tmpdir,
+        files={
+            "file1.py": FILE_1_CONTENT,
+            "file2.py": FILE_2_CONTENT,
+            "file3.py": FILE_3_CONTENT,
+        },
+    ) as codebase:
+        file1 = codebase.get_file("file1.py")
+        file2 = codebase.get_file("file2.py")
+        file3 = codebase.get_file("file3.py")
+
+        foo = file2.get_function("foo")
+        foo.move_to_file(file3, include_dependencies=True, strategy="update_all_imports")
 
     assert file1.content.strip() == EXPECTED_FILE_1_CONTENT.strip()
     assert file2.content.strip() == EXPECTED_FILE_2_CONTENT.strip()
@@ -279,7 +370,100 @@ def baz():
     assert isinstance(new_symbol, Function)
 
 
-def test_move_to_file_add_back_edge(tmpdir) -> None:
+def test_move_to_file_add_back_edge_internal_use(tmpdir) -> None:
+    # ========== [ BEFORE ] ==========
+    # language=python
+    FILE_1_CONTENT = """
+def external_dep():
+    return 42
+"""
+
+    # language=python
+    FILE_2_CONTENT = """
+from file1 import external_dep
+
+def foo():
+    return foo_dep() + 1
+
+def foo_dep():
+    return 24
+
+def use_bar():
+    return 1 + bar()
+
+def bar():
+    return external_dep() + bar_dep()
+
+def bar_dep():
+    return 2
+"""
+
+    # language=python
+    FILE_3_CONTENT = """
+from file2 import bar
+
+def baz():
+    return bar() + 1
+"""
+
+    # ========== [ AFTER ] ==========
+    # language=python
+    EXPECTED_FILE_1_CONTENT = """
+def external_dep():
+    return 42
+"""
+
+    # language=python
+    EXPECTED_FILE_2_CONTENT = """
+from file3 import bar
+def foo():
+    return foo_dep() + 1
+
+def foo_dep():
+    return 24
+
+def use_bar():
+    return 1 + bar()
+
+"""
+
+    # language=python
+    EXPECTED_FILE_3_CONTENT = """
+from file1 import external_dep
+def baz():
+    return bar() + 1
+
+def bar_dep():
+    return 2
+
+def bar():
+    return external_dep() + bar_dep()
+"""
+
+    # ===============================
+    # TODO: [low] Missing newline after import
+
+    with get_codebase_session(
+        tmpdir=tmpdir,
+        files={
+            "file1.py": FILE_1_CONTENT,
+            "file2.py": FILE_2_CONTENT,
+            "file3.py": FILE_3_CONTENT,
+        },
+    ) as codebase:
+        file1 = codebase.get_file("file1.py")
+        file2 = codebase.get_file("file2.py")
+        file3 = codebase.get_file("file3.py")
+
+        bar = file2.get_function("bar")
+        bar.move_to_file(file3, include_dependencies=True, strategy="add_back_edge")
+
+    assert file1.content.strip() == EXPECTED_FILE_1_CONTENT.strip()
+    assert file2.content.strip() == EXPECTED_FILE_2_CONTENT.strip()
+    assert file3.content.strip() == EXPECTED_FILE_3_CONTENT.strip()
+
+
+def test_move_to_file_add_back_edge_external_use(tmpdir) -> None:
     # ========== [ BEFORE ] ==========
     # language=python
     FILE_1_CONTENT = """
@@ -311,6 +495,12 @@ from file2 import bar
 def baz():
     return bar() + 1
 """
+    FILE_4_CONTENT = """
+from file2 import bar
+
+def bla():
+    return bar() + 1
+"""
 
     # ========== [ AFTER ] ==========
     # language=python
@@ -321,8 +511,7 @@ def external_dep():
 
     # language=python
     EXPECTED_FILE_2_CONTENT = """
-from file1 import external_dep
-
+from file3 import bar
 def foo():
     return foo_dep() + 1
 
@@ -343,8 +532,14 @@ def bar():
     return external_dep() + bar_dep()
 """
 
+    EXPECTED_FILE_4_CONTENT = """
+from file2 import bar
+
+def bla():
+    return bar() + 1
+    """
+
     # ===============================
-    # TODO: [low] Should maybe remove unused external_dep?
     # TODO: [low] Missing newline after import
 
     with get_codebase_session(
@@ -353,11 +548,13 @@ def bar():
             "file1.py": FILE_1_CONTENT,
             "file2.py": FILE_2_CONTENT,
             "file3.py": FILE_3_CONTENT,
+            "file4.py": FILE_4_CONTENT,
         },
     ) as codebase:
         file1 = codebase.get_file("file1.py")
         file2 = codebase.get_file("file2.py")
         file3 = codebase.get_file("file3.py")
+        file4 = codebase.get_file("file4.py")
 
         bar = file2.get_function("bar")
         bar.move_to_file(file3, include_dependencies=True, strategy="add_back_edge")
@@ -365,6 +562,7 @@ def bar():
     assert file1.content.strip() == EXPECTED_FILE_1_CONTENT.strip()
     assert file2.content.strip() == EXPECTED_FILE_2_CONTENT.strip()
     assert file3.content.strip() == EXPECTED_FILE_3_CONTENT.strip()
+    assert file4.content.strip() == EXPECTED_FILE_4_CONTENT.strip()
 
 
 def test_move_to_file_add_back_edge_including_dependencies(tmpdir) -> None:
@@ -601,8 +799,6 @@ def external_dep():
 
     # language=python
     EXPECTED_FILE_2_CONTENT = """
-from file1 import external_dep
-
 def foo():
     return foo_dep() + 1
 
@@ -872,10 +1068,7 @@ GLOBAL = thing1(thing2, arg=thing3)
 """
 
     # language=python
-    EXPECTED_FILE_2_CONTENT = """
-from import1 import thing1
-from import2 import thing2, thing3
-"""
+    EXPECTED_FILE_2_CONTENT = """"""
 
     # ===============================
     # TODO: [medium] Space messed up in file1
@@ -1311,8 +1504,6 @@ def bar(config: ExtendedConfig):
     # ========== [ AFTER ] ==========
     # language=python
     EXPECTED_FILE_1_CONTENT = """
-from dataclasses import dataclass
-
 def foo():
     return 1
 """
@@ -1332,8 +1523,7 @@ class Config:
     # language=python
     EXPECTED_FILE_2_CONTENT = """
 from file2.types import ExtendedConfig
-from file1.types import Config
-from dataclasses import dataclass
+
 
 def bar(config: ExtendedConfig):
     '''Function that uses the dataclass'''
@@ -1381,3 +1571,205 @@ class ExtendedConfig(Config):
     assert file1_types.content.strip() == EXPECTED_FILE_1_TYPES_CONTENT.strip()
     assert file2.content.strip() == EXPECTED_FILE_2_CONTENT.strip()
     assert file2_types.content.strip() == EXPECTED_FILE_2_TYPES_CONTENT.strip()
+
+
+def test_move_to_file_decorators(tmpdir) -> None:
+    # ========== [ BEFORE ] ==========
+    # language=python
+    FILE_1_CONTENT = """
+from test.foo import TEST
+
+test_decorator = TEST()
+
+@test_decorator.foo()
+def test_func():
+    pass
+    """
+
+    FILE_2_CONTENT = ""
+    EXPECTED_FILE_1_CONTENT = ""
+
+    EXPECTED_FILE_2_CONTENT = """from test.foo import TEST
+
+
+test_decorator = TEST()
+
+@test_decorator.foo()
+def test_func():
+    pass"""
+
+    with get_codebase_session(
+        tmpdir=tmpdir,
+        files={
+            "file1.py": FILE_1_CONTENT,
+            "file2.py": FILE_2_CONTENT,
+        },
+    ) as codebase:
+        file1 = codebase.get_file("file1.py")
+        file2 = codebase.get_file("file2.py")
+
+        test_func = file1.get_function("test_func")
+        test_func.move_to_file(file2)
+
+        codebase.commit()
+        file1 = codebase.get_file("file1.py")
+        file2 = codebase.get_file("file2.py")
+
+        assert file1.source == EXPECTED_FILE_1_CONTENT
+        assert file2.source == EXPECTED_FILE_2_CONTENT
+
+
+def test_move_to_file_multiple_same_transaction(tmpdir) -> None:
+    # language=python
+    FILE_1_CONTENT = """
+from test.foo import TEST
+
+NO_MOVE=2
+def useful():
+    pass
+
+def test_func():
+    print(TEST)
+
+def foo():
+    test_func()
+    useful()
+
+def bar():
+    print(5)
+    useful()
+
+def boo():
+    print(6)
+    useful()
+"""
+
+    # language=python
+    FILE_2_CONTENT = "NO_MOVE_FILE_2 = 6"
+
+    FILE_1_EXPECTED = """
+NO_MOVE=2
+"""
+    FILE_2_EXPECTED = """
+from test.foo import TEST
+NO_MOVE_FILE_2 = 6
+
+def useful():
+    pass
+
+def test_func():
+    print(TEST)
+
+def foo():
+    test_func()
+    useful()
+
+def bar():
+    print(5)
+    useful()
+
+def boo():
+    print(6)
+    useful()
+"""
+
+    with get_codebase_session(
+        tmpdir=tmpdir,
+        files={
+            "file1.py": FILE_1_CONTENT,
+            "file2.py": FILE_2_CONTENT,
+        },
+    ) as codebase:
+        file1 = codebase.get_file("file1.py")
+        file2 = codebase.get_file("file2.py")
+
+        foo = file1.get_function("foo")
+        bar = file1.get_function("bar")
+        boo = file1.get_function("boo")
+        foo.move_to_file(file2)
+        bar.move_to_file(file2)
+        boo.move_to_file(file2)
+
+        codebase.commit()
+        file1 = codebase.get_file("file1.py")
+        file2 = codebase.get_file("file2.py")
+        assert file1.source.strip() == FILE_1_EXPECTED.strip()
+        assert file2.source.strip() == FILE_2_EXPECTED.strip()
+
+
+def test_move_to_file_multiple_same_transaction_partial(tmpdir) -> None:
+    # language=python
+    FILE_1_CONTENT = """
+from test.foo import TEST
+
+NO_MOVE=2
+def useful():
+    pass
+
+def test_func():
+    print(TEST)
+
+def foo():
+    test_func()
+    useful()
+
+def bar():
+    print(5)
+    useful()
+
+def boo():
+    print(6)
+    useful()
+"""
+
+    # language=python
+    FILE_2_CONTENT = "NO_MOVE_FILE_2 = 6"
+
+    FILE_1_EXPECTED = """
+from file2 import useful
+NO_MOVE=2
+
+def boo():
+    print(6)
+    useful()
+"""
+    FILE_2_EXPECTED = """
+from test.foo import TEST
+NO_MOVE_FILE_2 = 6
+
+def useful():
+    pass
+
+def test_func():
+    print(TEST)
+
+def foo():
+    test_func()
+    useful()
+
+def bar():
+    print(5)
+    useful()
+"""
+
+    with get_codebase_session(
+        tmpdir=tmpdir,
+        files={
+            "file1.py": FILE_1_CONTENT,
+            "file2.py": FILE_2_CONTENT,
+        },
+    ) as codebase:
+        file1 = codebase.get_file("file1.py")
+        file2 = codebase.get_file("file2.py")
+
+        foo = file1.get_function("foo")
+        bar = file1.get_function("bar")
+        boo = file1.get_function("boo")
+        foo.move_to_file(file2)
+        bar.move_to_file(file2)
+
+        codebase.commit()
+        file1 = codebase.get_file("file1.py")
+        file2 = codebase.get_file("file2.py")
+        assert file1.source.strip() == FILE_1_EXPECTED.strip()
+        assert file2.source.strip() == FILE_2_EXPECTED.strip()

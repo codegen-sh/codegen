@@ -261,11 +261,16 @@ class TSSymbol(Symbol["TSHasBlock", "TSCodeBlock"], Exportable):
         encountered_symbols: set[Symbol | Import],
         include_dependencies: bool = True,
         strategy: Literal["add_back_edge", "update_all_imports", "duplicate_dependencies"] = "update_all_imports",
+        cleanup_unused_imports: bool = True,
     ) -> tuple[NodeId, NodeId]:
         # TODO: Prevent creation of import loops (!) - raise a ValueError and make the agent fix it
         # =====[ Arg checking ]=====
         if file == self.file:
             return file.file_node_id, self.node_id
+
+        if imp := file.get_import(self.name):
+            encountered_symbols.add(imp)
+            imp.remove()
 
         # =====[ Move over dependencies recursively ]=====
         if include_dependencies:
@@ -319,7 +324,12 @@ class TSSymbol(Symbol["TSHasBlock", "TSCodeBlock"], Exportable):
 
         # =====[ Make a new symbol in the new file ]=====
         # This will update all edges etc.
-        file.add_symbol(self)
+        should_export = False
+
+        if self.is_exported or [usage for usage in self.usages if usage.usage_symbol not in encountered_symbols and not usage.usage_symbol.get_transaction_if_pending_removal()]:
+            should_export = True
+
+        file.add_symbol(self, should_export=should_export)
         import_line = self.get_import_string(module=file.import_module_name)
 
         # =====[ Checks if symbol is used in original file ]=====
@@ -329,6 +339,7 @@ class TSSymbol(Symbol["TSHasBlock", "TSCodeBlock"], Exportable):
         # ======[ Strategy: Duplicate Dependencies ]=====
         if strategy == "duplicate_dependencies":
             # If not used in the original file. or if not imported from elsewhere, we can just remove the original symbol
+            is_used_in_file = any(usage.file == self.file and usage.node_type == NodeType.SYMBOL for usage in self.symbol_usages)
             if not is_used_in_file and not any(usage.kind is UsageKind.IMPORTED and usage.usage_symbol not in encountered_symbols for usage in self.usages):
                 self.remove()
 
@@ -336,9 +347,10 @@ class TSSymbol(Symbol["TSHasBlock", "TSCodeBlock"], Exportable):
         # Here, we will add a "back edge" to the old file importing the self
         elif strategy == "add_back_edge":
             if is_used_in_file:
-                self.file.add_import(import_line)
+                back_edge_line = import_line
                 if self.is_exported:
-                    self.file.add_import(f"export {{ {self.name} }}")
+                    back_edge_line = back_edge_line.replace("import", "export")
+                self.file.add_import(back_edge_line)
             elif self.is_exported:
                 module_name = file.name
                 self.file.add_import(f"export {{ {self.name} }} from '{module_name}'")
@@ -349,23 +361,26 @@ class TSSymbol(Symbol["TSHasBlock", "TSCodeBlock"], Exportable):
         # Update the imports in all the files which use this symbol to get it from the new file now
         elif strategy == "update_all_imports":
             for usage in self.usages:
-                if isinstance(usage.usage_symbol, TSImport):
+                if isinstance(usage.usage_symbol, TSImport) and usage.usage_symbol.file != file:
                     # Add updated import
-                    if usage.usage_symbol.resolved_symbol is not None and usage.usage_symbol.resolved_symbol.node_type == NodeType.SYMBOL and usage.usage_symbol.resolved_symbol == self:
-                        usage.usage_symbol.file.add_import(import_line)
-                        usage.usage_symbol.remove()
+                    usage.usage_symbol.file.add_import(import_line)
+                    usage.usage_symbol.remove()
                 elif usage.usage_type == UsageType.CHAINED:
                     # Update all previous usages of import * to the new import name
                     if usage.match and "." + self.name in usage.match:
-                        if isinstance(usage.match, FunctionCall):
+                        if isinstance(usage.match, FunctionCall) and self.name in usage.match.get_name():
                             usage.match.get_name().edit(self.name)
                         if isinstance(usage.match, ChainedAttribute):
                             usage.match.edit(self.name)
-                        usage.usage_symbol.file.add_import(import_line)
+                        usage.usage_symbol.file.add_import(imp=import_line)
+
+            # Add the import to the original file
             if is_used_in_file:
-                self.file.add_import(import_line)
+                self.file.add_import(imp=import_line)
             # Delete the original symbol
             self.remove()
+        if cleanup_unused_imports:
+            self._post_move_import_cleanup(encountered_symbols, strategy)
 
     def _convert_proptype_to_typescript(self, prop_type: Editable, param: Parameter | None, level: int) -> str:
         """Converts a PropType definition to its TypeScript equivalent."""

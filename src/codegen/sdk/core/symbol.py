@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Generic, Literal, TypeVar
 
 from rich.markup import escape
 
+from codegen.sdk.codebase.transactions import TransactionPriority
 from codegen.sdk.core.autocommit import commiter, reader, writer
 from codegen.sdk.core.dataclasses.usage import UsageKind, UsageType
 from codegen.sdk.core.detached_symbols.argument import Argument
@@ -266,11 +267,38 @@ class Symbol(Usable[Statement["CodeBlock[Parent, ...]"]], Generic[Parent, TCodeB
                 return first_node.insert_before(new_src, fix_indentation, newline, priority, dedupe)
         return super().insert_before(new_src, fix_indentation, newline, priority, dedupe)
 
+    def _post_move_import_cleanup(self, encountered_symbols, strategy):
+        # =====[ Remove any imports that are no longer used ]=====
+        from codegen.sdk.core.import_resolution import Import
+
+        for dep in self.dependencies:
+            if strategy != "duplicate_dependencies":
+                other_usages = [usage.usage_symbol for usage in dep.usages if usage.usage_symbol not in encountered_symbols]
+            else:
+                other_usages = [usage.usage_symbol for usage in dep.usages]
+            if isinstance(dep, Import):
+                dep.remove_if_unused()
+
+            elif isinstance(dep, Symbol):
+                usages_in_file = [symb for symb in other_usages if symb.file == self.file and not symb.get_transaction_if_pending_removal()]
+                if dep.get_transaction_if_pending_removal():
+                    if not usages_in_file and strategy != "add_back_edge":
+                        # We are going to assume there is only one such import
+                        if imp_list := [import_str for import_str in self.file._pending_imports if dep.name and dep.name in import_str]:
+                            if insert_import_list := [
+                                transaction
+                                for transaction in self.transaction_manager.queued_transactions[self.file.path]
+                                if imp_list[0] and transaction.new_content and imp_list[0] in transaction.new_content and transaction.transaction_order == TransactionPriority.Insert
+                            ]:
+                                self.transaction_manager.queued_transactions[self.file.path].remove(insert_import_list[0])
+                                self.file._pending_imports.remove(imp_list[0])
+
     def move_to_file(
         self,
         file: SourceFile,
         include_dependencies: bool = True,
         strategy: Literal["add_back_edge", "update_all_imports", "duplicate_dependencies"] = "update_all_imports",
+        cleanup_unused_imports: bool = True,
     ) -> None:
         """Moves the given symbol to a new file and updates its imports and references.
 
@@ -290,7 +318,7 @@ class Symbol(Usable[Statement["CodeBlock[Parent, ...]"]], Generic[Parent, TCodeB
             AssertionError: If an invalid strategy is provided.
         """
         encountered_symbols = {self}
-        self._move_to_file(file, encountered_symbols, include_dependencies, strategy)
+        self._move_to_file(file, encountered_symbols, include_dependencies, strategy, cleanup_unused_imports)
 
     @noapidoc
     def _move_to_file(
@@ -299,6 +327,7 @@ class Symbol(Usable[Statement["CodeBlock[Parent, ...]"]], Generic[Parent, TCodeB
         encountered_symbols: set[Symbol | Import],
         include_dependencies: bool = True,
         strategy: Literal["add_back_edge", "update_all_imports", "duplicate_dependencies"] = "update_all_imports",
+        cleanup_unused_imports: bool = True,
     ) -> tuple[NodeId, NodeId]:
         """Helper recursive function for `move_to_file`"""
         from codegen.sdk.core.import_resolution import Import
@@ -390,6 +419,9 @@ class Symbol(Usable[Statement["CodeBlock[Parent, ...]"]], Generic[Parent, TCodeB
                 self.file.add_import(imp=import_line)
             # Delete the original symbol
             self.remove()
+
+        if cleanup_unused_imports:
+            self._post_move_import_cleanup(encountered_symbols, strategy)
 
     @property
     @reader

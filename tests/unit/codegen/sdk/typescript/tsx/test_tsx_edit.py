@@ -333,7 +333,7 @@ function FooBar({ component }: FooBarProps) {
         ctx.commit_transactions()
 
         assert "export function FooBar" in new_file.content
-        assert "export function MyFooBar" in new_file.content
+        assert "function MyFooBar" in new_file.content
 
         assert "import { FooBar } from 'new'" in original_file.content
         assert "import { MyFooBar } from 'new'" not in original_file.content
