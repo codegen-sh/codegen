@@ -1,13 +1,14 @@
 """Base class for tool observations/responses."""
 
 import json
-import logging
 from typing import Any, ClassVar, Optional
 
 from langchain_core.messages import ToolMessage
 from pydantic import BaseModel, Field
 
-logger = logging.getLogger(__name__)
+from codegen.shared.logging.get_logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class Observation(BaseModel):
