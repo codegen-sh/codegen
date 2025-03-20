@@ -1,0 +1,1 @@
+"""Sentry integration for Codegen."""

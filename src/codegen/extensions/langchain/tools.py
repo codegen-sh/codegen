@@ -10,6 +10,7 @@ from langchain_core.tools.base import BaseTool
 from langgraph.prebuilt import InjectedStore
 from pydantic import BaseModel, Field
 
+from codegen.extensions.langchain.sentry_tools import get_sentry_tools
 from codegen.extensions.linear.linear_client import LinearClient
 from codegen.extensions.tools.bash import run_bash_command
 from codegen.extensions.tools.github.checkout_pr import checkout_pr
@@ -853,7 +854,7 @@ def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
     Returns:
         List of initialized Langchain tools
     """
-    return [
+    tools = [
         CommitTool(codebase),
         CreateFileTool(codebase),
         DeleteFileTool(codebase),
@@ -887,6 +888,11 @@ def get_workspace_tools(codebase: Codebase) -> list["BaseTool"]:
         LinearCreateIssueTool(codebase),
         LinearGetTeamsTool(codebase),
     ]
+
+    # Add Sentry tools
+    tools.extend(get_sentry_tools(codebase))
+
+    return tools
 
 
 class GlobalReplacementEditInput(BaseModel):
