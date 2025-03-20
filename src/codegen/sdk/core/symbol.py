@@ -280,11 +280,7 @@ class Symbol(Usable[Statement["CodeBlock[Parent, ...]"]], Generic[Parent, TCodeB
                 dep.remove_if_unused()
 
             elif isinstance(dep, Symbol):
-                usages_in_file = [
-                    symb
-                    for symb in other_usages
-                    if symb.file == self.file and not symb.get_transaction_if_pending_removal()
-                ]
+                usages_in_file = [symb for symb in other_usages if symb.file == self.file and not symb.get_transaction_if_pending_removal()]
                 if dep.get_transaction_if_pending_removal():
                     if not usages_in_file and strategy != "add_back_edge":
                         # We are going to assume there is only one such import

@@ -1615,8 +1615,8 @@ def test_func():
         file1 = codebase.get_file("file1.py")
         file2 = codebase.get_file("file2.py")
 
-        assert file1.source==EXPECTED_FILE_1_CONTENT
-        assert file2.source==EXPECTED_FILE_2_CONTENT
+        assert file1.source == EXPECTED_FILE_1_CONTENT
+        assert file2.source == EXPECTED_FILE_2_CONTENT
 
 
 def test_move_to_file_multiple_same_transaction(tmpdir) -> None:

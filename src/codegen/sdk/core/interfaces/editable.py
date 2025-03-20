@@ -1157,7 +1157,7 @@ class Editable(JSONable, Generic[Parent]):
         return self.parent_of_type(Class)
 
     @noapidoc
-    def get_transaction_if_pending_removal(self) -> Transaction|None:
+    def get_transaction_if_pending_removal(self) -> Transaction | None:
         """Checks if this editable is being removed by some transaction and if so returns it.
 
         Returns:

@@ -681,7 +681,7 @@ class Import(Usable[ImportStatement], Chainable, Generic[TSourceFile], HasAttrib
 
     @noapidoc
     @reader
-    def remove_if_unused(self, force:bool=False) -> bool:
+    def remove_if_unused(self, force: bool = False) -> bool:
         """Removes import if it is not being used. Considers current transaction removals.
 
         Args:
@@ -690,15 +690,13 @@ class Import(Usable[ImportStatement], Chainable, Generic[TSourceFile], HasAttrib
         Returns:
             bool: True if removed, False if not
         """
-        if all(
-            usage.match.get_transaction_if_pending_removal()
-            for usage in self.usages
-        ):
+        if all(usage.match.get_transaction_if_pending_removal() for usage in self.usages):
             if not force and not self.usage_is_ascertainable():
                 return False
             self.remove()
             return True
         return False
+
     @noapidoc
     @reader
     def resolve_attribute(self, attribute: str) -> TSourceFile | None:

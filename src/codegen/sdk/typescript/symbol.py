@@ -326,12 +326,7 @@ class TSSymbol(Symbol["TSHasBlock", "TSCodeBlock"], Exportable):
         # This will update all edges etc.
         should_export = False
 
-        if self.is_exported or [
-            usage
-            for usage in self.usages
-            if usage.usage_symbol not in encountered_symbols
-            and not usage.usage_symbol.get_transaction_if_pending_removal()
-        ]:
+        if self.is_exported or [usage for usage in self.usages if usage.usage_symbol not in encountered_symbols and not usage.usage_symbol.get_transaction_if_pending_removal()]:
             should_export = True
 
         file.add_symbol(self, should_export=should_export)
