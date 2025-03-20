@@ -56,7 +56,7 @@ class Observation(BaseModel):
         their string output format.
         """
         rendered = json.dumps(self.model_dump(), indent=2)
-        if 3 * len(rendered) > max_tokens:
+        if len(rendered) > (max_tokens * 3):
             logger.error(f"Observation is too long to render: {len(rendered) * 3} tokens")
             return rendered[:max_tokens] + "\n\n...truncated...\n\n"
         return rendered
