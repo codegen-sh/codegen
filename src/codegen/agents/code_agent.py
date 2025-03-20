@@ -70,7 +70,7 @@ class CodeAgent:
             model_provider=model_provider,
             model_name=model_name,
             memory=memory,
-            additional_tools=tools,
+            tools=tools,
             config=agent_config,
             **kwargs,
         )

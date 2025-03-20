@@ -29,7 +29,7 @@ class ChatAgent:
                 - max_tokens: Maximum number of tokens to generate
         """
         self.codebase = codebase
-        self.agent = create_chat_agent(self.codebase, model_provider=model_provider, model_name=model_name, memory=memory, additional_tools=tools, **kwargs)
+        self.agent = create_chat_agent(self.codebase, model_provider=model_provider, model_name=model_name, memory=memory, tools=tools, **kwargs)
 
     def run(self, prompt: str, thread_id: Optional[str] = None) -> str:
         """Run the agent with a prompt.

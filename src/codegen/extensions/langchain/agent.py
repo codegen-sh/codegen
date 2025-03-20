@@ -40,7 +40,7 @@ def create_codebase_agent(
     system_message: SystemMessage = SystemMessage(REASONER_SYSTEM_MESSAGE),
     memory: bool = True,
     debug: bool = False,
-    additional_tools: list[BaseTool] | None = None,
+    tools: list[BaseTool] | None = None,
     config: AgentConfig | None = None,
     **kwargs,
 ) -> CompiledGraph:
@@ -63,35 +63,28 @@ def create_codebase_agent(
     """
     llm = LLM(model_provider=model_provider, model_name=model_name, **kwargs)
 
-    # Get all codebase tools
-    tools = [
-        ViewFileTool(codebase),
-        ListDirectoryTool(codebase),
-        RipGrepTool(codebase),
-        # EditFileTool(codebase),
-        CreateFileTool(codebase),
-        DeleteFileTool(codebase),
-        RenameFileTool(codebase),
-        # MoveSymbolTool(codebase),
-        # RevealSymbolTool(codebase),
-        # SemanticEditTool(codebase),
-        ReplacementEditTool(codebase),
-        RelaceEditTool(codebase),
-        ReflectionTool(codebase),
-        SearchFilesByNameTool(codebase),
-        GlobalReplacementEditTool(codebase),
-        # SemanticSearchTool(codebase),
-        # =====[ Github Integration ]=====
-        # Enable Github integration
-        # GithubCreatePRTool(codebase),
-        # GithubViewPRTool(codebase),
-        # GithubCreatePRCommentTool(codebase),
-        # GithubCreatePRReviewCommentTool(codebase),
-    ]
-
-    # Add additional tools if provided
-    if additional_tools:
-        tools.extend(additional_tools)
+    if not tools:
+        tools = [
+            ViewFileTool(codebase),
+            ListDirectoryTool(codebase),
+            RipGrepTool(codebase),
+            # EditFileTool(codebase),
+            CreateFileTool(codebase),
+            DeleteFileTool(codebase),
+            RenameFileTool(codebase),
+            ReplacementEditTool(codebase),
+            RelaceEditTool(codebase),
+            ReflectionTool(codebase),
+            SearchFilesByNameTool(codebase),
+            GlobalReplacementEditTool(codebase),
+            # SemanticSearchTool(codebase),
+            # =====[ Github Integration ]=====
+            # Enable Github integration
+            # GithubCreatePRTool(codebase),
+            # GithubViewPRTool(codebase),
+            # GithubCreatePRCommentTool(codebase),
+            # GithubCreatePRReviewCommentTool(codebase),
+        ]
 
     memory = MemorySaver() if memory else None
 
@@ -105,7 +98,7 @@ def create_chat_agent(
     system_message: SystemMessage = SystemMessage(REASONER_SYSTEM_MESSAGE),
     memory: bool = True,
     debug: bool = False,
-    additional_tools: list[BaseTool] | None = None,
+    tools: list[BaseTool] | None = None,
     config: dict[str, Any] | None = None,  # over here you can pass in the max length of the number of messages
     **kwargs,
 ) -> CompiledGraph:
@@ -128,20 +121,18 @@ def create_chat_agent(
     """
     llm = LLM(model_provider=model_provider, model_name=model_name, **kwargs)
 
-    tools = [
-        ViewFileTool(codebase),
-        ListDirectoryTool(codebase),
-        RipGrepTool(codebase),
-        CreateFileTool(codebase),
-        DeleteFileTool(codebase),
-        RenameFileTool(codebase),
-        MoveSymbolTool(codebase),
-        RevealSymbolTool(codebase),
-        RelaceEditTool(codebase),
-    ]
-
-    if additional_tools:
-        tools.extend(additional_tools)
+    if not tools:
+        tools = [
+            ViewFileTool(codebase),
+            ListDirectoryTool(codebase),
+            RipGrepTool(codebase),
+            CreateFileTool(codebase),
+            DeleteFileTool(codebase),
+            RenameFileTool(codebase),
+            MoveSymbolTool(codebase),
+            RevealSymbolTool(codebase),
+            RelaceEditTool(codebase),
+        ]
 
     memory = MemorySaver() if memory else None
 
