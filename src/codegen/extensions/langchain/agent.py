@@ -63,7 +63,7 @@ def create_codebase_agent(
     """
     llm = LLM(model_provider=model_provider, model_name=model_name, **kwargs)
 
-    # Get all codebase tools
+    # Initialize default tools
     tools = [
         ViewFileTool(codebase),
         ListDirectoryTool(codebase),
@@ -80,17 +80,13 @@ def create_codebase_agent(
         ReflectionTool(codebase),
         SearchFilesByNameTool(codebase),
         GlobalReplacementEditTool(codebase),
-        # SemanticSearchTool(codebase),
-        # =====[ Github Integration ]=====
-        # Enable Github integration
-        # GithubCreatePRTool(codebase),
-        # GithubViewPRTool(codebase),
-        # GithubCreatePRCommentTool(codebase),
-        # GithubCreatePRReviewCommentTool(codebase),
     ]
 
-    # Add additional tools if provided
     if additional_tools:
+        # Get names of additional tools
+        additional_names = {t.get_name() for t in additional_tools}
+        # Keep only tools that don't have matching names in additional_tools
+        tools = [t for t in tools if t.get_name() not in additional_names]
         tools.extend(additional_tools)
 
     memory = MemorySaver() if memory else None
