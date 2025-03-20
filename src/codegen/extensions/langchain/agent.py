@@ -1,6 +1,6 @@
 """Demo implementation of an agent with Codegen tools."""
 
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from langchain.tools import BaseTool
 from langchain_core.messages import SystemMessage
@@ -13,6 +13,7 @@ from codegen.extensions.langchain.prompts import REASONER_SYSTEM_MESSAGE
 from codegen.extensions.langchain.tools import (
     CreateFileTool,
     DeleteFileTool,
+    GlobalReplacementEditTool,
     ListDirectoryTool,
     MoveSymbolTool,
     ReflectionTool,
@@ -20,7 +21,8 @@ from codegen.extensions.langchain.tools import (
     RenameFileTool,
     ReplacementEditTool,
     RevealSymbolTool,
-    SearchTool,
+    RipGrepTool,
+    SearchFilesByNameTool,
     # SemanticEditTool,
     ViewFileTool,
 )
@@ -38,8 +40,8 @@ def create_codebase_agent(
     system_message: SystemMessage = SystemMessage(REASONER_SYSTEM_MESSAGE),
     memory: bool = True,
     debug: bool = False,
-    additional_tools: Optional[list[BaseTool]] = None,
-    config: Optional[AgentConfig] = None,
+    additional_tools: list[BaseTool] | None = None,
+    config: AgentConfig | None = None,
     **kwargs,
 ) -> CompiledGraph:
     """Create an agent with all codebase tools.
@@ -65,7 +67,7 @@ def create_codebase_agent(
     tools = [
         ViewFileTool(codebase),
         ListDirectoryTool(codebase),
-        SearchTool(codebase),
+        RipGrepTool(codebase),
         # EditFileTool(codebase),
         CreateFileTool(codebase),
         DeleteFileTool(codebase),
@@ -76,6 +78,8 @@ def create_codebase_agent(
         ReplacementEditTool(codebase),
         RelaceEditTool(codebase),
         ReflectionTool(codebase),
+        SearchFilesByNameTool(codebase),
+        GlobalReplacementEditTool(codebase),
         # SemanticSearchTool(codebase),
         # =====[ Github Integration ]=====
         # Enable Github integration
@@ -101,8 +105,8 @@ def create_chat_agent(
     system_message: SystemMessage = SystemMessage(REASONER_SYSTEM_MESSAGE),
     memory: bool = True,
     debug: bool = False,
-    additional_tools: Optional[list[BaseTool]] = None,
-    config: Optional[dict[str, Any]] = None,  # over here you can pass in the max length of the number of messages
+    additional_tools: list[BaseTool] | None = None,
+    config: dict[str, Any] | None = None,  # over here you can pass in the max length of the number of messages
     **kwargs,
 ) -> CompiledGraph:
     """Create an agent with all codebase tools.
@@ -127,7 +131,7 @@ def create_chat_agent(
     tools = [
         ViewFileTool(codebase),
         ListDirectoryTool(codebase),
-        SearchTool(codebase),
+        RipGrepTool(codebase),
         CreateFileTool(codebase),
         DeleteFileTool(codebase),
         RenameFileTool(codebase),
@@ -151,7 +155,7 @@ def create_codebase_inspector_agent(
     system_message: SystemMessage = SystemMessage(REASONER_SYSTEM_MESSAGE),
     memory: bool = True,
     debug: bool = True,
-    config: Optional[dict[str, Any]] = None,
+    config: dict[str, Any] | None = None,
     **kwargs,
 ) -> CompiledGraph:
     """Create an inspector agent with read-only codebase tools.
@@ -173,7 +177,7 @@ def create_codebase_inspector_agent(
     tools = [
         ViewFileTool(codebase),
         ListDirectoryTool(codebase),
-        SearchTool(codebase),
+        RipGrepTool(codebase),
         DeleteFileTool(codebase),
         RevealSymbolTool(codebase),
     ]
@@ -189,7 +193,7 @@ def create_agent_with_tools(
     system_message: SystemMessage = SystemMessage(REASONER_SYSTEM_MESSAGE),
     memory: bool = True,
     debug: bool = True,
-    config: Optional[dict[str, Any]] = None,
+    config: dict[str, Any] | None = None,
     **kwargs,
 ) -> CompiledGraph:
     """Create an agent with a specific set of tools.

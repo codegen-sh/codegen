@@ -1,6 +1,6 @@
 """Tool for creating new files."""
 
-from typing import ClassVar
+from typing import ClassVar, Optional
 
 from pydantic import Field
 
@@ -23,7 +23,7 @@ class CreateFileObservation(Observation):
     str_template: ClassVar[str] = "Created file {filepath}"
 
 
-def create_file(codebase: Codebase, filepath: str, content: str) -> CreateFileObservation:
+def create_file(codebase: Codebase, filepath: str, content: str, max_tokens: Optional[int] = None) -> CreateFileObservation:
     """Create a new file.
 
     Args:
@@ -34,6 +34,16 @@ def create_file(codebase: Codebase, filepath: str, content: str) -> CreateFileOb
     Returns:
         CreateFileObservation containing new file state, or error if file exists
     """
+    if max_tokens:
+        error = f"""Your response reached the max output tokens limit of {max_tokens} tokens (~ {max_tokens / 10} lines).
+Create the file in chunks or break up the content into smaller files.
+        """
+        return CreateFileObservation(
+            status="error",
+            error=error,
+            filepath=filepath,
+            file_info=ViewFileObservation(status="error", error=error, filepath=filepath, content="", raw_content="", line_count=0),
+        )
     if codebase.has_file(filepath):
         return CreateFileObservation(
             status="error",
@@ -45,6 +55,7 @@ def create_file(codebase: Codebase, filepath: str, content: str) -> CreateFileOb
                 filepath=filepath,
                 content="",
                 line_count=0,
+                raw_content="",
             ),
         )
 
@@ -72,5 +83,6 @@ def create_file(codebase: Codebase, filepath: str, content: str) -> CreateFileOb
                 filepath=filepath,
                 content="",
                 line_count=0,
+                raw_content="",
             ),
         )

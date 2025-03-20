@@ -32,5 +32,7 @@
   --length INTEGER                The number of examples to process.
   --instance-id TEXT              The instance ID of the example to process.
   --repo TEXT                     The repo to use.
+  --instance-ids LIST_OF_STRINGS  The instance IDs of the examples to process.
+                                  Example: --instance-ids <instance_id1>,<instance_id2>,...
   --help                          Show this message and exit.
   ```

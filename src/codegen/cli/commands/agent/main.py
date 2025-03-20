@@ -16,7 +16,7 @@ from codegen.extensions.langchain.tools import (
     MoveSymbolTool,
     RenameFileTool,
     RevealSymbolTool,
-    SearchTool,
+    RipGrepTool,
     ViewFileTool,
 )
 from codegen.sdk.core.codebase import Codebase
@@ -62,7 +62,7 @@ def agent_command(query: str):
     tools = [
         ViewFileTool(codebase),
         ListDirectoryTool(codebase),
-        SearchTool(codebase),
+        RipGrepTool(codebase),
         CreateFileTool(codebase),
         DeleteFileTool(codebase),
         RenameFileTool(codebase),

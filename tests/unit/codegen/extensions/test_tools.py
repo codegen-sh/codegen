@@ -13,8 +13,10 @@ from codegen.extensions.tools import (
     move_symbol,
     rename_file,
     replacement_edit,
+    replacement_edit_global,
     reveal_symbol,
     run_codemod,
+    search_files_by_name,
     semantic_edit,
     semantic_search,
     view_file,
@@ -112,9 +114,9 @@ def test_view_file_pagination(large_codebase):
     result = view_file(large_codebase, "src/large_file.py")
     assert result.status == "success"
     assert result.start_line == 1
-    assert result.end_line == 250  # Default max_lines
+    assert result.end_line == 500  # Default max_lines
     assert result.has_more is True
-    assert result.max_lines_per_page == 250
+    assert result.max_lines_per_page == 500
     assert "from __future__ import annotations" in result.content  # First line
     assert "def method_1" in result.content  # Early method
     assert "def method_251" not in result.content  # Method after page 1
@@ -139,8 +141,8 @@ def test_view_file_pagination(large_codebase):
     assert result.has_more is True
     assert "def method_69" in result.content  # Regular method
     assert "def class_method_80" in result.content  # Class method at 80
-    # Should show 250 lines from start (350 to 599)
-    assert result.end_line == 599
+    # Should show 500 lines from start (350 to 849)
+    assert result.end_line == 849
 
     # Test custom max_lines
     result = view_file(large_codebase, "src/large_file.py", max_lines=100)
@@ -189,13 +191,13 @@ def test_view_file_pagination_edge_cases(large_codebase):
     assert result.status == "success"
     assert result.start_line == 200
     # Should respect max_lines and file length
-    assert result.end_line == min(200 + 250 - 1, 2010)
+    assert result.end_line == min(200 + 500 - 1, 2010)
 
     # Test negative start_line (should default to 1)
     result = view_file(large_codebase, "src/large_file.py", start_line=-10)
     assert result.status == "success"
     assert result.start_line == 1
-    assert result.end_line == 250
+    assert result.end_line == 500
 
 
 def test_list_directory(codebase):
@@ -223,14 +225,14 @@ def test_list_directory(codebase):
     core_dir = next(d for d in src_dir.subdirectories if d.name == "core")
 
     # Verify rendered output has proper tree structure
-    rendered = result.render()
+    rendered = result.render(tool_call_id="test")
     print(rendered)
     expected_tree = """
 └── src/
     ├── main.py
     ├── utils.py
     └── core/"""
-    assert expected_tree in rendered.strip()
+    assert expected_tree in rendered.content.strip()
 
 
 def test_edit_file(codebase):
@@ -280,6 +282,21 @@ def test_move_symbol(codebase):
     assert result.symbol_name == "hello"
     assert result.source_file == "src/main.py"
     assert result.target_file == "src/target.py"
+
+
+def test_search_files_by_name(codebase):
+    """Test searching files by name."""
+    create_file(codebase, "src/main.py", "print('hello')")
+    create_file(codebase, "src/target.py", "print('world')")
+    result = search_files_by_name(codebase, "*.py")
+    assert result.status == "success"
+    assert len(result.files) == 2
+    assert "src/main.py" in result.files
+    assert "src/target.py" in result.files
+    result = search_files_by_name(codebase, "main.py")
+    assert result.status == "success"
+    assert len(result.files) == 1
+    assert "src/main.py" in result.files
 
 
 def test_reveal_symbol(codebase):
@@ -413,6 +430,71 @@ def test_replacement_edit(codebase):
     )
     assert result.status == "unchanged"
     assert "No matches found" in str(result)
+
+
+def test_replacement_edit_global(codebase):
+    """Test global regex-based replacement editing."""
+    # Create additional test file
+    create_file(
+        codebase,
+        filepath="src/other.py",
+        content="""
+def hello():
+    print("Hello, world!")
+
+def greet():
+    print("Hello!")
+""",
+    )
+    codebase.commit()  # Commit the new file so it can be found
+
+    # List directory to debug
+    print("Directory contents:")
+    print(list_directory(codebase, "src"))
+
+    # Test basic global replacement across files
+    result = replacement_edit_global(
+        codebase,
+        file_pattern="*.py",
+        pattern=r'print\("Hello.*?"\)',
+        replacement='print("Goodbye!")',
+    )
+    print(f"Found files: {search_files_by_name(codebase, '*.py').files}")  # Debug print
+    assert result.status == "success"
+    assert result.diff  # Should have modified both files
+    assert 'print("Goodbye!")' in result.diff
+
+    # Test with count limit
+    result = replacement_edit_global(
+        codebase,
+        file_pattern="*.py",
+        pattern=r"def",
+        replacement="async def",
+        count=1,  # Only replace first occurrence in each file
+    )
+    assert result.status == "success"
+    assert result.diff  # Should have modified both files
+
+    # Test invalid regex pattern
+    result = replacement_edit_global(
+        codebase,
+        file_pattern="*.py",
+        pattern=r"[invalid",  # Invalid regex pattern
+        replacement="replacement",
+    )
+    assert result.status == "error"
+    assert result.error_pattern == "[invalid"
+    assert "Invalid regex pattern" in result.message
+
+    # Test no matches
+    result = replacement_edit_global(
+        codebase,
+        file_pattern="*.py",
+        pattern=r"nonexistent_pattern",
+        replacement="replacement",
+    )
+    assert result.status == "success"
+    assert not result.diff  # Should be empty since no files were modified
 
 
 def test_run_codemod(codebase):

@@ -11,7 +11,7 @@ from codegen.extensions.langchain.agent import create_agent_with_tools
 from codegen.extensions.langchain.tools import (
     ListDirectoryTool,
     RevealSymbolTool,
-    SearchTool,
+    RipGrepTool,
     SemanticSearchTool,
     ViewFileTool,
 )
@@ -100,7 +100,7 @@ def research(repo_name: Optional[str] = None, query: Optional[str] = None, threa
     tools = [
         ViewFileTool(codebase),
         ListDirectoryTool(codebase),
-        SearchTool(codebase),
+        RipGrepTool(codebase),
         SemanticSearchTool(codebase),
         RevealSymbolTool(codebase),
     ]

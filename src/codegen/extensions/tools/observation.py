@@ -3,7 +3,12 @@
 import json
 from typing import Any, ClassVar, Optional
 
+from langchain_core.messages import ToolMessage
 from pydantic import BaseModel, Field
+
+from codegen.shared.logging.get_logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class Observation(BaseModel):
@@ -37,13 +42,51 @@ class Observation(BaseModel):
         """Get string representation of the observation."""
         if self.status == "error":
             return f"Error: {self.error}"
-        details = self._get_details()
-        return self.render()
+        return self.render_as_string()
 
     def __repr__(self) -> str:
         """Get detailed string representation of the observation."""
         return f"{self.__class__.__name__}({self.model_dump_json()})"
 
-    def render(self) -> str:
-        """Render the observation as a string."""
-        return json.dumps(self.model_dump(), indent=2)
+    def render_as_string(self, max_tokens: int = 8000) -> str:
+        """Render the observation as a string.
+
+        This is used for string representation and as the content field
+        in the ToolMessage. Subclasses can override this to customize
+        their string output format.
+        """
+        rendered = json.dumps(self.model_dump(), indent=2)
+        if len(rendered) > (max_tokens * 3):
+            logger.error(f"Observation is too long to render: {len(rendered) * 3} tokens")
+            return rendered[:max_tokens] + "\n\n...truncated...\n\n"
+        return rendered
+
+    def render(self, tool_call_id: Optional[str] = None) -> ToolMessage | str:
+        """Render the observation as a ToolMessage or string.
+
+        Args:
+            tool_call_id: Optional[str] = None - If provided, return a ToolMessage.
+                If None, return a string representation.
+
+        Returns:
+            ToolMessage or str containing the observation content and metadata.
+            For error cases, includes error information in artifacts.
+        """
+        if tool_call_id is None:
+            return self.render_as_string()
+
+        # Get content first in case render_as_string has side effects
+        content = self.render_as_string()
+
+        if self.status == "error":
+            return ToolMessage(
+                content=content,
+                status=self.status,
+                tool_call_id=tool_call_id,
+            )
+
+        return ToolMessage(
+            content=content,
+            status=self.status,
+            tool_call_id=tool_call_id,
+        )

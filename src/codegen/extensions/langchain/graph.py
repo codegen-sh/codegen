@@ -6,17 +6,24 @@ from typing import Annotated, Any, Literal, Optional, Union
 import anthropic
 import openai
 from langchain.tools import BaseTool
-from langchain_core.messages import AIMessage, AnyMessage, HumanMessage, SystemMessage, ToolMessage
+from langchain_core.messages import (
+    AIMessage,
+    AnyMessage,
+    HumanMessage,
+    SystemMessage,
+    ToolMessage,
+)
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.stores import InMemoryBaseStore
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START
 from langgraph.graph.state import CompiledGraph, StateGraph
-from langgraph.prebuilt import ToolNode
 from langgraph.pregel import RetryPolicy
 
 from codegen.agents.utils import AgentConfig
 from codegen.extensions.langchain.llm import LLM
 from codegen.extensions.langchain.prompts import SUMMARIZE_CONVERSATION_PROMPT
+from codegen.extensions.langchain.utils.custom_tool_node import CustomToolNode
 from codegen.extensions.langchain.utils.utils import get_max_model_input_tokens
 
 
@@ -87,6 +94,7 @@ class AgentGraph:
         self.config = config
         self.max_messages = config.get("max_messages", 100) if config else 100
         self.keep_first_messages = config.get("keep_first_messages", 1) if config else 1
+        self.store = InMemoryBaseStore()
 
     # =================================== NODES ====================================
 
@@ -100,7 +108,7 @@ class AgentGraph:
             messages.append(HumanMessage(content=query))
 
         result = self.model.invoke([self.system_message, *messages])
-        if isinstance(result, AIMessage):
+        if isinstance(result, AIMessage) and not result.tool_calls:
             updated_messages = [*messages, result]
             return {"messages": updated_messages, "final_answer": result.content}
 
@@ -147,15 +155,27 @@ class AgentGraph:
 
         # Format messages with appropriate headers
         formatted_messages = []
-        for msg in to_summarize:  # No need for slice when iterating full list
+        image_urls = []  # Track image URLs for the summary prompt
+
+        for msg in to_summarize:
             if isinstance(msg, HumanMessage):
-                formatted_messages.append(format_header("human") + msg.content)
+                # Now we know content is always a list
+                for item in msg.content:
+                    if item.get("type") == "text":
+                        text_content = item.get("text", "")
+                        if text_content:
+                            formatted_messages.append(format_header("human") + text_content)
+                    elif item.get("type") == "image_url":
+                        image_url = item.get("image_url", {}).get("url")
+                        if image_url:
+                            # We are not including any string data in the summary for image. The image will be present itself!
+                            image_urls.append({"type": "image_url", "image_url": {"url": image_url}})
             elif isinstance(msg, AIMessage):
                 # Check for summary message using additional_kwargs
                 if msg.additional_kwargs.get("is_summary"):
                     formatted_messages.append(format_header("summary") + msg.content)
                 elif isinstance(msg.content, list) and len(msg.content) > 0 and isinstance(msg.content[0], dict):
-                    for item in msg.content:  # No need for slice when iterating full list
+                    for item in msg.content:
                         if item.get("type") == "text":
                             formatted_messages.append(format_header("ai") + item["text"])
                         elif item.get("type") == "tool_use":
@@ -165,7 +185,7 @@ class AgentGraph:
             elif isinstance(msg, ToolMessage):
                 formatted_messages.append(format_header("tool_response") + msg.content)
 
-        conversation = "\n".join(formatted_messages)  # No need for slice when joining full list
+        conversation = "\n".join(formatted_messages)
 
         summary_llm = LLM(
             model_provider="anthropic",
@@ -173,8 +193,17 @@ class AgentGraph:
             temperature=0.3,
         )
 
-        chain = ChatPromptTemplate.from_template(SUMMARIZE_CONVERSATION_PROMPT) | summary_llm
-        new_summary = chain.invoke({"conversation": conversation}).content
+        # Choose template based on whether we have images
+        summarizer_content = [{"type": "text", "text": SUMMARIZE_CONVERSATION_PROMPT}]
+        for image_url in image_urls:
+            summarizer_content.append(image_url)
+
+        chain = ChatPromptTemplate([("human", summarizer_content)]) | summary_llm
+        new_summary = chain.invoke(
+            {
+                "conversation": conversation,
+            }
+        ).content
 
         return {"messages": {"type": "summarize", "summary": new_summary, "tail": tail, "head": head}}
 
@@ -191,7 +220,7 @@ class AgentGraph:
             return "summarize_conversation"
 
         # Summarize if the last message exceeds the max input tokens of the model - 10000 tokens
-        elif isinstance(last_message, AIMessage) and not just_summarized and curr_input_tokens > (max_input_tokens - 10000):
+        elif isinstance(last_message, AIMessage) and not just_summarized and curr_input_tokens > (max_input_tokens - 30000):
             return "summarize_conversation"
 
         elif hasattr(last_message, "tool_calls") and last_message.tool_calls:
@@ -455,11 +484,11 @@ class AgentGraph:
                     return f"Error: Could not identify the tool you're trying to use.\n\nAvailable tools:\n{available_tools}\n\nPlease use one of the available tools with the correct parameters."
 
             # For other types of errors
-            return f"Error executing tool: {error_msg}\n\nPlease check your tool usage and try again with the correct parameters."
+            return f"Error executing tool: {exception!s}\n\nPlease check your tool usage and try again with the correct parameters."
 
         # Add nodes
         builder.add_node("reasoner", self.reasoner, retry=retry_policy)
-        builder.add_node("tools", ToolNode(self.tools, handle_tool_errors=handle_tool_errors), retry=retry_policy)
+        builder.add_node("tools", CustomToolNode(self.tools, handle_tool_errors=handle_tool_errors), retry=retry_policy)
         builder.add_node("summarize_conversation", self.summarize_conversation, retry=retry_policy)
 
         # Add edges
@@ -471,7 +500,7 @@ class AgentGraph:
         )
         builder.add_conditional_edges("summarize_conversation", self.should_continue)
 
-        return builder.compile(checkpointer=checkpointer, debug=debug)
+        return builder.compile(checkpointer=checkpointer, store=self.store, debug=debug)
 
 
 def create_react_agent(
