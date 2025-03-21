@@ -46,6 +46,7 @@ class CodeAgent:
         agent_config: Optional[AgentConfig] = None,
         thread_id: Optional[str] = None,
         logger: Optional[ExternalLogger] = None,
+        multimodal: bool = True,
         **kwargs,
     ):
         """Initialize a CodeAgent.
@@ -58,6 +59,10 @@ class CodeAgent:
             tools: Additional tools to use
             tags: Tags to add to the agent trace. Must be of the same type.
             metadata: Metadata to use for the agent. Must be a dictionary.
+            agent_config: Configuration for the agent
+            thread_id: Optional thread ID for message history
+            logger: Optional external logger
+            multimodal: Whether to use a multimodal model (default: True)
             **kwargs: Additional LLM configuration options. Supported options:
                 - temperature: Temperature parameter (0-1)
                 - top_p: Top-p sampling parameter (0-1)
@@ -65,6 +70,13 @@ class CodeAgent:
                 - max_tokens: Maximum number of tokens to generate
         """
         self.codebase = codebase
+
+        # If multimodal is enabled, ensure we're using a multimodal model
+        if multimodal and model_provider == "anthropic" and "claude-3" not in model_name:
+            # Default to Claude 3 Sonnet if multimodal is requested but model isn't Claude 3
+            model_name = "claude-3-sonnet-20240229"
+            print(f"Multimodal support requested, using {model_name}")
+
         self.agent = create_codebase_agent(
             self.codebase,
             model_provider=model_provider,
