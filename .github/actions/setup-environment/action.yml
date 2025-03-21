@@ -9,7 +9,7 @@ runs:
   using: "composite"
   steps:
     - name: Install UV
-      uses: astral-sh/setup-uv@v5.3
+      uses: astral-sh/setup-uv@v5.4
       id: setup-uv
       with:
         enable-cache: true
