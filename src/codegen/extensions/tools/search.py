@@ -3,6 +3,7 @@
 This performs either a regex pattern match or simple text search across all files in the codebase.
 Each matching line will be returned with its line number.
 Results are paginated with a default of 10 files per page.
+The search also includes filenames that match the query.
 """
 
 import logging
@@ -59,6 +60,10 @@ class SearchFileResult(Observation):
     matches: list[SearchMatch] = Field(
         description="List of matches found in this file",
     )
+    filename_match: bool = Field(
+        default=False,
+        description="Whether the filename itself matched the search query",
+    )
 
     str_template: ClassVar[str] = "{filepath}: {match_count} matches"
 
@@ -67,6 +72,8 @@ class SearchFileResult(Observation):
         lines = [
             f"📄 {self.filepath}",
         ]
+        if self.filename_match:
+            lines.append("    (filename matches search query)")
         for match in self.matches:
             lines.append(match.render_as_string())
         return "\n".join(lines)
@@ -216,6 +223,7 @@ def _search_with_ripgrep(
 
         # Parse the output
         all_results: dict[str, list[SearchMatch]] = {}
+        filename_matches: set[str] = set()
 
         # ripgrep returns non-zero exit code when no matches are found
         if result.returncode != 0 and result.returncode != 1:
@@ -273,6 +281,40 @@ def _search_with_ripgrep(
                 # Skip lines with invalid line numbers
                 continue
 
+        # Now search for filename matches
+        filename_cmd = ["find", search_path, "-type", "f"]
+        if file_extensions:
+            # Add file extension filters
+            extension_pattern = " -o ".join([f'-name "*.{ext.lstrip(".")}"' for ext in file_extensions])
+            filename_cmd.extend(["-a", "(", "-name", f"*{query}*"])
+            if extension_pattern:
+                filename_cmd.extend(["-a", "(", *extension_pattern.split(), ")"])
+            filename_cmd.append(")")
+        else:
+            filename_cmd.extend(["-name", f"*{query}*"])
+
+        try:
+            filename_result = subprocess.run(
+                filename_cmd,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+
+            if filename_result.returncode == 0 and filename_result.stdout:
+                for filepath in filename_result.stdout.splitlines():
+                    if not filepath:
+                        continue
+                    rel_path = os.path.relpath(filepath, codebase.repo_path)
+                    filename_matches.add(rel_path)
+                    # If this file doesn't already have content matches, add it with empty matches
+                    if rel_path not in all_results:
+                        all_results[rel_path] = []
+        except Exception:
+            # If filename search fails, just continue with content matches
+            pass
+
         # Convert to SearchFileResult objects
         file_results = []
         for filepath, matches in all_results.items():
@@ -281,6 +323,7 @@ def _search_with_ripgrep(
                     status="success",
                     filepath=filepath,
                     matches=sorted(matches, key=lambda x: x.line_number),
+                    filename_match=filepath in filename_matches,
                 )
             )
 
@@ -352,6 +395,20 @@ def _search_with_python(
     extensions = file_extensions if file_extensions is not None else "*"
 
     all_results = []
+    filename_matches = set()
+
+    # First, check for filename matches
+    for file in codebase.files(extensions=extensions):
+        # Check if the filename contains the query
+        filename = os.path.basename(file.filepath)
+        if use_regex:
+            if pattern.search(filename):
+                filename_matches.add(file.filepath)
+        else:
+            if query.lower() in filename.lower():
+                filename_matches.add(file.filepath)
+
+    # Then search file contents
     for file in codebase.files(extensions=extensions):
         # Skip binary files
         try:
@@ -376,12 +433,14 @@ def _search_with_python(
                     )
                 )
 
-        if file_matches:
+        # Add file to results if it has content matches or if the filename matched
+        if file_matches or file.filepath in filename_matches:
             all_results.append(
                 SearchFileResult(
                     status="success",
                     filepath=file.filepath,
                     matches=sorted(file_matches, key=lambda x: x.line_number),
+                    filename_match=file.filepath in filename_matches,
                 )
             )
 
@@ -423,6 +482,7 @@ def search(
     Otherwise, performs a case-insensitive text search.
     Returns matching lines with their line numbers, grouped by file.
     Results are paginated by files, with a default of 10 files per page.
+    Also includes files whose names match the search query.
 
     Args:
         codebase: The codebase to operate on
