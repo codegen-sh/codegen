@@ -11,7 +11,6 @@ from pathlib import Path
 import lox
 
 from codegen import Codebase
-from codegen.agents.code_agent import CodeAgent
 from codegen.configs.models.codebase import CodebaseConfig
 from codegen.extensions.swebench.utils import (
     SweBenchExample,
@@ -72,7 +71,7 @@ def run_agent_on_entry(entry: SweBenchExample, model: str, codebase: Codebase | 
 
     metadata = {"run_id": run_id, "instance_id": instance_id, "difficulty": f"difficulty_{entry.difficulty}"}
     tags = [str(value) for value in metadata.values()]
-    agent = CodeAgent(codebase=codebase, tags=tags, metadata=metadata)
+    # agent = CodeAgent(codebase=codebase, tags=tags, metadata=metadata)
 
     pprint.pprint(instance_id)
     pprint.pprint(gold_files)
@@ -102,7 +101,8 @@ Also DO NOT ADD OR EDIT ANY TESTS!
     message += problem_statement
 
     try:
-        result = agent.run(prompt=message)
+        pass
+        # result = agent.run(prompt=message)
     except Exception as agent_error:
         pprint.pprint(f"Instance ID: {instance_id} terminated with error: {agent_error}")
         raise agent_error
