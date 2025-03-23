@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - develop
+      - main
+      - Develop
 
 jobs:
   semantic-version:
@@ -78,3 +80,4 @@ jobs:
     secrets: inherit
     with:
       release-tag: ${{ needs.semantic-version.outputs.release-tag }}
+      branch: Develop
