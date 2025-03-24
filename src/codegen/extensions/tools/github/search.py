@@ -49,7 +49,18 @@ def search(
 
         # Search using PyGitHub's search_issues (which searches both issues and PRs)
         results = []
-        for item in repo.search_issues(query)[:max_results]:
+        search_results = repo.search_issues(query)
+
+        # Handle the case when no results are found
+        if search_results.totalCount == 0:
+            return SearchResultObservation(
+                status="success",
+                query=query,
+                results=[],
+            )
+
+        # Process the results
+        for item in search_results[:max_results]:
             result = {
                 "title": item.title,
                 "number": item.number,
