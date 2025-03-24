@@ -27,6 +27,7 @@ from .search_files_by_name import search_files_by_name
 from .semantic_edit import semantic_edit
 from .semantic_search import semantic_search
 from .view_file import view_file
+from .web import web_search_tool, web_view_page_tool
 
 __all__ = [
     # Git operations
@@ -61,4 +62,7 @@ __all__ = [
     "semantic_search",
     "view_file",
     "view_pr",
+    # Web browsing operations
+    "web_search_tool",
+    "web_view_page_tool",
 ]
