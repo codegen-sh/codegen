@@ -1,7 +1,7 @@
 import math
 import shutil
 import subprocess
-from typing import ClassVar, Optional
+from typing import ClassVar
 
 from pydantic import Field
 
@@ -51,7 +51,7 @@ def search_files_by_name(
 
     Args:
         codebase: The codebase to search in
-        pattern: Glob pattern to search for (e.g. "*.py", "test_*.py")
+        pattern: Glob pattern to search for (e.g. "*.py", "test_*.py", "**/.github/workflows/*.yml")
         page: Page number to return (1-based, default: 1)
         files_per_page: Number of files to return per page (default: 10)
     """
@@ -62,23 +62,52 @@ def search_files_by_name(
         if files_per_page is not None and files_per_page < 1:
             files_per_page = 20
 
+        # Handle patterns that start with **/ by removing the leading ** and searching from root
+        # This is a common pattern for finding files at any depth
+        search_pattern = pattern
+        search_dir = codebase.repo_path
+
+        if pattern.startswith("**/"):
+            # Remove the **/ prefix for the search pattern
+            search_pattern = pattern[3:]
+
         if shutil.which("fd") is None:
             logger.warning("fd is not installed, falling back to find")
+
+            # For find, we need to handle the pattern differently
+            find_args = ["find", ".", "-type", "f"]
+
+            # If the pattern contains **, we need to use -path instead of -name
+            if "**" in pattern:
+                # Convert ** glob pattern to find's -path syntax
+                path_pattern = pattern.replace("**/", "**/")
+                find_args.extend(["-path", f"*{search_pattern}"])
+            else:
+                # Use -name for simple patterns
+                find_args.extend(["-name", search_pattern])
+
             results = subprocess.check_output(
-                ["find", "-name", pattern],
-                cwd=codebase.repo_path,
+                find_args,
+                cwd=search_dir,
                 timeout=30,
             )
             all_files = [path.removeprefix("./") for path in results.decode("utf-8").strip().split("\n")] if results.strip() else []
 
         else:
             logger.info(f"Searching for files with pattern: {pattern}")
+
+            # fd handles ** patterns natively
+            fd_args = ["fd", "-t", "f", "-g", pattern]
+
             results = subprocess.check_output(
-                ["fd", "-g", pattern],
-                cwd=codebase.repo_path,
+                fd_args,
+                cwd=search_dir,
                 timeout=30,
             )
             all_files = results.decode("utf-8").strip().split("\n") if results.strip() else []
+
+        # Filter out empty strings
+        all_files = [f for f in all_files if f]
 
         # Sort files for consistent pagination
         all_files.sort()
@@ -88,13 +117,12 @@ def search_files_by_name(
         if files_per_page == math.inf:
             files_per_page = total_files
             total_pages = 1
-        else: 
+        else:
             total_pages = (total_files + files_per_page - 1) // files_per_page if total_files > 0 else 1
-        
-        
+
         # Ensure page is within valid range
         page = min(page, total_pages)
-        
+
         # Get paginated results
         start_idx = (page - 1) * files_per_page
         end_idx = start_idx + files_per_page
