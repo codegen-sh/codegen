@@ -546,7 +546,7 @@ class GithubViewPRTool(BaseTool):
     """Tool for getting PR data."""
 
     name: ClassVar[str] = "view_pr"
-    description: ClassVar[str] = "View the diff and associated context for a pull request"
+    description: ClassVar[str] = "View the diff and associated context for a pull request on Github. Returns PR URL and repository name."
     args_schema: ClassVar[type[BaseModel]] = GithubViewPRInput
     codebase: Codebase = Field(exclude=True)
 
