@@ -1,6 +1,6 @@
 """Tool for viewing PR contents and modified symbols."""
 
-from typing import ClassVar
+from typing import Any, ClassVar
 
 from pydantic import Field
 
@@ -24,6 +24,14 @@ class ViewPRObservation(Observation):
     modified_symbols: list[str] = Field(
         description="Names of modified symbols in the PR",
     )
+    comments: list[dict[str, Any]] = Field(
+        description="Comments on the PR",
+        default_factory=list,
+    )
+    reviews: list[dict[str, Any]] = Field(
+        description="Reviews on the PR",
+        default_factory=list,
+    )
 
     str_template: ClassVar[str] = "PR #{pr_id}"
 
@@ -36,14 +44,16 @@ def view_pr(codebase: Codebase, pr_id: int) -> ViewPRObservation:
         pr_id: Number of the PR to get the contents for
     """
     try:
-        patch, file_commit_sha, moddified_symbols = codebase.get_modified_symbols_in_pr(pr_id)
+        patch, file_commit_sha, modified_symbols, comments, reviews = codebase.get_modified_symbols_in_pr(pr_id)
 
         return ViewPRObservation(
             status="success",
             pr_id=pr_id,
             patch=patch,
             file_commit_sha=file_commit_sha,
-            modified_symbols=moddified_symbols,
+            modified_symbols=modified_symbols,
+            comments=comments,
+            reviews=reviews,
         )
 
     except Exception as e:
@@ -54,4 +64,6 @@ def view_pr(codebase: Codebase, pr_id: int) -> ViewPRObservation:
             patch="",
             file_commit_sha={},
             modified_symbols=[],
+            comments=[],
+            reviews=[],
         )
