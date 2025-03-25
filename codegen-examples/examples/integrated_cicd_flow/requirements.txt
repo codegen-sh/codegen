@@ -1,0 +1,6 @@
+codegen>=0.22.2
+fastapi[standard]
+modal>=0.53.0
+slack_bolt>=1.18.0
+openai>=1.1.0
+python-dotenv>=1.0.0
