@@ -92,8 +92,10 @@ After initializing:
 1. Create your first codemod:
 
 ```bash
-codegen create my-function -d "describe what you want to do"
+codegen create my-function . -d "describe what you want to do"
 ```
+
+Note: The second parameter (`.`) specifies the path where the codemod should be created. This is required.
 
 2. Run it:
 

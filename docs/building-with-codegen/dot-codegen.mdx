@@ -78,7 +78,7 @@ Codegen automatically adds appropriate entries to your `.gitignore`:
 The `codemods/` directory is where your transformation functions live. You can create new codemods using:
 
 ```bash
-codegen create my-codemod [--description "what it does"]
+codegen create my-codemod PATH [--description "what it does"]
 ```
 
 This will:
@@ -115,7 +115,7 @@ After initializing your `.codegen` directory:
 
 1. Create your first codemod:
 ```bash
-codegen create my-codemod -d "describe what you want to do"
+codegen create my-codemod . -d "describe what you want to do"
 ```
 
 2. Run it:

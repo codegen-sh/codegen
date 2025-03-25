@@ -8,18 +8,19 @@ iconType: "solid"
 The `create` command generates a new codemod function with the necessary boilerplate.
 
 ```bash
-codegen create rename-function
+codegen create rename-function .
 ```
 
 ## Usage
 
 ```bash
-codegen create NAME [OPTIONS]
+codegen create NAME PATH [OPTIONS]
 ```
 
 ## Arguments
 
 - `NAME`: The name of the codemod to create (e.g., "rename-function")
+- `PATH`: The path where the codemod should be created (e.g., "." for current directory)
 
 ## Options
 
@@ -27,7 +28,7 @@ codegen create NAME [OPTIONS]
 
 ## Generated Files
 
-When you run `codegen create rename-function`, it creates:
+When you run `codegen create rename-function .`, it creates:
 
 ```
 .codegen/
@@ -63,12 +64,12 @@ if __name__ == "__main__":
 
 Create a basic codemod:
 ```bash
-codegen create rename-function
+codegen create rename-function .
 ```
 
 Create with an AI-powered implementation:
 ```bash
-codegen create rename-function -d "Rename the getUserData function to fetchUserProfile"
+codegen create rename-function . -d "Rename the getUserData function to fetchUserProfile"
 ```
 
 ## Next Steps

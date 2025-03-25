@@ -28,7 +28,7 @@ The [Codegen CLI](/cli/about) provides commands to generate `.md` files that can
 When you create a new codemod via [codegen create](/cli/create):
 
 ```bash
-codegen create delete-dead-imports --description "Delete unused imports"
+codegen create delete-dead-imports . --description "Delete unused imports"
 ```
 
 Codegen automatically generates an optimized ["system prompt"](https://news.ycombinator.com/item?id=37880023) that includes:
@@ -52,7 +52,7 @@ This `.md` file can be used with any AI assistant (Claude, GPT-4, etc.) to get m
   <Step title="Create a codemod with description">
     Use the [create command](/cli/create) with a detailed description of what you want to accomplish:
     ```bash
-    codegen create modernize-components --description "Convert class components to functional components with hooks"
+    codegen create modernize-components . --description "Convert class components to functional components with hooks"
     ```
   </Step>
   <Step title="Review the generated system prompt">

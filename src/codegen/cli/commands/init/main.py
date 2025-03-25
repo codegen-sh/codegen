@@ -46,6 +46,6 @@ def init_command(path: str | None = None, token: str | None = None, language: st
     # Print next steps
     rich.print("\n[bold]What's next?[/bold]\n")
     rich.print("1. Create a function:")
-    rich.print(format_command('codegen create my-function -d "describe what you want to do"'))
+    rich.print(format_command('codegen create my-function . -d "describe what you want to do"'))
     rich.print("2. Run it:")
     rich.print(format_command("codegen run my-function --apply-local"))
