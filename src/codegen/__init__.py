@@ -1,3 +1,4 @@
+# TEST
 from codegen.cli.sdk.decorator import function
 from codegen.cli.sdk.functions import Function
 from codegen.extensions.events.codegen_app import CodegenApp
