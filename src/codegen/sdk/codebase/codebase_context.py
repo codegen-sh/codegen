@@ -32,7 +32,7 @@ from codegen.sdk.typescript.external.ts_declassify.ts_declassify import TSDeclas
 from codegen.shared.enums.programming_language import ProgrammingLanguage
 from codegen.shared.exceptions.control_flow import StopCodemodException
 from codegen.shared.logging.get_logger import get_logger
-from codegen.shared.performance.stopwatch_utils import stopwatch, stopwatch_with_sentry
+from codegen.shared.performance.stopwatch_utils import stopwatch
 
 if TYPE_CHECKING:
     from collections.abc import Generator, Mapping, Sequence
@@ -226,7 +226,7 @@ class CodebaseContext:
     def _graph(self, value: PyDiGraph[Importable, Edge]) -> None:
         self.__graph = value
 
-    @stopwatch_with_sentry(name="build_graph")
+    @stopwatch
     @commiter
     def build_graph(self, repo_operator: RepoOperator) -> None:
         """Builds a codebase graph based on the current file state of the given repo operator"""
