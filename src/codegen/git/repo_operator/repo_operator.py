@@ -897,8 +897,7 @@ class RepoOperator:
                     if local_head.hexsha == remote_head.hexsha:
                         return cls(repo_config=RepoConfig.from_repo_path(repo_path), bot_commit=False, access_token=access_token)
             except Exception:
-                # If any git operations fail, fallback to fresh clone
-                pass
+                logger.exception("Failed to initialize Git repository. Falling back to fresh clone.")
 
             # If we get here, repo exists but is not up to date or valid
             # Remove the existing directory to do a fresh clone
@@ -916,7 +915,6 @@ class RepoOperator:
             # Initialize with the cloned repo
             git_cli = GitCLI(repo_path)
         except (GitCommandError, ValueError) as e:
-            logger.exception("Failed to initialize Git repository:")
-            logger.exception("Please authenticate with a valid token and ensure the repository is properly initialized.")
+            logger.exception("Failed to initialize Git repository")
             return None
         return cls(repo_config=RepoConfig.from_repo_path(repo_path), bot_commit=False, access_token=access_token)
