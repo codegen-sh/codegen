@@ -2,8 +2,10 @@ from unittest.mock import MagicMock, create_autospec, patch
 
 import pytest
 
+from codegen.configs.models.secrets import SecretsConfig
 from codegen.sdk.codebase.codebase_context import CodebaseContext
 from codegen.sdk.codebase.factory.get_session import get_codebase_session
+from codegen.sdk.core.codebase import Codebase
 
 
 @pytest.fixture(autouse=True)
@@ -39,3 +41,9 @@ def test_codeowners_property(context_mock, codebase):
     assert len(codebase.codeowners) == 1
     assert callable(codebase.codeowners[0].files_source)
     assert codebase.codeowners[0].files_source() == codebase.files.return_value
+
+
+def test_from_codebase_non_existent_repo(context_mock, tmpdir):
+    with get_codebase_session(tmpdir=tmpdir, files={"src/main.py": "print('Hello, world!')"}, verify_output=False) as codebase:
+        codebase = Codebase.from_repo("some-org/non-existent-repo", tmp_dir=tmpdir, secrets=SecretsConfig(github_token="some-token"))
+        assert codebase is None

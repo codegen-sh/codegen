@@ -25,7 +25,7 @@ from typing_extensions import TypeVar, deprecated
 from codegen.configs.models.codebase import CodebaseConfig, PinkMode
 from codegen.configs.models.secrets import SecretsConfig
 from codegen.git.repo_operator.repo_operator import RepoOperator
-from codegen.git.schemas.enums import CheckoutResult, SetupOption
+from codegen.git.schemas.enums import CheckoutResult
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.git.utils.pr_review import CodegenPR
 from codegen.sdk._proxy import proxy_property
@@ -1337,7 +1337,6 @@ class Codebase(
         language: Literal["python", "typescript"] | ProgrammingLanguage | None = None,
         config: CodebaseConfig | None = None,
         secrets: SecretsConfig | None = None,
-        setup_option: SetupOption | None = None,
         full_history: bool = False,
     ) -> "Codebase":
         """Fetches a codebase from GitHub and returns a Codebase instance.
