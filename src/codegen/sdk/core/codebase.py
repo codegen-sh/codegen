@@ -1382,6 +1382,11 @@ class Codebase(
             else:
                 # Ensure the operator can handle remote operations
                 repo_operator = RepoOperator.create_from_commit(repo_path=repo_path, commit=commit, url=repo_url, full_name=repo_full_name, access_token=access_token)
+
+            if repo_operator is None:
+                logger.error("Failed to clone repository")
+                return None
+
             logger.info("Clone completed successfully")
 
             # Initialize and return codebase with proper context
