@@ -11,7 +11,7 @@ import argparse
 import json
 import threading
 from typing import Dict, List, Any, Optional
-import python_dotenv
+from dotenv import load_dotenv
 import uvicorn
 from github import Github
 from pyngrok import ngrok
@@ -43,7 +43,7 @@ def parse_args():
 def load_env():
     """Load environment variables from .env file."""
     # Load environment variables from .env file
-    python_dotenv.load_dotenv()
+    load_dotenv()
     
     # Check for required environment variables
     if not os.environ.get("GITHUB_TOKEN"):

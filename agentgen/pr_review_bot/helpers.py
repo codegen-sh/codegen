@@ -30,7 +30,7 @@ from langchain_anthropic import ChatAnthropic
 from langchain_openai import ChatOpenAI
 
 # Import local modules
-from .codebase import Codebase
+from codebase import Codebase
 
 def get_github_client(token: str) -> Github:
     """Get a GitHub client instance."""
