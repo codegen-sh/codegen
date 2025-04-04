@@ -10,19 +10,11 @@ from langchain_core.tools.base import BaseTool
 from langgraph.prebuilt import InjectedStore
 from pydantic import BaseModel, Field
 
-from codegen.extensions.linear.linear_client import LinearClient
 from codegen.extensions.tools.bash import run_bash_command
 from codegen.extensions.tools.github.checkout_pr import checkout_pr
 from codegen.extensions.tools.github.view_pr_checks import view_pr_checks
 from codegen.extensions.tools.global_replacement_edit import replacement_edit_global
-from codegen.extensions.tools.linear.linear import (
-    linear_comment_on_issue_tool,
-    linear_create_issue_tool,
-    linear_get_issue_comments_tool,
-    linear_get_issue_tool,
-    linear_get_teams_tool,
-    linear_search_issues_tool,
-)
+
 from codegen.extensions.tools.link_annotation import add_links_to_message
 from codegen.extensions.tools.reflection import perform_reflection
 from codegen.extensions.tools.relace_edit import relace_edit
