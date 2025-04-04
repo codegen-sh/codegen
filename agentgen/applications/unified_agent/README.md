@@ -20,25 +20,58 @@ This application integrates multiple agent functionalities into a single unified
 ## Installation
 
 1. Clone the repository
-2. Install the dependencies:
+2. Install the backend dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Create a `.env` file with the required environment variables (or configure them through the UI)
+3. Install the frontend dependencies:
+
+```bash
+cd frontend
+npm install
+```
+
+4. Create a `.env` file with the required environment variables (or configure them through the UI)
 
 ## Usage
 
-1. Start the application:
+### Development Mode
+
+1. Start the backend:
+
+```bash
+python main.py --reload
+```
+
+2. Start the frontend development server:
+
+```bash
+cd frontend
+npm start
+```
+
+3. Open the UI in your browser at `http://localhost:3000`
+
+### Production Mode
+
+1. Build the frontend:
+
+```bash
+cd frontend
+npm run build
+```
+
+2. Start the application:
 
 ```bash
 python main.py
 ```
 
-2. Open the UI in your browser at `http://localhost:8000`
-3. Configure the settings through the UI
-4. Start using the agent!
+3. Open the UI in your browser at `http://localhost:8000`
+4. Configure the settings through the UI
+5. Start using the agent!
 
 ## Environment Variables
 
