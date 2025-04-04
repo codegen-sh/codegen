@@ -34,27 +34,36 @@ console.setFormatter(formatter)
 logger.addHandler(console)
 
 def load_env_file():
-    load_dotenv()
-    
-    required_vars = ["GITHUB_TOKEN"]
-    missing_vars = [var for var in required_vars if not os.environ.get(var)]
-    
-    if missing_vars:
-        logger.error(f"Missing required environment variables: {', '.join(missing_vars)}")
-        print(f"\n❌ Error: Missing required environment variables: {', '.join(missing_vars)}")
-        print("Please create a .env file with the following variables:")
-        print("GITHUB_TOKEN=your_github_token")
-        print("ANTHROPIC_API_KEY=your_anthropic_key (optional)")
-        print("OPENAI_API_KEY=your_openai_key (optional)")
-        print("WEBHOOK_SECRET=your_webhook_secret (optional)")
-        print("NGROK_AUTH_TOKEN=your_ngrok_token (optional)")
+    """Load environment variables from .env file."""
+    try:
+        # Try to load from .env file
+        load_dotenv()
+        
+        required_vars = ["GITHUB_TOKEN"]
+        missing_vars = [var for var in required_vars if not os.environ.get(var)]
+        
+        if missing_vars:
+            logger.error(f"Missing required environment variables: {', '.join(missing_vars)}")
+            print(f"\n❌ Error: Missing required environment variables: {', '.join(missing_vars)}")
+            print("Please create a .env file with the following variables:")
+            print("GITHUB_TOKEN=your_github_token")
+            print("ANTHROPIC_API_KEY=your_anthropic_key (optional)")
+            print("OPENAI_API_KEY=your_openai_key (optional)")
+            print("WEBHOOK_SECRET=your_webhook_secret (optional)")
+            print("NGROK_AUTH_TOKEN=your_ngrok_token (optional)")
+            sys.exit(1)
+    except Exception as e:
+        logger.error(f"Error loading .env file: {e}")
+        print(f"\n❌ Error loading .env file: {e}")
         sys.exit(1)
 
 def get_github_client() -> Github:
+    """Get a GitHub client instance."""
     token = os.environ.get("GITHUB_TOKEN", "")
     return Github(token)
 
 def list_repositories(github_client: Github) -> List[Dict[str, Any]]:
+    """List all repositories accessible by the GitHub token."""
     repos = []
     
     print("\n📋 Listing accessible repositories:")
@@ -76,6 +85,7 @@ def list_repositories(github_client: Github) -> List[Dict[str, Any]]:
     return repos
 
 def setup_ngrok(port: int) -> Optional[str]:
+    """Set up ngrok tunnel for webhook URL."""
     ngrok_auth_token = os.environ.get("NGROK_AUTH_TOKEN")
     
     if not ngrok_auth_token:
@@ -101,6 +111,7 @@ def setup_ngrok(port: int) -> Optional[str]:
         return None
 
 def setup_webhooks(github_client: Github, webhook_url: str):
+    """Set up webhooks for all repositories."""
     print("\n🔄 Setting up webhooks for repositories...")
     
     webhook_manager = WebhookManager(
@@ -110,12 +121,13 @@ def setup_webhooks(github_client: Github, webhook_url: str):
     
     try:
         result = webhook_manager.setup_webhooks_for_all_repos()
-        print(f"\n✅ Webhook setup completed: {result['success']} successful, {result['failed']} failed")
+        print(f"\n✅ Webhook setup completed for {len(result)} repositories")
     except Exception as e:
         logger.error(f"Error setting up webhooks: {e}")
         print(f"\n❌ Error setting up webhooks: {e}")
 
 def start_server(port: int):
+    """Start the FastAPI server."""
     print(f"\n🚀 Starting server on port {port}...")
     
     try:
@@ -127,6 +139,7 @@ def start_server(port: int):
         sys.exit(1)
 
 def monitor_ip_changes(github_client: Github, webhook_url: str, check_interval: int = 300):
+    """Monitor for IP changes and update webhooks if needed."""
     print("\n🔄 Starting IP change monitor...")
     
     webhook_manager = WebhookManager(
@@ -148,6 +161,7 @@ def monitor_ip_changes(github_client: Github, webhook_url: str, check_interval: 
         time.sleep(check_interval)
 
 def main():
+    """Main entry point for the PR Review Bot."""
     parser = argparse.ArgumentParser(description="PR Review Bot")
     parser.add_argument("--port", type=int, default=8000, help="Port to run the server on")
     parser.add_argument("--no-ngrok", action="store_true", help="Disable ngrok tunnel")

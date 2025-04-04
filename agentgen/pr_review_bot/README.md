@@ -49,7 +49,7 @@ cd agentgen/pr_review_bot
 pip install -r requirements.txt
 ```
 
-5. Create a `.env` file in the `agentgen/pr_review_bot` directory:
+5. Create a `.env` file in the `agentgen/pr_review_bot` directory (you can copy from `.env.example`):
 
 ```
 GITHUB_TOKEN=your_github_token

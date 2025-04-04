@@ -13,6 +13,9 @@ Update the PR review bot to use the latest langchain libraries and ensure it can
 - [X] Add ngrok support for local webhook development
 - [X] Update README.md with installation and usage instructions
 - [X] Update requirements.txt with specific versions
+- [X] Fix setup.py and pyproject.toml for proper installation
+- [X] Add docstrings to all functions
+- [X] Remove Modal and Linear dependencies
 
 ### Next Steps
 - [ ] Test the PR review bot with a sample PR
