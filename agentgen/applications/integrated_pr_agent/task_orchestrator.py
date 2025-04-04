@@ -17,13 +17,16 @@ from .models import (
     PullRequest, 
     PRList, 
     PRStatus, 
-    PRReviewStatus
+    PRReviewStatus,
+    Document,
+    DocumentList
 )
 from .services import (
     GitHubService,
     RequirementsService,
     PRReviewService,
-    SlackService
+    SlackService,
+    AIPlanningService
 )
 
 logger = logging.getLogger("integrated_pr_agent")
@@ -57,6 +60,13 @@ class TaskOrchestrator:
             openai_api_key=openai_api_key,
         )
         
+        # Initialize AI Planning Service
+        self.ai_planning_service = AIPlanningService(
+            anthropic_api_key=anthropic_api_key,
+            openai_api_key=openai_api_key,
+            output_dir=str(self.output_dir / "plans")
+        )
+        
         if slack_channel_id and slack_token:
             self.slack_service = SlackService(
                 slack_token=slack_token,
@@ -68,10 +78,12 @@ class TaskOrchestrator:
         # Initialize state
         self.requirements_file = self.output_dir / "requirements.json"
         self.prs_file = self.output_dir / "pull_requests.json"
+        self.documents_file = self.output_dir / "documents.json"
         self.progress_file = self.output_dir / "progress.md"
         self.last_check_file = self.output_dir / "last_check.txt"
+        self.current_plan_file = self.output_dir / "current_plan.json"
     
-    def load_state(self) -> Tuple[RequirementList, PRList, Optional[str]]:
+    def load_state(self) -> Tuple[RequirementList, PRList, DocumentList, Optional[str]]:
         """Load the current state."""
         # Load requirements
         if self.requirements_file.exists():
@@ -86,15 +98,27 @@ class TaskOrchestrator:
         else:
             prs = PRList()
         
+        # Load documents
+        if self.documents_file.exists():
+            documents = DocumentList.load_from_file(str(self.documents_file))
+        else:
+            documents = DocumentList()
+        
         # Load last check timestamp
         last_check = None
         if self.last_check_file.exists():
             with open(self.last_check_file, "r", encoding="utf-8") as f:
                 last_check = f.read().strip()
         
-        return requirements, prs, last_check
+        return requirements, prs, documents, last_check
     
-    def save_state(self, requirements: RequirementList, prs: PRList, last_check: Optional[str] = None) -> None:
+    def save_state(
+        self, 
+        requirements: RequirementList, 
+        prs: PRList, 
+        documents: DocumentList,
+        last_check: Optional[str] = None
+    ) -> None:
         """Save the current state."""
         # Save requirements
         self.requirements_service.save_requirements(requirements, str(self.requirements_file))
@@ -102,6 +126,9 @@ class TaskOrchestrator:
         # Save PRs
         with open(self.prs_file, "w", encoding="utf-8") as f:
             f.write(prs.json(indent=2))
+        
+        # Save documents
+        documents.save_to_file(str(self.documents_file))
         
         # Save progress report
         self.requirements_service.save_progress_report(requirements, str(self.progress_file))
@@ -117,7 +144,7 @@ class TaskOrchestrator:
         requirements = self.requirements_service.parse_all_documents()
         
         # Load existing requirements to preserve status
-        existing_requirements, _, _ = self.load_state()
+        existing_requirements, _, _, _ = self.load_state()
         
         # Update status of new requirements based on existing ones
         for new_req in requirements.requirements:
@@ -280,10 +307,155 @@ class TaskOrchestrator:
         else:
             return last_check or datetime.now().isoformat()
     
+    def generate_project_plan(
+        self, 
+        requirements: RequirementList, 
+        documents: DocumentList
+    ) -> Optional[Document]:
+        """
+        Generate a project plan based on requirements and context documents.
+        
+        Args:
+            requirements: List of requirements
+            documents: List of context documents
+            
+        Returns:
+            Document containing the project plan
+        """
+        # Get context documents
+        context_docs = documents.get_documents_by_type("context")
+        
+        # Convert requirements to dict format for the AI planning service
+        req_dicts = [req.dict() for req in requirements.requirements]
+        
+        # Convert context documents to dict format
+        context_dicts = [doc.dict() for doc in context_docs]
+        
+        try:
+            # Generate the project plan
+            repo_url = f"https://github.com/{self.repo_name}"
+            plan = self.ai_planning_service.generate_project_plan(
+                repo_url=repo_url,
+                requirements=req_dicts,
+                context_docs=context_dicts if context_docs else None
+            )
+            
+            # Save the plan
+            plan_filename = f"project_plan_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            self.ai_planning_service.save_project_plan(plan, plan_filename)
+            
+            # Create a document for the plan
+            plan_doc = Document(
+                title=plan.title,
+                content=self.ai_planning_service.visualize_project_structure(plan),
+                type="plan",
+                metadata={
+                    "plan_file": f"{plan_filename}.json",
+                    "visualization_file": f"{plan_filename}_structure.md",
+                    "raw_plan": plan.dict()
+                }
+            )
+            
+            # Save the current plan
+            with open(self.current_plan_file, "w", encoding="utf-8") as f:
+                f.write(plan.json(indent=2))
+            
+            return plan_doc
+        except Exception as e:
+            logger.error(f"Error generating project plan: {e}")
+            return None
+    
+    def generate_progress_document(
+        self, 
+        requirements: RequirementList, 
+        prs: PRList, 
+        documents: DocumentList
+    ) -> Optional[Document]:
+        """
+        Generate a progress tracking document.
+        
+        Args:
+            requirements: List of requirements
+            prs: List of pull requests
+            documents: List of documents
+            
+        Returns:
+            Document containing the progress report
+        """
+        # Check if we have a current plan
+        if not self.current_plan_file.exists():
+            logger.warning("No current plan found, skipping progress document generation")
+            return None
+        
+        try:
+            # Load the current plan
+            with open(self.current_plan_file, "r", encoding="utf-8") as f:
+                from .services.ai_planning.planning_service import ProjectPlan
+                plan = ProjectPlan.parse_raw(f.read())
+            
+            # Convert requirements and PRs to dict format
+            req_dicts = [req.dict() for req in requirements.requirements]
+            pr_dicts = [pr.dict() for pr in prs.pull_requests]
+            
+            # Generate the progress document
+            progress_content = self.ai_planning_service.generate_progress_document(
+                plan=plan,
+                requirements=req_dicts,
+                prs=pr_dicts
+            )
+            
+            # Create a document for the progress report
+            progress_doc = Document(
+                title=f"{plan.title} - Progress Report",
+                content=progress_content,
+                type="progress",
+                metadata={
+                    "plan_id": plan.title,
+                    "generated_at": datetime.now().isoformat()
+                }
+            )
+            
+            return progress_doc
+        except Exception as e:
+            logger.error(f"Error generating progress document: {e}")
+            return None
+    
+    def add_document(self, title: str, content: str, doc_type: str, metadata: Dict[str, Any] = None) -> Document:
+        """
+        Add a new document to the document list.
+        
+        Args:
+            title: Document title
+            content: Document content
+            doc_type: Document type
+            metadata: Optional metadata
+            
+        Returns:
+            The created document
+        """
+        # Load documents
+        _, _, documents, _ = self.load_state()
+        
+        # Create the document
+        document = Document(
+            title=title,
+            content=content,
+            type=doc_type,
+            metadata=metadata or {}
+        )
+        
+        # Add the document to the list
+        documents.add_document(document)
+        
+        # Save the updated document list
+        documents.save_to_file(str(self.documents_file))
+        
+        return document
+    
     def run_once(self) -> None:
         """Run the orchestrator once."""
         # Load state
-        requirements, prs, last_check = self.load_state()
+        requirements, prs, documents, last_check = self.load_state()
         
         # Update requirements from documentation
         requirements = self.update_requirements()
@@ -297,12 +469,22 @@ class TaskOrchestrator:
         # Check for completed requirements
         last_check = self.check_for_completed_requirements(requirements, prs, last_check)
         
+        # Generate progress document if needed (once a day)
+        progress_docs = documents.get_documents_by_type("progress")
+        if not progress_docs or (
+            progress_docs and 
+            (datetime.now() - datetime.fromisoformat(progress_docs[-1].created_at)).days >= 1
+        ):
+            progress_doc = self.generate_progress_document(requirements, prs, documents)
+            if progress_doc:
+                documents.add_document(progress_doc)
+        
         # Send next requirement if no in-progress requirements
         if not requirements.get_in_progress_requirements():
             self.send_next_requirement(requirements)
         
         # Save state
-        self.save_state(requirements, prs, last_check)
+        self.save_state(requirements, prs, documents, last_check)
     
     def run_continuously(self, interval: int = 60) -> None:
         """Run the orchestrator continuously."""

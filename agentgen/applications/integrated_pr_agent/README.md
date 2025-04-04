@@ -9,15 +9,19 @@ A CI/CD application that tracks requirements, reviews PRs, and coordinates with 
 - **Task Orchestration**: Coordinate between requirements and PR reviews
 - **Slack Integration**: Communicate with Codegen via Slack
 - **GitHub Integration**: Monitor repositories and PRs via GitHub webhooks
+- **AI Planning**: Generate project plans and visualize project structure
+- **Document Management**: Upload, store, and manage context documents
+- **Progress Tracking**: Generate visual progress reports
 
 ## Architecture
 
 The Integrated PR Agent consists of the following components:
 
-- **Models**: Data models for requirements and PRs
-- **Services**: Services for interacting with GitHub, Slack, and LLMs
+- **Models**: Data models for requirements, PRs, and documents
+- **Services**: Services for interacting with GitHub, Slack, LLMs, and AI planning
 - **Task Orchestrator**: Core component that coordinates between requirements and PR reviews
 - **API**: FastAPI application for exposing the functionality via HTTP endpoints
+- **Web UI**: React-based user interface for managing documents and visualizing progress
 
 ## Installation
 
@@ -71,14 +75,41 @@ python -m integrated_pr_agent.run orchestrator --repo owner/repo --docs path/to/
 
 ## API Endpoints
 
+### Core Endpoints
 - `GET /`: Root endpoint
 - `POST /webhook`: GitHub webhook endpoint
 - `POST /run`: Run the task orchestrator once
+
+### Requirements and PRs
 - `GET /requirements`: Get all requirements
 - `GET /prs`: Get all pull requests
 - `GET /progress`: Get the progress report
 - `POST /send-requirement`: Send a specific requirement to Codegen
 - `POST /update-requirement-status`: Update the status of a requirement
+
+### Document Management
+- `GET /documents`: Get all documents
+- `GET /documents/{document_id}`: Get a specific document
+- `POST /documents`: Create a new document
+- `POST /documents/upload`: Upload a document file
+- `DELETE /documents/{document_id}`: Delete a document
+
+### AI Planning
+- `POST /generate-project-plan`: Generate a project plan
+- `POST /generate-progress-document`: Generate a progress tracking document
+- `GET /download/{filename}`: Download a file from the output directory
+
+## Web UI
+
+The Web UI provides a user-friendly interface for:
+
+1. **Document Management**: Upload, view, and delete documents
+2. **Repository Configuration**: Configure GitHub repositories
+3. **Project Planning**: Generate and visualize project plans
+4. **Progress Tracking**: View progress reports and statistics
+5. **Requirement Management**: Send requirements to Codegen and track their status
+
+To access the Web UI, navigate to `http://localhost:8000` after starting the API server.
 
 ## Development
 
@@ -90,13 +121,17 @@ integrated_pr_agent/
 ├── models/
 │   ├── __init__.py
 │   ├── requirement.py
-│   └── pull_request.py
+│   ├── pull_request.py
+│   └── document.py
 ├── services/
 │   ├── __init__.py
 │   ├── github_service.py
 │   ├── requirements_service.py
 │   ├── pr_review_service.py
-│   └── slack_service.py
+│   ├── slack_service.py
+│   └── ai_planning/
+│       ├── __init__.py
+│       └── planning_service.py
 ├── api/
 │   ├── __init__.py
 │   └── app.py
