@@ -1,42 +1,85 @@
 # AI-Powered Pull Request Review Bot
 
-This example project demonstrates how to deploy an agentic bot that automatically reviews GitHub Pull Requests. The bot analyzes code changes and their dependencies to provide comprehensive code reviews using AI, considering both direct modifications and their impact on the codebase.
+This project demonstrates how to build an intelligent GitHub PR review bot that automatically reviews pull requests. The bot uses Codegen's GitHub integration and AI capabilities to provide comprehensive code reviews with actionable feedback.
+
+## Features
+
+- **Automatic PR Review**: Reviews all incoming PRs automatically
+- **Codebase Analysis**: Analyzes the project's structure, requirements, and coding standards
+- **Contextual Feedback**: Provides specific, line-by-line feedback on code changes
+- **Summary Reports**: Generates comprehensive review summaries
+- **Actionable Insights**: Suggests concrete improvements and identifies potential issues
+
+## How It Works
+
+The PR review bot follows this workflow:
+
+1. **Event Handling**: Listens for GitHub webhook events when PRs are created or updated
+2. **Codebase Analysis**: Analyzes the repository to understand its structure and requirements
+3. **PR Review**: Examines the PR changes and evaluates them against best practices
+4. **Feedback Generation**: Provides both inline comments and a summary review
+5. **Result Reporting**: Logs the review results and notifies developers
 
 ## Prerequisites
 
-Before running this application, you'll need the following API tokens and credentials:
+Before running this application, you'll need:
 
-- GitHub API Token
-- Anthropic API Token
-- GitHub Repository Access
+- GitHub API Token with repository access
+- Anthropic API Key (for Claude models) or OpenAI API Key
+- Modal account for deployment
 
 ## Setup
 
 1. Clone the repository
-1. Set up your environment variables in a `.env` file:
+2. Set up your environment variables in a `.env` file:
 
 ```env
 GITHUB_TOKEN=your_github_token
-ANTHROPIC_API_KEY=your_anthropic_token
-GITHUB_REPO_OWNER=your_repo_owner
-GITHUB_REPO_NAME=your_repo_name
-GITHUB_PR_NUMBER=your_pr_number
+ANTHROPIC_API_KEY=your_anthropic_api_key
+OPENAI_API_KEY=your_openai_api_key (optional)
 ```
 
-## Features
+3. Install dependencies:
 
-- Automated PR code review using AI
-- Deep dependency analysis of code changes
-- Context-aware feedback generation
-- Structured review format with actionable insights
-- Integration with GitHub PR system
+```bash
+pip install -r requirements.txt
+```
 
-## Usage
+## Deployment
 
-1. `uv sync`
-1. `uv run modal deploy app.py`
-   - This will deploy a modal app that can be triggered to review PRs
-1. Create or update a PR to trigger the review bot
+Deploy the bot using Modal:
+
+```bash
+modal deploy app.py
+```
+
+This will create a webhook endpoint that you can configure in your GitHub repository settings.
+
+## GitHub Webhook Configuration
+
+1. Go to your repository settings
+2. Navigate to "Webhooks" and click "Add webhook"
+3. Set the Payload URL to your Modal endpoint
+4. Set the Content type to `application/json`
+5. Select "Let me select individual events" and choose "Pull requests"
+6. Click "Add webhook"
+
+## Customization
+
+You can customize the bot's behavior by modifying:
+
+- `app.py`: Configure event handling and webhook setup
+- `helpers.py`: Adjust the review logic and feedback generation
+- Environment variables: Set different API keys or configuration options
+
+## Dependencies
+
+This project uses the following key dependencies:
+
+- `langchain` and related packages for AI agent functionality
+- `modal` for serverless deployment
+- `fastapi` for webhook handling
+- `PyGithub` for GitHub API integration
 
 ## Contributing
 

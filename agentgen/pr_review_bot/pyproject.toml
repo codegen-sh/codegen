@@ -1,12 +1,23 @@
 [project]
-name = "ticket-to-pr"
+name = "pr-review-bot"
 version = "0.1.0"
-description = "A example implementation of a agentic linear bot that can create PRs from linear tickets"
+description = "An AI-powered GitHub PR review bot that automatically reviews pull requests"
 readme = "README.md"
 requires-python = ">=3.12, <3.14"
 dependencies = [
-  "codegen==0.31.1",
-  "fastapi>=0.115.8",
+  "langchain==0.3.22",
+  "langchain-core==0.3.50",
+  "langchain-anthropic==0.3.10",
+  "langchain-openai==0.3.12",
+  "langgraph==0.3.25",
+  "langgraph-prebuilt==0.1.8",
+  "langchain-xai==0.2.2",
+  "langsmith==0.1.22",
   "modal>=0.73.51",
-  "pydantic>=2.10.6",
+  "fastapi>=0.115.8",
+  "uvicorn>=0.27.0",
+  "PyGithub>=2.1.1",
+  "python-dotenv>=1.0.0",
+  "pydantic>=2.0.0",
+  "slack_sdk>=3.26.0",
 ]

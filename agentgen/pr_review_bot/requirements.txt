@@ -1,0 +1,22 @@
+# Core langchain dependencies
+langchain==0.3.22
+langchain-core==0.3.50
+langchain-anthropic==0.3.10
+langchain-openai==0.3.12
+langgraph==0.3.25
+langgraph-prebuilt==0.1.8
+langchain-xai==0.2.2
+langsmith==0.1.22
+
+# Modal and FastAPI for deployment
+modal>=0.73.51
+fastapi>=0.115.8
+uvicorn>=0.27.0
+
+# GitHub integration
+PyGithub>=2.1.1
+
+# Utilities
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+slack_sdk>=3.26.0
