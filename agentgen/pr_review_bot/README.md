@@ -9,6 +9,7 @@ A GitHub PR review bot that automatically reviews pull requests when triggered b
 - **Detailed Feedback**: Provides actionable feedback with specific suggestions
 - **Webhook Integration**: Easily integrates with GitHub webhooks
 - **Ngrok Support**: Includes built-in ngrok support for local development
+- **Launch Script**: Simple script to set up and monitor the bot
 
 ## Installation
 
@@ -38,9 +39,30 @@ NGROK_AUTH_TOKEN=your_ngrok_token     # Optional: For ngrok authentication
 
 ## Usage
 
-### Running the Bot
+### Using the Launch Script
 
-Start the bot with:
+The easiest way to start the bot is with the launch script:
+
+```bash
+python launch.py
+```
+
+This will:
+1. Set up ngrok for webhook tunneling (if enabled)
+2. List all connected repositories
+3. Set up webhooks for all repositories
+4. Start the FastAPI server
+5. Monitor webhooks and update them if IP changes
+
+You can also provide a configuration file:
+
+```bash
+python launch.py --config config.json
+```
+
+### Running the Bot Manually
+
+If you prefer to run the bot without the launch script:
 
 ```bash
 python app.py
@@ -78,7 +100,11 @@ You can configure the bot using environment variables or by creating a `config.j
   "port": 8000,
   "webhook_url": "https://your-webhook-url.com/webhook",
   "use_ngrok": true,
-  "ngrok_auth_token": "your_ngrok_token"
+  "ngrok_auth_token": "your_ngrok_token",
+  "auto_review": true,
+  "auto_merge": false,
+  "review_labels": ["review", "codegen", "pr-review"],
+  "monitor_interval": 300
 }
 ```
 
@@ -91,6 +117,7 @@ You can configure the bot using environment variables or by creating a `config.j
    - PR comments with a summary of findings
    - Inline comments on specific code issues
    - A formal PR review (approve or request changes)
+5. If configured, it can automatically merge compliant PRs
 
 ## Development
 
@@ -102,6 +129,7 @@ pr_review_bot/
 ├── helpers.py            # Core review functionality
 ├── webhook_manager.py    # GitHub webhook management
 ├── ngrok_manager.py      # Ngrok tunnel management
+├── launch.py             # Launch script for easy setup
 ├── requirements.txt      # Dependencies
 └── README.md             # Documentation
 ```
