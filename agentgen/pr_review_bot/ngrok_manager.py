@@ -151,3 +151,29 @@ class NgrokManager:
                 return {"status": "error", "message": f"Failed to get tunnel info: {response.status_code}"}
         except requests.RequestException as e:
             return {"status": "error", "message": f"Failed to get tunnel info: {e}"}
+            
+    def get_public_url(self) -> Optional[str]:
+        """
+        Get the current public URL of the ngrok tunnel.
+        
+        Returns:
+            The public URL of the tunnel, or None if not running
+        """
+        if self.public_url:
+            return self.public_url
+            
+        try:
+            # Try to get tunnel info from ngrok API
+            response = requests.get("http://localhost:4040/api/tunnels")
+            if response.status_code == 200:
+                tunnels = response.json().get("tunnels", [])
+                if tunnels:
+                    # Get the HTTPS URL
+                    for tunnel in tunnels:
+                        if tunnel["proto"] == "https":
+                            self.public_url = tunnel["public_url"]
+                            return self.public_url
+        except requests.RequestException:
+            pass
+            
+        return None

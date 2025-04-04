@@ -14,7 +14,6 @@ from typing import Dict, List, Any, Optional
 from dotenv import load_dotenv
 import uvicorn
 from github import Github
-from pyngrok import ngrok
 
 # Import local modules
 from webhook_manager import WebhookManager
@@ -69,8 +68,9 @@ def monitor_ip_changes(webhook_manager, ngrok_manager, interval=300):
                 logger.info(f"IP changed from {last_url} to {current_url}")
                 print(f"\n🔄 IP changed from {last_url} to {current_url}")
                 
-                # Update all webhooks
-                webhook_manager.update_webhook_url(current_url)
+                # Update all webhooks with the new URL
+                webhook_manager.webhook_url = current_url
+                webhook_manager.setup_webhooks_for_all_repos()
                 last_url = current_url
         except Exception as e:
             logger.error(f"Error in IP monitor: {e}")
