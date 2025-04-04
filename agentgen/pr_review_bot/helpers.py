@@ -262,6 +262,75 @@ def submit_review(pr: PullRequest, review_result: Dict[str, Any]) -> None:
         logger.error(f"Error submitting formal review: {review_error}")
         logger.error(traceback.format_exc())
 
+def merge_pr(pr: PullRequest, review_result: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Merge a pull request if it complies with requirements or if user confirms.
+
+    Args:
+        pr: GitHub PullRequest object
+        review_result: Analysis results
+
+    Returns:
+        Result of the merge operation
+    """
+    if review_result["compliant"]:
+        # Automatically merge if compliant
+        try:
+            merge_result = pr.merge(
+                commit_title=f"Merge PR #{pr.number}: {pr.title}",
+                commit_message=f"Automatically merged PR #{pr.number} as it complies with all requirements.",
+                merge_method="merge"
+            )
+            logger.info(f"PR #{pr.number} automatically merged")
+            print(f"\n✅ PR #{pr.number} automatically merged")
+            return {
+                "merged": True,
+                "message": "PR automatically merged as it complies with all requirements."
+            }
+        except Exception as merge_error:
+            logger.error(f"Error merging PR: {merge_error}")
+            logger.error(traceback.format_exc())
+            return {
+                "merged": False,
+                "message": f"Error merging PR: {str(merge_error)}"
+            }
+    else:
+        # Ask for confirmation if not compliant
+        print(f"\n❌ PR #{pr.number} does not comply with requirements")
+        print("Issues found:")
+        for issue in review_result["issues"]:
+            print(f"- {issue}")
+        
+        user_input = input("\nDo you still want to merge this PR? (y/n): ")
+        
+        if user_input.lower() == "y":
+            try:
+                merge_result = pr.merge(
+                    commit_title=f"Merge PR #{pr.number}: {pr.title}",
+                    commit_message=f"Merged PR #{pr.number} with manual approval despite issues.",
+                    merge_method="merge"
+                )
+                logger.info(f"PR #{pr.number} manually approved and merged")
+                print(f"\n✅ PR #{pr.number} manually approved and merged")
+                return {
+                    "merged": True,
+                    "message": "PR manually approved and merged."
+                }
+            except Exception as merge_error:
+                logger.error(f"Error merging PR: {merge_error}")
+                logger.error(traceback.format_exc())
+                return {
+                    "merged": False,
+                    "message": f"Error merging PR: {str(merge_error)}"
+                }
+        else:
+            logger.info(f"PR #{pr.number} not merged due to user decision")
+            print(f"\n❌ PR #{pr.number} not merged")
+            return {
+                "merged": False,
+                "message": "PR not merged due to user decision."
+            }
+
 def review_pr(github_client: Github, repo_name: str, pr_number: int) -> Dict[str, Any]:
     """Review a pull request."""
     logger.info(f"Reviewing PR #{pr_number} in {repo_name}")
@@ -301,11 +370,15 @@ def review_pr(github_client: Github, repo_name: str, pr_number: int) -> Dict[str
             logger.error(f"Error submitting formal review: {review_error}")
             logger.error(traceback.format_exc())
 
+        # Try to merge the PR
+        merge_result = merge_pr(pr, review_result)
+
         return {
             "pr_number": pr_number,
             "repo_name": repo_name,
             "compliant": review_result["compliant"],
-            "approval_recommendation": review_result["approval_recommendation"]
+            "approval_recommendation": review_result["approval_recommendation"],
+            "merge_result": merge_result
         }
 
     except Exception as e:
@@ -377,9 +450,14 @@ def pr_review_agent(event) -> Dict[str, Any]:
         if result["compliant"]:
             print(f"\n✅ PR #{pr_number} in {repo_name} complies with requirements")
             print(f"Recommendation: {result['approval_recommendation']}")
+            if result.get("merge_result", {}).get("merged", False):
+                print(f"Merge status: Merged")
+            else:
+                print(f"Merge status: Not merged - {result.get('merge_result', {}).get('message', 'Unknown reason')}")
         else:
             print(f"\n❌ PR #{pr_number} in {repo_name} does not comply with requirements")
             print(f"Recommendation: {result['approval_recommendation']}")
+            print(f"Merge status: {result.get('merge_result', {}).get('message', 'Not merged')}")
             print("See PR comments for details")
         
         return result

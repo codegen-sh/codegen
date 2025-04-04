@@ -72,33 +72,26 @@ async def webhook(request: Request, verified: bool = Depends(verify_signature)):
         action = event.get("action", "")
         logger.info(f"Pull request {action} event")
         
-        # Handle pull request opened or synchronized events
+        # Handle all pull request events
         if action in ["opened", "synchronize", "reopened", "labeled"]:
             pr_number = event["pull_request"]["number"]
             repo_name = event["repository"]["full_name"]
             
-            # Check if the PR has the "review" label or if it's a new PR
-            labels = [label["name"] for label in event["pull_request"]["labels"]]
+            # Review all PRs regardless of label
+            logger.info(f"Reviewing PR #{pr_number} in {repo_name}")
             
-            if action == "labeled" and event["label"]["name"] != "review":
-                logger.info(f"Ignoring label event for label {event['label']['name']}")
-                return {"status": "ignored"}
-            
-            if action == "labeled" and event["label"]["name"] == "review" or action in ["opened", "synchronize", "reopened"]:
-                logger.info(f"Reviewing PR #{pr_number} in {repo_name}")
+            try:
+                # Get GitHub token
+                github_token = os.environ.get("GITHUB_TOKEN")
                 
-                try:
-                    # Get GitHub token
-                    github_token = os.environ.get("GITHUB_TOKEN")
-                    
-                    # Review the PR
-                    github_client = get_github_client(github_token)
-                    
-                    result = review_pr(github_client, repo_name, pr_number)
-                    
-                    return {"status": "success", "result": result}
-                except Exception as e:
-                    logger.error(f"Error reviewing PR: {e}")
-                    return {"status": "error", "message": str(e)}
+                # Review the PR
+                github_client = get_github_client(github_token)
+                
+                result = review_pr(github_client, repo_name, pr_number)
+                
+                return {"status": "success", "result": result}
+            except Exception as e:
+                logger.error(f"Error reviewing PR: {e}")
+                return {"status": "error", "message": str(e)}
     
     return {"status": "ignored"}
