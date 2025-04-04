@@ -10,54 +10,29 @@ from pydantic import BaseModel, Field
 from typing import Optional, Dict, List, Any
 import traceback
 
-from agentgen.extensions.github.types.events.pull_request import (
-    PullRequestLabeledEvent,
-    PullRequestUnlabeledEvent,
-    PullRequestOpenedEvent
-)
-from helpers import (
+# Import local modules instead of agentgen package
+from .helpers import (
     review_pr,
     get_github_client,
-    remove_bot_comments,
-    pr_review_agent
+    get_repository,
+    get_pull_request,
+    post_review_comment,
+    submit_review
 )
-from webhook_manager import WebhookManager
-from ngrok_manager import NgrokManager
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-logger = getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler("pr_review_bot.log"),
+        logging.StreamHandler()
+    ]
+)
+logger = getLogger("pr_review_bot")
 
-# Configuration model
-class Config(BaseModel):
-    github_token: str = Field(..., description="GitHub Personal Access Token")
-    port: int = Field(8000, description="Port for the local server")
-    webhook_url: Optional[str] = Field(None, description="URL for the webhook endpoint")
-    use_ngrok: bool = Field(False, description="Whether to use ngrok for exposing the server")
-    ngrok_auth_token: Optional[str] = Field(None, description="Ngrok authentication token")
-
-# Load configuration
-def get_config():
-    try:
-        if os.path.exists("config.json"):
-            with open("config.json", "r") as f:
-                config_data = json.load(f)
-                return Config(**config_data)
-        else:
-            # Use environment variables as fallback
-            return Config(
-                github_token=os.environ.get("GITHUB_TOKEN", ""),
-                port=int(os.environ.get("PORT", 8000)),
-                webhook_url=os.environ.get("WEBHOOK_URL"),
-                use_ngrok=os.environ.get("USE_NGROK", "false").lower() == "true",
-                ngrok_auth_token=os.environ.get("NGROK_AUTH_TOKEN"),
-            )
-    except Exception as e:
-        logger.error(f"Failed to load configuration: {e}")
-        raise HTTPException(status_code=500, detail="Failed to load configuration")
-
-# Initialize FastAPI app
-app = FastAPI(title="GitHub PR Review Bot", description="A bot that reviews PRs against documentation")
+# Create FastAPI app
+app = FastAPI(title="PR Review Bot", description="GitHub PR Review Bot")
 
 # Add CORS middleware
 app.add_middleware(
@@ -67,6 +42,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Define webhook payload model
+class WebhookPayload(BaseModel):
+    action: str
+    repository: Dict[str, Any]
+    pull_request: Optional[Dict[str, Any]] = None
+    issue: Optional[Dict[str, Any]] = None
+    label: Optional[Dict[str, Any]] = None
+    sender: Dict[str, Any]
 
 # Global variables for ngrok
 ngrok_manager = None
@@ -109,35 +93,35 @@ async def webhook(request: Request):
         if event_type == "pull_request":
             if action == "opened" or action == "reopened":
                 # Handle PR opened event
-                pr_event = PullRequestOpenedEvent.model_validate(payload)
-                logger.info(f"PR #{pr_event.number} opened: {pr_event.pull_request.title}")
+                pr_event = get_pull_request(payload)
+                logger.info(f"PR #{pr_event.number} opened: {pr_event.title}")
                 
                 # Process the PR
-                result = pr_review_agent(pr_event)
+                result = review_pr(pr_event)
                 return {"status": "success", "result": result}
                 
             elif action == "labeled":
                 # Handle PR labeled event
-                pr_event = PullRequestLabeledEvent.model_validate(payload)
+                pr_event = get_pull_request(payload)
                 logger.info(f"PR #{pr_event.number} labeled with: {pr_event.label.name}")
                 
                 # Check if the label is for review
                 if pr_event.label.name.lower() in ["review", "codegen", "pr-review"]:
                     # Start the review process
-                    result = pr_review_agent(pr_event)
+                    result = review_pr(pr_event)
                     return {"status": "success", "result": result}
                 
                 return {"status": "ignored", "message": "Label not configured for review"}
                 
             elif action == "unlabeled":
                 # Handle PR unlabeled event
-                pr_event = PullRequestUnlabeledEvent.model_validate(payload)
+                pr_event = get_pull_request(payload)
                 logger.info(f"PR #{pr_event.number} unlabeled: {pr_event.label.name}")
                 
                 # Check if the label is for review
                 if pr_event.label.name.lower() in ["review", "codegen", "pr-review"]:
                     # Clean up bot comments
-                    result = remove_bot_comments(pr_event)
+                    result = post_review_comment(pr_event)
                     return {"status": "success", "result": result}
                 
                 return {"status": "ignored", "message": "Label not configured for review"}

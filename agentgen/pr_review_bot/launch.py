@@ -16,189 +16,133 @@ import uvicorn
 from github import Github
 from pyngrok import ngrok
 
-from webhook_manager import WebhookManager
-from ngrok_manager import NgrokManager
+# Import local modules
+from .webhook_manager import WebhookManager
+from .ngrok_manager import NgrokManager
+from .helpers import get_github_client
 
+# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    filename="pr_review_bot.log",
-    filemode="a"
+    handlers=[
+        logging.FileHandler("pr_review_bot.log"),
+        logging.StreamHandler()
+    ]
 )
 logger = logging.getLogger("pr_review_bot")
 
-console = logging.StreamHandler()
-console.setLevel(logging.INFO)
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-console.setFormatter(formatter)
-logger.addHandler(console)
+def parse_args():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(description="PR Review Bot")
+    parser.add_argument("--port", type=int, default=8000, help="Port to run the server on")
+    parser.add_argument("--use-ngrok", action="store_true", help="Use ngrok to expose the server")
+    parser.add_argument("--webhook-url", type=str, help="Webhook URL to use (overrides ngrok)")
+    return parser.parse_args()
 
-def load_env_file():
+def load_env():
     """Load environment variables from .env file."""
-    try:
-        # Try to load from .env file
-        load_dotenv()
-        
-        required_vars = ["GITHUB_TOKEN"]
-        missing_vars = [var for var in required_vars if not os.environ.get(var)]
-        
-        if missing_vars:
-            logger.error(f"Missing required environment variables: {', '.join(missing_vars)}")
-            print(f"\n❌ Error: Missing required environment variables: {', '.join(missing_vars)}")
-            print("Please create a .env file with the following variables:")
-            print("GITHUB_TOKEN=your_github_token")
-            print("ANTHROPIC_API_KEY=your_anthropic_key (optional)")
-            print("OPENAI_API_KEY=your_openai_key (optional)")
-            print("WEBHOOK_SECRET=your_webhook_secret (optional)")
-            print("NGROK_AUTH_TOKEN=your_ngrok_token (optional)")
-            sys.exit(1)
-    except Exception as e:
-        logger.error(f"Error loading .env file: {e}")
-        print(f"\n❌ Error loading .env file: {e}")
+    # Load environment variables from .env file
+    load_dotenv()
+    
+    # Check for required environment variables
+    if not os.environ.get("GITHUB_TOKEN"):
+        logger.error("GITHUB_TOKEN environment variable is required")
+        print("\n❌ GITHUB_TOKEN environment variable is required")
+        print("Please create a .env file with your GitHub token")
+        print("Example: GITHUB_TOKEN=ghp_your_token_here")
         sys.exit(1)
 
-def get_github_client() -> Github:
-    """Get a GitHub client instance."""
-    token = os.environ.get("GITHUB_TOKEN", "")
-    return Github(token)
-
-def list_repositories(github_client: Github) -> List[Dict[str, Any]]:
-    """List all repositories accessible by the GitHub token."""
-    repos = []
-    
-    print("\n📋 Listing accessible repositories:")
-    
-    try:
-        for repo in github_client.get_user().get_repos():
-            repos.append({
-                "name": repo.name,
-                "full_name": repo.full_name,
-                "url": repo.html_url,
-                "private": repo.private,
-                "description": repo.description
-            })
-            print(f"  - {repo.full_name} {'🔒' if repo.private else '🌐'}")
-    except Exception as e:
-        logger.error(f"Error listing repositories: {e}")
-        print(f"\n❌ Error listing repositories: {e}")
-    
-    return repos
-
-def setup_ngrok(port: int) -> Optional[str]:
-    """Set up ngrok tunnel for webhook URL."""
-    ngrok_auth_token = os.environ.get("NGROK_AUTH_TOKEN")
-    
-    if not ngrok_auth_token:
-        print("\n⚠️ No NGROK_AUTH_TOKEN found in environment variables.")
-        print("Webhooks will only work if your server is publicly accessible.")
-        return None
-    
-    print("\n🔄 Setting up ngrok tunnel...")
-    
-    try:
-        ngrok_manager = NgrokManager(port, auth_token=ngrok_auth_token)
-        webhook_url = ngrok_manager.start_tunnel()
-        
-        if webhook_url:
-            print(f"\n✅ Ngrok tunnel established: {webhook_url}")
-            return webhook_url
-        else:
-            print("\n❌ Failed to establish ngrok tunnel.")
-            return None
-    except Exception as e:
-        logger.error(f"Error setting up ngrok: {e}")
-        print(f"\n❌ Error setting up ngrok: {e}")
-        return None
-
-def setup_webhooks(github_client: Github, webhook_url: str):
-    """Set up webhooks for all repositories."""
-    print("\n🔄 Setting up webhooks for repositories...")
-    
-    webhook_manager = WebhookManager(
-        github_client,
-        webhook_url
-    )
-    
-    try:
-        result = webhook_manager.setup_webhooks_for_all_repos()
-        print(f"\n✅ Webhook setup completed for {len(result)} repositories")
-    except Exception as e:
-        logger.error(f"Error setting up webhooks: {e}")
-        print(f"\n❌ Error setting up webhooks: {e}")
-
-def start_server(port: int):
-    """Start the FastAPI server."""
-    print(f"\n🚀 Starting server on port {port}...")
-    
-    try:
-        from app import app
-        uvicorn.run(app, host="0.0.0.0", port=port)
-    except Exception as e:
-        logger.error(f"Error starting server: {e}")
-        print(f"\n❌ Error starting server: {e}")
-        sys.exit(1)
-
-def monitor_ip_changes(github_client: Github, webhook_url: str, check_interval: int = 300):
+def monitor_ip_changes(webhook_manager, ngrok_manager, interval=300):
     """Monitor for IP changes and update webhooks if needed."""
+    logger.info("Starting IP change monitor")
     print("\n🔄 Starting IP change monitor...")
     
-    webhook_manager = WebhookManager(
-        github_client,
-        webhook_url
-    )
+    last_url = ngrok_manager.get_public_url()
     
     while True:
         try:
-            current_url = webhook_url
-            if current_url != webhook_url:
-                print(f"\n🔄 Webhook URL changed: {webhook_url} -> {current_url}")
-                webhook_url = current_url
-                webhook_manager.webhook_url = current_url
-                webhook_manager.update_webhooks_for_all_repos()
+            time.sleep(interval)
+            current_url = ngrok_manager.get_public_url()
+            
+            if current_url != last_url:
+                logger.info(f"IP changed from {last_url} to {current_url}")
+                print(f"\n🔄 IP changed from {last_url} to {current_url}")
+                
+                # Update all webhooks
+                webhook_manager.update_webhook_url(current_url)
+                last_url = current_url
         except Exception as e:
-            logger.error(f"Error in IP change monitor: {e}")
-        
-        time.sleep(check_interval)
+            logger.error(f"Error in IP monitor: {e}")
+            print(f"\n❌ Error in IP monitor: {e}")
 
 def main():
     """Main entry point for the PR Review Bot."""
-    parser = argparse.ArgumentParser(description="PR Review Bot")
-    parser.add_argument("--port", type=int, default=8000, help="Port to run the server on")
-    parser.add_argument("--no-ngrok", action="store_true", help="Disable ngrok tunnel")
-    parser.add_argument("--no-webhooks", action="store_true", help="Disable webhook setup")
-    parser.add_argument("--webhook-url", type=str, help="Custom webhook URL")
-    args = parser.parse_args()
+    # Parse command line arguments
+    args = parse_args()
     
-    load_env_file()
+    # Load environment variables
+    load_env()
     
-    print("\n🤖 PR Review Bot")
-    print("===============")
+    # Get GitHub token
+    github_token = os.environ.get("GITHUB_TOKEN")
     
-    github_client = get_github_client()
+    # Initialize GitHub client
+    github_client = get_github_client(github_token)
     
-    repositories = list_repositories(github_client)
-    
+    # Set up ngrok if requested
     webhook_url = args.webhook_url
-    if not webhook_url and not args.no_ngrok:
-        webhook_url = setup_ngrok(args.port)
+    ngrok_manager = None
     
-    if not webhook_url:
-        webhook_url = f"http://localhost:{args.port}/webhook"
-        print(f"\n⚠️ Using local webhook URL: {webhook_url}")
-        print("This will only work if your server is publicly accessible.")
+    if args.use_ngrok and not webhook_url:
+        print("\n🔄 Starting ngrok tunnel...")
+        try:
+            ngrok_auth_token = os.environ.get("NGROK_AUTH_TOKEN")
+            ngrok_manager = NgrokManager(args.port, auth_token=ngrok_auth_token)
+            webhook_url = ngrok_manager.start_tunnel()
+            
+            if not webhook_url:
+                logger.error("Failed to start ngrok tunnel")
+                print("\n❌ Failed to start ngrok tunnel")
+                sys.exit(1)
+                
+            print(f"\n✅ Ngrok tunnel started at {webhook_url}")
+        except Exception as e:
+            logger.error(f"Error starting ngrok: {e}")
+            print(f"\n❌ Error starting ngrok: {e}")
+            sys.exit(1)
     
-    if not args.no_webhooks and webhook_url:
-        setup_webhooks(github_client, webhook_url)
+    # Set up webhook manager
+    webhook_manager = WebhookManager(github_client, webhook_url or f"http://localhost:{args.port}/webhook")
     
-    if not args.no_ngrok and webhook_url and not args.webhook_url:
+    # Set up webhooks for all repositories
+    print("\n🔄 Setting up webhooks for all repositories...")
+    try:
+        webhook_manager.setup_webhooks_for_all_repos()
+        print("\n✅ Webhooks set up successfully")
+    except Exception as e:
+        logger.error(f"Error setting up webhooks: {e}")
+        print(f"\n❌ Error setting up webhooks: {e}")
+    
+    # Start IP change monitor if using ngrok
+    if ngrok_manager:
         monitor_thread = threading.Thread(
             target=monitor_ip_changes,
-            args=(github_client, webhook_url),
+            args=(webhook_manager, ngrok_manager),
             daemon=True
         )
         monitor_thread.start()
     
-    start_server(args.port)
+    # Start the server
+    print(f"\n🚀 Starting server on port {args.port}...")
+    try:
+        # Import app here to avoid circular imports
+        from . import app
+        uvicorn.run(app, host="0.0.0.0", port=args.port)
+    except Exception as e:
+        logger.error(f"Error starting server: {e}")
+        print(f"\n❌ Error starting server: {e}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

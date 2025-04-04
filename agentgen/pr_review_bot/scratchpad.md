@@ -1,29 +1,45 @@
 # PR Review Bot Development Scratchpad
 
-## Current Task: Update PR Review Bot to use latest langchain libraries
+## Current Task: Fix PR Review Bot to Work Without Package Installation
 
 ### Task Description
-Update the PR review bot to use the latest langchain libraries and ensure it can properly analyze PRs against project documentation.
+The PR review bot needs to be updated to work without requiring the agentgen package to be installed. This involves:
+1. Updating imports to use relative imports
+2. Creating a simple wrapper script that adds the parent directory to the Python path
+3. Simplifying the Codebase class to not depend on codegen
+4. Using langchain directly instead of agentgen wrappers
 
 ### Progress
-- [X] Update imports to use modular langchain packages
-- [X] Create a simple Codebase class for GitHub operations
-- [X] Update helpers.py to use the latest langchain APIs
-- [X] Create a launch script for easy setup and monitoring
-- [X] Add ngrok support for local webhook development
-- [X] Update README.md with installation and usage instructions
-- [X] Update requirements.txt with specific versions
-- [X] Fix setup.py and pyproject.toml for proper installation
-- [X] Add docstrings to all functions
-- [X] Remove Modal and Linear dependencies
+[X] Update app.py to use relative imports
+[X] Update launch.py to use relative imports
+[X] Create run.py wrapper script
+[X] Update helpers.py to use langchain directly
+[X] Create a simplified Codebase class
+[X] Update README.md with clear instructions
+[X] Create .env.example file
+[X] Update requirements.txt
 
 ### Next Steps
-- [ ] Test the PR review bot with a sample PR
-- [ ] Add support for custom review criteria
-- [ ] Implement automatic PR merging for compliant PRs
+- Test the PR review bot locally
+- Verify webhook handling
+- Test ngrok integration
+- Test PR review functionality
 
-### Notes
-- The PR review bot now uses the latest langchain libraries (0.3.x)
-- The bot can be easily deployed using the launch.py script
-- The bot supports both automatic and manual review triggers
-- The bot provides detailed feedback with specific suggestions
+## Notes
+
+### Local Development Setup
+- Use run.py to start the bot
+- Set up ngrok for webhook tunneling
+- Configure GitHub webhooks to point to the ngrok URL
+
+### PR Review Process
+1. PR is created or labeled
+2. Webhook event is received
+3. PR is analyzed against documentation
+4. Review comment is posted
+5. Formal review is submitted
+
+### LLM Integration
+- Using langchain_anthropic.ChatAnthropic for Claude models
+- Using langchain_openai.ChatOpenAI for GPT models
+- Simple prompt template for PR analysis

@@ -10,27 +10,27 @@ from github.PullRequest import PullRequest
 from github.ContentFile import ContentFile
 import markdown
 from bs4 import BeautifulSoup
-from agentgen.agents.chat_agent import ChatAgent
-from agentgen.extensions.langchain.tools import (
-    GithubViewPRTool,
-    GithubCreatePRCommentTool,
-    GithubCreatePRReviewCommentTool,
-    ViewFileTool,
-    ListDirectoryTool,
-    RipGrepTool,
-    SearchFilesByNameTool,
-    ReflectionTool,
-)
-from .codebase import Codebase
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO, 
+    level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    filename="pr_review_bot.log",
-    filemode="a"
+    handlers=[
+        logging.FileHandler("pr_review_bot.log"),
+        logging.StreamHandler()
+    ]
 )
 logger = getLogger("pr_review_bot")
+
+# Import langchain components
+from langchain_core.messages import HumanMessage, AIMessage
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from langchain_anthropic import ChatAnthropic
+from langchain_openai import ChatOpenAI
+
+# Import local modules
+from .codebase import Codebase
 
 def get_github_client(token: str) -> Github:
     """Get a GitHub client instance."""
@@ -45,7 +45,7 @@ def get_pull_request(repo: Repository, pr_number: int) -> PullRequest:
     return repo.get_pull(pr_number)
 
 def get_root_markdown_files(repo: Repository) -> List[ContentFile]:
-    """Get all markdown files in the root directory of a repository."""
+    """Get all markdown files in the root directory of the repository."""
     contents = repo.get_contents("")
     markdown_files = []
 
@@ -56,7 +56,7 @@ def get_root_markdown_files(repo: Repository) -> List[ContentFile]:
     return markdown_files
 
 def extract_text_from_markdown(markdown_content: str) -> str:
-    """Extract plain text from markdown content."""
+    """Extract text from markdown content."""
     # Convert markdown to HTML
     html = markdown.markdown(markdown_content)
 
@@ -64,7 +64,8 @@ def extract_text_from_markdown(markdown_content: str) -> str:
     soup = BeautifulSoup(html, "html.parser")
 
     # Get text and normalize whitespace
-    text = re.sub(r'\s+', ' ', soup.get_text()).strip()
+    text = soup.get_text()
+    text = re.sub(r'\s+', ' ', text).strip()
 
     return text
 
@@ -81,13 +82,13 @@ def analyze_pr_against_docs(pr: PullRequest, markdown_files: List[ContentFile]) 
         docs_content += f"\n\n--- {md_file.name} ---\n"
         docs_content += extract_text_from_markdown(md_file.decoded_content.decode("utf-8"))
 
-    # Use Codegen to analyze PR against documentation
-    analysis_result = analyze_with_codegen(pr, docs_content)
+    # Use LLM to analyze PR against documentation
+    analysis_result = analyze_with_llm(pr, docs_content)
 
     return analysis_result
 
-def analyze_with_codegen(pr: PullRequest, docs_content: str) -> Dict[str, Any]:
-    """Analyze a pull request using Codegen."""
+def analyze_with_llm(pr: PullRequest, docs_content: str) -> Dict[str, Any]:
+    """Analyze a pull request using a language model."""
     # Get repository information
     repo = pr.base.repo
     repo_name = repo.full_name
@@ -95,27 +96,7 @@ def analyze_with_codegen(pr: PullRequest, docs_content: str) -> Dict[str, Any]:
     try:
         # Initialize Codebase
         logger.info(f"Initializing Codebase for {repo_name}")
-        codebase = Codebase.from_repo(
-            repo_name,
-            language="python",  # Default to Python, but could be determined from repo
-            secrets={"github_token": os.environ.get("GITHUB_TOKEN", "")}
-        )
-
-        # Define PR review tools
-        pr_tools = [
-            GithubViewPRTool(codebase),
-            GithubCreatePRCommentTool(codebase),
-            GithubCreatePRReviewCommentTool(codebase),
-            ViewFileTool(codebase),
-            ListDirectoryTool(codebase),
-            RipGrepTool(codebase),
-            SearchFilesByNameTool(codebase),
-            ReflectionTool(),
-        ]
-
-        # Create agent with tools
-        logger.info("Creating ChatAgent with PR review tools")
-        agent = ChatAgent(tools=pr_tools)
+        codebase = Codebase(repo_name, github_token=os.environ["GITHUB_TOKEN"])
 
         # Prepare prompt for analysis
         prompt = f"""
@@ -136,11 +117,6 @@ def analyze_with_codegen(pr: PullRequest, docs_content: str) -> Dict[str, Any]:
         3. Provide specific suggestions for improvement if needed
         4. Determine if the PR should be approved or needs changes
 
-        Use the tools available to you to:
-        1. View the PR details and changes
-        2. Leave comments on specific lines of code if needed
-        3. Provide a comprehensive review
-
         Format your final response as a JSON object with the following structure:
         {{
             "compliant": true/false,
@@ -151,9 +127,31 @@ def analyze_with_codegen(pr: PullRequest, docs_content: str) -> Dict[str, Any]:
         }}
         """
 
-        # Run the agent and get the response
-        logger.info("Running ChatAgent for analysis")
-        response = agent.run(prompt)
+        # Run the LLM and get the response
+        logger.info("Running LLM for analysis")
+        
+        # Try to use Anthropic if available, otherwise use OpenAI
+        try:
+            if os.environ.get("ANTHROPIC_API_KEY"):
+                llm = ChatAnthropic(model="claude-3-opus-20240229", temperature=0)
+            elif os.environ.get("OPENAI_API_KEY"):
+                llm = ChatOpenAI(model="gpt-4-turbo", temperature=0)
+            else:
+                raise ValueError("No API key found for Anthropic or OpenAI")
+                
+            # Create a simple chain
+            chain = ChatPromptTemplate.from_template(prompt) | llm | StrOutputParser()
+            response = chain.invoke({})
+            
+        except Exception as llm_error:
+            logger.error(f"Error using LLM: {llm_error}")
+            return {
+                "compliant": False,
+                "issues": [f"Error during automated review: {str(llm_error)}"],
+                "suggestions": ["Please review manually"],
+                "approval_recommendation": "request_changes",
+                "review_comment": f"An error occurred during the automated review: {str(llm_error)}\n\nPlease review this PR manually."
+            }
 
         # Parse the response to extract the JSON
         try:
@@ -167,7 +165,7 @@ def analyze_with_codegen(pr: PullRequest, docs_content: str) -> Dict[str, Any]:
                 if json_match:
                     json_str = json_match.group(1)
                 else:
-                    logger.error("Could not extract JSON from Codegen response")
+                    logger.error("Could not extract JSON from LLM response")
                     return {
                         "compliant": False,
                         "issues": ["Failed to analyze PR properly"],
@@ -180,7 +178,7 @@ def analyze_with_codegen(pr: PullRequest, docs_content: str) -> Dict[str, Any]:
             result = json.loads(json_str)
             return result
         except Exception as e:
-            logger.error(f"Error parsing Codegen response: {e}")
+            logger.error(f"Error parsing LLM response: {e}")
             return {
                 "compliant": False,
                 "issues": ["Failed to analyze PR properly"],
@@ -189,7 +187,7 @@ def analyze_with_codegen(pr: PullRequest, docs_content: str) -> Dict[str, Any]:
                 "review_comment": "Failed to analyze PR properly. Please review manually."
             }
     except Exception as e:
-        logger.error(f"Error in Codegen analysis: {e}")
+        logger.error(f"Error in LLM analysis: {e}")
         logger.error(traceback.format_exc())
         return {
             "compliant": False,
@@ -265,17 +263,7 @@ def submit_review(pr: PullRequest, review_result: Dict[str, Any]) -> None:
         logger.error(traceback.format_exc())
 
 def review_pr(github_client: Github, repo_name: str, pr_number: int) -> Dict[str, Any]:
-    """
-    Review a pull request.
-    
-    Args:
-        github_client: GitHub client
-        repo_name: Repository name
-        pr_number: Pull request number
-        
-    Returns:
-        Review results
-    """
+    """Review a pull request."""
     logger.info(f"Reviewing PR #{pr_number} in {repo_name}")
 
     try:
@@ -328,10 +316,10 @@ def review_pr(github_client: Github, repo_name: str, pr_number: int) -> Dict[str
 def remove_bot_comments(event) -> Dict[str, Any]:
     """
     Remove bot comments from a pull request.
-    
+
     Args:
         event: GitHub webhook event
-        
+
     Returns:
         Result of the operation
     """
@@ -369,10 +357,10 @@ def remove_bot_comments(event) -> Dict[str, Any]:
 def pr_review_agent(event) -> Dict[str, Any]:
     """
     Run the PR review agent.
-    
+
     Args:
         event: GitHub webhook event
-        
+
     Returns:
         Result of the review
     """
