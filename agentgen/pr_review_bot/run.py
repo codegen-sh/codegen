@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Simple wrapper script to run the PR Review Bot without package installation.
-This script adds the parent directory to the Python path so that local imports work.
+This script adds the current directory to the Python path so that local imports work.
 """
 
 import os
@@ -22,15 +22,8 @@ if __name__ == "__main__":
     parser.add_argument("--use-ngrok", action="store_true", help="Use ngrok to expose the server")
     parser.add_argument("--webhook-url", type=str, help="Webhook URL to use (overrides ngrok)")
     
-    # Parse arguments and pass them to sys.argv
+    # Parse arguments and pass them to the main function directly
     args = parser.parse_args()
-    sys.argv = [sys.argv[0]]
-    if args.port:
-        sys.argv.extend(["--port", str(args.port)])
-    if args.use_ngrok:
-        sys.argv.append("--use-ngrok")
-    if args.webhook_url:
-        sys.argv.extend(["--webhook-url", args.webhook_url])
     
     # Run the main function
     main()

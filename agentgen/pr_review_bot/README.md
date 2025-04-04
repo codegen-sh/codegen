@@ -1,75 +1,67 @@
-# GitHub PR Review Bot
+# PR Review Bot
 
-A powerful, AI-powered GitHub PR review bot that automatically analyzes pull requests against project documentation and requirements.
+A GitHub PR review bot that automatically reviews pull requests when triggered by labels or events. The bot analyzes the project's codebase, requirements, and PR contents to provide comprehensive code reviews with actionable feedback.
 
 ## Features
 
-- Automatically reviews PRs when they are created or labeled
-- Analyzes code changes against project documentation
+- Automatically reviews all incoming PRs
+- Analyzes the project's codebase and requirements
 - Provides detailed feedback with specific suggestions
-- Supports ngrok for local webhook development
-- Uses the latest langchain libraries for AI-powered analysis
-
-## Prerequisites
-
-- Python 3.10+ (Python 3.13 recommended)
-- GitHub account with a personal access token
-- Anthropic API key or OpenAI API key (for AI analysis)
-- Ngrok account (optional, for local development)
+- Supports webhook-based event handling
+- Includes ngrok support for local development
+- Uses the latest langchain libraries for AI-powered reviews
 
 ## Installation
 
-### 1. Clone the repository
+### Prerequisites
 
+- Python 3.12 or higher
+- GitHub account with repository access
+- GitHub personal access token with repo and admin:repo_hook scopes
+- Anthropic API key and/or OpenAI API key
+
+### Setup
+
+1. Clone the repository:
 ```bash
 git clone https://github.com/Zeeeepa/codegen.git
 cd codegen
+```
+
+2. Check out the branch:
+```bash
 git checkout update-agentgen-langchain
 ```
 
-### 2. Set up a virtual environment
-
-```bash
-# For Python 3.13 (recommended)
-python3.13 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-### 3. Install dependencies
-
+3. Navigate to the PR review bot directory:
 ```bash
 cd agentgen/pr_review_bot
+```
+
+4. Install dependencies:
+```bash
 pip install -r requirements.txt
 ```
 
-### 4. Configure environment variables
-
-Create a `.env` file in the `pr_review_bot` directory:
-
+5. Create a `.env` file:
 ```bash
 cp .env.example .env
 ```
 
-Edit the `.env` file with your API keys:
-
+6. Edit the `.env` file with your API keys:
 ```
-# GitHub token with repo and admin:repo_hook scopes
-GITHUB_TOKEN=your_github_token
-
-# LLM API keys (at least one is required)
+GITHUB_TOKEN=your_github_personal_access_token
 ANTHROPIC_API_KEY=your_anthropic_key
 OPENAI_API_KEY=your_openai_key
-
-# Webhook secret for GitHub webhooks (optional but recommended)
 WEBHOOK_SECRET=your_webhook_secret
-
-# Ngrok authentication token (optional, for local development)
 NGROK_AUTH_TOKEN=your_ngrok_token
 ```
 
 ## Usage
 
-### Running the bot locally
+### Running the Bot
+
+To run the PR review bot:
 
 ```bash
 python run.py --use-ngrok
@@ -77,58 +69,57 @@ python run.py --use-ngrok
 
 This will:
 1. Start a FastAPI server
-2. Set up ngrok for webhook tunneling
+2. Set up ngrok for webhook tunneling (if configured)
 3. Set up webhooks for all repositories
 4. Start monitoring for PR events
 
-### Running the bot without ngrok
+### Command Line Options
 
-If you have a public URL for your server:
+- `--port`: Port to run the server on (default: 8000)
+- `--use-ngrok`: Use ngrok to expose the server
+- `--webhook-url`: Webhook URL to use (overrides ngrok)
 
-```bash
-python run.py --webhook-url https://your-server.com/webhook
-```
+### Webhook Setup
 
-### Running the bot on a specific port
+The bot automatically sets up webhooks for all repositories you have access to. If you want to manually set up webhooks:
 
-```bash
-python run.py --port 8080 --use-ngrok
-```
+1. Go to your repository settings
+2. Click on "Webhooks"
+3. Add a new webhook
+4. Set the Payload URL to your server URL (e.g., ngrok URL)
+5. Set the Content type to `application/json`
+6. Set the Secret to your `WEBHOOK_SECRET`
+7. Select "Let me select individual events" and choose "Pull requests"
+8. Click "Add webhook"
 
-## How it works
+## How It Works
 
-1. The bot sets up webhooks on your GitHub repositories
-2. When a PR is created or labeled with "review", the bot is triggered
-3. The bot analyzes the PR changes against project documentation
-4. The bot provides detailed feedback with specific suggestions
-5. If all requirements are met, the bot approves the PR
-6. If issues are found, the bot requests changes with detailed feedback
+1. When a PR is created or updated, GitHub sends a webhook event to the bot
+2. The bot analyzes the PR against the project's codebase and requirements
+3. If all requirements are met, the bot confirms the PR and prints confirmation in the terminal
+4. If issues are found, the bot prints insights and suggestions in the terminal
 
-## Customizing the bot
+## Development
 
-You can customize the bot's behavior by modifying the following files:
+### Project Structure
 
-- `helpers.py`: Contains the core review logic
-- `app.py`: Handles webhook events
-- `launch.py`: Sets up the server and webhooks
+- `app.py`: FastAPI application for webhook handling
+- `launch.py`: Main entry point for the PR review bot
+- `run.py`: Wrapper script for easy execution
+- `helpers.py`: Helper functions for PR review
+- `webhook_manager.py`: GitHub webhook management
+- `ngrok_manager.py`: Ngrok tunnel management
+- `codebase.py`: Simple codebase class for GitHub operations
 
-## Troubleshooting
+### Adding New Features
 
-### Common issues
+To add new features to the PR review bot:
 
-- **Import errors**: Make sure you're running the bot from the `pr_review_bot` directory
-- **Authentication errors**: Check your GitHub token has the correct permissions
-- **Webhook errors**: Make sure your ngrok tunnel is running and the webhook URL is correct
-- **LLM errors**: Check your Anthropic or OpenAI API key is valid
-
-### Logs
-
-The bot logs all activity to `pr_review_bot.log` in the current directory.
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
+1. Update the relevant files
+2. Add new dependencies to `requirements.txt` if needed
+3. Update the documentation in `README.md`
+4. Test the changes locally
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+MIT

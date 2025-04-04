@@ -1,32 +1,26 @@
-# PR Review Bot - Development Scratchpad
+# PR Review Bot Development Scratchpad
 
 ## Current Task: Fix PR Review Bot Setup Issues
 
 ### Problem Analysis
-- The PR review bot is failing to run due to import issues
-- The main issues are:
-  - `run.py` is trying to import from a non-existent package
-  - `launch.py` is using `python_dotenv` instead of `python-dotenv`
-  - Import paths need to be fixed to use local modules
+- The PR review bot is failing to run due to import errors
+- The main issue is with the dotenv import in launch.py
+- The bot is trying to use agentgen as a package but it's not properly installed
 
-### Action Plan
-[X] Fix `run.py` to use the current directory in sys.path
-[X] Update `launch.py` to use `from dotenv import load_dotenv` instead of `python_dotenv`
-[X] Fix `app.py` to import `get_github_client` from helpers
-[X] Ensure all imports are consistent and use local modules
-[X] Update README.md with comprehensive setup instructions
-[X] Create a proper .env.example file
-[ ] Test the PR review bot locally
+### Solution Plan
+[X] Fix the dotenv import in launch.py
+[X] Update run.py to properly handle imports
+[X] Create a .env.example file for easy setup
+[X] Update requirements.txt to include all necessary dependencies
+[ ] Test the bot with a simple PR review
 
-### Progress
-- Fixed `run.py` to add the current directory to the Python path
-- Updated `launch.py` to use the correct dotenv import
-- Fixed `app.py` to import `get_github_client` from helpers
-- All files now use local imports instead of package imports
-- Updated README.md with clear installation and usage instructions
-- Created a proper .env.example file with all required variables
+### Implementation Details
+- Changed from `from dotenv import load_dotenv` to `import python_dotenv`
+- Updated run.py to use direct imports instead of package imports
+- Created a comprehensive .env.example file
+- Simplified the launch process to avoid sys.argv manipulation
 
 ### Next Steps
-- Test the PR review bot with a sample PR
-- Add more error handling for common issues
-- Consider adding more customization options for different review styles
+- Test the bot with a real GitHub repository
+- Add more comprehensive PR review capabilities
+- Improve error handling and logging
