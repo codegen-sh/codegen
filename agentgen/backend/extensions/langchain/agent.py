@@ -1,16 +1,17 @@
-"""Demo implementation of an agent with Codegen tools."""
+"""Agent implementation."""
 
-from typing import TYPE_CHECKING, Any
+import logging
+from typing import Any, Dict, List, Optional, Sequence, Union
 
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import BaseTool
-from langchain_core.messages import SystemMessage
-from langgraph.checkpoint.memory import MemorySaver
-from langgraph.graph.graph import CompiledGraph
 
-from agentgen.agents.utils import AgentConfig
-from agentgen.extensions.langchain.llm import LLM
-from agentgen.extensions.langchain.prompts import REASONER_SYSTEM_MESSAGE
-from agentgen.extensions.langchain.tools import (
+from agentgen.backend.agents.utils import AgentConfig
+from agentgen.backend.extensions.langchain.llm import LLM
+from agentgen.backend.extensions.langchain.prompts import REASONER_SYSTEM_MESSAGE
+from agentgen.backend.extensions.langchain.tools import (
     CreateFileTool,
     DeleteFileTool,
     GlobalReplacementEditTool,
@@ -23,7 +24,6 @@ from agentgen.extensions.langchain.tools import (
     RevealSymbolTool,
     RipGrepTool,
     SearchFilesByNameTool,
-    # SemanticEditTool,
     ViewFileTool,
 )
 
@@ -68,15 +68,9 @@ def create_codebase_agent(
         ViewFileTool(codebase),
         ListDirectoryTool(codebase),
         RipGrepTool(codebase),
-        # EditFileTool(codebase),
         CreateFileTool(codebase),
         DeleteFileTool(codebase),
         RenameFileTool(codebase),
-        # MoveSymbolTool(codebase),
-        # RevealSymbolTool(codebase),
-        # SemanticEditTool(codebase),
-        ReplacementEditTool(codebase),
-        RelaceEditTool(codebase),
         ReflectionTool(codebase),
         SearchFilesByNameTool(codebase),
         GlobalReplacementEditTool(codebase),
@@ -102,7 +96,7 @@ def create_chat_agent(
     memory: bool = True,
     debug: bool = False,
     additional_tools: list[BaseTool] | None = None,
-    config: dict[str, Any] | None = None,  # over here you can pass in the max length of the number of messages
+    config: dict[str, Any] | None = None,
     **kwargs,
 ) -> CompiledGraph:
     """Create an agent with all codebase tools.
