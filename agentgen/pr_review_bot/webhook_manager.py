@@ -128,10 +128,10 @@ class WebhookManager:
         logger.info(f"Updating webhook URL for {repo.full_name}")
         try:
             hook = repo.get_hook(hook_id)
-            config = hook.config
+            config = hook.config.copy()  # Create a copy of the config
             config["url"] = new_url
             
-            # Fix: The edit method requires the 'name' parameter
+            # Update the webhook with the new config
             hook.edit(
                 name="web",  # Required parameter
                 config=config,

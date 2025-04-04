@@ -1,59 +1,55 @@
 # PR Review Bot
 
-A GitHub PR review bot that automatically reviews pull requests when triggered by labels or events. The bot analyzes the project's codebase, requirements, and PR contents to provide comprehensive code reviews with actionable feedback.
+A GitHub PR review bot that automatically reviews pull requests and provides detailed feedback. The bot analyzes PRs against project documentation and requirements, and can automatically merge compliant PRs or ask for user confirmation.
 
 ## Features
 
 - Automatically reviews all incoming PRs
-- Analyzes the project's codebase and requirements
+- Analyzes PRs against project documentation and requirements
 - Provides detailed feedback with specific suggestions
-- Supports webhook-based event handling
-- Includes ngrok support for local development
-- Uses the latest langchain libraries for AI-powered reviews
+- Can automatically merge compliant PRs
+- Asks for user confirmation before merging non-compliant PRs
+- Uses ngrok for local webhook development
+- Supports both Anthropic and OpenAI models
+
+## Requirements
+
+- Python 3.8+
+- GitHub Personal Access Token with repo scope
+- Anthropic API key or OpenAI API key
+- ngrok (optional, for local development)
 
 ## Installation
-
-### Prerequisites
-
-- Python 3.12 or higher
-- GitHub account with repository access
-- GitHub personal access token with repo and admin:repo_hook scopes
-- Anthropic API key and/or OpenAI API key
-
-### Setup
 
 1. Clone the repository:
 ```bash
 git clone https://github.com/Zeeeepa/codegen.git
-cd codegen
+cd codegen/agentgen/pr_review_bot
 ```
 
-2. Check out the branch:
-```bash
-git checkout update-agentgen-langchain
-```
-
-3. Navigate to the PR review bot directory:
-```bash
-cd agentgen/pr_review_bot
-```
-
-4. Install dependencies:
+2. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-5. Create a `.env` file:
+3. Create a `.env` file:
 ```bash
 cp .env.example .env
 ```
 
-6. Edit the `.env` file with your API keys:
+4. Edit the `.env` file with your API keys:
 ```
+# GitHub configuration
 GITHUB_TOKEN=your_github_personal_access_token
+
+# LLM API keys (at least one is required)
 ANTHROPIC_API_KEY=your_anthropic_key
 OPENAI_API_KEY=your_openai_key
+
+# Webhook configuration
 WEBHOOK_SECRET=your_webhook_secret
+
+# Ngrok configuration (optional)
 NGROK_AUTH_TOKEN=your_ngrok_token
 ```
 
@@ -61,65 +57,102 @@ NGROK_AUTH_TOKEN=your_ngrok_token
 
 ### Running the Bot
 
-To run the PR review bot:
+To run the bot with ngrok for local development:
 
 ```bash
 python run.py --use-ngrok
 ```
 
-This will:
-1. Start a FastAPI server
-2. Set up ngrok for webhook tunneling (if configured)
-3. Set up webhooks for all repositories
-4. Start monitoring for PR events
+To run the bot with a custom webhook URL:
 
-### Command Line Options
+```bash
+python run.py --webhook-url https://your-webhook-url.com/webhook
+```
+
+To run the bot on a specific port:
+
+```bash
+python run.py --port 8080
+```
+
+### How It Works
+
+1. The bot starts a FastAPI server to receive GitHub webhook events
+2. It sets up webhooks for all repositories you have access to
+3. When a PR is created or updated, GitHub sends a webhook event to the bot
+4. The bot analyzes the PR against the project's documentation and requirements
+5. It posts a detailed review comment on the PR
+6. If the PR complies with all requirements, it can automatically merge it
+7. If issues are found, it asks for user confirmation before merging
+
+### PR Review Process
+
+The PR review process consists of the following steps:
+
+1. The bot receives a webhook event from GitHub
+2. It extracts the PR number and repository name
+3. It fetches the PR details and the repository's documentation
+4. It analyzes the PR against the documentation using a language model
+5. It posts a detailed review comment on the PR
+6. It submits a formal review (approve or request changes)
+7. It tries to merge the PR if it complies with requirements
+8. If issues are found, it asks for user confirmation before merging
+
+## Configuration
+
+### Environment Variables
+
+- `GITHUB_TOKEN`: GitHub Personal Access Token with repo scope
+- `ANTHROPIC_API_KEY`: Anthropic API key (optional if using OpenAI)
+- `OPENAI_API_KEY`: OpenAI API key (optional if using Anthropic)
+- `WEBHOOK_SECRET`: Secret for GitHub webhook signature verification
+- `NGROK_AUTH_TOKEN`: ngrok authentication token (optional)
+
+### Command Line Arguments
 
 - `--port`: Port to run the server on (default: 8000)
 - `--use-ngrok`: Use ngrok to expose the server
 - `--webhook-url`: Webhook URL to use (overrides ngrok)
-
-### Webhook Setup
-
-The bot automatically sets up webhooks for all repositories you have access to. If you want to manually set up webhooks:
-
-1. Go to your repository settings
-2. Click on "Webhooks"
-3. Add a new webhook
-4. Set the Payload URL to your server URL (e.g., ngrok URL)
-5. Set the Content type to `application/json`
-6. Set the Secret to your `WEBHOOK_SECRET`
-7. Select "Let me select individual events" and choose "Pull requests"
-8. Click "Add webhook"
-
-## How It Works
-
-1. When a PR is created or updated, GitHub sends a webhook event to the bot
-2. The bot analyzes the PR against the project's codebase and requirements
-3. If all requirements are met, the bot confirms the PR and prints confirmation in the terminal
-4. If issues are found, the bot prints insights and suggestions in the terminal
 
 ## Development
 
 ### Project Structure
 
 - `app.py`: FastAPI application for webhook handling
-- `launch.py`: Main entry point for the PR review bot
+- `launch.py`: Main entry point for setup and configuration
 - `run.py`: Wrapper script for easy execution
-- `helpers.py`: Helper functions for PR review
+- `helpers.py`: Core PR review functionality
 - `webhook_manager.py`: GitHub webhook management
-- `ngrok_manager.py`: Ngrok tunnel management
-- `codebase.py`: Simple codebase class for GitHub operations
+- `ngrok_manager.py`: ngrok tunnel management
+- `codebase.py`: Simple GitHub operations wrapper
 
-### Adding New Features
+### Adding Custom Review Criteria
 
-To add new features to the PR review bot:
+To add custom review criteria, modify the `analyze_with_llm` function in `helpers.py`. You can update the prompt to include specific requirements or checks.
 
-1. Update the relevant files
-2. Add new dependencies to `requirements.txt` if needed
-3. Update the documentation in `README.md`
-4. Test the changes locally
+### Extending the Bot
+
+The bot can be extended in various ways:
+
+- Add support for more GitHub events
+- Implement custom review criteria
+- Add support for other LLM providers
+- Implement more sophisticated analysis techniques
+- Add support for custom review templates
+
+## Troubleshooting
+
+### Common Issues
+
+- **Webhook setup fails**: Make sure your GitHub token has the `admin:repo_hook` scope
+- **ngrok tunnel fails**: Make sure ngrok is installed and your auth token is valid
+- **LLM analysis fails**: Make sure your API keys are valid and you have sufficient credits
+- **PR review fails**: Make sure the repository has at least one markdown file in the root directory
+
+### Logs
+
+The bot logs to both the console and a file named `pr_review_bot.log`. Check the logs for detailed error messages and debugging information.
 
 ## License
 
-MIT
+This project is licensed under the MIT License - see the LICENSE file for details.
