@@ -12,8 +12,8 @@ import argparse
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, parent_dir)
 
-# Now we can import from the pr_review_bot package
-from pr_review_bot.launch import main
+# Now we can import from the launch module directly
+from launch import main
 
 if __name__ == "__main__":
     # Parse command line arguments

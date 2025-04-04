@@ -11,15 +11,15 @@ import argparse
 import json
 import threading
 from typing import Dict, List, Any, Optional
-from dotenv import load_dotenv
+import python_dotenv
 import uvicorn
 from github import Github
 from pyngrok import ngrok
 
 # Import local modules
-from .webhook_manager import WebhookManager
-from .ngrok_manager import NgrokManager
-from .helpers import get_github_client
+from webhook_manager import WebhookManager
+from ngrok_manager import NgrokManager
+from helpers import get_github_client
 
 # Configure logging
 logging.basicConfig(
@@ -43,7 +43,7 @@ def parse_args():
 def load_env():
     """Load environment variables from .env file."""
     # Load environment variables from .env file
-    load_dotenv()
+    python_dotenv.load_dotenv()
     
     # Check for required environment variables
     if not os.environ.get("GITHUB_TOKEN"):
@@ -137,8 +137,8 @@ def main():
     print(f"\n🚀 Starting server on port {args.port}...")
     try:
         # Import app here to avoid circular imports
-        from . import app
-        uvicorn.run(app, host="0.0.0.0", port=args.port)
+        import app as app_module
+        uvicorn.run(app_module.app, host="0.0.0.0", port=args.port)
     except Exception as e:
         logger.error(f"Error starting server: {e}")
         print(f"\n❌ Error starting server: {e}")
