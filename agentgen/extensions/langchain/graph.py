@@ -5,7 +5,7 @@ from typing import Annotated, Any, Literal, Optional, Union
 
 import anthropic
 import openai
-from langchain.tools import BaseTool
+from langchain_core.tools import BaseTool
 from langchain_core.messages import (
     AIMessage,
     AnyMessage,
@@ -20,11 +20,11 @@ from langgraph.graph import END, START
 from langgraph.graph.state import CompiledGraph, StateGraph
 from langgraph.pregel import RetryPolicy
 
-from codegen.agents.utils import AgentConfig
-from codegen.extensions.langchain.llm import LLM
-from codegen.extensions.langchain.prompts import SUMMARIZE_CONVERSATION_PROMPT
-from codegen.extensions.langchain.utils.custom_tool_node import CustomToolNode
-from codegen.extensions.langchain.utils.utils import get_max_model_input_tokens
+from agentgen.agents.utils import AgentConfig
+from agentgen.extensions.langchain.llm import LLM
+from agentgen.extensions.langchain.prompts import SUMMARIZE_CONVERSATION_PROMPT
+from agentgen.extensions.langchain.utils.custom_tool_node import CustomToolNode
+from agentgen.extensions.langchain.utils.utils import get_max_model_input_tokens
 
 
 def manage_messages(existing: list[AnyMessage], updates: Union[list[AnyMessage], dict]) -> list[AnyMessage]:
@@ -233,118 +233,52 @@ class AgentGraph:
         """Create and compile the graph."""
         builder = StateGraph(GraphState)
 
-        # the retry policy has an initial interval, a backoff factor, and a max interval of controlling the
-        # amount of time between retries
+        # Create a retry policy for handling errors
         retry_policy = RetryPolicy(
-            retry_on=[anthropic.RateLimitError, openai.RateLimitError, anthropic.InternalServerError, anthropic.BadRequestError],
-            max_attempts=10,
-            initial_interval=30.0,  # Start with 30 second wait
-            backoff_factor=2,  # Double the wait time each retry
-            max_interval=1000.0,  # Cap at 1000 second max wait
+            max_retries=3,
+            backoff_factor=2.0,
+            initial_interval=1.0,
+            max_interval=10.0,
             jitter=True,
         )
 
-        # Custom error handler for tool validation errors
-        def handle_tool_errors(exception):
+        # Define a function to handle tool errors
+        def handle_tool_errors(exception: Exception, tool_name: str, tool_input: dict) -> str:
+            """Handle errors from tool execution.
+
+            Args:
+                exception: The exception that was raised
+                tool_name: Name of the tool that raised the exception
+                tool_input: Input parameters that were passed to the tool
+
+            Returns:
+                A formatted error message to return to the agent
+            """
             error_msg = str(exception)
 
-            # Extract tool name and input from the exception if possible
-            tool_name = "unknown"
-            tool_input = {}
+            # Find the tool by name
+            tool = next((t for t in self.tools if t.name == tool_name), None)
 
-            # Helper function to get field descriptions from any tool
-            def get_field_descriptions(tool_obj):
-                field_descriptions = {}
-                if not tool_obj or not hasattr(tool_obj, "args_schema"):
-                    return field_descriptions
-
-                try:
-                    # Get all field descriptions from the tool
-                    schema_cls = tool_obj.args_schema
-
-                    # Handle Pydantic v2
-                    if hasattr(schema_cls, "model_fields"):
-                        for field_name, field in schema_cls.model_fields.items():
-                            field_descriptions[field_name] = field.description or f"Required parameter for {tool_obj.name}"
-
-                    # Handle Pydantic v1 with warning suppression
-                    elif hasattr(schema_cls, "__fields__"):
-                        import warnings
-
-                        with warnings.catch_warnings():
-                            warnings.filterwarnings("ignore", category=DeprecationWarning)
-                            for field_name, field in schema_cls.__fields__.items():
-                                field_descriptions[field_name] = field.field_info.description or f"Required parameter for {tool_obj.name}"
-                except Exception:
-                    pass
-
-                return field_descriptions
-
-            # Try to extract tool name and input from the exception
-            import re
-
-            tool_match = re.search(r"for (\w+)Input", error_msg)
-            if tool_match:
-                # Get the extracted name but preserve original case by finding the matching tool
-                extracted_name = tool_match.group(1).lower()
-                for t in self.tools:
-                    if t.name.lower() == extracted_name:
-                        tool_name = t.name  # Use the original case from the tool
-                        break
-
-            # Try to extract the input values
-            input_match = re.search(r"input_value=(\{.*?\})", error_msg)
-            if input_match:
-                input_str = input_match.group(1)
-                # Simple parsing of the dict-like string
-                try:
-                    # Clean up the string to make it more parseable
-                    input_str = input_str.replace("'", '"')
-                    import json
-
-                    tool_input = json.loads(input_str)
-                except Exception as e:
-                    print(f"Failed to parse tool input: {e}")
-
-            # Handle validation errors with more helpful messages
-            if "validation error" in error_msg.lower():
-                # Find the tool in our tools list to get its schema
-                tool = next((t for t in self.tools if t.name == tool_name), None)
-
-                # If we couldn't find the tool by extracted name, try to find it by looking at all tools
-                if tool is None:
-                    # Try to extract tool name from the error message
-                    for t in self.tools:
-                        if t.name.lower() in error_msg.lower():
-                            tool = t
-                            tool_name = t.name
-                            break
-
-                    # If still not found, check if any tool's schema name matches
-                    if tool is None:
-                        for t in self.tools:
-                            if hasattr(t, "args_schema") and t.args_schema.__name__.lower() in error_msg.lower():
-                                tool = t
-                                tool_name = t.name
-                                break
-
-                # Check for type errors
+            # Handle validation errors (most common)
+            if "validation error" in error_msg.lower() or "field required" in error_msg.lower():
+                # Extract type errors from the message
                 type_errors = []
-                if "type_error" in error_msg.lower():
+                if "validation error" in error_msg.lower():
                     import re
 
-                    # Try to extract type error information
-                    type_error_matches = re.findall(r"'(\w+)'.*?type_error\.(.*?)(?:;|$)", error_msg, re.IGNORECASE)
-                    for field_name, error_type in type_error_matches:
-                        if "json" in error_type:
-                            type_errors.append(f"'{field_name}' must be a string, not a JSON object or dictionary")
-                        elif "str_type" in error_type:
+                    # Look for field-specific errors
+                    field_errors = re.findall(r"'([^']+)'(?:\s+|.*?)(?:not\s+of\s+expected\s+type|field\s+required)", error_msg, re.IGNORECASE)
+                    
+                    for field_name in field_errors:
+                        # Try to determine the error type
+                        error_type = ""
+                        if "str_type" in error_msg and field_name in error_msg:
                             type_errors.append(f"'{field_name}' must be a string")
-                        elif "int_type" in error_type:
+                        elif "int_type" in error_msg and field_name in error_msg:
                             type_errors.append(f"'{field_name}' must be an integer")
-                        elif "bool_type" in error_type:
+                        elif "bool_type" in error_msg and field_name in error_msg:
                             type_errors.append(f"'{field_name}' must be a boolean")
-                        elif "list_type" in error_type:
+                        elif "list_type" in error_msg and field_name in error_msg:
                             type_errors.append(f"'{field_name}' must be a list")
                         else:
                             type_errors.append(f"'{field_name}' has an incorrect type")
@@ -436,7 +370,7 @@ class AgentGraph:
                         example = "\nExample: search(query='function_name', file_extensions=['.py'])"
 
                     return (
-                        f"Error using {tool_name} tool: Missing required parameter(s): {fields_str}\n\nYou provided: {tool_input}\n{tool_docs}{example}\nPlease try again with all required parameters."
+                        f"Error using {tool_name} tool: Missing required parameter(s): {fields_str}\n\nYou provided: {tool_input}\n{tool_docs}{example}\n\nPlease try again with all required parameters."
                     )
 
                 # Common error patterns for specific tools (as fallback)
@@ -514,3 +448,37 @@ def create_react_agent(
     """Create a reactive agent graph."""
     graph = AgentGraph(model, tools, system_message, config=config)
     return graph.create(checkpointer=checkpointer, debug=debug)
+
+
+# Helper function to get field descriptions from a tool
+def get_field_descriptions(tool: BaseTool) -> dict[str, str]:
+    """Extract field descriptions from a tool's args_schema.
+    
+    Args:
+        tool: The tool to extract field descriptions from
+        
+    Returns:
+        Dictionary mapping field names to their descriptions
+    """
+    descriptions = {}
+    
+    if not hasattr(tool, "args_schema"):
+        return descriptions
+        
+    schema_cls = tool.args_schema
+    
+    # Handle Pydantic v2
+    if hasattr(schema_cls, "model_fields"):
+        for field_name, field in schema_cls.model_fields.items():
+            if hasattr(field, "description") and field.description:
+                descriptions[field_name] = field.description
+    # Handle Pydantic v1
+    elif hasattr(schema_cls, "__fields__"):
+        import warnings
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
+            for field_name, field in schema_cls.__fields__.items():
+                if hasattr(field, "field_info") and hasattr(field.field_info, "description") and field.field_info.description:
+                    descriptions[field_name] = field.field_info.description
+    
+    return descriptions

@@ -2,15 +2,15 @@
 
 from typing import TYPE_CHECKING, Any
 
-from langchain.tools import BaseTool
+from langchain_core.tools import BaseTool
 from langchain_core.messages import SystemMessage
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph.graph import CompiledGraph
 
-from codegen.agents.utils import AgentConfig
-from codegen.extensions.langchain.llm import LLM
-from codegen.extensions.langchain.prompts import REASONER_SYSTEM_MESSAGE
-from codegen.extensions.langchain.tools import (
+from agentgen.agents.utils import AgentConfig
+from agentgen.extensions.langchain.llm import LLM
+from agentgen.extensions.langchain.prompts import REASONER_SYSTEM_MESSAGE
+from agentgen.extensions.langchain.tools import (
     CreateFileTool,
     DeleteFileTool,
     GlobalReplacementEditTool,
