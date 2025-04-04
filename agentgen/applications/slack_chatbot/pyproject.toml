@@ -1,0 +1,11 @@
+[project]
+name = "fastapi-slack-bot"
+version = "0.1.0"
+description = "Slack chatbot for answering questions about FastAPI's implementation using Codegen"
+requires-python = ">=3.13"
+dependencies = [
+  "modal>=0.73.25",
+  "slack-bolt>=1.18.0",
+  "codegen>=0.5.30",
+  "openai>=1.1.0",
+]
