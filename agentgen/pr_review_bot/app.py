@@ -1,72 +1,57 @@
 import logging
 from logging import getLogger
 import os
-import modal
-from agentgen.extensions.events.codegen_app import CodegenApp
-from fastapi import Request
+from fastapi import FastAPI, Request
 from agentgen.extensions.github.types.events.pull_request import PullRequestLabeledEvent, PullRequestUnlabeledEvent
 from helpers import remove_bot_comments, pr_review_agent
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = getLogger(__name__)
 
-# Base image with required dependencies
-base_image = (
-    modal.Image.debian_slim(python_version="3.12")
-    .apt_install("git")
-    .pip_install(
-        # Core dependencies
-        "langchain==0.3.22",
-        "langchain-core==0.3.50",
-        "langchain-anthropic==0.3.10",
-        "langchain-openai==0.3.12",
-        "langgraph==0.3.25",
-        "langgraph-prebuilt==0.1.8",
-        "langchain-xai==0.2.2",
-        # Other dependencies
-        "openai>=1.1.0",
-        "fastapi[standard]",
-        "slack_sdk",
-        "pydantic>=2.0.0",
-        "python-dotenv",
-        "PyGithub",
-    )
-)
+# Initialize FastAPI app
+app = FastAPI(title="GitHub PR Review Bot")
 
-# Initialize the Codegen app with GitHub integration
-app = CodegenApp(name="github-pr-review", image=base_image)
-
-@app.github.event("pull_request:labeled")
-def handle_labeled(event: PullRequestLabeledEvent):
-    """Handle PR labeled events."""
-    logger.info("[PULL_REQUEST:LABELED] Received pull request labeled event")
-    logger.info(f"PR #{event.number} labeled with: {event.label.name}")
-    logger.info(f"PR title: {event.pull_request.title}")
-    
-    # Trigger the PR review for any PR (not just those with "Codegen" label)
-    logger.info(f"PR ID: {event.pull_request.id}")
-    logger.info(f"PR title: {event.pull_request.title}")
-    logger.info(f"PR number: {event.number}")
-    
-    # Start the review process
-    result = pr_review_agent(event)
-    
-    # Log the review result
-    if result["status"] == "success":
-        logger.info(f"PR review completed successfully: {result['message']}")
-    else:
-        logger.error(f"PR review failed: {result['error']}")
-
-@app.github.event("pull_request:unlabeled")
-def handle_unlabeled(event: PullRequestUnlabeledEvent):
-    """Handle PR unlabeled events."""
-    logger.info(f"PR #{event.number} unlabeled: {event.label.name}")
-    # Clean up bot comments when label is removed
-    remove_bot_comments(event)
-
-@app.function(secrets=[modal.Secret.from_dotenv()])
-@modal.web_endpoint(method="POST")
-def entrypoint(event: dict, request: Request):
+@app.post("/github/webhook")
+async def github_webhook(event: dict, request: Request):
     """Handle GitHub webhook events."""
     logger.info("[WEBHOOK] Received GitHub webhook")
-    return app.github.handle(event, request)
+    
+    # Extract event type and action
+    event_type = request.headers.get("x-github-event")
+    action = event.get("action")
+    
+    if event_type == "pull_request" and action == "labeled":
+        logger.info("[PULL_REQUEST:LABELED] Received pull request labeled event")
+        
+        # Parse the event
+        pr_event = PullRequestLabeledEvent.model_validate(event)
+        logger.info(f"PR #{pr_event.number} labeled with: {pr_event.label.name}")
+        logger.info(f"PR title: {pr_event.pull_request.title}")
+        
+        # Start the review process
+        result = pr_review_agent(pr_event)
+        
+        # Log the review result
+        if result["status"] == "success":
+            logger.info(f"PR review completed successfully: {result['message']}")
+        else:
+            logger.error(f"PR review failed: {result['error']}")
+            
+        return {"message": "PR review initiated", "status": result["status"]}
+        
+    elif event_type == "pull_request" and action == "unlabeled":
+        logger.info("[PULL_REQUEST:UNLABELED] Received pull request unlabeled event")
+        
+        # Parse the event
+        pr_event = PullRequestUnlabeledEvent.model_validate(event)
+        logger.info(f"PR #{pr_event.number} unlabeled: {pr_event.label.name}")
+        
+        # Clean up bot comments
+        result = remove_bot_comments(pr_event)
+        return {"message": "Bot comments removed", "status": result["status"]}
+    
+    return {"message": "Event not handled"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

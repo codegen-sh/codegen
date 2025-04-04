@@ -73,15 +73,6 @@ class CodegenClient:
         )
         return response.json()
 
-    async def send_linear_event(self, payload: dict) -> dict[str, Any]:
-        """Send a test Linear webhook event
-
-        Args:
-            payload: The event payload
-        """
-        response = await self.client.post(f"{self.base_url}/linear/events", json=payload)
-        return response.json()
-
     async def close(self):
         """Close the HTTP client"""
         await self.client.aclose()

@@ -7,7 +7,7 @@ from github import Github
 from dotenv import load_dotenv
 
 from agentgen.extensions.github.types.events.pull_request import PullRequestLabeledEvent, PullRequestUnlabeledEvent
-from agentgen import CodeAgent
+from agentgen.agents.chat_agent import ChatAgent
 from agentgen.extensions.langchain.tools import (
     # GitHub tools
     GithubViewPRTool,
@@ -85,6 +85,20 @@ def remove_bot_comments(event: PullRequestUnlabeledEvent) -> Dict[str, Any]:
             "error": str(e)
         }
 
+class Codebase:
+    """Simple codebase class for PR review bot."""
+    
+    def __init__(self, repo_name: str, github_token: str):
+        self.repo_name = repo_name
+        self.github_token = github_token
+        self.g = Github(github_token)
+        self.repo = self.g.get_repo(repo_name)
+        
+    def create_pr_comment(self, pr_number: int, body: str):
+        """Create a comment on a PR."""
+        pr = self.repo.get_pull(pr_number)
+        return pr.create_issue_comment(body)
+
 def analyze_codebase(repo_name: str) -> Dict[str, Any]:
     """Analyze the codebase to understand its structure and requirements.
     
@@ -95,15 +109,8 @@ def analyze_codebase(repo_name: str) -> Dict[str, Any]:
         A dictionary with analysis results
     """
     try:
-        from codegen import Codebase
-        from codegen.configs.models.secrets import SecretsConfig
-        
         # Initialize codebase
-        codebase = Codebase.from_repo(
-            repo_name, 
-            language="python", 
-            secrets=SecretsConfig(github_token=os.environ["GITHUB_TOKEN"])
-        )
+        codebase = Codebase(repo_name, os.environ["GITHUB_TOKEN"])
         
         # Create tools for analysis
         tools = [
@@ -115,7 +122,7 @@ def analyze_codebase(repo_name: str) -> Dict[str, Any]:
         ]
         
         # Create agent for analysis
-        agent = CodeAgent(codebase=codebase, tools=tools)
+        agent = ChatAgent(tools=tools)
         
         # Analyze the codebase
         prompt = f"""
@@ -150,9 +157,6 @@ def pr_review_agent(event: PullRequestLabeledEvent) -> Dict[str, Any]:
         A dictionary with review results
     """
     try:
-        from codegen import Codebase
-        from codegen.configs.models.secrets import SecretsConfig
-        
         # Get repository information
         repo_name = f"{event.organization.login}/{event.repository.name}"
         pr_number = event.number
@@ -162,15 +166,11 @@ def pr_review_agent(event: PullRequestLabeledEvent) -> Dict[str, Any]:
         logger.info(f"Reviewing PR #{pr_number} in {repo_name}: {pr_title}")
         
         # Initialize codebase
-        codebase = Codebase.from_repo(
-            repo_name, 
-            language="python", 
-            secrets=SecretsConfig(github_token=os.environ["GITHUB_TOKEN"])
-        )
+        codebase = Codebase(repo_name, os.environ["GITHUB_TOKEN"])
         
         # Post initial comment to indicate review is starting
         review_start_message = "🔍 **CodegenBot is reviewing this PR...**\n\nPlease wait while I analyze the changes."
-        initial_comment = codebase._op.create_pr_comment(pr_number, review_start_message)
+        initial_comment = codebase.create_pr_comment(pr_number, review_start_message)
         
         # Define PR review tools
         pr_tools = [
@@ -185,7 +185,7 @@ def pr_review_agent(event: PullRequestLabeledEvent) -> Dict[str, Any]:
         ]
         
         # Create agent with the defined tools
-        agent = CodeAgent(codebase=codebase, tools=pr_tools)
+        agent = ChatAgent(tools=pr_tools)
         
         # First, analyze the codebase
         codebase_analysis = analyze_codebase(repo_name)

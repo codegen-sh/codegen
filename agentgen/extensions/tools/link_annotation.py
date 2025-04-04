@@ -8,14 +8,9 @@ from codegen.sdk.core.codebase import Codebase
 
 
 class MessageChannel(StrEnum):
-    LINEAR = "linear"
     MARKDOWN = "markdown"
     HTML = "html"
     SLACK = "slack"
-
-
-def format_link_linear(name: str, url: str) -> str:
-    return f"[{name}]({url})"
 
 
 def format_link_markdown(name: str, url: str) -> str:
@@ -31,7 +26,6 @@ def format_link_slack(name: str, url: str) -> str:
 
 
 LINK_FORMATS: dict[MessageChannel, Callable[[str, str], str]] = {
-    "linear": format_link_linear,
     "markdown": format_link_markdown,
     "html": format_link_html,
     "slack": format_link_slack,

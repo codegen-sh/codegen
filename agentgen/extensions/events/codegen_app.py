@@ -10,7 +10,6 @@ from codegen.sdk.core.codebase import Codebase
 from codegen.shared.logging.get_logger import get_logger
 
 from .github import GitHub
-from .linear import Linear
 from .slack import Slack
 
 logger = get_logger(__name__)
@@ -20,7 +19,6 @@ class CodegenApp:
     """A FastAPI-based application for handling various code-related events."""
 
     github: GitHub
-    linear: Linear
     slack: Slack
 
     def __init__(self, name: str, repo: Optional[str] = None, tmp_dir: str = "/tmp/codegen", commit: str | None = "latest"):
@@ -31,7 +29,6 @@ class CodegenApp:
         self.app = FastAPI(title=name)
 
         # Initialize event handlers
-        self.linear = Linear(self)
         self.slack = Slack(self)
         self.github = GitHub(self)
         self.repo = repo
@@ -56,7 +53,7 @@ class CodegenApp:
         try:
             logger.info(f"[CODEBASE] Parsing repository: {repo_name}")
             config = CodebaseConfig(sync_enabled=True)
-            secrets = SecretsConfig(github_token=os.environ.get("GITHUB_ACCESS_TOKEN"), linear_api_key=os.environ.get("LINEAR_ACCESS_TOKEN"))
+            secrets = SecretsConfig(github_token=os.environ.get("GITHUB_ACCESS_TOKEN"))
             self.codebase = Codebase.from_repo(repo_full_name=repo_name, tmp_dir=self.tmp_dir, commit=commit, config=config, secrets=secrets)
             logger.info(f"[CODEBASE] Successfully parsed and cached: {repo_name}")
         except Exception as e:
@@ -92,14 +89,14 @@ class CodegenApp:
         """Simulate an event without running the server.
 
         Args:
-            provider: The event provider ('slack', 'github', or 'linear')
+            provider: The event provider ('slack' or 'github')
             event_type: The type of event to simulate
             payload: The event payload
 
         Returns:
             The handler's response
         """
-        provider_map = {"slack": self.slack, "github": self.github, "linear": self.linear}
+        provider_map = {"slack": self.slack, "github": self.github}
 
         if provider not in provider_map:
             msg = f"Unknown provider: {provider}. Must be one of {list(provider_map.keys())}"
@@ -149,11 +146,6 @@ class CodegenApp:
         payload = await request.json()
         return await self.github.handle(payload, request)
 
-    async def handle_linear_event(self, request: Request):
-        """Handle incoming Linear events."""
-        payload = await request.json()
-        return await self.linear.handle(payload)
-
     def _setup_routes(self):
         """Set up the FastAPI routes for different event types."""
 
@@ -170,11 +162,6 @@ class CodegenApp:
         @self.app.post("/github/events")
         async def _handle_github_event(request: Request):
             return await self.handle_github_event(request)
-
-        # @self.app.post("/{org}/{repo}/linear/events")
-        @self.app.post("/linear/events")
-        async def handle_linear_event(request: Request):
-            return await self.handle_linear_event(request)
 
     def run(self, host: str = "0.0.0.0", port: int = 8000, **kwargs):
         """Run the FastAPI application."""

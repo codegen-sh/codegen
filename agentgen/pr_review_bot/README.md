@@ -1,6 +1,6 @@
 # AI-Powered Pull Request Review Bot
 
-This project demonstrates how to build an intelligent GitHub PR review bot that automatically reviews pull requests. The bot uses Codegen's GitHub integration and AI capabilities to provide comprehensive code reviews with actionable feedback.
+This project demonstrates how to build an intelligent GitHub PR review bot that automatically reviews pull requests. The bot uses agentgen's GitHub integration and AI capabilities to provide comprehensive code reviews with actionable feedback.
 
 ## Features
 
@@ -26,7 +26,6 @@ Before running this application, you'll need:
 
 - GitHub API Token with repository access
 - Anthropic API Key (for Claude models) or OpenAI API Key
-- Modal account for deployment
 
 ## Setup
 
@@ -47,10 +46,10 @@ pip install -r requirements.txt
 
 ## Deployment
 
-Deploy the bot using Modal:
+Run the bot using FastAPI:
 
 ```bash
-modal deploy app.py
+uvicorn app:app --host 0.0.0.0 --port 8000
 ```
 
 This will create a webhook endpoint that you can configure in your GitHub repository settings.
@@ -59,7 +58,7 @@ This will create a webhook endpoint that you can configure in your GitHub reposi
 
 1. Go to your repository settings
 2. Navigate to "Webhooks" and click "Add webhook"
-3. Set the Payload URL to your Modal endpoint
+3. Set the Payload URL to your endpoint (e.g., `https://your-server.com/github/webhook`)
 4. Set the Content type to `application/json`
 5. Select "Let me select individual events" and choose "Pull requests"
 6. Click "Add webhook"
@@ -77,7 +76,6 @@ You can customize the bot's behavior by modifying:
 This project uses the following key dependencies:
 
 - `langchain` and related packages for AI agent functionality
-- `modal` for serverless deployment
 - `fastapi` for webhook handling
 - `PyGithub` for GitHub API integration
 
