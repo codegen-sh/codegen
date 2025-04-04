@@ -2,16 +2,18 @@
 Models for the integrated PR agent.
 """
 
+from .pull_request import PullRequest, PRList, PRStatus, PRReviewStatus
 from .requirement import Requirement, RequirementList, RequirementStatus
-from .pull_request import PullRequest, PRList, PRStatus, PRReviewStatus, PRSuggestion
+from .document import Document, DocumentList
 
 __all__ = [
-    "Requirement",
-    "RequirementList",
-    "RequirementStatus",
-    "PullRequest",
-    "PRList",
-    "PRStatus",
+    "PullRequest", 
+    "PRList", 
+    "PRStatus", 
     "PRReviewStatus",
-    "PRSuggestion",
+    "Requirement", 
+    "RequirementList", 
+    "RequirementStatus",
+    "Document",
+    "DocumentList",
 ]

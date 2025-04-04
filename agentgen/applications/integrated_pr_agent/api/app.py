@@ -10,11 +10,14 @@ import hashlib
 from typing import Dict, List, Optional, Any
 
 import dotenv
-from fastapi import FastAPI, Request, Response, HTTPException, Depends, Header, BackgroundTasks
+from fastapi import FastAPI, Request, Response, HTTPException, Depends, Header, BackgroundTasks, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from ..task_orchestrator import TaskOrchestrator
+from ..models import Document
 
 # Load environment variables
 dotenv.load_dotenv()
@@ -55,6 +58,25 @@ orchestrator = TaskOrchestrator(
     anthropic_api_key=os.environ.get("ANTHROPIC_API_KEY", ""),
     openai_api_key=os.environ.get("OPENAI_API_KEY", ""),
 )
+
+# Create static files directory
+os.makedirs(os.path.join(os.environ.get("OUTPUT_DIR", "output"), "static"), exist_ok=True)
+app.mount("/static", StaticFiles(directory=os.path.join(os.environ.get("OUTPUT_DIR", "output"), "static")), name="static")
+
+
+# Request models
+class DocumentRequest(BaseModel):
+    """Request model for document operations."""
+    title: str
+    content: str
+    type: str
+    metadata: Optional[Dict[str, Any]] = None
+
+
+class ProjectPlanRequest(BaseModel):
+    """Request model for project plan generation."""
+    repo_url: str
+    context_doc_ids: Optional[List[str]] = None
 
 
 async def verify_signature(request: Request, x_hub_signature_256: Optional[str] = Header(None)):
@@ -129,7 +151,7 @@ async def get_requirements():
     """
     Get all requirements.
     """
-    requirements, _, _ = orchestrator.load_state()
+    requirements, _, documents, _ = orchestrator.load_state()
     return {"requirements": requirements.dict()}
 
 
@@ -138,8 +160,83 @@ async def get_prs():
     """
     Get all pull requests.
     """
-    _, prs, _ = orchestrator.load_state()
+    _, prs, _, _ = orchestrator.load_state()
     return {"pull_requests": prs.dict()}
+
+
+@app.get("/documents")
+async def get_documents():
+    """
+    Get all documents.
+    """
+    _, _, documents, _ = orchestrator.load_state()
+    return {"documents": documents.dict()}
+
+
+@app.get("/documents/{document_id}")
+async def get_document(document_id: str):
+    """
+    Get a specific document.
+    """
+    _, _, documents, _ = orchestrator.load_state()
+    document = documents.get_document_by_id(document_id)
+    
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    return {"document": document.dict()}
+
+
+@app.post("/documents")
+async def create_document(document: DocumentRequest):
+    """
+    Create a new document.
+    """
+    new_document = orchestrator.add_document(
+        title=document.title,
+        content=document.content,
+        doc_type=document.type,
+        metadata=document.metadata
+    )
+    
+    return {"status": "success", "document": new_document.dict()}
+
+
+@app.post("/documents/upload")
+async def upload_document(
+    title: str = Form(...),
+    doc_type: str = Form(...),
+    file: UploadFile = File(...)
+):
+    """
+    Upload a document file.
+    """
+    content = await file.read()
+    content_str = content.decode("utf-8")
+    
+    new_document = orchestrator.add_document(
+        title=title,
+        content=content_str,
+        doc_type=doc_type,
+        metadata={"filename": file.filename}
+    )
+    
+    return {"status": "success", "document": new_document.dict()}
+
+
+@app.delete("/documents/{document_id}")
+async def delete_document(document_id: str):
+    """
+    Delete a document.
+    """
+    _, _, documents, _ = orchestrator.load_state()
+    
+    if not documents.remove_document(document_id):
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    documents.save_to_file(str(orchestrator.documents_file))
+    
+    return {"status": "success", "message": "Document deleted"}
 
 
 @app.get("/progress")
@@ -147,7 +244,7 @@ async def get_progress():
     """
     Get the progress report.
     """
-    requirements, _, _ = orchestrator.load_state()
+    requirements, _, _, _ = orchestrator.load_state()
     progress_report = orchestrator.requirements_service.generate_progress_report(requirements)
     return {"progress_report": progress_report}
 
@@ -157,7 +254,7 @@ async def send_requirement(requirement_id: str):
     """
     Send a specific requirement to Codegen.
     """
-    requirements, _, _ = orchestrator.load_state()
+    requirements, prs, documents, _ = orchestrator.load_state()
     requirement = requirements.get_requirement_by_id(requirement_id)
     
     if not requirement:
@@ -169,7 +266,7 @@ async def send_requirement(requirement_id: str):
     orchestrator.slack_service.send_requirement_request(requirement)
     requirement.mark_in_progress()
     
-    orchestrator.save_state(requirements, _, None)
+    orchestrator.save_state(requirements, prs, documents, None)
     
     return {"status": "success", "message": f"Sent requirement '{requirement.description}' to Codegen"}
 
@@ -179,7 +276,7 @@ async def update_requirement_status(requirement_id: str, status: str):
     """
     Update the status of a requirement.
     """
-    requirements, prs, last_check = orchestrator.load_state()
+    requirements, prs, documents, last_check = orchestrator.load_state()
     requirement = requirements.get_requirement_by_id(requirement_id)
     
     if not requirement:
@@ -196,9 +293,74 @@ async def update_requirement_status(requirement_id: str, status: str):
     else:
         raise HTTPException(status_code=400, detail="Invalid status")
     
-    orchestrator.save_state(requirements, prs, last_check)
+    orchestrator.save_state(requirements, prs, documents, last_check)
     
     return {"status": "success", "message": f"Updated requirement status to {status}"}
+
+
+@app.post("/generate-project-plan")
+async def generate_project_plan(request: ProjectPlanRequest):
+    """
+    Generate a project plan based on requirements and context documents.
+    """
+    requirements, _, documents, _ = orchestrator.load_state()
+    
+    # Filter context documents if specified
+    if request.context_doc_ids:
+        filtered_docs = documents.__class__()
+        for doc_id in request.context_doc_ids:
+            doc = documents.get_document_by_id(doc_id)
+            if doc:
+                filtered_docs.add_document(doc)
+        context_docs = filtered_docs
+    else:
+        context_docs = documents
+    
+    # Generate the plan
+    plan_doc = orchestrator.generate_project_plan(requirements, context_docs)
+    
+    if not plan_doc:
+        raise HTTPException(status_code=500, detail="Failed to generate project plan")
+    
+    # Add the plan to the documents
+    _, _, documents, _ = orchestrator.load_state()
+    documents.add_document(plan_doc)
+    documents.save_to_file(str(orchestrator.documents_file))
+    
+    return {"status": "success", "plan": plan_doc.dict()}
+
+
+@app.post("/generate-progress-document")
+async def generate_progress_document():
+    """
+    Generate a progress tracking document.
+    """
+    requirements, prs, documents, _ = orchestrator.load_state()
+    
+    # Generate the progress document
+    progress_doc = orchestrator.generate_progress_document(requirements, prs, documents)
+    
+    if not progress_doc:
+        raise HTTPException(status_code=500, detail="Failed to generate progress document")
+    
+    # Add the progress document to the documents
+    documents.add_document(progress_doc)
+    documents.save_to_file(str(orchestrator.documents_file))
+    
+    return {"status": "success", "progress_document": progress_doc.dict()}
+
+
+@app.get("/download/{filename}")
+async def download_file(filename: str):
+    """
+    Download a file from the output directory.
+    """
+    file_path = os.path.join(orchestrator.output_dir, filename)
+    
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    return FileResponse(file_path, filename=filename)
 
 
 if __name__ == "__main__":
