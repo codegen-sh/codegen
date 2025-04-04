@@ -1,13 +1,14 @@
-"""GitHub pull request event types."""
+"""
+GitHub pull request event types.
+"""
 
-from typing import Any, Dict, List, Optional
-
+from typing import Dict, List, Optional, Any
 from pydantic import BaseModel, Field
 
 
-class GitHubUser(BaseModel):
+class User(BaseModel):
     """GitHub user model."""
-
+    
     login: str
     id: int
     node_id: str
@@ -28,9 +29,9 @@ class GitHubUser(BaseModel):
     site_admin: bool
 
 
-class GitHubLabel(BaseModel):
+class Label(BaseModel):
     """GitHub label model."""
-
+    
     id: int
     node_id: str
     url: str
@@ -40,36 +41,15 @@ class GitHubLabel(BaseModel):
     description: Optional[str] = None
 
 
-class GitHubMilestone(BaseModel):
-    """GitHub milestone model."""
-
-    url: str
-    html_url: str
-    labels_url: str
-    id: int
-    node_id: str
-    number: int
-    title: str
-    description: Optional[str] = None
-    creator: GitHubUser
-    open_issues: int
-    closed_issues: int
-    state: str
-    created_at: str
-    updated_at: str
-    due_on: Optional[str] = None
-    closed_at: Optional[str] = None
-
-
-class GitHubRepository(BaseModel):
+class Repository(BaseModel):
     """GitHub repository model."""
-
+    
     id: int
     node_id: str
     name: str
     full_name: str
     private: bool
-    owner: GitHubUser
+    owner: User
     html_url: str
     description: Optional[str] = None
     fork: bool
@@ -140,22 +120,11 @@ class GitHubRepository(BaseModel):
     topics: List[str]
     visibility: str
     default_branch: str
-    allow_squash_merge: Optional[bool] = None
-    allow_merge_commit: Optional[bool] = None
-    allow_rebase_merge: Optional[bool] = None
-    allow_auto_merge: Optional[bool] = None
-    delete_branch_on_merge: Optional[bool] = None
-    allow_update_branch: Optional[bool] = None
-    use_squash_pr_title_as_default: Optional[bool] = None
-    squash_merge_commit_message: Optional[str] = None
-    squash_merge_commit_title: Optional[str] = None
-    merge_commit_message: Optional[str] = None
-    merge_commit_title: Optional[str] = None
 
 
-class GitHubOrganization(BaseModel):
+class Organization(BaseModel):
     """GitHub organization model."""
-
+    
     login: str
     id: int
     node_id: str
@@ -170,9 +139,9 @@ class GitHubOrganization(BaseModel):
     description: Optional[str] = None
 
 
-class GitHubPullRequest(BaseModel):
+class PullRequest(BaseModel):
     """GitHub pull request model."""
-
+    
     url: str
     id: int
     node_id: str
@@ -184,19 +153,19 @@ class GitHubPullRequest(BaseModel):
     state: str
     locked: bool
     title: str
-    user: GitHubUser
+    user: User
     body: Optional[str] = None
     created_at: str
     updated_at: str
     closed_at: Optional[str] = None
     merged_at: Optional[str] = None
     merge_commit_sha: Optional[str] = None
-    assignee: Optional[GitHubUser] = None
-    assignees: List[GitHubUser] = Field(default_factory=list)
-    requested_reviewers: List[GitHubUser] = Field(default_factory=list)
+    assignee: Optional[User] = None
+    assignees: List[User] = Field(default_factory=list)
+    requested_reviewers: List[User] = Field(default_factory=list)
     requested_teams: List[Dict[str, Any]] = Field(default_factory=list)
-    labels: List[GitHubLabel] = Field(default_factory=list)
-    milestone: Optional[GitHubMilestone] = None
+    labels: List[Label] = Field(default_factory=list)
+    milestone: Optional[Dict[str, Any]] = None
     draft: bool
     commits_url: str
     review_comments_url: str
@@ -212,25 +181,39 @@ class GitHubPullRequest(BaseModel):
 
 
 class PullRequestEvent(BaseModel):
-    """Base class for pull request events."""
-
+    """Base GitHub pull request event model."""
+    
     action: str
     number: int
-    pull_request: GitHubPullRequest
-    repository: GitHubRepository
-    organization: GitHubOrganization
-    sender: GitHubUser
+    pull_request: PullRequest
+    repository: Repository
+    sender: User
+    organization: Optional[Organization] = None
+
+
+class PullRequestOpenedEvent(PullRequestEvent):
+    action: str = "opened"
+
+
+class PullRequestClosedEvent(PullRequestEvent):
+    action: str = "closed"
+
+
+class PullRequestReopenedEvent(PullRequestEvent):
+    action: str = "reopened"
 
 
 class PullRequestLabeledEvent(PullRequestEvent):
-    """Event triggered when a label is added to a pull request."""
-
     action: str = "labeled"
-    label: GitHubLabel
+    label: Label
 
 
 class PullRequestUnlabeledEvent(PullRequestEvent):
-    """Event triggered when a label is removed from a pull request."""
-
     action: str = "unlabeled"
-    label: GitHubLabel
+    label: Label
+
+
+class PullRequestSynchronizeEvent(PullRequestEvent):
+    action: str = "synchronize"
+    before: str
+    after: str

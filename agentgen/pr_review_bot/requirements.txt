@@ -1,16 +1,4 @@
 # Core dependencies
-fastapi>=0.104.0
-uvicorn>=0.23.2
-pydantic>=2.4.2
-python-dotenv>=1.0.0
-requests>=2.31.0
-
-# GitHub integration
-PyGithub>=2.1.1
-markdown>=3.5
-beautifulsoup4>=4.12.2
-
-# LangChain and AI
 langchain>=0.3.22
 langchain-core>=0.3.50
 langchain-anthropic>=0.3.10
@@ -19,5 +7,19 @@ langgraph>=0.3.25
 langgraph-prebuilt>=0.1.8
 langchain-xai>=0.2.2
 
-# Ngrok for tunneling (optional)
+# Web framework
+fastapi>=0.115.8
+uvicorn>=0.27.0
+pydantic>=2.0.0
+
+# GitHub integration
+PyGithub>=2.1.1
+
+# Utilities
+python-dotenv>=1.0.0
+requests>=2.31.0
+markdown>=3.5
+beautifulsoup4>=4.12.2
+
+# Ngrok for tunneling
 pyngrok>=7.0.0

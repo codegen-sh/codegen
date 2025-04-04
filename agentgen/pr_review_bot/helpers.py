@@ -21,21 +21,31 @@ from agentgen.extensions.langchain.tools import (
     SearchFilesByNameTool,
     ReflectionTool,
 )
+from .codebase import Codebase
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-logger = getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO, 
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    filename="pr_review_bot.log",
+    filemode="a"
+)
+logger = getLogger("pr_review_bot")
 
 def get_github_client(token: str) -> Github:
+    """Get a GitHub client instance."""
     return Github(token)
 
 def get_repository(github_client: Github, repo_name: str) -> Repository:
+    """Get a GitHub repository instance."""
     return github_client.get_repo(repo_name)
 
 def get_pull_request(repo: Repository, pr_number: int) -> PullRequest:
+    """Get a GitHub pull request instance."""
     return repo.get_pull(pr_number)
 
 def get_root_markdown_files(repo: Repository) -> List[ContentFile]:
+    """Get all markdown files in the root directory of a repository."""
     contents = repo.get_contents("")
     markdown_files = []
 
@@ -46,6 +56,7 @@ def get_root_markdown_files(repo: Repository) -> List[ContentFile]:
     return markdown_files
 
 def extract_text_from_markdown(markdown_content: str) -> str:
+    """Extract plain text from markdown content."""
     # Convert markdown to HTML
     html = markdown.markdown(markdown_content)
 
@@ -53,26 +64,12 @@ def extract_text_from_markdown(markdown_content: str) -> str:
     soup = BeautifulSoup(html, "html.parser")
 
     # Get text and normalize whitespace
-    text = soup.get_text()
-    text = re.sub(r'\s+', ' ', text).strip()
+    text = re.sub(r'\s+', ' ', soup.get_text()).strip()
 
     return text
 
-class Codebase:
-    """Simple codebase class for PR review bot."""
-    
-    def __init__(self, repo_name: str, github_token: str):
-        self.repo_name = repo_name
-        self.github_token = github_token
-        self.g = Github(github_token)
-        self.repo = self.g.get_repo(repo_name)
-        
-    def create_pr_comment(self, pr_number: int, body: str):
-        """Create a comment on a PR."""
-        pr = self.repo.get_pull(pr_number)
-        return pr.create_issue_comment(body)
-
 def analyze_pr_against_docs(pr: PullRequest, markdown_files: List[ContentFile]) -> Dict[str, Any]:
+    """Analyze a pull request against documentation."""
     # Get PR details
     pr_title = pr.title
     pr_body = pr.body or ""
@@ -90,6 +87,7 @@ def analyze_pr_against_docs(pr: PullRequest, markdown_files: List[ContentFile]) 
     return analysis_result
 
 def analyze_with_codegen(pr: PullRequest, docs_content: str) -> Dict[str, Any]:
+    """Analyze a pull request using Codegen."""
     # Get repository information
     repo = pr.base.repo
     repo_name = repo.full_name
@@ -97,9 +95,10 @@ def analyze_with_codegen(pr: PullRequest, docs_content: str) -> Dict[str, Any]:
     try:
         # Initialize Codebase
         logger.info(f"Initializing Codebase for {repo_name}")
-        codebase = Codebase(
+        codebase = Codebase.from_repo(
             repo_name,
-            github_token=os.environ["GITHUB_TOKEN"]
+            language="python",  # Default to Python, but could be determined from repo
+            secrets={"github_token": os.environ.get("GITHUB_TOKEN", "")}
         )
 
         # Define PR review tools
@@ -111,7 +110,7 @@ def analyze_with_codegen(pr: PullRequest, docs_content: str) -> Dict[str, Any]:
             ListDirectoryTool(codebase),
             RipGrepTool(codebase),
             SearchFilesByNameTool(codebase),
-            ReflectionTool(codebase),
+            ReflectionTool(),
         ]
 
         # Create agent with tools
@@ -266,6 +265,17 @@ def submit_review(pr: PullRequest, review_result: Dict[str, Any]) -> None:
         logger.error(traceback.format_exc())
 
 def review_pr(github_client: Github, repo_name: str, pr_number: int) -> Dict[str, Any]:
+    """
+    Review a pull request.
+    
+    Args:
+        github_client: GitHub client
+        repo_name: Repository name
+        pr_number: Pull request number
+        
+    Returns:
+        Review results
+    """
     logger.info(f"Reviewing PR #{pr_number} in {repo_name}")
 
     try:
@@ -316,95 +326,77 @@ def review_pr(github_client: Github, repo_name: str, pr_number: int) -> Dict[str
         raise
 
 def remove_bot_comments(event) -> Dict[str, Any]:
-    """Remove all bot comments from a PR.
+    """
+    Remove bot comments from a pull request.
     
     Args:
-        event: The PR unlabeled event
+        event: GitHub webhook event
         
     Returns:
-        A dictionary with status and message
+        Result of the operation
     """
     try:
-        # Initialize GitHub client
-        g = Github(os.getenv("GITHUB_TOKEN"))
-        repo_name = f"{event.organization.login}/{event.repository.name}"
-        logger.info(f"Removing bot comments from {repo_name} PR #{event.number}")
-        
         # Get repository and PR
-        repo = g.get_repo(repo_name)
-        pr = repo.get_pull(int(event.number))
+        repo_name = event.repository.full_name
+        pr_number = event.number
         
-        # Remove PR comments
-        comments = pr.get_comments()
-        if comments:
-            for comment in comments:
-                logger.info(f"Checking comment by {comment.user.login}")
-                if comment.user.login == "codegen-team":
-                    logger.info("Removing PR comment")
-                    comment.delete()
+        github_client = get_github_client(os.environ.get("GITHUB_TOKEN", ""))
+        repo = get_repository(github_client, repo_name)
+        pr = get_pull_request(repo, pr_number)
         
-        # Remove PR review comments
-        reviews = pr.get_reviews()
-        if reviews:
-            for review in reviews:
-                logger.info(f"Checking review by {review.user.login}")
-                if review.user.login == "codegen-team":
-                    logger.info("Removing PR review")
-                    review.delete()
+        # Get all comments
+        comments = pr.get_issue_comments()
         
-        # Remove issue comments
-        issue_comments = pr.get_issue_comments()
-        if issue_comments:
-            for comment in issue_comments:
-                logger.info(f"Checking issue comment by {comment.user.login}")
-                if comment.user.login == "codegen-team":
-                    logger.info("Removing issue comment")
-                    comment.delete()
+        # Remove bot comments
+        removed_count = 0
+        for comment in comments:
+            if comment.user.login == "github-actions[bot]" or "PR Review Bot Analysis" in comment.body:
+                comment.delete()
+                removed_count += 1
+        
+        logger.info(f"Removed {removed_count} bot comments from PR #{pr_number} in {repo_name}")
         
         return {
-            "status": "success",
-            "message": f"Successfully removed bot comments from PR #{event.number}"
+            "pr_number": pr_number,
+            "repo_name": repo_name,
+            "removed_comments": removed_count
         }
     except Exception as e:
         logger.error(f"Error removing bot comments: {e}")
-        return {
-            "status": "error",
-            "error": str(e)
-        }
+        logger.error(traceback.format_exc())
+        raise
 
 def pr_review_agent(event) -> Dict[str, Any]:
-    """Review a pull request and provide feedback.
+    """
+    Run the PR review agent.
     
     Args:
-        event: The PR labeled event
+        event: GitHub webhook event
         
     Returns:
-        A dictionary with review results
+        Result of the review
     """
     try:
-        # Get repository information
-        repo_name = f"{event.organization.login}/{event.repository.name}"
+        # Get repository and PR information
+        repo_name = event.repository.full_name
         pr_number = event.number
-        pr_title = event.pull_request.title
-        pr_url = event.pull_request.url
         
-        logger.info(f"Reviewing PR #{pr_number} in {repo_name}: {pr_title}")
-        
-        # Initialize GitHub client
-        github_client = get_github_client(os.environ["GITHUB_TOKEN"])
-        
-        # Review the PR
+        # Process the PR
+        github_client = get_github_client(os.environ.get("GITHUB_TOKEN", ""))
         result = review_pr(github_client, repo_name, pr_number)
         
-        return {
-            "status": "success",
-            "message": f"Successfully reviewed PR #{pr_number}",
-            "result": result
-        }
+        # Print results to terminal
+        if result["compliant"]:
+            print(f"\n✅ PR #{pr_number} in {repo_name} complies with requirements")
+            print(f"Recommendation: {result['approval_recommendation']}")
+        else:
+            print(f"\n❌ PR #{pr_number} in {repo_name} does not comply with requirements")
+            print(f"Recommendation: {result['approval_recommendation']}")
+            print("See PR comments for details")
+        
+        return result
     except Exception as e:
-        logger.error(f"Error reviewing PR: {e}")
+        logger.error(f"Error in PR review agent: {e}")
         logger.error(traceback.format_exc())
-        return {
-            "status": "error",
-            "error": str(e)
-        }
+        print(f"\n❌ Error reviewing PR: {str(e)}")
+        raise
