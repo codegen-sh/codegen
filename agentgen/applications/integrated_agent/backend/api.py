@@ -22,6 +22,8 @@ from .models import (
     RequirementStatus,
     SlackMessage,
 )
+from .slack_integration import SlackIntegration
+from .task_orchestrator import TaskOrchestrator
 
 # Create FastAPI app
 app = FastAPI(title="Integrated Agent", description="API for the integrated agent application")
@@ -39,6 +41,18 @@ app.add_middleware(
 DATA_DIR = os.environ.get("DATA_DIR", "./data")
 db = JSONDatabase(DATA_DIR)
 
+# Create Slack integration instance
+slack_integration = None
+try:
+    slack_integration = SlackIntegration()
+except ValueError as e:
+    # Log the error but don't fail the application
+    import logging
+    logging.getLogger(__name__).error(f"Failed to initialize Slack integration: {e}")
+
+# Create task orchestrator instance
+task_orchestrator = TaskOrchestrator(db, slack_integration)
+
 # Create API routers
 documents_router = APIRouter(prefix="/documents", tags=["Documents"])
 requirements_router = APIRouter(prefix="/requirements", tags=["Requirements"])
@@ -46,6 +60,7 @@ repositories_router = APIRouter(prefix="/repositories", tags=["Repositories"])
 pr_reviews_router = APIRouter(prefix="/pr-reviews", tags=["PR Reviews"])
 project_plans_router = APIRouter(prefix="/project-plans", tags=["Project Plans"])
 slack_router = APIRouter(prefix="/slack", tags=["Slack"])
+orchestrator_router = APIRouter(prefix="/orchestrator", tags=["Orchestrator"])
 
 
 # Document API endpoints
@@ -325,16 +340,74 @@ async def generate_project_plan(repository_id: str):
 # Slack API endpoints
 
 @slack_router.post("/send-requirement")
-async def send_requirement_to_slack(requirement_id: str, channel_id: str):
+async def send_requirement_to_slack(requirement_id: str, channel_id: Optional[str] = None):
     """Send a requirement to Slack."""
+    if not slack_integration:
+        raise HTTPException(status_code=503, detail="Slack integration not available")
+    
     requirement = db.get_requirement(requirement_id)
     if not requirement:
         raise HTTPException(status_code=404, detail="Requirement not found")
     
-    # TODO: Implement Slack integration logic
-    # This would use the SlackIntegration from the requirements_tracker
+    try:
+        message = slack_integration.send_requirement(requirement, channel=channel_id)
+        
+        # Store the message in the database
+        db.create_slack_message(message)
+        
+        return {"status": "success", "message_id": message.id}
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@slack_router.post("/send-pr-review")
+async def send_pr_review_to_slack(repository: str, pr_number: int, channel_id: Optional[str] = None):
+    """Send a PR review notification to Slack."""
+    if not slack_integration:
+        raise HTTPException(status_code=503, detail="Slack integration not available")
     
-    return {"status": "success", "message": "Slack integration not implemented yet"}
+    pr_review = db.get_pr_review(repository, pr_number)
+    if not pr_review:
+        raise HTTPException(status_code=404, detail="PR review not found")
+    
+    try:
+        message = slack_integration.send_pr_review_notification(pr_review, channel=channel_id)
+        
+        # Store the message in the database
+        db.create_slack_message(message)
+        
+        return {"status": "success", "message_id": message.id}
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@slack_router.post("/send-message")
+async def send_message_to_slack(
+    text: str,
+    channel_id: Optional[str] = None,
+    thread_ts: Optional[str] = None,
+    requirement_id: Optional[str] = None,
+    pr_number: Optional[int] = None,
+):
+    """Send a message to Slack."""
+    if not slack_integration:
+        raise HTTPException(status_code=503, detail="Slack integration not available")
+    
+    try:
+        message = slack_integration.send_message(
+            text=text,
+            channel=channel_id,
+            thread_ts=thread_ts,
+            requirement_id=requirement_id,
+            pr_number=pr_number,
+        )
+        
+        # Store the message in the database
+        db.create_slack_message(message)
+        
+        return {"status": "success", "message_id": message.id}
+    except ValueError as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @slack_router.get("/messages", response_model=List[SlackMessage])
@@ -358,6 +431,82 @@ async def list_slack_messages(
     return messages
 
 
+@slack_router.get("/messages/{message_id}", response_model=SlackMessage)
+async def get_slack_message(message_id: str):
+    """Get a Slack message by ID."""
+    message = db.get_slack_message(message_id)
+    if not message:
+        raise HTTPException(status_code=404, detail="Slack message not found")
+    return message
+
+
+# Task Orchestrator API endpoints
+
+@orchestrator_router.post("/start")
+async def start_orchestrator():
+    """Start the task orchestrator."""
+    if not task_orchestrator:
+        raise HTTPException(status_code=503, detail="Task orchestrator not available")
+    
+    task_orchestrator.start()
+    return {"status": "success", "running": task_orchestrator.is_running()}
+
+
+@orchestrator_router.post("/stop")
+async def stop_orchestrator():
+    """Stop the task orchestrator."""
+    if not task_orchestrator:
+        raise HTTPException(status_code=503, detail="Task orchestrator not available")
+    
+    task_orchestrator.stop()
+    return {"status": "success", "running": task_orchestrator.is_running()}
+
+
+@orchestrator_router.get("/status")
+async def get_orchestrator_status():
+    """Get the status of the task orchestrator."""
+    if not task_orchestrator:
+        raise HTTPException(status_code=503, detail="Task orchestrator not available")
+    
+    return {"status": "success", "running": task_orchestrator.is_running()}
+
+
+@orchestrator_router.post("/send-next-requirement")
+async def send_next_requirement():
+    """Send the next requirement to Slack."""
+    if not task_orchestrator:
+        raise HTTPException(status_code=503, detail="Task orchestrator not available")
+    
+    if not task_orchestrator.is_running():
+        raise HTTPException(status_code=400, detail="Task orchestrator is not running")
+    
+    requirement = task_orchestrator.send_next_requirement()
+    if not requirement:
+        return {"status": "success", "message": "No requirements to send"}
+    
+    return {"status": "success", "requirement_id": requirement.id}
+
+
+@orchestrator_router.post("/process-pr-review")
+async def process_pr_review(repository: str, pr_number: int):
+    """Process a PR review."""
+    if not task_orchestrator:
+        raise HTTPException(status_code=503, detail="Task orchestrator not available")
+    
+    if not task_orchestrator.is_running():
+        raise HTTPException(status_code=400, detail="Task orchestrator is not running")
+    
+    pr_review = db.get_pr_review(repository, pr_number)
+    if not pr_review:
+        raise HTTPException(status_code=404, detail="PR review not found")
+    
+    success = task_orchestrator.process_pr_review(pr_review)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to process PR review")
+    
+    return {"status": "success"}
+
+
 # Register routers
 app.include_router(documents_router)
 app.include_router(requirements_router)
@@ -365,6 +514,7 @@ app.include_router(repositories_router)
 app.include_router(pr_reviews_router)
 app.include_router(project_plans_router)
 app.include_router(slack_router)
+app.include_router(orchestrator_router)
 
 
 @app.get("/")
@@ -380,5 +530,17 @@ async def root():
             "/pr-reviews",
             "/project-plans",
             "/slack",
+            "/orchestrator",
         ],
+    }
+
+
+@app.get("/health")
+async def health():
+    """Health check endpoint."""
+    return {
+        "status": "healthy",
+        "database": "connected",
+        "slack_integration": "connected" if slack_integration else "disconnected",
+        "task_orchestrator": "running" if task_orchestrator and task_orchestrator.is_running() else "stopped",
     }
