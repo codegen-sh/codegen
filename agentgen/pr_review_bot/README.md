@@ -1,67 +1,56 @@
-# PR Review Bot
+# GitHub PR Review Bot
 
-A GitHub PR review bot that automatically reviews pull requests when triggered by labels or when PRs are opened. The bot analyzes the project's codebase, requirements, and PR contents to provide comprehensive feedback.
+A powerful, AI-powered GitHub PR review bot that automatically analyzes pull requests against project documentation and requirements.
 
 ## Features
 
-- Automatically reviews all incoming PRs
-- Analyzes the project's codebase and requirements
-- Provides detailed feedback on code changes
-- Generates a comprehensive review summary
-- Logs results and insights in the terminal
-- Supports webhook integration for real-time PR reviews
+- Automatically reviews PRs when they are created or labeled
+- Analyzes code changes against project documentation
+- Provides detailed feedback with specific suggestions
+- Supports ngrok for local webhook development
+- Uses the latest langchain libraries for AI-powered analysis
+
+## Prerequisites
+
+- Python 3.10+ (Python 3.13 recommended)
+- GitHub account with a personal access token
+- Anthropic API key or OpenAI API key (for AI analysis)
+- Ngrok account (optional, for local development)
 
 ## Installation
 
-### Prerequisites
-
-- Python 3.12+ (recommended)
-- GitHub token with repo and admin:repo_hook scopes
-
-### Setup
-
-1. Clone the repository:
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/Zeeeepa/codegen.git
 cd codegen
-```
-
-2. Check out the branch:
-
-```bash
-git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
-git fetch --unshallow --all
 git checkout update-agentgen-langchain
 ```
 
-3. Create a virtual environment:
+### 2. Set up a virtual environment
 
 ```bash
-# For Python 3.13 (using deadsnakes PPA)
-sudo add-apt-repository ppa:deadsnakes/ppa
-sudo apt update
-sudo apt install python3.13 python3.13-venv python3.13-dev
-
-# Create and activate the virtual environment
+# For Python 3.13 (recommended)
 python3.13 -m venv venv
-source venv/bin/activate
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-4. Install dependencies:
+### 3. Install dependencies
 
 ```bash
 cd agentgen/pr_review_bot
 pip install -r requirements.txt
 ```
 
-5. Create a `.env` file:
+### 4. Configure environment variables
+
+Create a `.env` file in the `pr_review_bot` directory:
 
 ```bash
 cp .env.example .env
 ```
 
-6. Edit the `.env` file with your API keys:
+Edit the `.env` file with your API keys:
 
 ```
 # GitHub token with repo and admin:repo_hook scopes
@@ -80,9 +69,7 @@ NGROK_AUTH_TOKEN=your_ngrok_token
 
 ## Usage
 
-### Running the Bot
-
-To run the PR review bot:
+### Running the bot locally
 
 ```bash
 python run.py --use-ngrok
@@ -90,62 +77,58 @@ python run.py --use-ngrok
 
 This will:
 1. Start a FastAPI server
-2. Set up ngrok for webhook tunneling (if configured)
+2. Set up ngrok for webhook tunneling
 3. Set up webhooks for all repositories
 4. Start monitoring for PR events
 
-### Command Line Options
+### Running the bot without ngrok
 
-- `--port`: Port to run the server on (default: 8000)
-- `--use-ngrok`: Use ngrok to expose the server
-- `--webhook-url`: Webhook URL to use (overrides ngrok)
+If you have a public URL for your server:
 
-### Webhook Setup
+```bash
+python run.py --webhook-url https://your-server.com/webhook
+```
 
-The bot automatically sets up webhooks for all repositories accessible by your GitHub token. If you're using ngrok, the webhook URL will be automatically updated when your IP changes.
+### Running the bot on a specific port
 
-## How It Works
+```bash
+python run.py --port 8080 --use-ngrok
+```
 
-1. When a PR is opened or labeled with "review", the bot is triggered
-2. The bot analyzes the PR changes against the project's codebase and requirements
-3. It generates a comprehensive review with actionable feedback
-4. The review is posted as a comment on the PR
-5. If the PR meets all requirements, it's approved
-6. If issues are found, the bot provides insights in the terminal
+## How it works
 
-## Development
+1. The bot sets up webhooks on your GitHub repositories
+2. When a PR is created or labeled with "review", the bot is triggered
+3. The bot analyzes the PR changes against project documentation
+4. The bot provides detailed feedback with specific suggestions
+5. If all requirements are met, the bot approves the PR
+6. If issues are found, the bot requests changes with detailed feedback
 
-### Project Structure
+## Customizing the bot
 
-- `app.py`: FastAPI application for handling webhooks
-- `launch.py`: Main entry point for the PR review bot
-- `helpers.py`: Core PR review functionality
-- `webhook_manager.py`: GitHub webhook management
-- `ngrok_manager.py`: Ngrok tunnel management
-- `run.py`: Simple wrapper script for running the bot
+You can customize the bot's behavior by modifying the following files:
 
-### Adding Custom Review Logic
-
-To customize the review logic, modify the `review_pr` function in `helpers.py`. You can add additional checks, such as:
-
-- Code style validation
-- Security vulnerability scanning
-- Performance analysis
-- Documentation requirements
+- `helpers.py`: Contains the core review logic
+- `app.py`: Handles webhook events
+- `launch.py`: Sets up the server and webhooks
 
 ## Troubleshooting
 
-### Common Issues
+### Common issues
 
-- **Webhook Setup Fails**: Ensure your GitHub token has the `admin:repo_hook` scope
-- **Ngrok Tunnel Fails**: Check your ngrok authentication token and installation
-- **LLM API Errors**: Verify your API keys in the `.env` file
-- **Import Errors**: Make sure you're running the bot from the correct directory
+- **Import errors**: Make sure you're running the bot from the `pr_review_bot` directory
+- **Authentication errors**: Check your GitHub token has the correct permissions
+- **Webhook errors**: Make sure your ngrok tunnel is running and the webhook URL is correct
+- **LLM errors**: Check your Anthropic or OpenAI API key is valid
 
 ### Logs
 
-The bot logs all activity to `pr_review_bot.log` in the current directory. Check this file for detailed error messages and debugging information.
+The bot logs all activity to `pr_review_bot.log` in the current directory.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-MIT
+This project is licensed under the MIT License - see the LICENSE file for details.

@@ -11,9 +11,10 @@ import hashlib
 from typing import Dict, Any, Optional
 from fastapi import FastAPI, Request, Response, HTTPException, Depends, Header
 from pydantic import BaseModel
+from github import Github
 
 # Import local modules
-from helpers import review_pr
+from helpers import review_pr, get_github_client
 
 # Configure logging
 logger = logging.getLogger("pr_review_bot")
@@ -91,8 +92,7 @@ async def webhook(request: Request, verified: bool = Depends(verify_signature)):
                     github_token = os.environ.get("GITHUB_TOKEN")
                     
                     # Review the PR
-                    from github import Github
-                    github_client = Github(github_token)
+                    github_client = get_github_client(github_token)
                     
                     result = review_pr(github_client, repo_name, pr_number)
                     
