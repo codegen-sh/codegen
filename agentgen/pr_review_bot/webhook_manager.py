@@ -130,11 +130,15 @@ class WebhookManager:
             hook = repo.get_hook(hook_id)
             config = hook.config
             config["url"] = new_url
+            
+            # Fix: The edit method requires the 'name' parameter
             hook.edit(
+                name="web",  # Required parameter
                 config=config,
                 events=hook.events,
                 active=hook.active
             )
+            
             logger.info(f"Webhook URL updated successfully for {repo.full_name}")
             return True
         except GithubException as e:
