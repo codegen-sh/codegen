@@ -72,12 +72,12 @@ async def webhook(request: Request, verified: bool = Depends(verify_signature)):
         action = event.get("action", "")
         logger.info(f"Pull request {action} event")
         
-        # Handle all pull request events
+        # Review all PRs regardless of label or action
         if action in ["opened", "synchronize", "reopened", "labeled"]:
             pr_number = event["pull_request"]["number"]
             repo_name = event["repository"]["full_name"]
             
-            # Review all PRs regardless of label
+            # Review all PRs
             logger.info(f"Reviewing PR #{pr_number} in {repo_name}")
             
             try:

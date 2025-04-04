@@ -128,15 +128,21 @@ class WebhookManager:
         logger.info(f"Updating webhook URL for {repo.full_name}")
         try:
             hook = repo.get_hook(hook_id)
-            config = hook.config.copy()  # Create a copy of the config
-            config["url"] = new_url
+            
+            # Create a new config dictionary instead of modifying the existing one
+            new_config = {
+                "url": new_url,
+                "content_type": "json",
+                "insecure_ssl": "0",
+                "secret": hook.config.get("secret", "")
+            }
             
             # Update the webhook with the new config
             hook.edit(
                 name="web",  # Required parameter
-                config=config,
+                config=new_config,
                 events=hook.events,
-                active=hook.active
+                active=True
             )
             
             logger.info(f"Webhook URL updated successfully for {repo.full_name}")
