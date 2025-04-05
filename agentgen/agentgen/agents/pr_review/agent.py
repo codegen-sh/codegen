@@ -21,13 +21,14 @@ from codegen.agents.code_agent import CodeAgent
 from codegen.agents.utils import AgentConfig
 from codegen.extensions.planning.manager import PlanManager, ProjectPlan, Step, Requirement
 from codegen.extensions.research.researcher import Researcher, CodeInsight, ResearchResult
+from codegen.extensions.reflection.reflector import Reflector, ReflectionResult
 from codegen.shared.logging.get_logger import get_logger
 
 logger = get_logger(__name__)
 
 
 class PRReviewAgent(CodeAgent):
-    """Enhanced agent for reviewing pull requests with planning and research capabilities."""
+    """Enhanced agent for reviewing pull requests with planning, research, and reflection capabilities."""
     
     def __init__(
         self,
@@ -79,6 +80,12 @@ class PRReviewAgent(CodeAgent):
         )
         
         self.researcher = Researcher(
+            output_dir=self.output_dir,
+            anthropic_api_key=os.environ.get("ANTHROPIC_API_KEY", ""),
+            openai_api_key=os.environ.get("OPENAI_API_KEY", ""),
+        )
+        
+        self.reflector = Reflector(
             output_dir=self.output_dir,
             anthropic_api_key=os.environ.get("ANTHROPIC_API_KEY", ""),
             openai_api_key=os.environ.get("OPENAI_API_KEY", ""),
@@ -242,145 +249,182 @@ class PRReviewAgent(CodeAgent):
             # Parse LLM analysis result
             review_result = self._parse_analysis_result(llm_analysis_result)
             
+            # Apply reflection to improve the review
+            improved_review_result = self._apply_reflection(review_result, analysis_result)
+            
             # Post review comment on GitHub
-            self._post_review_comment(repo, pr, review_result)
+            self._post_review_comment(repo, pr, improved_review_result)
             
             # Submit formal review on GitHub
-            self._submit_review(repo, pr, review_result)
+            self._submit_review(repo, pr, improved_review_result)
             
             # Update plan based on PR review
-            self._update_plan_from_pr(pr, review_result)
+            self._update_plan_from_pr(pr, improved_review_result)
             
-            # Send Slack notification if configured
-            if self.slack_token and self.slack_channel_id:
-                self._send_slack_notification(repo_name, pr_number, review_result)
+            # Send notification to Slack
+            self._send_slack_notification(repo_name, pr_number, improved_review_result)
             
-            return {
-                "pr_number": pr_number,
-                "repo_name": repo_name,
-                "compliant": review_result.get("compliant", False),
-                "approval_recommendation": review_result.get("approval_recommendation", "request_changes"),
-                "issues": review_result.get("issues", []),
-                "suggestions": review_result.get("suggestions", []),
-            }
+            # Auto-merge if PR is compliant
+            if improved_review_result.get("compliant", False) and improved_review_result.get("approval_recommendation") == "approve":
+                self._auto_merge_pr(repo, pr, improved_review_result)
+            
+            return improved_review_result
         
         except Exception as e:
             logger.error(f"Error reviewing PR: {e}")
             logger.error(traceback.format_exc())
             
             return {
-                "pr_number": pr_number,
-                "repo_name": repo_name,
                 "compliant": False,
+                "issues": [f"Error reviewing PR: {e}"],
+                "suggestions": [],
                 "approval_recommendation": "request_changes",
-                "issues": [f"Error during review: {str(e)}"],
-                "suggestions": ["Please review manually"],
-                "error": str(e),
+                "review_comment": f"Error reviewing PR: {e}",
             }
+    
+    def _apply_reflection(self, review_result: Dict[str, Any], analysis_result: Dict[str, Any]) -> Dict[str, Any]:
+        """Apply reflection to improve the PR review."""
+        try:
+            # Extract requirements and patterns from analysis result
+            requirements = []
+            if analysis_result.get("requirements_analysis", {}).get("has_plan", False):
+                for req in analysis_result.get("requirements_analysis", {}).get("matched_requirements", []):
+                    requirements.append({
+                        "id": req.id,
+                        "description": req.description,
+                        "status": req.status,
+                    })
+                
+                for req in analysis_result.get("requirements_analysis", {}).get("unmatched_requirements", []):
+                    requirements.append({
+                        "id": req.id,
+                        "description": req.description,
+                        "status": req.status,
+                    })
+            
+            codebase_patterns = []
+            if analysis_result.get("patterns_analysis", {}).get("has_patterns", False):
+                for pattern in analysis_result.get("patterns_analysis", {}).get("matched_patterns", []):
+                    codebase_patterns.append({
+                        "file_path": pattern.file_path,
+                        "line_number": pattern.line_number,
+                        "category": pattern.category,
+                        "description": pattern.description,
+                        "code_snippet": pattern.code_snippet,
+                    })
+                
+                for pattern in analysis_result.get("patterns_analysis", {}).get("unmatched_patterns", []):
+                    codebase_patterns.append({
+                        "file_path": pattern.file_path,
+                        "line_number": pattern.line_number,
+                        "category": pattern.category,
+                        "description": pattern.description,
+                        "code_snippet": pattern.code_snippet,
+                    })
+            
+            # Evaluate the review
+            reflection_result = self.reflector.evaluate_pr_review(
+                pr_review=review_result,
+                requirements=requirements,
+                codebase_patterns=codebase_patterns,
+            )
+            
+            logger.info(f"Reflection score: {reflection_result.score}")
+            
+            # If the review is not valid or has a low score, improve it
+            if not reflection_result.is_valid or reflection_result.score < 0.8:
+                logger.info(f"Improving PR review based on reflection feedback: {reflection_result.feedback}")
+                
+                improved_review = self.reflector.improve_pr_review(
+                    pr_review=review_result,
+                    reflection_result=reflection_result,
+                    requirements=requirements,
+                    codebase_patterns=codebase_patterns,
+                )
+                
+                return improved_review
+            
+            return review_result
+        
+        except Exception as e:
+            logger.error(f"Error applying reflection: {e}")
+            logger.error(traceback.format_exc())
+            
+            return review_result
     
     def _extract_keywords(self, text: str) -> List[str]:
         """Extract keywords from text."""
-        common_words = {"the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "with", "by", "about", "as"}
-        
+        # Simple keyword extraction
         words = re.findall(r'\b\w+\b', text.lower())
-        
-        keywords = [word for word in words if word not in common_words and len(word) > 3]
-        
-        return list(set(keywords))
+        stopwords = {'a', 'an', 'the', 'and', 'or', 'but', 'if', 'then', 'else', 'when', 'at', 'from', 'by', 'for', 'with', 'about', 'to', 'in', 'on', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'shall', 'should', 'may', 'might', 'must', 'can', 'could'}
+        keywords = [word for word in words if word not in stopwords and len(word) > 2]
+        return keywords
     
     def _prepare_pr_analysis_prompt(self, repo_name: str, pr: PullRequest, pr_files: List[Any], analysis_result: Dict[str, Any]) -> str:
-        """Prepare prompt for PR analysis."""
-        pr_diff = pr.get_patch()
-        
-        pr_title = pr.title
-        pr_body = pr.body or "No description provided"
-        
-        file_paths = [f.filename for f in pr_files]
-        
-        prompt = f"""
-        You are a PR review bot that checks if pull requests comply with project requirements and codebase patterns.
+        """Prepare a prompt for LLM analysis of the PR."""
+        prompt = f"""You are a PR review bot that checks if pull requests comply with project requirements and codebase patterns.
 
-        Please analyze this pull request:
-        PR #{pr.number}: {pr_title}
+Repository: {repo_name}
+PR #{pr.number}: {pr.title}
+PR Description: {pr.body or "No description provided"}
 
-        PR Description:
-        {pr_body}
-
-        Files changed:
-        {', '.join(file_paths)}
-
-        PR Diff:
-        ```diff
-        {pr_diff[:10000]}
-        ```
-        """
+Files changed:
+"""
         
-        # Add requirements analysis
+        for file in pr_files:
+            prompt += f"- {file.filename} (+{file.additions}, -{file.deletions})\n"
+        
+        prompt += "\nRequirements Analysis:\n"
+        
         requirements_analysis = analysis_result.get("requirements_analysis", {})
         if requirements_analysis.get("has_plan", False):
-            prompt += f"""
-            Requirements Analysis:
-            - Compliance Score: {requirements_analysis.get("compliance_score", 0.0) * 100:.1f}%
+            prompt += f"Compliance Score: {requirements_analysis.get('compliance_score', 0.0):.2f}\n\n"
             
-            Matched Requirements:
-            """
+            matched_requirements = requirements_analysis.get("matched_requirements", [])
+            if matched_requirements:
+                prompt += "Matched Requirements:\n"
+                for req in matched_requirements:
+                    prompt += f"- {req.id}: {req.description}\n"
+                prompt += "\n"
             
-            for req in requirements_analysis.get("matched_requirements", []):
-                prompt += f"- {req.id}: {req.description}\n"
-            
-            prompt += "\nUnmatched Requirements:\n"
-            
-            for req in requirements_analysis.get("unmatched_requirements", []):
-                prompt += f"- {req.id}: {req.description}\n"
+            unmatched_requirements = requirements_analysis.get("unmatched_requirements", [])
+            if unmatched_requirements:
+                prompt += "Unmatched Requirements:\n"
+                for req in unmatched_requirements:
+                    prompt += f"- {req.id}: {req.description}\n"
+                prompt += "\n"
+        else:
+            prompt += "No project plan found.\n\n"
         
-        # Add patterns analysis
+        prompt += "Codebase Patterns Analysis:\n"
+        
         patterns_analysis = analysis_result.get("patterns_analysis", {})
         if patterns_analysis.get("has_patterns", False):
-            prompt += f"""
-            Codebase Patterns Analysis:
-            - Pattern Compliance Score: {patterns_analysis.get("pattern_compliance_score", 0.0) * 100:.1f}%
+            prompt += f"Pattern Compliance Score: {patterns_analysis.get('pattern_compliance_score', 0.0):.2f}\n\n"
             
-            Matched Patterns:
-            """
-            
-            for pattern in patterns_analysis.get("matched_patterns", []):
-                prompt += f"""
-                - {pattern.description}
-                  File: {pattern.file_path}
-                  {"Line: " + str(pattern.line_number) if pattern.line_number else ""}
+            matched_patterns = patterns_analysis.get("matched_patterns", [])
+            if matched_patterns:
+                prompt += "Matched Patterns:\n"
+                for pattern in matched_patterns:
+                    prompt += f"""- {pattern.file_path}
+                  {f"Line: {pattern.line_number}" if pattern.line_number else ""}
                   Category: {pattern.category}
-                """
-            
-            prompt += "\nUnmatched Patterns:\n"
-            
-            for pattern in patterns_analysis.get("unmatched_patterns", []):
-                prompt += f"""
-                - {pattern.description}
-                  File: {pattern.file_path}
-                  {"Line: " + str(pattern.line_number) if pattern.line_number else ""}
-                  Category: {pattern.category}
-                """
-        
-        # Add research results
-        research_results = analysis_result.get("research_results")
-        if research_results:
-            prompt += f"""
-            Codebase Research Insights:
-            
-            {research_results.summary}
-            
-            Relevant code patterns:
-            """
-            
-            for insight in research_results.insights[:5]: 
-                prompt += f"""
-                - {insight.description}
-                  File: {insight.file_path}
-                  {"Line: " + str(insight.line_number) if insight.line_number else ""}
-                  Category: {insight.category}
                   
                   ```
-                  {insight.code_snippet if insight.code_snippet else "No code snippet available"}
+                  {pattern.code_snippet if pattern.code_snippet else "No code snippet available"}
+                  ```
+                """
+            
+            unmatched_patterns = patterns_analysis.get("unmatched_patterns", [])
+            if unmatched_patterns:
+                prompt += "Unmatched Patterns:\n"
+                for pattern in unmatched_patterns:
+                    prompt += f"""- {pattern.file_path}
+                  {f"Line: {pattern.line_number}" if pattern.line_number else ""}
+                  Category: {pattern.category}
+                  
+                  ```
+                  {pattern.code_snippet if pattern.code_snippet else "No code snippet available"}
                   ```
                 """
         
@@ -611,4 +655,53 @@ class PRReviewAgent(CodeAgent):
         
         except Exception as e:
             logger.error(f"Error sending Slack notification: {e}")
+            logger.error(traceback.format_exc())
+    
+    def _auto_merge_pr(self, repo: Repository, pr: PullRequest, review_result: Dict[str, Any]) -> None:
+        """Automatically merge a PR if it meets all requirements."""
+        try:
+            # Check if PR is mergeable
+            if not pr.mergeable:
+                logger.warning(f"PR #{pr.number} is not mergeable")
+                return
+            
+            # Check if PR has been approved
+            if review_result.get("approval_recommendation") != "approve":
+                logger.warning(f"PR #{pr.number} has not been approved")
+                return
+            
+            # Merge the PR
+            merge_message = f"Auto-merged PR #{pr.number}: {pr.title}\n\nThis PR was automatically merged because it met all requirements."
+            pr.merge(
+                commit_title=f"Auto-merge PR #{pr.number}: {pr.title}",
+                commit_message=merge_message,
+                merge_method="merge"
+            )
+            
+            logger.info(f"Auto-merged PR #{pr.number}")
+            
+            # Send notification to Slack
+            if self.slack_token and self.slack_channel_id:
+                from slack_sdk import WebClient
+                
+                try:
+                    slack_client = WebClient(token=self.slack_token)
+                    
+                    message = f":rocket: *Auto-merged PR #{pr.number} in {repo.full_name}*\n\n"
+                    message += f"*Title:* {pr.title}\n"
+                    message += f"*Description:* {pr.body or 'No description provided'}\n\n"
+                    message += "This PR was automatically merged because it met all requirements."
+                    
+                    slack_client.chat_postMessage(
+                        channel=self.slack_channel_id,
+                        text=message
+                    )
+                    
+                    logger.info(f"Sent auto-merge notification to Slack channel {self.slack_channel_id}")
+                
+                except Exception as e:
+                    logger.error(f"Error sending auto-merge notification: {e}")
+        
+        except Exception as e:
+            logger.error(f"Error auto-merging PR: {e}")
             logger.error(traceback.format_exc())
