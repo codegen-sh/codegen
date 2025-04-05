@@ -6,7 +6,7 @@ import os
 import re
 import json
 import logging
-from typing import Dict, List, Optional, Any, Tuple, Union
+from typing import Dict, List, Optional, Any
 from uuid import uuid4
 
 from github import Github
@@ -46,25 +46,6 @@ class PRReviewAgent(CodeAgent):
         logger: Optional[Any] = None,
         **kwargs,
     ):
-        """Initialize a PRReviewAgent.
-
-        Args:
-            codebase: The codebase to operate on
-            github_token: GitHub token for API access
-            slack_token: Slack token for API access
-            slack_channel_id: Slack channel ID for notifications
-            output_dir: Directory for output files
-            model_provider: The model provider to use ("anthropic" or "openai")
-            model_name: Name of the model to use
-            memory: Whether to let LLM keep track of the conversation history
-            tools: Additional tools to use
-            tags: Tags to add to the agent trace
-            metadata: Metadata to use for the agent
-            agent_config: Configuration for the agent
-            thread_id: Thread ID for message history
-            logger: Logger instance
-            **kwargs: Additional LLM configuration options
-        """
         super().__init__(
             codebase=codebase,
             model_provider=model_provider,
@@ -79,28 +60,23 @@ class PRReviewAgent(CodeAgent):
             **kwargs,
         )
         
-        # Initialize GitHub client
         self.github_token = github_token or os.environ.get("GITHUB_TOKEN", "")
         if not self.github_token:
             raise ValueError("GitHub token is required")
         
         self.github_client = Github(self.github_token)
         
-        # Initialize Slack integration
         self.slack_token = slack_token or os.environ.get("SLACK_BOT_TOKEN", "")
         self.slack_channel_id = slack_channel_id or os.environ.get("SLACK_CHANNEL_ID", "")
         
-        # Initialize output directory
         self.output_dir = output_dir or os.environ.get("OUTPUT_DIR", "output")
         
-        # Initialize plan manager
         self.plan_manager = PlanManager(
             output_dir=self.output_dir,
             anthropic_api_key=os.environ.get("ANTHROPIC_API_KEY", ""),
             openai_api_key=os.environ.get("OPENAI_API_KEY", ""),
         )
         
-        # Initialize researcher
         self.researcher = Researcher(
             output_dir=self.output_dir,
             anthropic_api_key=os.environ.get("ANTHROPIC_API_KEY", ""),
@@ -108,86 +84,57 @@ class PRReviewAgent(CodeAgent):
         )
     
     def create_plan_from_markdown(self, markdown_content: str, title: str, description: str) -> ProjectPlan:
-        """Create a project plan from markdown content."""
         return self.plan_manager.create_plan_from_markdown(markdown_content, title, description)
     
     def get_next_step(self) -> Optional[Step]:
-        """Get the next pending step in the current plan."""
         return self.plan_manager.get_next_step()
     
     def update_step_status(self, step_id: str, status: str, pr_number: Optional[int] = None, details: Optional[str] = None) -> None:
-        """Update the status of a step in the current plan."""
         self.plan_manager.update_step_status(step_id, status, pr_number, details)
     
     def generate_progress_report(self) -> str:
-        """Generate a progress report for the current plan."""
         return self.plan_manager.generate_progress_report()
     
     def research_codebase(self, query: str, file_patterns: Optional[List[str]] = None) -> ResearchResult:
-        """Research the codebase for patterns and insights."""
         return self.researcher.research_codebase(self.codebase, query, file_patterns)
     
     def generate_research_report(self, query: Optional[str] = None) -> str:
-        """Generate a research report."""
         return self.researcher.generate_research_report(query)
     
     def review_pr(self, repo_name: str, pr_number: int) -> Dict[str, Any]:
-        """Review a pull request against requirements and codebase patterns.
-        
-        Args:
-            repo_name: Name of the repository (e.g., "owner/repo")
-            pr_number: Number of the pull request
-            
-        Returns:
-            Dictionary with review results
-        """
         logger.info(f"Reviewing PR #{pr_number} in {repo_name}")
         
         try:
-            # Get repository and PR
             repo = self.github_client.get_repo(repo_name)
             pr = repo.get_pull(pr_number)
             
-            # Get PR details
             pr_title = pr.title
             pr_body = pr.body or ""
             pr_files = list(pr.get_files())
             
-            # Get the current plan
             plan = self.plan_manager.load_current_plan()
             
-            # Research the codebase for patterns related to the PR
             research_results = None
             try:
-                # Extract keywords from PR title and body
                 keywords = self._extract_keywords(pr_title + " " + pr_body)
                 if keywords:
-                    # Research the codebase using the keywords
                     research_results = self.research_codebase(" ".join(keywords))
             except Exception as e:
                 logger.error(f"Error researching codebase: {e}")
-                import traceback
                 logger.error(traceback.format_exc())
             
-            # Prepare the prompt for PR analysis
             prompt = self._prepare_pr_analysis_prompt(repo_name, pr, pr_files, plan, research_results)
             
-            # Run the analysis
             analysis_result = self.run(prompt)
             
-            # Parse the analysis result
             review_result = self._parse_analysis_result(analysis_result)
             
-            # Post review comment
             self._post_review_comment(repo, pr, review_result)
             
-            # Submit formal review
             self._submit_review(repo, pr, review_result)
             
-            # Update plan if PR is associated with a step or requirement
             self._update_plan_from_pr(pr, review_result)
             
-            # Send notification to Slack if configured
             if self.slack_token and self.slack_channel_id:
                 self._send_slack_notification(repo_name, pr_number, review_result)
             
@@ -202,7 +149,6 @@ class PRReviewAgent(CodeAgent):
         
         except Exception as e:
             logger.error(f"Error reviewing PR: {e}")
-            import traceback
             logger.error(traceback.format_exc())
             
             return {
@@ -216,32 +162,22 @@ class PRReviewAgent(CodeAgent):
             }
     
     def _extract_keywords(self, text: str) -> List[str]:
-        """Extract keywords from text."""
-        # Remove common words and punctuation
         common_words = {"the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "with", "by", "about", "as"}
         
-        # Split text into words
         words = re.findall(r'\b\w+\b', text.lower())
         
-        # Filter out common words and short words
         keywords = [word for word in words if word not in common_words and len(word) > 3]
         
-        # Return unique keywords
         return list(set(keywords))
     
     def _prepare_pr_analysis_prompt(self, repo_name: str, pr: PullRequest, pr_files: List[Any], plan: Optional[ProjectPlan] = None, research_results: Optional[ResearchResult] = None) -> str:
-        """Prepare the prompt for PR analysis."""
-        # Get PR diff
         pr_diff = pr.get_patch()
         
-        # Get PR details
         pr_title = pr.title
         pr_body = pr.body or "No description provided"
         
-        # Get file paths
         file_paths = [f.filename for f in pr_files]
         
-        # Build the prompt
         prompt = f"""
         You are a PR review bot that checks if pull requests comply with project requirements and codebase patterns.
 
@@ -256,11 +192,10 @@ class PRReviewAgent(CodeAgent):
 
         PR Diff:
         ```diff
-        {pr_diff}
+        {pr_diff[:10000]}
         ```
         """
         
-        # Add plan information if available
         if plan:
             prompt += f"""
             This PR should comply with the project plan:
@@ -279,38 +214,34 @@ class PRReviewAgent(CodeAgent):
             for step in plan.steps:
                 prompt += f"- {step.description} (Status: {step.status})\n"
         
-        # Add research results if available
         if research_results:
             prompt += f"""
-            Codebase Research Results:
+            Codebase Research Insights:
             
             {research_results.summary}
             
-            Relevant Code Insights:
+            Relevant code patterns:
             """
             
-            for insight in research_results.insights[:5]:  # Limit to top 5 insights
+            for insight in research_results.insights[:5]: 
                 prompt += f"""
                 - {insight.description}
                   File: {insight.file_path}
+                  {"Line: " + str(insight.line_number) if insight.line_number else ""}
                   Category: {insight.category}
+                  
+                  ```
+                  {insight.code_snippet if insight.code_snippet else "No code snippet available"}
+                  ```
                 """
-                
-                if insight.code_snippet:
-                    prompt += f"""
-                  Code Snippet:
-                  ```
-                  {insight.code_snippet}
-                  ```
-                  """
         
-        # Add analysis instructions
         prompt += """
         Your task:
         1. Analyze if the PR complies with the requirements and follows good coding practices
-        2. Identify any issues or non-compliance
-        3. Provide specific suggestions for improvement if needed
-        4. Determine if the PR should be approved or needs changes
+        2. Check if the PR follows the codebase patterns and architecture
+        3. Identify any issues or non-compliance
+        4. Provide specific suggestions for improvement if needed
+        5. Determine if the PR should be approved or needs changes
 
         Format your final response as a JSON object with the following structure:
         {
@@ -332,14 +263,11 @@ class PRReviewAgent(CodeAgent):
         return prompt
     
     def _parse_analysis_result(self, analysis_result: str) -> Dict[str, Any]:
-        """Parse the analysis result to extract the JSON."""
         try:
-            # Find JSON in the response
             json_match = re.search(r'```json\s*(.*?)\s*```', analysis_result, re.DOTALL)
             if json_match:
                 json_str = json_match.group(1)
             else:
-                # Try to find JSON without code blocks
                 json_match = re.search(r'({.*})', analysis_result, re.DOTALL)
                 if json_match:
                     json_str = json_match.group(1)
@@ -357,7 +285,6 @@ class PRReviewAgent(CodeAgent):
             return result
         except Exception as e:
             logger.error(f"Error parsing analysis result: {e}")
-            import traceback
             logger.error(traceback.format_exc())
             
             return {
@@ -369,8 +296,6 @@ class PRReviewAgent(CodeAgent):
             }
     
     def _post_review_comment(self, repo: Repository, pr: PullRequest, review_result: Dict[str, Any]) -> None:
-        """Post a review comment on the pull request."""
-        # Format the review comment
         comment = f"# PR Review Bot Analysis\n\n"
 
         if review_result.get("compliant", False):
@@ -378,7 +303,6 @@ class PRReviewAgent(CodeAgent):
         else:
             comment += ":x: **This PR does not fully comply with project requirements.**\n\n"
 
-        # Add issues if any
         issues = review_result.get("issues", [])
         if issues and len(issues) > 0:
             comment += "## Issues\n\n"
@@ -386,7 +310,6 @@ class PRReviewAgent(CodeAgent):
                 comment += f"- {issue}\n"
             comment += "\n"
 
-        # Add suggestions if any
         suggestions = review_result.get("suggestions", [])
         if suggestions and len(suggestions) > 0:
             comment += "## Suggestions\n\n"
@@ -406,25 +329,20 @@ class PRReviewAgent(CodeAgent):
                     comment += f"- {suggestion}\n"
             comment += "\n"
 
-        # Add detailed review
         comment += "## Detailed Review\n\n"
         comment += review_result.get("review_comment", "No detailed review provided.")
 
-        # Post the comment
         try:
             pr.create_issue_comment(comment)
         except Exception as e:
             logger.error(f"Error posting review comment: {e}")
     
     def _submit_review(self, repo: Repository, pr: PullRequest, review_result: Dict[str, Any]) -> None:
-        """Submit a formal review on the pull request."""
-        # Determine review state
         if review_result.get("approval_recommendation") == "approve":
             review_state = "APPROVE"
         else:
             review_state = "REQUEST_CHANGES"
 
-        # Submit the review
         try:
             pr.create_review(
                 body=review_result.get("review_comment", ""),
@@ -434,25 +352,20 @@ class PRReviewAgent(CodeAgent):
             logger.error(f"Error submitting formal review: {e}")
     
     def _update_plan_from_pr(self, pr: PullRequest, review_result: Dict[str, Any]) -> None:
-        """Update the plan based on PR review results."""
         plan = self.plan_manager.load_current_plan()
         if not plan:
             return
         
-        # Try to find a step or requirement associated with this PR
         pr_number = pr.number
         pr_title = pr.title
         pr_body = pr.body or ""
         
-        # Check if PR is compliant
         is_compliant = review_result.get("compliant", False)
         
-        # Look for step IDs in PR title or body
         step_id_match = re.search(r'step-(\d+)', pr_title + " " + pr_body, re.IGNORECASE)
         if step_id_match:
             step_id = f"step-{step_id_match.group(1)}"
             
-            # Update step status
             if is_compliant:
                 self.plan_manager.update_step_status(
                     step_id=step_id,
@@ -468,12 +381,10 @@ class PRReviewAgent(CodeAgent):
                     details=f"In progress in PR #{pr_number}: {pr_title}"
                 )
         
-        # Look for requirement IDs in PR title or body
         req_id_match = re.search(r'req-(\d+)', pr_title + " " + pr_body, re.IGNORECASE)
         if req_id_match:
             req_id = f"req-{req_id_match.group(1)}"
             
-            # Update requirement status
             if is_compliant:
                 self.plan_manager.update_requirement_status(
                     req_id=req_id,
@@ -490,14 +401,11 @@ class PRReviewAgent(CodeAgent):
                 )
     
     def _send_slack_notification(self, repo_name: str, pr_number: int, review_result: Dict[str, Any]) -> None:
-        """Send a notification to Slack about the PR review."""
         from slack_sdk import WebClient
         
         try:
-            # Initialize Slack client
             slack_client = WebClient(token=self.slack_token)
             
-            # Format the message
             message = f"*PR Review Result for {repo_name}#{pr_number}*\n\n"
             
             if review_result.get("compliant", False):
@@ -505,7 +413,6 @@ class PRReviewAgent(CodeAgent):
             else:
                 message += ":x: *This PR does not fully comply with project requirements.*\n\n"
             
-            # Add issues if any
             issues = review_result.get("issues", [])
             if issues and len(issues) > 0:
                 message += "*Issues:*\n"
@@ -513,7 +420,6 @@ class PRReviewAgent(CodeAgent):
                     message += f"- {issue}\n"
                 message += "\n"
             
-            # Add suggestions if any
             suggestions = review_result.get("suggestions", [])
             if suggestions and len(suggestions) > 0:
                 message += "*Suggestions:*\n"
@@ -533,16 +439,13 @@ class PRReviewAgent(CodeAgent):
                         message += f"- {suggestion}\n"
                 message += "\n"
             
-            # Add approval recommendation
             if review_result.get("approval_recommendation") == "approve":
                 message += ":thumbsup: *Recommendation: Approve*\n"
             else:
                 message += ":thumbsdown: *Recommendation: Request Changes*\n"
             
-            # Add PR link
             message += f"\n<https://github.com/{repo_name}/pull/{pr_number}|View PR on GitHub>"
             
-            # Send the message
             slack_client.chat_postMessage(
                 channel=self.slack_channel_id,
                 text=message
@@ -552,5 +455,4 @@ class PRReviewAgent(CodeAgent):
         
         except Exception as e:
             logger.error(f"Error sending Slack notification: {e}")
-            import traceback
             logger.error(traceback.format_exc())
