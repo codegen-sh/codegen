@@ -2,16 +2,16 @@
 PR Review Handler for GitHub events.
 """
 
-import logging
 import os
-from typing import Dict, Any, Optional
+import json
+import logging
+from typing import Dict, Any, Optional, List
 
 from github import Github
-from pydantic import BaseModel
+from slack_sdk import WebClient
 
-from codegen.agents.pr_review_agent import PRReviewAgent
-from codegen.extensions.github.types.events.pull_request import PullRequestEvent
-from codegen.extensions.planning.manager import PlanManager
+from codegen.extensions.github.types.events import PullRequestEvent
+from codegen.agents.pr_review.agent import PRReviewAgent
 from codegen.shared.logging.get_logger import get_logger
 
 logger = get_logger(__name__)
@@ -26,318 +26,275 @@ class PRReviewHandler:
         slack_token: Optional[str] = None,
         slack_channel_id: Optional[str] = None,
         output_dir: Optional[str] = None,
-        anthropic_api_key: Optional[str] = None,
-        openai_api_key: Optional[str] = None,
     ):
         """Initialize the PR review handler."""
         self.github_token = github_token or os.environ.get("GITHUB_TOKEN", "")
-        self.slack_token = slack_token or os.environ.get("SLACK_BOT_TOKEN", "")
-        self.slack_channel_id = slack_channel_id or os.environ.get("SLACK_CHANNEL_ID", "")
-        self.output_dir = output_dir or os.environ.get("OUTPUT_DIR", "output")
-        self.anthropic_api_key = anthropic_api_key or os.environ.get("ANTHROPIC_API_KEY", "")
-        self.openai_api_key = openai_api_key or os.environ.get("OPENAI_API_KEY", "")
-        
-        # Initialize GitHub client
         if not self.github_token:
             raise ValueError("GitHub token is required")
         
         self.github_client = Github(self.github_token)
         
-        # Initialize plan manager
-        self.plan_manager = PlanManager(
-            output_dir=self.output_dir,
-            anthropic_api_key=self.anthropic_api_key,
-            openai_api_key=self.openai_api_key,
-        )
-    
-    def handle_pr_event(self, event: PullRequestEvent) -> Dict[str, Any]:
-        """Handle a pull request event."""
-        logger.info(f"Handling PR event: {event.action} for PR #{event.number} in {event.repository.full_name}")
+        self.slack_token = slack_token or os.environ.get("SLACK_BOT_TOKEN", "")
+        self.slack_channel_id = slack_channel_id or os.environ.get("SLACK_CHANNEL_ID", "")
         
-        # Only process opened, reopened, or synchronized PRs
-        if event.action not in ["opened", "reopened", "synchronize"]:
-            logger.info(f"Ignoring PR event with action: {event.action}")
-            return {"status": "ignored", "reason": f"Action {event.action} not processed"}
+        self.output_dir = output_dir or os.environ.get("OUTPUT_DIR", "output")
+        
+        # Initialize Slack client if tokens are provided
+        if self.slack_token:
+            self.slack_client = WebClient(token=self.slack_token)
+        else:
+            self.slack_client = None
+    
+    def handle_pr_opened(self, event: PullRequestEvent) -> Dict[str, Any]:
+        """Handle a PR opened event."""
+        logger.info(f"Handling PR opened event: {event.repository.full_name}#{event.pull_request.number}")
+        
+        repo_name = event.repository.full_name
+        pr_number = event.pull_request.number
+        
+        # Create a PR review agent
+        agent = PRReviewAgent(
+            codebase=repo_name,
+            github_token=self.github_token,
+            slack_token=self.slack_token,
+            slack_channel_id=self.slack_channel_id,
+            output_dir=self.output_dir,
+        )
+        
+        # Review the PR
+        review_result = agent.review_pr(repo_name, pr_number)
+        
+        # Send notification to Slack if configured
+        if self.slack_client and self.slack_channel_id:
+            self._send_slack_notification(repo_name, pr_number, review_result)
+        
+        return review_result
+    
+    def handle_pr_synchronize(self, event: PullRequestEvent) -> Dict[str, Any]:
+        """Handle a PR synchronize event (new commits pushed)."""
+        logger.info(f"Handling PR synchronize event: {event.repository.full_name}#{event.pull_request.number}")
+        
+        repo_name = event.repository.full_name
+        pr_number = event.pull_request.number
+        
+        # Create a PR review agent
+        agent = PRReviewAgent(
+            codebase=repo_name,
+            github_token=self.github_token,
+            slack_token=self.slack_token,
+            slack_channel_id=self.slack_channel_id,
+            output_dir=self.output_dir,
+        )
+        
+        # Review the PR
+        review_result = agent.review_pr(repo_name, pr_number)
+        
+        # Send notification to Slack if configured
+        if self.slack_client and self.slack_channel_id:
+            self._send_slack_notification(repo_name, pr_number, review_result, is_update=True)
+        
+        return review_result
+    
+    def handle_pr_labeled(self, event: PullRequestEvent) -> Optional[Dict[str, Any]]:
+        """Handle a PR labeled event."""
+        logger.info(f"Handling PR labeled event: {event.repository.full_name}#{event.pull_request.number}")
+        
+        # Check if the label is "needs-review"
+        if event.label.name.lower() != "needs-review":
+            logger.info(f"Ignoring PR labeled event with label: {event.label.name}")
+            return None
+        
+        repo_name = event.repository.full_name
+        pr_number = event.pull_request.number
+        
+        # Create a PR review agent
+        agent = PRReviewAgent(
+            codebase=repo_name,
+            github_token=self.github_token,
+            slack_token=self.slack_token,
+            slack_channel_id=self.slack_channel_id,
+            output_dir=self.output_dir,
+        )
+        
+        # Review the PR
+        review_result = agent.review_pr(repo_name, pr_number)
+        
+        # Send notification to Slack if configured
+        if self.slack_client and self.slack_channel_id:
+            self._send_slack_notification(repo_name, pr_number, review_result)
+        
+        return review_result
+    
+    def handle_slack_command(self, command_text: str, channel_id: str, user_id: str) -> Dict[str, Any]:
+        """Handle a Slack command to review a PR."""
+        logger.info(f"Handling Slack command: {command_text}")
+        
+        # Parse the command text to extract repo and PR number
+        # Expected format: "review repo_owner/repo_name#pr_number"
+        parts = command_text.strip().split()
+        
+        if len(parts) < 2 or parts[0].lower() != "review":
+            return {
+                "text": "Invalid command format. Use: review owner/repo#pr_number",
+                "response_type": "ephemeral",
+            }
+        
+        # Parse repo and PR number
+        repo_pr = parts[1]
+        if "#" not in repo_pr:
+            return {
+                "text": "Invalid format. Use: review owner/repo#pr_number",
+                "response_type": "ephemeral",
+            }
+        
+        repo_name, pr_number_str = repo_pr.split("#", 1)
         
         try:
-            # Get repository and PR details
-            repo_name = event.repository.full_name
-            pr_number = event.number
+            pr_number = int(pr_number_str)
+        except ValueError:
+            return {
+                "text": f"Invalid PR number: {pr_number_str}",
+                "response_type": "ephemeral",
+            }
+        
+        # Create a PR review agent
+        agent = PRReviewAgent(
+            codebase=repo_name,
+            github_token=self.github_token,
+            slack_token=self.slack_token,
+            slack_channel_id=channel_id,  # Use the channel where the command was issued
+            output_dir=self.output_dir,
+        )
+        
+        # Send initial response
+        initial_response = {
+            "text": f"Reviewing PR #{pr_number} in {repo_name}...",
+            "response_type": "in_channel",
+        }
+        
+        # Review the PR
+        try:
+            review_result = agent.review_pr(repo_name, pr_number)
             
-            # Create a codebase instance for the repository
-            from codegen import Codebase
-            codebase = Codebase(repo_name, github_token=self.github_token)
+            # The agent will send the notification to Slack directly
+            return initial_response
             
-            # Create a PR review agent
-            pr_review_agent = PRReviewAgent(
-                codebase=codebase,
-                github_token=self.github_token,
-                slack_token=self.slack_token,
-                slack_channel_id=self.slack_channel_id,
-                output_dir=self.output_dir,
-                model_provider="anthropic" if self.anthropic_api_key else "openai",
-                model_name="claude-3-7-sonnet-latest" if self.anthropic_api_key else "gpt-4-turbo",
+        except Exception as e:
+            logger.error(f"Error reviewing PR: {e}")
+            
+            return {
+                "text": f"Error reviewing PR: {e}",
+                "response_type": "in_channel",
+            }
+    
+    def _send_slack_notification(self, repo_name: str, pr_number: int, review_result: Dict[str, Any], is_update: bool = False) -> None:
+        """Send a notification to Slack about the PR review."""
+        if not self.slack_client or not self.slack_channel_id:
+            return
+        
+        try:
+            message = f"*{'Updated ' if is_update else ''}PR Review Result for {repo_name}#{pr_number}*\n\n"
+            
+            if review_result.get("compliant", False):
+                message += ":white_check_mark: *This PR complies with project requirements.*\n\n"
+                
+                if review_result.get("approval_recommendation") == "approve":
+                    message += ":rocket: *The PR has been automatically approved and merged.*\n\n"
+            else:
+                message += ":x: *This PR does not fully comply with project requirements.*\n\n"
+            
+            issues = review_result.get("issues", [])
+            if issues and len(issues) > 0:
+                message += "*Issues:*\n"
+                for issue in issues:
+                    message += f"- {issue}\n"
+                message += "\n"
+            
+            suggestions = review_result.get("suggestions", [])
+            if suggestions and len(suggestions) > 0:
+                message += "*Suggestions:*\n"
+                for suggestion in suggestions:
+                    if isinstance(suggestion, dict):
+                        desc = suggestion.get("description", "")
+                        file_path = suggestion.get("file_path")
+                        line_number = suggestion.get("line_number")
+                        
+                        if file_path and line_number:
+                            message += f"- {desc} (in `{file_path}` at line {line_number})\n"
+                        elif file_path:
+                            message += f"- {desc} (in `{file_path}`)\n"
+                        else:
+                            message += f"- {desc}\n"
+                    else:
+                        message += f"- {suggestion}\n"
+                message += "\n"
+            
+            if review_result.get("approval_recommendation") == "approve":
+                message += ":thumbsup: *Recommendation: Approve*\n"
+            else:
+                message += ":thumbsdown: *Recommendation: Request Changes*\n"
+            
+            message += f"\n<https://github.com/{repo_name}/pull/{pr_number}|View PR on GitHub>"
+            
+            self.slack_client.chat_postMessage(
+                channel=self.slack_channel_id,
+                text=message
             )
             
-            # Review the PR
-            review_result = pr_review_agent.review_pr(repo_name, pr_number)
-            
-            return {
-                "status": "success",
-                "pr_number": pr_number,
-                "repo_name": repo_name,
-                "review_result": review_result,
-            }
+            logger.info(f"Sent PR review notification to Slack channel {self.slack_channel_id}")
         
         except Exception as e:
-            logger.error(f"Error handling PR event: {e}")
-            import traceback
-            logger.error(traceback.format_exc())
-            
-            return {
-                "status": "error",
-                "error": str(e),
-                "pr_number": event.number,
-                "repo_name": event.repository.full_name,
-            }
-    
-    def handle_slack_command(self, command: str, text: str, user_id: str, channel_id: str) -> Dict[str, Any]:
-        """Handle a Slack command."""
-        logger.info(f"Handling Slack command: {command} with text: {text}")
-        
-        try:
-            if command == "/review-pr":
-                # Parse the PR URL or repo/number format
-                import re
-                
-                # Try to match GitHub URL format
-                url_match = re.search(r'github\.com/([^/]+/[^/]+)/pull/(\d+)', text)
-                if url_match:
-                    repo_name = url_match.group(1)
-                    pr_number = int(url_match.group(2))
-                else:
-                    # Try to match repo#number format
-                    repo_pr_match = re.search(r'([^#]+)#(\d+)', text)
-                    if repo_pr_match:
-                        repo_name = repo_pr_match.group(1)
-                        pr_number = int(repo_pr_match.group(2))
-                    else:
-                        return {
-                            "status": "error",
-                            "error": "Invalid PR format. Use a GitHub URL or repo#number format.",
-                            "response_text": "Invalid PR format. Please use a GitHub URL (https://github.com/owner/repo/pull/123) or repo#number format (owner/repo#123).",
-                        }
-                
-                # Create a codebase instance for the repository
-                from codegen import Codebase
-                codebase = Codebase(repo_name, github_token=self.github_token)
-                
-                # Create a PR review agent
-                pr_review_agent = PRReviewAgent(
-                    codebase=codebase,
-                    github_token=self.github_token,
-                    slack_token=self.slack_token,
-                    slack_channel_id=channel_id,
-                    output_dir=self.output_dir,
-                    model_provider="anthropic" if self.anthropic_api_key else "openai",
-                    model_name="claude-3-7-sonnet-latest" if self.anthropic_api_key else "gpt-4-turbo",
-                )
-                
-                # Send initial response
-                from slack_sdk import WebClient
-                slack_client = WebClient(token=self.slack_token)
-                slack_client.chat_postMessage(
-                    channel=channel_id,
-                    text=f"Starting review of PR #{pr_number} in {repo_name}... This may take a few minutes."
-                )
-                
-                # Review the PR
-                review_result = pr_review_agent.review_pr(repo_name, pr_number)
-                
-                return {
-                    "status": "success",
-                    "pr_number": pr_number,
-                    "repo_name": repo_name,
-                    "review_result": review_result,
-                }
-            
-            elif command == "/create-plan":
-                # Format should be: title | description | markdown_url
-                parts = text.split("|")
-                if len(parts) != 3:
-                    return {
-                        "status": "error",
-                        "error": "Invalid format. Use: title | description | markdown_url",
-                        "response_text": "Invalid format. Please use: title | description | markdown_url",
-                    }
-                
-                title = parts[0].strip()
-                description = parts[1].strip()
-                markdown_url = parts[2].strip()
-                
-                # Fetch the markdown content
-                import requests
-                response = requests.get(markdown_url)
-                if response.status_code != 200:
-                    return {
-                        "status": "error",
-                        "error": f"Failed to fetch markdown content: {response.status_code}",
-                        "response_text": f"Failed to fetch markdown content: {response.status_code}",
-                    }
-                
-                markdown_content = response.text
-                
-                # Create a plan
-                plan = self.plan_manager.create_plan_from_markdown(markdown_content, title, description)
-                
-                # Generate a progress report
-                progress_report = self.plan_manager.generate_progress_report()
-                
-                # Send response
-                from slack_sdk import WebClient
-                slack_client = WebClient(token=self.slack_token)
-                slack_client.chat_postMessage(
-                    channel=channel_id,
-                    text=f"Created plan: {title}\n\n{progress_report[:1000]}...\n\nSee the full report in the output directory."
-                )
-                
-                return {
-                    "status": "success",
-                    "plan_title": title,
-                    "plan_description": description,
-                }
-            
-            elif command == "/next-step":
-                # Get the next step
-                next_step = self.plan_manager.get_next_step()
-                if not next_step:
-                    return {
-                        "status": "error",
-                        "error": "No pending steps found",
-                        "response_text": "No pending steps found in the current plan.",
-                    }
-                
-                # Update step status to in_progress
-                self.plan_manager.update_step_status(next_step.id, "in_progress")
-                
-                # Send response
-                from slack_sdk import WebClient
-                slack_client = WebClient(token=self.slack_token)
-                slack_client.chat_postMessage(
-                    channel=channel_id,
-                    text=f"Next step: {next_step.description}\n\nPlease implement this step and create a PR with the step ID ({next_step.id}) in the title or description."
-                )
-                
-                return {
-                    "status": "success",
-                    "step_id": next_step.id,
-                    "step_description": next_step.description,
-                }
-            
-            elif command == "/progress-report":
-                # Generate a progress report
-                progress_report = self.plan_manager.generate_progress_report()
-                
-                # Send response
-                from slack_sdk import WebClient
-                slack_client = WebClient(token=self.slack_token)
-                slack_client.chat_postMessage(
-                    channel=channel_id,
-                    text=f"Progress Report:\n\n{progress_report[:1000]}...\n\nSee the full report in the output directory."
-                )
-                
-                return {
-                    "status": "success",
-                    "progress_report": progress_report[:1000],
-                }
-            
-            else:
-                return {
-                    "status": "error",
-                    "error": f"Unknown command: {command}",
-                    "response_text": f"Unknown command: {command}",
-                }
-        
-        except Exception as e:
-            logger.error(f"Error handling Slack command: {e}")
-            import traceback
-            logger.error(traceback.format_exc())
-            
-            return {
-                "status": "error",
-                "error": str(e),
-                "command": command,
-                "text": text,
-            }
+            logger.error(f"Error sending Slack notification: {e}")
 
 
 def register_pr_review_handlers(app):
     """Register PR review handlers with the app."""
     
     # Initialize the PR review handler
-    pr_review_handler = PRReviewHandler(
+    handler = PRReviewHandler(
         github_token=os.environ.get("GITHUB_TOKEN", ""),
         slack_token=os.environ.get("SLACK_BOT_TOKEN", ""),
         slack_channel_id=os.environ.get("SLACK_CHANNEL_ID", ""),
         output_dir=os.environ.get("OUTPUT_DIR", "output"),
-        anthropic_api_key=os.environ.get("ANTHROPIC_API_KEY", ""),
-        openai_api_key=os.environ.get("OPENAI_API_KEY", ""),
     )
     
-    # Register GitHub event handlers
-    @app.github.event("pull_request:opened")
-    def handle_pr_opened(event: PullRequestEvent):
-        return pr_review_handler.handle_pr_event(event)
+    # Register GitHub webhook handlers
+    @app.route("/webhooks/github", methods=["POST"])
+    def github_webhook():
+        """Handle GitHub webhook events."""
+        payload = app.request.json
+        event_type = app.request.headers.get("X-GitHub-Event")
+        
+        if event_type == "pull_request":
+            action = payload.get("action")
+            
+            if action == "opened":
+                event = PullRequestEvent.from_dict(payload)
+                handler.handle_pr_opened(event)
+                return {"status": "success", "message": "PR opened event handled"}
+            
+            elif action == "synchronize":
+                event = PullRequestEvent.from_dict(payload)
+                handler.handle_pr_synchronize(event)
+                return {"status": "success", "message": "PR synchronize event handled"}
+            
+            elif action == "labeled":
+                event = PullRequestEvent.from_dict(payload)
+                handler.handle_pr_labeled(event)
+                return {"status": "success", "message": "PR labeled event handled"}
+        
+        return {"status": "ignored", "message": f"Ignored event: {event_type}/{payload.get('action')}"}
     
-    @app.github.event("pull_request:reopened")
-    def handle_pr_reopened(event: PullRequestEvent):
-        return pr_review_handler.handle_pr_event(event)
-    
-    @app.github.event("pull_request:synchronize")
-    def handle_pr_synchronize(event: PullRequestEvent):
-        return pr_review_handler.handle_pr_event(event)
-    
-    # Register Slack command handlers
-    @app.slack.event("app_mention")
-    async def handle_app_mention(event):
-        # Parse the message text
-        text = event.text
-        user_id = event.user
-        channel_id = event.channel
+    # Register Slack command handler
+    @app.route("/slack/commands/review", methods=["POST"])
+    def slack_review_command():
+        """Handle Slack /review command."""
+        form_data = app.request.form
         
-        # Check if this is a command
-        if "review pr" in text.lower():
-            # Extract the PR URL or reference
-            import re
-            pr_ref_match = re.search(r'review pr\s+(.+)', text.lower())
-            if pr_ref_match:
-                pr_ref = pr_ref_match.group(1).strip()
-                return pr_review_handler.handle_slack_command("/review-pr", pr_ref, user_id, channel_id)
+        command_text = form_data.get("text", "")
+        channel_id = form_data.get("channel_id", "")
+        user_id = form_data.get("user_id", "")
         
-        elif "create plan" in text.lower():
-            # Extract the plan details
-            import re
-            plan_match = re.search(r'create plan\s+(.+)', text.lower())
-            if plan_match:
-                plan_details = plan_match.group(1).strip()
-                return pr_review_handler.handle_slack_command("/create-plan", plan_details, user_id, channel_id)
+        response = handler.handle_slack_command(command_text, channel_id, user_id)
         
-        elif "next step" in text.lower():
-            return pr_review_handler.handle_slack_command("/next-step", "", user_id, channel_id)
-        
-        elif "progress report" in text.lower():
-            return pr_review_handler.handle_slack_command("/progress-report", "", user_id, channel_id)
-        
-        # Default response
-        from slack_sdk import WebClient
-        slack_client = WebClient(token=os.environ.get("SLACK_BOT_TOKEN", ""))
-        slack_client.chat_postMessage(
-            channel=channel_id,
-            text=f"Hello <@{user_id}>! I'm the PR Code Review agent. You can ask me to:\n"
-                 f"- review PR [URL or repo#number]\n"
-                 f"- create plan [title | description | markdown_url]\n"
-                 f"- next step\n"
-                 f"- progress report"
-        )
-        
-        return {"status": "success", "message": "Responded to app mention"}
+        return response
