@@ -24,6 +24,7 @@ from .slack_integration import slack
 from .task_orchestrator import task_orchestrator
 from .settings_api import router as settings_router
 from .agents.pr_review_agent_integration import pr_review_agent
+from .codegen_integration import codegen_integration
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -114,6 +115,30 @@ class ProjectPlanResponse(BaseModel):
     metadata: Dict[str, Any]
     created_at: datetime
     updated_at: datetime
+
+# Define API models for Codegen integration
+class CodeSearchRequest(BaseModel):
+    """Request model for searching code."""
+    repo_name: str
+    query: str
+
+class FileContentRequest(BaseModel):
+    """Request model for getting file content."""
+    repo_name: str
+    file_path: str
+
+class CreatePRRequest(BaseModel):
+    """Request model for creating a PR."""
+    repo_name: str
+    title: str
+    body: str
+    base_branch: Optional[str] = "main"
+    head_branch: Optional[str] = None
+
+class PRDetailsRequest(BaseModel):
+    """Request model for getting PR details."""
+    repo_name: str
+    pr_number: int
 
 # Define API endpoints
 @app.get("/")
@@ -457,6 +482,53 @@ async def delete_project_plan(project_plan_id: str):
     if not success:
         raise HTTPException(status_code=404, detail="Project plan not found")
     return {"success": True}
+
+# Codegen integration endpoints
+@app.post("/api/codegen/search", response_model=List[Dict[str, Any]])
+async def search_code(request: CodeSearchRequest):
+    """Search for code in a repository."""
+    try:
+        results = codegen_integration.search_code(request.repo_name, request.query)
+        return results
+    except Exception as e:
+        logger.error(f"Error searching code: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error searching code: {str(e)}")
+
+@app.post("/api/codegen/file", response_model=Dict[str, Any])
+async def get_file_content(request: FileContentRequest):
+    """Get the content of a file in a repository."""
+    try:
+        content = codegen_integration.get_file_content(request.repo_name, request.file_path)
+        return {"content": content}
+    except Exception as e:
+        logger.error(f"Error getting file content: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error getting file content: {str(e)}")
+
+@app.post("/api/codegen/pr/create", response_model=Dict[str, Any])
+async def create_pr(request: CreatePRRequest):
+    """Create a PR in a repository."""
+    try:
+        pr = codegen_integration.create_pr(
+            request.repo_name,
+            request.title,
+            request.body,
+            request.base_branch,
+            request.head_branch
+        )
+        return pr
+    except Exception as e:
+        logger.error(f"Error creating PR: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error creating PR: {str(e)}")
+
+@app.post("/api/codegen/pr/details", response_model=Dict[str, Any])
+async def get_pr_details(request: PRDetailsRequest):
+    """Get details of a PR in a repository."""
+    try:
+        pr = codegen_integration.get_pr_details(request.repo_name, request.pr_number)
+        return pr
+    except Exception as e:
+        logger.error(f"Error getting PR details: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error getting PR details: {str(e)}")
 
 # Startup and shutdown events
 @app.on_event("startup")
