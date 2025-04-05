@@ -38,6 +38,7 @@ class GitHubConfig(BaseModel):
 class AIConfig(BaseModel):
     """AI provider configuration."""
     provider: str = Field("anthropic", description="AI provider (anthropic, openai)")
+    model_name: str = Field("claude-3-opus-20240229", description="Model name to use")
     anthropic_api_key: Optional[str] = Field(None, description="Anthropic API key (ANTHROPIC_API_KEY)")
     openai_api_key: Optional[str] = Field(None, description="OpenAI API key (OPENAI_API_KEY)")
     
@@ -59,6 +60,7 @@ class WorkflowConfig(BaseModel):
     """Workflow configuration."""
     auto_start_requirements: bool = Field(False, description="Auto-start requirements tracking")
     auto_review_prs: bool = Field(False, description="Auto-review PRs")
+    auto_merge_prs: bool = Field(False, description="Auto-merge PRs that pass review")
     auto_update_status: bool = Field(True, description="Auto-update workflow status")
 
 class Config(BaseModel):
@@ -97,6 +99,8 @@ class Config(BaseModel):
             env["NGROK_DOMAIN"] = self.github.ngrok_domain
         
         # AI
+        env["AI_PROVIDER"] = self.ai.provider
+        env["AI_MODEL_NAME"] = self.ai.model_name
         if self.ai.anthropic_api_key:
             env["ANTHROPIC_API_KEY"] = self.ai.anthropic_api_key
         if self.ai.openai_api_key:
@@ -108,6 +112,12 @@ class Config(BaseModel):
         env["OUTPUT_DIR"] = self.app.output_dir
         env["PORT"] = str(self.app.port)
         env["INTERVAL"] = str(self.app.interval)
+        
+        # Workflow
+        env["AUTO_START_REQUIREMENTS"] = str(int(self.workflow.auto_start_requirements))
+        env["AUTO_REVIEW_PRS"] = str(int(self.workflow.auto_review_prs))
+        env["AUTO_MERGE_PRS"] = str(int(self.workflow.auto_merge_prs))
+        env["AUTO_UPDATE_STATUS"] = str(int(self.workflow.auto_update_status))
         
         return env
 
@@ -138,6 +148,10 @@ class Config(BaseModel):
             self.github.ngrok_domain = os.environ["NGROK_DOMAIN"]
         
         # AI
+        if os.environ.get("AI_PROVIDER"):
+            self.ai.provider = os.environ["AI_PROVIDER"]
+        if os.environ.get("AI_MODEL_NAME"):
+            self.ai.model_name = os.environ["AI_MODEL_NAME"]
         if os.environ.get("ANTHROPIC_API_KEY"):
             self.ai.anthropic_api_key = os.environ["ANTHROPIC_API_KEY"]
         if os.environ.get("OPENAI_API_KEY"):
@@ -158,6 +172,28 @@ class Config(BaseModel):
         if os.environ.get("INTERVAL"):
             try:
                 self.app.interval = int(os.environ["INTERVAL"])
+            except ValueError:
+                pass
+        
+        # Workflow
+        if os.environ.get("AUTO_START_REQUIREMENTS"):
+            try:
+                self.workflow.auto_start_requirements = bool(int(os.environ["AUTO_START_REQUIREMENTS"]))
+            except ValueError:
+                pass
+        if os.environ.get("AUTO_REVIEW_PRS"):
+            try:
+                self.workflow.auto_review_prs = bool(int(os.environ["AUTO_REVIEW_PRS"]))
+            except ValueError:
+                pass
+        if os.environ.get("AUTO_MERGE_PRS"):
+            try:
+                self.workflow.auto_merge_prs = bool(int(os.environ["AUTO_MERGE_PRS"]))
+            except ValueError:
+                pass
+        if os.environ.get("AUTO_UPDATE_STATUS"):
+            try:
+                self.workflow.auto_update_status = bool(int(os.environ["AUTO_UPDATE_STATUS"]))
             except ValueError:
                 pass
 
