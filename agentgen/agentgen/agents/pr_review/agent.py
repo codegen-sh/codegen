@@ -6,7 +6,8 @@ import os
 import re
 import json
 import logging
-from typing import Dict, List, Optional, Any
+import traceback
+from typing import Dict, List, Optional, Any, Tuple, Union
 from uuid import uuid4
 
 from github import Github
@@ -84,24 +85,141 @@ class PRReviewAgent(CodeAgent):
         )
     
     def create_plan_from_markdown(self, markdown_content: str, title: str, description: str) -> ProjectPlan:
+        """Create a project plan from markdown content."""
         return self.plan_manager.create_plan_from_markdown(markdown_content, title, description)
     
     def get_next_step(self) -> Optional[Step]:
+        """Get the next pending step in the current plan."""
         return self.plan_manager.get_next_step()
     
     def update_step_status(self, step_id: str, status: str, pr_number: Optional[int] = None, details: Optional[str] = None) -> None:
+        """Update the status of a step in the current plan."""
         self.plan_manager.update_step_status(step_id, status, pr_number, details)
     
     def generate_progress_report(self) -> str:
+        """Generate a progress report for the current plan."""
         return self.plan_manager.generate_progress_report()
     
     def research_codebase(self, query: str, file_patterns: Optional[List[str]] = None) -> ResearchResult:
+        """Research a codebase for patterns and insights based on a query."""
         return self.researcher.research_codebase(self.codebase, query, file_patterns)
     
     def generate_research_report(self, query: Optional[str] = None) -> str:
+        """Generate a research report."""
         return self.researcher.generate_research_report(query)
     
+    def analyze_pr_requirements(self, pr_title: str, pr_body: str, pr_files: List[Any]) -> Dict[str, Any]:
+        """Analyze PR requirements against the project plan and codebase patterns."""
+        plan = self.plan_manager.load_current_plan()
+        
+        # Extract keywords from PR title and body
+        keywords = self._extract_keywords(pr_title + " " + pr_body)
+        
+        # Research the codebase for patterns related to the PR
+        research_results = None
+        try:
+            if keywords:
+                research_results = self.research_codebase(" ".join(keywords))
+        except Exception as e:
+            logger.error(f"Error researching codebase: {e}")
+            logger.error(traceback.format_exc())
+        
+        # Analyze the PR against the plan requirements
+        requirements_analysis = self._analyze_requirements(pr_title, pr_body, plan)
+        
+        # Analyze the PR against codebase patterns
+        patterns_analysis = self._analyze_patterns(pr_files, research_results)
+        
+        return {
+            "requirements_analysis": requirements_analysis,
+            "patterns_analysis": patterns_analysis,
+            "research_results": research_results,
+        }
+    
+    def _analyze_requirements(self, pr_title: str, pr_body: str, plan: Optional[ProjectPlan]) -> Dict[str, Any]:
+        """Analyze PR against plan requirements."""
+        if not plan:
+            return {
+                "has_plan": False,
+                "matched_requirements": [],
+                "unmatched_requirements": [],
+                "compliance_score": 0.0,
+            }
+        
+        matched_requirements = []
+        unmatched_requirements = []
+        
+        # Check for requirement IDs in PR title and body
+        for req in plan.requirements:
+            if req.id.lower() in pr_title.lower() or req.id.lower() in pr_body.lower():
+                matched_requirements.append(req)
+            else:
+                # Check if requirement description keywords are in PR title or body
+                req_keywords = self._extract_keywords(req.description)
+                pr_keywords = self._extract_keywords(pr_title + " " + pr_body)
+                
+                if any(keyword in pr_keywords for keyword in req_keywords):
+                    matched_requirements.append(req)
+                else:
+                    unmatched_requirements.append(req)
+        
+        # Calculate compliance score
+        total_requirements = len(plan.requirements)
+        if total_requirements > 0:
+            compliance_score = len(matched_requirements) / total_requirements
+        else:
+            compliance_score = 1.0
+        
+        return {
+            "has_plan": True,
+            "matched_requirements": matched_requirements,
+            "unmatched_requirements": unmatched_requirements,
+            "compliance_score": compliance_score,
+        }
+    
+    def _analyze_patterns(self, pr_files: List[Any], research_results: Optional[ResearchResult]) -> Dict[str, Any]:
+        """Analyze PR against codebase patterns."""
+        if not research_results:
+            return {
+                "has_patterns": False,
+                "matched_patterns": [],
+                "unmatched_patterns": [],
+                "pattern_compliance_score": 0.0,
+            }
+        
+        matched_patterns = []
+        unmatched_patterns = []
+        
+        # Check if PR files match patterns found in research
+        for insight in research_results.insights:
+            pattern_matched = False
+            
+            for pr_file in pr_files:
+                if pr_file.filename == insight.file_path:
+                    pattern_matched = True
+                    break
+            
+            if pattern_matched:
+                matched_patterns.append(insight)
+            else:
+                unmatched_patterns.append(insight)
+        
+        # Calculate pattern compliance score
+        total_patterns = len(research_results.insights)
+        if total_patterns > 0:
+            pattern_compliance_score = len(matched_patterns) / total_patterns
+        else:
+            pattern_compliance_score = 1.0
+        
+        return {
+            "has_patterns": True,
+            "matched_patterns": matched_patterns,
+            "unmatched_patterns": unmatched_patterns,
+            "pattern_compliance_score": pattern_compliance_score,
+        }
+    
     def review_pr(self, repo_name: str, pr_number: int) -> Dict[str, Any]:
+        """Review a pull request and provide feedback."""
         logger.info(f"Reviewing PR #{pr_number} in {repo_name}")
         
         try:
@@ -112,29 +230,28 @@ class PRReviewAgent(CodeAgent):
             pr_body = pr.body or ""
             pr_files = list(pr.get_files())
             
-            plan = self.plan_manager.load_current_plan()
+            # Analyze PR requirements and patterns
+            analysis_result = self.analyze_pr_requirements(pr_title, pr_body, pr_files)
             
-            research_results = None
-            try:
-                keywords = self._extract_keywords(pr_title + " " + pr_body)
-                if keywords:
-                    research_results = self.research_codebase(" ".join(keywords))
-            except Exception as e:
-                logger.error(f"Error researching codebase: {e}")
-                logger.error(traceback.format_exc())
+            # Prepare prompt for LLM analysis
+            prompt = self._prepare_pr_analysis_prompt(repo_name, pr, pr_files, analysis_result)
             
-            prompt = self._prepare_pr_analysis_prompt(repo_name, pr, pr_files, plan, research_results)
+            # Run LLM analysis
+            llm_analysis_result = self.run(prompt)
             
-            analysis_result = self.run(prompt)
+            # Parse LLM analysis result
+            review_result = self._parse_analysis_result(llm_analysis_result)
             
-            review_result = self._parse_analysis_result(analysis_result)
-            
+            # Post review comment on GitHub
             self._post_review_comment(repo, pr, review_result)
             
+            # Submit formal review on GitHub
             self._submit_review(repo, pr, review_result)
             
+            # Update plan based on PR review
             self._update_plan_from_pr(pr, review_result)
             
+            # Send Slack notification if configured
             if self.slack_token and self.slack_channel_id:
                 self._send_slack_notification(repo_name, pr_number, review_result)
             
@@ -162,6 +279,7 @@ class PRReviewAgent(CodeAgent):
             }
     
     def _extract_keywords(self, text: str) -> List[str]:
+        """Extract keywords from text."""
         common_words = {"the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "with", "by", "about", "as"}
         
         words = re.findall(r'\b\w+\b', text.lower())
@@ -170,7 +288,8 @@ class PRReviewAgent(CodeAgent):
         
         return list(set(keywords))
     
-    def _prepare_pr_analysis_prompt(self, repo_name: str, pr: PullRequest, pr_files: List[Any], plan: Optional[ProjectPlan] = None, research_results: Optional[ResearchResult] = None) -> str:
+    def _prepare_pr_analysis_prompt(self, repo_name: str, pr: PullRequest, pr_files: List[Any], analysis_result: Dict[str, Any]) -> str:
+        """Prepare prompt for PR analysis."""
         pr_diff = pr.get_patch()
         
         pr_title = pr.title
@@ -196,24 +315,54 @@ class PRReviewAgent(CodeAgent):
         ```
         """
         
-        if plan:
+        # Add requirements analysis
+        requirements_analysis = analysis_result.get("requirements_analysis", {})
+        if requirements_analysis.get("has_plan", False):
             prompt += f"""
-            This PR should comply with the project plan:
+            Requirements Analysis:
+            - Compliance Score: {requirements_analysis.get("compliance_score", 0.0) * 100:.1f}%
             
-            Project: {plan.title}
-            Description: {plan.description}
-            
-            Requirements:
+            Matched Requirements:
             """
             
-            for req in plan.requirements:
-                prompt += f"- {req.description} (Status: {req.status})\n"
+            for req in requirements_analysis.get("matched_requirements", []):
+                prompt += f"- {req.id}: {req.description}\n"
             
-            prompt += "\nSteps:\n"
+            prompt += "\nUnmatched Requirements:\n"
             
-            for step in plan.steps:
-                prompt += f"- {step.description} (Status: {step.status})\n"
+            for req in requirements_analysis.get("unmatched_requirements", []):
+                prompt += f"- {req.id}: {req.description}\n"
         
+        # Add patterns analysis
+        patterns_analysis = analysis_result.get("patterns_analysis", {})
+        if patterns_analysis.get("has_patterns", False):
+            prompt += f"""
+            Codebase Patterns Analysis:
+            - Pattern Compliance Score: {patterns_analysis.get("pattern_compliance_score", 0.0) * 100:.1f}%
+            
+            Matched Patterns:
+            """
+            
+            for pattern in patterns_analysis.get("matched_patterns", []):
+                prompt += f"""
+                - {pattern.description}
+                  File: {pattern.file_path}
+                  {"Line: " + str(pattern.line_number) if pattern.line_number else ""}
+                  Category: {pattern.category}
+                """
+            
+            prompt += "\nUnmatched Patterns:\n"
+            
+            for pattern in patterns_analysis.get("unmatched_patterns", []):
+                prompt += f"""
+                - {pattern.description}
+                  File: {pattern.file_path}
+                  {"Line: " + str(pattern.line_number) if pattern.line_number else ""}
+                  Category: {pattern.category}
+                """
+        
+        # Add research results
+        research_results = analysis_result.get("research_results")
         if research_results:
             prompt += f"""
             Codebase Research Insights:
@@ -263,6 +412,7 @@ class PRReviewAgent(CodeAgent):
         return prompt
     
     def _parse_analysis_result(self, analysis_result: str) -> Dict[str, Any]:
+        """Parse the analysis result from LLM."""
         try:
             json_match = re.search(r'```json\s*(.*?)\s*```', analysis_result, re.DOTALL)
             if json_match:
@@ -296,6 +446,7 @@ class PRReviewAgent(CodeAgent):
             }
     
     def _post_review_comment(self, repo: Repository, pr: PullRequest, review_result: Dict[str, Any]) -> None:
+        """Post a review comment on the PR."""
         comment = f"# PR Review Bot Analysis\n\n"
 
         if review_result.get("compliant", False):
@@ -338,6 +489,7 @@ class PRReviewAgent(CodeAgent):
             logger.error(f"Error posting review comment: {e}")
     
     def _submit_review(self, repo: Repository, pr: PullRequest, review_result: Dict[str, Any]) -> None:
+        """Submit a formal review on the PR."""
         if review_result.get("approval_recommendation") == "approve":
             review_state = "APPROVE"
         else:
@@ -352,6 +504,7 @@ class PRReviewAgent(CodeAgent):
             logger.error(f"Error submitting formal review: {e}")
     
     def _update_plan_from_pr(self, pr: PullRequest, review_result: Dict[str, Any]) -> None:
+        """Update the project plan based on PR review."""
         plan = self.plan_manager.load_current_plan()
         if not plan:
             return
@@ -362,7 +515,8 @@ class PRReviewAgent(CodeAgent):
         
         is_compliant = review_result.get("compliant", False)
         
-        step_id_match = re.search(r'step-(\d+)', pr_title + " " + pr_body, re.IGNORECASE)
+        # Check for step ID in PR title or body
+        step_id_match = re.search(r'step-([\w-]+)', pr_title + " " + pr_body, re.IGNORECASE)
         if step_id_match:
             step_id = f"step-{step_id_match.group(1)}"
             
@@ -381,7 +535,8 @@ class PRReviewAgent(CodeAgent):
                     details=f"In progress in PR #{pr_number}: {pr_title}"
                 )
         
-        req_id_match = re.search(r'req-(\d+)', pr_title + " " + pr_body, re.IGNORECASE)
+        # Check for requirement ID in PR title or body
+        req_id_match = re.search(r'req-([\w-]+)', pr_title + " " + pr_body, re.IGNORECASE)
         if req_id_match:
             req_id = f"req-{req_id_match.group(1)}"
             
@@ -401,6 +556,7 @@ class PRReviewAgent(CodeAgent):
                 )
     
     def _send_slack_notification(self, repo_name: str, pr_number: int, review_result: Dict[str, Any]) -> None:
+        """Send a notification to Slack about the PR review."""
         from slack_sdk import WebClient
         
         try:
