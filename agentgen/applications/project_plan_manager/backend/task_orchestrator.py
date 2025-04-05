@@ -42,6 +42,8 @@ class TaskOrchestrator:
         self.step_handlers[f"{WorkflowType.PR_REVIEW.value}:1"] = self._handle_fetch_pr_details
         self.step_handlers[f"{WorkflowType.PR_REVIEW.value}:2"] = self._handle_analyze_pr_changes
         self.step_handlers[f"{WorkflowType.PR_REVIEW.value}:3"] = self._handle_generate_review_comments
+        self.step_handlers[f"{WorkflowType.PR_REVIEW.value}:4"] = self._handle_post_review_to_github
+        self.step_handlers[f"{WorkflowType.PR_REVIEW.value}:5"] = self._handle_auto_merge_pr
         
         # Requirements workflow step handlers
         self.step_handlers[f"{WorkflowType.REQUIREMENTS.value}:1"] = self._handle_analyze_requirement
@@ -164,8 +166,27 @@ class TaskOrchestrator:
                 description="Generate review comments for the PR",
                 status=StepStatus.PENDING,
                 order=3
+            ),
+            WorkflowStep(
+                id=str(uuid.uuid4()),
+                title="Post review to GitHub",
+                description="Post the review comments to GitHub",
+                status=StepStatus.PENDING,
+                order=4
             )
         ]
+        
+        # Add auto-merge step if enabled
+        if config.workflow.auto_merge_prs:
+            steps.append(
+                WorkflowStep(
+                    id=str(uuid.uuid4()),
+                    title="Auto-merge PR",
+                    description="Auto-merge the PR if it passes review",
+                    status=StepStatus.PENDING,
+                    order=5
+                )
+            )
         
         workflow = Workflow(
             id=str(uuid.uuid4()),
@@ -253,26 +274,39 @@ class TaskOrchestrator:
         # Notify about step start
         slack.send_message(f"Starting step: {step.title} for workflow: {workflow.title}")
         
-        # Execute the step handler if registered
+        # Get the step handler
         step_key = f"{workflow.type.value}:{step.order}"
-        if step_key in self.step_handlers:
-            try:
-                self.step_handlers[step_key](workflow, step)
-            except Exception as e:
-                logger.error(f"Error executing step handler for {step_key}: {e}")
-                self._fail_workflow_step(workflow, step, str(e))
+        step_handler = self.step_handlers.get(step_key)
+        
+        if step_handler:
+            # Run the step handler in a separate thread
+            thread = threading.Thread(target=step_handler, args=(workflow, step))
+            thread.daemon = True
+            thread.start()
+        else:
+            logger.warning(f"No handler found for step {step_key}")
+            self._fail_workflow_step(workflow, step, f"No handler found for step {step_key}")
     
-    def _complete_workflow_step(self, workflow: Workflow, step: WorkflowStep, details: Optional[str] = None) -> None:
+    def _complete_workflow_step(self, workflow: Workflow, step: WorkflowStep, result: Any = None) -> None:
         """Complete a workflow step."""
         # Update the step status
         db.update_workflow_step(workflow.id, step.id, {
             "status": StepStatus.COMPLETED,
             "completed_at": datetime.now(),
-            "details": details
+            "result": {"result": result} if result else {}
         })
         
         # Notify about step completion
         slack.send_message(f"Completed step: {step.title} for workflow: {workflow.title}")
+        
+        # Check if all steps are completed
+        workflow = db.get_workflow(workflow.id)
+        if workflow:
+            pending_steps = [s for s in workflow.steps if s.status == StepStatus.PENDING]
+            in_progress_steps = [s for s in workflow.steps if s.status == StepStatus.IN_PROGRESS]
+            
+            if not pending_steps and not in_progress_steps:
+                self._complete_workflow(workflow)
     
     def _fail_workflow_step(self, workflow: Workflow, step: WorkflowStep, error: str) -> None:
         """Fail a workflow step."""
@@ -280,7 +314,7 @@ class TaskOrchestrator:
         db.update_workflow_step(workflow.id, step.id, {
             "status": StepStatus.FAILED,
             "completed_at": datetime.now(),
-            "details": f"Error: {error}"
+            "error": error
         })
         
         # Notify about step failure
@@ -288,6 +322,18 @@ class TaskOrchestrator:
         
         # Fail the workflow
         self._fail_workflow(workflow, f"Step {step.title} failed: {error}")
+    
+    def _skip_workflow_step(self, workflow: Workflow, step: WorkflowStep, reason: str) -> None:
+        """Skip a workflow step."""
+        # Update the step status
+        db.update_workflow_step(workflow.id, step.id, {
+            "status": StepStatus.SKIPPED,
+            "completed_at": datetime.now(),
+            "result": {"reason": reason}
+        })
+        
+        # Notify about step skipping
+        slack.send_message(f"Skipped step: {step.title} for workflow: {workflow.title}\nReason: {reason}")
     
     def _complete_workflow(self, workflow: Workflow) -> None:
         """Complete a workflow."""
@@ -304,22 +350,12 @@ class TaskOrchestrator:
         if workflow.type == WorkflowType.PR_REVIEW:
             pr_review_id = workflow.metadata.get("pr_review_id")
             if pr_review_id:
-                db.update_pr_review(pr_review_id, {
-                    "status": PRReviewStatus.COMPLETED,
-                    "completed_at": datetime.now()
-                })
-                
                 pr_review = db.get_pr_review(pr_review_id)
                 if pr_review:
                     slack.send_message(f"Completed PR review for PR #{pr_review.pr_number} in {pr_review.repo}: {pr_review.title}")
         elif workflow.type == WorkflowType.REQUIREMENTS:
             requirement_id = workflow.metadata.get("requirement_id")
             if requirement_id:
-                db.update_requirement(requirement_id, {
-                    "status": RequirementStatus.COMPLETED,
-                    "completed_at": datetime.now()
-                })
-                
                 requirement = db.get_requirement(requirement_id)
                 if requirement:
                     slack.send_message(f"Completed implementation of requirement: {requirement.title}")
@@ -329,7 +365,11 @@ class TaskOrchestrator:
         # Update the workflow status
         db.update_workflow(workflow.id, {
             "status": WorkflowStatus.FAILED,
-            "metadata": {**workflow.metadata, "error": error}
+            "completed_at": datetime.now(),
+            "metadata": {
+                **workflow.metadata,
+                "error": error
+            }
         })
         
         # Notify about workflow failure
@@ -341,7 +381,10 @@ class TaskOrchestrator:
             if pr_review_id:
                 db.update_pr_review(pr_review_id, {
                     "status": PRReviewStatus.FAILED,
-                    "metadata": {"error": error}
+                    "metadata": {
+                        **db.get_pr_review(pr_review_id).metadata,
+                        "error": error
+                    }
                 })
                 
                 pr_review = db.get_pr_review(pr_review_id)
@@ -352,7 +395,10 @@ class TaskOrchestrator:
             if requirement_id:
                 db.update_requirement(requirement_id, {
                     "status": RequirementStatus.FAILED,
-                    "metadata": {"error": error}
+                    "metadata": {
+                        **db.get_requirement(requirement_id).metadata,
+                        "error": error
+                    }
                 })
                 
                 requirement = db.get_requirement(requirement_id)
@@ -364,7 +410,11 @@ class TaskOrchestrator:
         # Update the workflow status
         db.update_workflow(workflow.id, {
             "status": WorkflowStatus.CANCELLED,
-            "metadata": {**workflow.metadata, "cancel_reason": reason}
+            "completed_at": datetime.now(),
+            "metadata": {
+                **workflow.metadata,
+                "cancel_reason": reason
+            }
         })
         
         # Notify about workflow cancellation
@@ -455,6 +505,86 @@ class TaskOrchestrator:
             self._complete_workflow_step(workflow, step, details)
         except Exception as e:
             logger.error(f"Error generating review comments: {e}")
+            self._fail_workflow_step(workflow, step, str(e))
+    
+    def _handle_post_review_to_github(self, workflow: Workflow, step: WorkflowStep) -> None:
+        """Handle the 'Post review to GitHub' step."""
+        try:
+            pr_review_id = workflow.metadata.get("pr_review_id")
+            if not pr_review_id:
+                raise ValueError("PR review ID not found in workflow metadata")
+            
+            pr_review = db.get_pr_review(pr_review_id)
+            if not pr_review:
+                raise ValueError(f"PR review with ID {pr_review_id} not found")
+            
+            # Post the review to GitHub
+            result = pr_review_agent.post_review_to_github(pr_review)
+            
+            if not result.get("success", False):
+                raise ValueError(f"Failed to post review to GitHub: {result.get('error', 'Unknown error')}")
+            
+            # Update the PR review with the GitHub review ID
+            db.update_pr_review(pr_review_id, {
+                "metadata": {
+                    **pr_review.metadata,
+                    "github_review_id": result.get("review_id"),
+                    "github_review_state": result.get("review_state")
+                }
+            })
+            
+            # Update the step with review details
+            details = f"Posted review to GitHub for PR #{pr_review.pr_number} in {pr_review.repo}"
+            self._complete_workflow_step(workflow, step, details)
+        except Exception as e:
+            logger.error(f"Error posting review to GitHub: {e}")
+            self._fail_workflow_step(workflow, step, str(e))
+    
+    def _handle_auto_merge_pr(self, workflow: Workflow, step: WorkflowStep) -> None:
+        """Handle the 'Auto-merge PR' step."""
+        try:
+            pr_review_id = workflow.metadata.get("pr_review_id")
+            if not pr_review_id:
+                raise ValueError("PR review ID not found in workflow metadata")
+            
+            pr_review = db.get_pr_review(pr_review_id)
+            if not pr_review:
+                raise ValueError(f"PR review with ID {pr_review_id} not found")
+            
+            # Check if auto-merge is enabled
+            if not config.workflow.auto_merge_prs:
+                reason = "Auto-merge is disabled"
+                self._skip_workflow_step(workflow, step, reason)
+                return
+            
+            # Check if the PR review passed
+            if pr_review.status != PRReviewStatus.COMPLETED:
+                reason = f"PR review did not pass (status: {pr_review.status})"
+                self._skip_workflow_step(workflow, step, reason)
+                return
+            
+            # Auto-merge the PR
+            result = pr_review_agent.auto_merge_pr(pr_review)
+            
+            if not result.get("success", False):
+                reason = f"Failed to auto-merge PR: {result.get('reason', result.get('error', 'Unknown error'))}"
+                self._skip_workflow_step(workflow, step, reason)
+                return
+            
+            # Update the PR review with the merge result
+            db.update_pr_review(pr_review_id, {
+                "metadata": {
+                    **pr_review.metadata,
+                    "auto_merged": True,
+                    "merge_message": result.get("message")
+                }
+            })
+            
+            # Update the step with merge details
+            details = f"Auto-merged PR #{pr_review.pr_number} in {pr_review.repo}"
+            self._complete_workflow_step(workflow, step, details)
+        except Exception as e:
+            logger.error(f"Error auto-merging PR: {e}")
             self._fail_workflow_step(workflow, step, str(e))
     
     # Requirements workflow step handlers

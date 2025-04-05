@@ -9,7 +9,7 @@ import uuid
 from datetime import datetime
 from typing import Dict, List, Optional, Any, Union
 
-from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks
+from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks, Request, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -23,6 +23,7 @@ from .config import config
 from .slack_integration import slack
 from .task_orchestrator import task_orchestrator
 from .settings_api import router as settings_router
+from .agents.pr_review_agent_integration import pr_review_agent
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -124,6 +125,33 @@ async def root():
 async def health():
     """Health check endpoint."""
     return {"status": "ok"}
+
+# GitHub webhook endpoint
+@app.post("/webhook/github")
+async def github_webhook(request: Request, x_hub_signature_256: Optional[str] = Header(None), x_github_event: Optional[str] = Header(None)):
+    """GitHub webhook endpoint."""
+    # Verify the webhook signature
+    payload = await request.body()
+    if not pr_review_agent.verify_webhook_signature(payload, x_hub_signature_256):
+        logger.warning("Invalid webhook signature")
+        raise HTTPException(status_code=401, detail="Invalid webhook signature")
+    
+    # Parse the payload
+    try:
+        payload_json = await request.json()
+    except Exception as e:
+        logger.error(f"Error parsing webhook payload: {e}")
+        raise HTTPException(status_code=400, detail="Invalid JSON payload")
+    
+    # Handle the webhook event
+    if not x_github_event:
+        logger.warning("No X-GitHub-Event header provided")
+        raise HTTPException(status_code=400, detail="No X-GitHub-Event header provided")
+    
+    # Process the webhook event
+    result = pr_review_agent.handle_webhook(x_github_event, payload_json)
+    
+    return {"status": "ok", "event": x_github_event, "result": result}
 
 # Slack endpoints
 @app.post("/slack/send-message", response_model=SlackMessageResponse)
@@ -289,6 +317,52 @@ async def delete_pr_review(pr_review_id: str):
     if not success:
         raise HTTPException(status_code=404, detail="PR review not found")
     return {"success": True}
+
+@app.post("/pr-reviews/{pr_review_id}/post-to-github", response_model=Dict[str, Any])
+async def post_pr_review_to_github(pr_review_id: str):
+    """Post a PR review to GitHub."""
+    pr_review = db.get_pr_review(pr_review_id)
+    if not pr_review:
+        raise HTTPException(status_code=404, detail="PR review not found")
+    
+    result = pr_review_agent.post_review_to_github(pr_review)
+    
+    if not result.get("success", False):
+        raise HTTPException(status_code=500, detail=f"Failed to post review to GitHub: {result.get('error', 'Unknown error')}")
+    
+    # Update the PR review with the GitHub review ID
+    db.update_pr_review(pr_review_id, {
+        "metadata": {
+            **pr_review.metadata,
+            "github_review_id": result.get("review_id"),
+            "github_review_state": result.get("review_state")
+        }
+    })
+    
+    return result
+
+@app.post("/pr-reviews/{pr_review_id}/auto-merge", response_model=Dict[str, Any])
+async def auto_merge_pr(pr_review_id: str):
+    """Auto-merge a PR."""
+    pr_review = db.get_pr_review(pr_review_id)
+    if not pr_review:
+        raise HTTPException(status_code=404, detail="PR review not found")
+    
+    result = pr_review_agent.auto_merge_pr(pr_review)
+    
+    if not result.get("success", False):
+        raise HTTPException(status_code=500, detail=f"Failed to auto-merge PR: {result.get('reason', result.get('error', 'Unknown error'))}")
+    
+    # Update the PR review with the merge result
+    db.update_pr_review(pr_review_id, {
+        "metadata": {
+            **pr_review.metadata,
+            "auto_merged": True,
+            "merge_message": result.get("message")
+        }
+    })
+    
+    return result
 
 # Requirement endpoints
 @app.post("/requirements", response_model=RequirementResponse)

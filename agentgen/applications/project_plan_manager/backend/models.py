@@ -37,6 +37,7 @@ class Settings(BaseModel):
     interval: int = 3600
     auto_start_requirements: bool = False
     auto_review_prs: bool = False
+    auto_merge_prs: bool = False
     auto_update_status: bool = True
 
 # Workflow models
@@ -93,6 +94,7 @@ class PRReviewStatus(str, Enum):
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
     FAILED = "failed"
+    CANCELLED = "cancelled"
 
 class PRReviewComment(BaseModel):
     """Comment on a PR review."""
@@ -122,6 +124,7 @@ class RequirementStatus(str, Enum):
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
     FAILED = "failed"
+    CANCELLED = "cancelled"
 
 class RequirementPriority(str, Enum):
     """Priority of a requirement."""
@@ -148,6 +151,7 @@ class ProjectPlanStatus(str, Enum):
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
     FAILED = "failed"
+    CANCELLED = "cancelled"
 
 class ProjectPlan(BaseItem):
     """Project plan."""
