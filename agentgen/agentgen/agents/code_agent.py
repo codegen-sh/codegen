@@ -8,17 +8,17 @@ from langchain_core.runnables.config import RunnableConfig
 from langgraph.graph.graph import CompiledGraph
 from langsmith import Client
 
-from codegen.agents.loggers import ExternalLogger
-from codegen.agents.tracer import MessageStreamTracer
-from codegen.extensions.langchain.agent import create_codebase_agent
-from codegen.extensions.langchain.utils.get_langsmith_url import (
+from agentgen.agents.loggers import ExternalLogger
+from agentgen.agents.tracer import MessageStreamTracer
+from agentgen.extensions.langchain.agent import create_codebase_agent
+from agentgen.extensions.langchain.utils.get_langsmith_url import (
     find_and_print_langsmith_run_url,
 )
 
 if TYPE_CHECKING:
-    from codegen import Codebase
+    from agentgen import Codebase
 
-from codegen.agents.utils import AgentConfig
+from agentgen.agents.utils import AgentConfig
 
 
 class CodeAgent:
