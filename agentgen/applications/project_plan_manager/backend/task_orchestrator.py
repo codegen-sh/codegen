@@ -1,14 +1,15 @@
 """
-Task orchestrator module for the unified agent application.
-This module provides functionality for orchestrating tasks and workflows.
+Task orchestrator for the unified agent application.
+This module provides the task orchestrator for the application.
 """
 
-import logging
-import threading
+import os
 import time
 import uuid
+import logging
+import threading
 from datetime import datetime
-from typing import Dict, List, Optional, Any, Callable, Union, Tuple
+from typing import Dict, List, Any, Optional, Callable
 
 from .models import (
     Workflow, WorkflowStep, WorkflowStatus, StepStatus, WorkflowType,
@@ -17,7 +18,10 @@ from .models import (
 from .database import db
 from .config import config
 from .slack_integration import slack
+from .agents import pr_review_agent
 
+# Set up logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class TaskOrchestrator:
@@ -27,33 +31,53 @@ class TaskOrchestrator:
         """Initialize the task orchestrator."""
         self.running = False
         self.thread = None
-        self.task_handlers = {}
-        self.workflow_handlers = {}
+        self.step_handlers = {}
+        
+        # Register step handlers
+        self._register_step_handlers()
     
-    def start(self) -> bool:
+    def _register_step_handlers(self):
+        """Register step handlers for workflow steps."""
+        # PR Review workflow step handlers
+        self.step_handlers[f"{WorkflowType.PR_REVIEW.value}:1"] = self._handle_fetch_pr_details
+        self.step_handlers[f"{WorkflowType.PR_REVIEW.value}:2"] = self._handle_analyze_pr_changes
+        self.step_handlers[f"{WorkflowType.PR_REVIEW.value}:3"] = self._handle_generate_review_comments
+        
+        # Requirements workflow step handlers
+        self.step_handlers[f"{WorkflowType.REQUIREMENTS.value}:1"] = self._handle_analyze_requirement
+        self.step_handlers[f"{WorkflowType.REQUIREMENTS.value}:2"] = self._handle_implement_requirement
+        self.step_handlers[f"{WorkflowType.REQUIREMENTS.value}:3"] = self._handle_test_requirement
+        
+        # Project Plan workflow step handlers
+        self.step_handlers[f"{WorkflowType.PROJECT_PLAN.value}:1"] = self._handle_analyze_project_plan
+        self.step_handlers[f"{WorkflowType.PROJECT_PLAN.value}:2"] = self._handle_generate_tasks
+        self.step_handlers[f"{WorkflowType.PROJECT_PLAN.value}:3"] = self._handle_assign_tasks
+    
+    def start(self):
         """Start the task orchestrator."""
         if self.running:
-            return True
+            return
         
-        try:
-            self.running = True
-            self.thread = threading.Thread(target=self._run)
-            self.thread.daemon = True
-            self.thread.start()
-            return True
-        except Exception as e:
-            logger.error(f"Failed to start task orchestrator: {e}")
-            self.running = False
-            return False
+        self.running = True
+        self.thread = threading.Thread(target=self._run)
+        self.thread.daemon = True
+        self.thread.start()
+        
+        logger.info("Task orchestrator started")
     
-    def stop(self) -> None:
+    def stop(self):
         """Stop the task orchestrator."""
+        if not self.running:
+            return
+        
         self.running = False
         if self.thread:
-            self.thread.join(timeout=1)
+            self.thread.join(timeout=5)
             self.thread = None
+        
+        logger.info("Task orchestrator stopped")
     
-    def _run(self) -> None:
+    def _run(self):
         """Run the task orchestrator."""
         while self.running:
             try:
@@ -61,8 +85,7 @@ class TaskOrchestrator:
                 self._process_workflows()
                 
                 # Process PR reviews
-                if config.workflow.auto_review_prs:
-                    self._process_pr_reviews()
+                self._process_pr_reviews()
                 
                 # Process requirements
                 if config.workflow.auto_start_requirements:
@@ -83,14 +106,16 @@ class TaskOrchestrator:
                 pending_steps = [step for step in workflow.steps if step.status == StepStatus.PENDING]
                 in_progress_steps = [step for step in workflow.steps if step.status == StepStatus.IN_PROGRESS]
                 
-                # If there are no in-progress steps and there are pending steps, start the next step
-                if not in_progress_steps and pending_steps:
-                    next_step = min(pending_steps, key=lambda step: step.order)
-                    self._start_workflow_step(workflow, next_step)
-                
-                # If there are no pending or in-progress steps, complete the workflow
                 if not pending_steps and not in_progress_steps:
+                    # All steps are completed, mark the workflow as completed
                     self._complete_workflow(workflow)
+                elif not in_progress_steps and pending_steps:
+                    # Start the next pending step
+                    next_step = min(pending_steps, key=lambda s: s.order)
+                    self._start_workflow_step(workflow, next_step)
+            elif workflow.status == WorkflowStatus.PENDING:
+                # Start the workflow
+                self._start_workflow(workflow)
     
     def _process_pr_reviews(self) -> None:
         """Process PR reviews."""
@@ -139,13 +164,6 @@ class TaskOrchestrator:
                 description="Generate review comments for the PR",
                 status=StepStatus.PENDING,
                 order=3
-            ),
-            WorkflowStep(
-                id=str(uuid.uuid4()),
-                title="Submit review",
-                description="Submit the review to GitHub",
-                status=StepStatus.PENDING,
-                order=4
             )
         ]
         
@@ -180,17 +198,10 @@ class TaskOrchestrator:
             ),
             WorkflowStep(
                 id=str(uuid.uuid4()),
-                title="Test implementation",
+                title="Test requirement",
                 description="Test the implementation of the requirement",
                 status=StepStatus.PENDING,
                 order=3
-            ),
-            WorkflowStep(
-                id=str(uuid.uuid4()),
-                title="Create PR",
-                description="Create a PR for the implementation",
-                status=StepStatus.PENDING,
-                order=4
             )
         ]
         
@@ -208,9 +219,6 @@ class TaskOrchestrator:
     
     def _start_workflow(self, workflow: Workflow) -> None:
         """Start a workflow."""
-        if workflow.status != WorkflowStatus.PENDING:
-            return
-        
         # Update the workflow status
         db.update_workflow(workflow.id, {
             "status": WorkflowStatus.IN_PROGRESS,
@@ -218,6 +226,9 @@ class TaskOrchestrator:
         })
         
         # Notify about workflow start
+        slack.send_message(f"Starting workflow: {workflow.title}")
+        
+        # Handle specific workflow types
         if workflow.type == WorkflowType.PR_REVIEW:
             pr_review_id = workflow.metadata.get("pr_review_id")
             if pr_review_id:
@@ -244,23 +255,20 @@ class TaskOrchestrator:
         
         # Execute the step handler if registered
         step_key = f"{workflow.type.value}:{step.order}"
-        if step_key in self.workflow_handlers:
+        if step_key in self.step_handlers:
             try:
-                self.workflow_handlers[step_key](workflow, step)
+                self.step_handlers[step_key](workflow, step)
             except Exception as e:
                 logger.error(f"Error executing step handler for {step_key}: {e}")
-                db.update_workflow_step(workflow.id, step.id, {
-                    "status": StepStatus.FAILED,
-                    "error": str(e)
-                })
+                self._fail_workflow_step(workflow, step, str(e))
     
-    def _complete_workflow_step(self, workflow: Workflow, step: WorkflowStep, result: Optional[Dict[str, Any]] = None) -> None:
+    def _complete_workflow_step(self, workflow: Workflow, step: WorkflowStep, details: Optional[str] = None) -> None:
         """Complete a workflow step."""
         # Update the step status
         db.update_workflow_step(workflow.id, step.id, {
             "status": StepStatus.COMPLETED,
             "completed_at": datetime.now(),
-            "result": result
+            "details": details
         })
         
         # Notify about step completion
@@ -271,22 +279,15 @@ class TaskOrchestrator:
         # Update the step status
         db.update_workflow_step(workflow.id, step.id, {
             "status": StepStatus.FAILED,
-            "error": error
+            "completed_at": datetime.now(),
+            "details": f"Error: {error}"
         })
         
         # Notify about step failure
         slack.send_message(f"Failed step: {step.title} for workflow: {workflow.title}\nError: {error}")
-    
-    def _skip_workflow_step(self, workflow: Workflow, step: WorkflowStep, reason: str) -> None:
-        """Skip a workflow step."""
-        # Update the step status
-        db.update_workflow_step(workflow.id, step.id, {
-            "status": StepStatus.SKIPPED,
-            "result": {"reason": reason}
-        })
         
-        # Notify about step skip
-        slack.send_message(f"Skipped step: {step.title} for workflow: {workflow.title}\nReason: {reason}")
+        # Fail the workflow
+        self._fail_workflow(workflow, f"Step {step.title} failed: {error}")
     
     def _complete_workflow(self, workflow: Workflow) -> None:
         """Complete a workflow."""
@@ -296,7 +297,10 @@ class TaskOrchestrator:
             "completed_at": datetime.now()
         })
         
-        # Update related entities
+        # Notify about workflow completion
+        slack.send_message(f"Completed workflow: {workflow.title}")
+        
+        # Handle specific workflow types
         if workflow.type == WorkflowType.PR_REVIEW:
             pr_review_id = workflow.metadata.get("pr_review_id")
             if pr_review_id:
@@ -328,7 +332,10 @@ class TaskOrchestrator:
             "metadata": {**workflow.metadata, "error": error}
         })
         
-        # Update related entities
+        # Notify about workflow failure
+        slack.send_message(f"Failed workflow: {workflow.title}\nError: {error}")
+        
+        # Handle specific workflow types
         if workflow.type == WorkflowType.PR_REVIEW:
             pr_review_id = workflow.metadata.get("pr_review_id")
             if pr_review_id:
@@ -362,111 +369,203 @@ class TaskOrchestrator:
         
         # Notify about workflow cancellation
         slack.send_message(f"Cancelled workflow: {workflow.title}\nReason: {reason}")
+        
+        # Handle specific workflow types
+        if workflow.type == WorkflowType.PR_REVIEW:
+            pr_review_id = workflow.metadata.get("pr_review_id")
+            if pr_review_id:
+                db.update_pr_review(pr_review_id, {
+                    "status": PRReviewStatus.CANCELLED,
+                    "metadata": {"cancel_reason": reason}
+                })
+                
+                pr_review = db.get_pr_review(pr_review_id)
+                if pr_review:
+                    slack.send_message(f"Cancelled PR review for PR #{pr_review.pr_number} in {pr_review.repo}: {pr_review.title}\nReason: {reason}")
+        elif workflow.type == WorkflowType.REQUIREMENTS:
+            requirement_id = workflow.metadata.get("requirement_id")
+            if requirement_id:
+                db.update_requirement(requirement_id, {
+                    "status": RequirementStatus.CANCELLED,
+                    "metadata": {"cancel_reason": reason}
+                })
+                
+                requirement = db.get_requirement(requirement_id)
+                if requirement:
+                    slack.send_message(f"Cancelled implementation of requirement: {requirement.title}\nReason: {reason}")
     
-    def register_workflow_handler(self, workflow_type: WorkflowType, step_order: int, handler: Callable[[Workflow, WorkflowStep], None]) -> None:
-        """Register a workflow step handler."""
-        step_key = f"{workflow_type.value}:{step_order}"
-        self.workflow_handlers[step_key] = handler
+    # PR Review workflow step handlers
+    def _handle_fetch_pr_details(self, workflow: Workflow, step: WorkflowStep) -> None:
+        """Handle the 'Fetch PR details' step."""
+        try:
+            pr_review_id = workflow.metadata.get("pr_review_id")
+            if not pr_review_id:
+                raise ValueError("PR review ID not found in workflow metadata")
+            
+            pr_review = db.get_pr_review(pr_review_id)
+            if not pr_review:
+                raise ValueError(f"PR review with ID {pr_review_id} not found")
+            
+            # Update the step with PR details
+            details = f"PR #{pr_review.pr_number} in {pr_review.repo}: {pr_review.title}"
+            self._complete_workflow_step(workflow, step, details)
+        except Exception as e:
+            logger.error(f"Error fetching PR details: {e}")
+            self._fail_workflow_step(workflow, step, str(e))
     
-    def create_workflow(self, title: str, description: str, workflow_type: WorkflowType, steps: List[Dict[str, Any]], metadata: Dict[str, Any] = None) -> Workflow:
-        """Create a new workflow."""
-        workflow_steps = []
-        for i, step_data in enumerate(steps):
-            step = WorkflowStep(
-                id=str(uuid.uuid4()),
-                title=step_data["title"],
-                description=step_data.get("description"),
-                status=StepStatus.PENDING,
-                order=i + 1
-            )
-            workflow_steps.append(step)
-        
-        workflow = Workflow(
-            id=str(uuid.uuid4()),
-            title=title,
-            description=description,
-            type=workflow_type,
-            status=WorkflowStatus.PENDING,
-            steps=workflow_steps,
-            metadata=metadata or {}
-        )
-        
-        return db.create_workflow(workflow)
+    def _handle_analyze_pr_changes(self, workflow: Workflow, step: WorkflowStep) -> None:
+        """Handle the 'Analyze PR changes' step."""
+        try:
+            pr_review_id = workflow.metadata.get("pr_review_id")
+            if not pr_review_id:
+                raise ValueError("PR review ID not found in workflow metadata")
+            
+            pr_review = db.get_pr_review(pr_review_id)
+            if not pr_review:
+                raise ValueError(f"PR review with ID {pr_review_id} not found")
+            
+            # Update the step with analysis details
+            details = f"Analyzed PR #{pr_review.pr_number} in {pr_review.repo}"
+            self._complete_workflow_step(workflow, step, details)
+        except Exception as e:
+            logger.error(f"Error analyzing PR changes: {e}")
+            self._fail_workflow_step(workflow, step, str(e))
     
-    def start_workflow(self, workflow_id: str) -> Optional[Workflow]:
-        """Start a workflow."""
-        workflow = db.get_workflow(workflow_id)
-        if not workflow:
-            return None
-        
-        self._start_workflow(workflow)
-        return db.get_workflow(workflow_id)
+    def _handle_generate_review_comments(self, workflow: Workflow, step: WorkflowStep) -> None:
+        """Handle the 'Generate review comments' step."""
+        try:
+            pr_review_id = workflow.metadata.get("pr_review_id")
+            if not pr_review_id:
+                raise ValueError("PR review ID not found in workflow metadata")
+            
+            pr_review = db.get_pr_review(pr_review_id)
+            if not pr_review:
+                raise ValueError(f"PR review with ID {pr_review_id} not found")
+            
+            # Use the PR review agent to generate review comments
+            review_result = pr_review_agent.review_pr(pr_review)
+            
+            # Update the step with review details
+            details = f"Generated review for PR #{pr_review.pr_number} in {pr_review.repo}"
+            if review_result.get("compliant", False):
+                details += " - PR is compliant with requirements"
+            else:
+                details += " - PR has issues that need to be addressed"
+            
+            self._complete_workflow_step(workflow, step, details)
+        except Exception as e:
+            logger.error(f"Error generating review comments: {e}")
+            self._fail_workflow_step(workflow, step, str(e))
     
-    def complete_workflow_step(self, workflow_id: str, step_id: str, result: Optional[Dict[str, Any]] = None) -> Optional[Workflow]:
-        """Complete a workflow step."""
-        workflow = db.get_workflow(workflow_id)
-        if not workflow:
-            return None
-        
-        step = next((s for s in workflow.steps if s.id == step_id), None)
-        if not step:
-            return None
-        
-        self._complete_workflow_step(workflow, step, result)
-        return db.get_workflow(workflow_id)
+    # Requirements workflow step handlers
+    def _handle_analyze_requirement(self, workflow: Workflow, step: WorkflowStep) -> None:
+        """Handle the 'Analyze requirement' step."""
+        try:
+            requirement_id = workflow.metadata.get("requirement_id")
+            if not requirement_id:
+                raise ValueError("Requirement ID not found in workflow metadata")
+            
+            requirement = db.get_requirement(requirement_id)
+            if not requirement:
+                raise ValueError(f"Requirement with ID {requirement_id} not found")
+            
+            # Update the step with analysis details
+            details = f"Analyzed requirement: {requirement.title}"
+            self._complete_workflow_step(workflow, step, details)
+        except Exception as e:
+            logger.error(f"Error analyzing requirement: {e}")
+            self._fail_workflow_step(workflow, step, str(e))
     
-    def fail_workflow_step(self, workflow_id: str, step_id: str, error: str) -> Optional[Workflow]:
-        """Fail a workflow step."""
-        workflow = db.get_workflow(workflow_id)
-        if not workflow:
-            return None
-        
-        step = next((s for s in workflow.steps if s.id == step_id), None)
-        if not step:
-            return None
-        
-        self._fail_workflow_step(workflow, step, error)
-        return db.get_workflow(workflow_id)
+    def _handle_implement_requirement(self, workflow: Workflow, step: WorkflowStep) -> None:
+        """Handle the 'Implement requirement' step."""
+        try:
+            requirement_id = workflow.metadata.get("requirement_id")
+            if not requirement_id:
+                raise ValueError("Requirement ID not found in workflow metadata")
+            
+            requirement = db.get_requirement(requirement_id)
+            if not requirement:
+                raise ValueError(f"Requirement with ID {requirement_id} not found")
+            
+            # Update the step with implementation details
+            details = f"Implemented requirement: {requirement.title}"
+            self._complete_workflow_step(workflow, step, details)
+        except Exception as e:
+            logger.error(f"Error implementing requirement: {e}")
+            self._fail_workflow_step(workflow, step, str(e))
     
-    def skip_workflow_step(self, workflow_id: str, step_id: str, reason: str) -> Optional[Workflow]:
-        """Skip a workflow step."""
-        workflow = db.get_workflow(workflow_id)
-        if not workflow:
-            return None
-        
-        step = next((s for s in workflow.steps if s.id == step_id), None)
-        if not step:
-            return None
-        
-        self._skip_workflow_step(workflow, step, reason)
-        return db.get_workflow(workflow_id)
+    def _handle_test_requirement(self, workflow: Workflow, step: WorkflowStep) -> None:
+        """Handle the 'Test requirement' step."""
+        try:
+            requirement_id = workflow.metadata.get("requirement_id")
+            if not requirement_id:
+                raise ValueError("Requirement ID not found in workflow metadata")
+            
+            requirement = db.get_requirement(requirement_id)
+            if not requirement:
+                raise ValueError(f"Requirement with ID {requirement_id} not found")
+            
+            # Update the step with test details
+            details = f"Tested requirement: {requirement.title}"
+            self._complete_workflow_step(workflow, step, details)
+        except Exception as e:
+            logger.error(f"Error testing requirement: {e}")
+            self._fail_workflow_step(workflow, step, str(e))
     
-    def complete_workflow(self, workflow_id: str) -> Optional[Workflow]:
-        """Complete a workflow."""
-        workflow = db.get_workflow(workflow_id)
-        if not workflow:
-            return None
-        
-        self._complete_workflow(workflow)
-        return db.get_workflow(workflow_id)
+    # Project Plan workflow step handlers
+    def _handle_analyze_project_plan(self, workflow: Workflow, step: WorkflowStep) -> None:
+        """Handle the 'Analyze project plan' step."""
+        try:
+            project_plan_id = workflow.metadata.get("project_plan_id")
+            if not project_plan_id:
+                raise ValueError("Project plan ID not found in workflow metadata")
+            
+            project_plan = db.get_project_plan(project_plan_id)
+            if not project_plan:
+                raise ValueError(f"Project plan with ID {project_plan_id} not found")
+            
+            # Update the step with analysis details
+            details = f"Analyzed project plan: {project_plan.title}"
+            self._complete_workflow_step(workflow, step, details)
+        except Exception as e:
+            logger.error(f"Error analyzing project plan: {e}")
+            self._fail_workflow_step(workflow, step, str(e))
     
-    def fail_workflow(self, workflow_id: str, error: str) -> Optional[Workflow]:
-        """Fail a workflow."""
-        workflow = db.get_workflow(workflow_id)
-        if not workflow:
-            return None
-        
-        self._fail_workflow(workflow, error)
-        return db.get_workflow(workflow_id)
+    def _handle_generate_tasks(self, workflow: Workflow, step: WorkflowStep) -> None:
+        """Handle the 'Generate tasks' step."""
+        try:
+            project_plan_id = workflow.metadata.get("project_plan_id")
+            if not project_plan_id:
+                raise ValueError("Project plan ID not found in workflow metadata")
+            
+            project_plan = db.get_project_plan(project_plan_id)
+            if not project_plan:
+                raise ValueError(f"Project plan with ID {project_plan_id} not found")
+            
+            # Update the step with task generation details
+            details = f"Generated tasks for project plan: {project_plan.title}"
+            self._complete_workflow_step(workflow, step, details)
+        except Exception as e:
+            logger.error(f"Error generating tasks: {e}")
+            self._fail_workflow_step(workflow, step, str(e))
     
-    def cancel_workflow(self, workflow_id: str, reason: str) -> Optional[Workflow]:
-        """Cancel a workflow."""
-        workflow = db.get_workflow(workflow_id)
-        if not workflow:
-            return None
-        
-        self._cancel_workflow(workflow, reason)
-        return db.get_workflow(workflow_id)
+    def _handle_assign_tasks(self, workflow: Workflow, step: WorkflowStep) -> None:
+        """Handle the 'Assign tasks' step."""
+        try:
+            project_plan_id = workflow.metadata.get("project_plan_id")
+            if not project_plan_id:
+                raise ValueError("Project plan ID not found in workflow metadata")
+            
+            project_plan = db.get_project_plan(project_plan_id)
+            if not project_plan:
+                raise ValueError(f"Project plan with ID {project_plan_id} not found")
+            
+            # Update the step with task assignment details
+            details = f"Assigned tasks for project plan: {project_plan.title}"
+            self._complete_workflow_step(workflow, step, details)
+        except Exception as e:
+            logger.error(f"Error assigning tasks: {e}")
+            self._fail_workflow_step(workflow, step, str(e))
 
-# Global task orchestrator instance
+# Create a singleton instance
 task_orchestrator = TaskOrchestrator()
