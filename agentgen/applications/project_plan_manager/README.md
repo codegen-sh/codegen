@@ -164,6 +164,7 @@ The application provides a RESTful API for interacting with the agent. Here are 
 - `GET /project-plans/{project_plan_id}`: Get a project plan by ID
 - `PUT /project-plans/{project_plan_id}`: Update a project plan
 - `DELETE /project-plans/{project_plan_id}`: Delete a project plan
+![Screenshot 2025-04-05 072913](https://github.com/user-attachments/assets/46243c05-0ab2-420e-a9d6-19f94cb17a1b)
 
 !!!!!!!!!!!! BELOW - Analyze project's full featured functionality - Mark each completed step [X] Task 1 and not completed [ ] Task 2 -- Create implementation plan for not completed steps !!!!!!!
 
