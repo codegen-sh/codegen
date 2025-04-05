@@ -12,8 +12,8 @@ from github import Github
 from github.Repository import Repository
 from github.PullRequest import PullRequest
 from github.ContentFile import ContentFile
-from codegen import Codebase
-from codegen.configs.models.secrets import SecretsConfig
+from agentgen import Codebase
+from agentgen.configs.models.secrets import SecretsConfig
 
 # Add the agentgen directory to the Python path
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -21,7 +21,7 @@ agentgen_dir = os.path.abspath(os.path.join(current_dir, "../.."))
 sys.path.insert(0, agentgen_dir)
 
 from agentgen.agents.code_agent import CodeAgent
-from codegen.extensions.langchain.tools import (
+from agentgen.extensions.langchain.tools import (
     # Github
     GithubViewPRTool,
     GithubCreatePRCommentTool,

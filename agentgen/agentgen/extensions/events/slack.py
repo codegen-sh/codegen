@@ -1,11 +1,15 @@
-import logging
 import os
+import json
+import logging
+import traceback
+from typing import Dict, List, Any, Optional, Callable, Union
 
-from slack_sdk import WebClient
+from fastapi import Request, Response, HTTPException
+from fastapi.responses import JSONResponse
 
-from codegen.extensions.events.interface import EventHandlerManagerProtocol
-from codegen.extensions.slack.types import SlackWebhookPayload
-from codegen.shared.logging.get_logger import get_logger
+from agentgen.extensions.events.interface import EventHandlerManagerProtocol
+from agentgen.extensions.slack.types import SlackWebhookPayload
+from agentgen.shared.logging.get_logger import get_logger
 
 logger = get_logger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -28,11 +32,9 @@ class Slack(EventHandlerManagerProtocol):
         self.registered_handlers.clear()
 
     async def handle(self, event_data: dict) -> dict:
-        """Handle incoming Slack events."""
         logger.info("[HANDLER] Handling Slack event")
 
         try:
-            # Validate and convert to SlackWebhookPayload
             event = SlackWebhookPayload.model_validate(event_data)
 
             if event.type == "url_verification":
@@ -43,7 +45,6 @@ class Slack(EventHandlerManagerProtocol):
                     return {"message": "Event handled successfully"}
                 else:
                     handler = self.registered_handlers[event.event.type]
-                    # Since the handler might be async, await it
                     result = handler(event.event)
                     if hasattr(result, "__await__"):
                         result = await result
@@ -57,16 +58,13 @@ class Slack(EventHandlerManagerProtocol):
             return {"error": f"Failed to handle event: {e!s}"}
 
     def event(self, event_name: str):
-        """Decorator for registering a Slack event handler."""
         logger.info(f"[EVENT] Registering handler for {event_name}")
 
         def register_handler(func):
-            # Register the handler with the app's registry
             func_name = func.__qualname__
             logger.info(f"[EVENT] Registering function {func_name} for {event_name}")
 
             async def new_func(event):
-                # Just pass the event, handler can access client via app.slack.client
                 return await func(event)
 
             self.registered_handlers[event_name] = new_func

@@ -3,26 +3,29 @@ Enhanced PR Review Agent with planning and research capabilities.
 """
 
 import os
-import re
-import json
+import sys
 import logging
 import traceback
-from typing import Dict, List, Optional, Any, Tuple, Union
-from uuid import uuid4
-
+from logging import getLogger
+from typing import Dict, List, Any, Optional, Tuple
 from github import Github
-from github.PullRequest import PullRequest
 from github.Repository import Repository
-from langchain.tools import BaseTool
-from langchain_core.messages import AIMessage, HumanMessage
-from langchain_core.runnables.config import RunnableConfig
+from github.PullRequest import PullRequest
+from github.ContentFile import ContentFile
 
-from codegen.agents.code_agent import CodeAgent
-from codegen.agents.utils import AgentConfig
-from codegen.extensions.planning.manager import PlanManager, ProjectPlan, Step, Requirement
-from codegen.extensions.research.researcher import Researcher, CodeInsight, ResearchResult
-from codegen.extensions.reflection.reflector import Reflector, ReflectionResult
-from codegen.shared.logging.get_logger import get_logger
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+logger = getLogger("pr_review_agent")
+
+from agentgen.agents.code_agent import CodeAgent
+from agentgen.agents.utils import AgentConfig
+from agentgen.extensions.planning.manager import PlanManager, ProjectPlan, Step, Requirement
+from agentgen.extensions.research.researcher import Researcher, CodeInsight, ResearchResult
+from agentgen.extensions.reflection.reflector import Reflector, ReflectionResult
+from agentgen.shared.logging.get_logger import get_logger
 
 logger = get_logger(__name__)
 
