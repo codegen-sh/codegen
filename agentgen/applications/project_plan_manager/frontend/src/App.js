@@ -15,6 +15,7 @@ import PRReviews from './pages/PRReviews';
 import ProjectPlans from './pages/ProjectPlans';
 import Workflows from './pages/Workflows';
 import Settings from './pages/Settings';
+import CodeExplorer from './pages/CodeExplorer';
 
 // Create theme
 const theme = createTheme({
@@ -44,6 +45,7 @@ function App() {
             <Route path="/project-plans" element={<ProjectPlans />} />
             <Route path="/workflows" element={<Workflows />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/code-explorer" element={<CodeExplorer />} />
           </Routes>
         </Layout>
       </Router>
