@@ -1,6 +1,0 @@
-python-dotenv>=1.0.0
-PyGithub>=2.1.1
-markdown>=3.4.3
-beautifulsoup4>=4.12.2
-slack-sdk>=3.21.3
-requests>=2.28.2
