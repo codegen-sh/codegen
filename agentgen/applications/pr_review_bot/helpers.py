@@ -3,6 +3,7 @@ Helper functions for the PR Review Bot.
 """
 
 import os
+import sys
 import logging
 import traceback
 from logging import getLogger
@@ -13,7 +14,13 @@ from github.PullRequest import PullRequest
 from github.ContentFile import ContentFile
 from codegen import Codebase
 from codegen.configs.models.secrets import SecretsConfig
-from codegen import CodeAgent
+
+# Add the agentgen directory to the Python path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+agentgen_dir = os.path.abspath(os.path.join(current_dir, "../.."))
+sys.path.insert(0, agentgen_dir)
+
+from agentgen.agents.code_agent import CodeAgent
 from codegen.extensions.langchain.tools import (
     # Github
     GithubViewPRTool,

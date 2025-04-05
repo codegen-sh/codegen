@@ -12,6 +12,10 @@ import argparse
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, current_dir)
 
+# Add the agentgen directory to the Python path
+agentgen_dir = os.path.abspath(os.path.join(current_dir, "../.."))
+sys.path.insert(0, agentgen_dir)
+
 def main():
     """Main entry point for the run script."""
     # Parse command line arguments
