@@ -1,0 +1,12 @@
+codegen>=0.31.1
+fastapi>=0.115.8
+uvicorn>=0.27.1
+pydantic>=2.10.6
+python-dotenv>=1.0.0
+PyGithub>=2.1.1
+requests>=2.31.0
+markdown>=3.5.2
+beautifulsoup4>=4.12.3
+langchain-core>=0.1.27
+langchain-anthropic>=0.1.6
+langchain-openai>=0.0.5
