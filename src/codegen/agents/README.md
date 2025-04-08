@@ -21,7 +21,7 @@ from codegen.agents.agent import Agent
 agent = Agent(
     org_id="11",  # Your organization ID
     token="your_api_token_here",  # Your API authentication token
-    base_url="https://codegen-sh-rest-api.modal.run"  # Optional - defaults to this URL
+    base_url="https://codegen-sh-rest-api.modal.run",  # Optional - defaults to this URL
 )
 
 # Run an agent with a prompt
@@ -50,6 +50,7 @@ Agent(token: str, org_id: Optional[int] = None, base_url: Optional[str] = CODEGE
 ```
 
 Parameters:
+
 - `token` (required): Your API authentication token
 - `org_id` (optional): Your organization ID. If not provided, defaults to environment variable `CODEGEN_ORG_ID` or "1"
 - `base_url` (optional): API base URL. Defaults to "https://codegen-sh-rest-api.modal.run"
@@ -65,9 +66,11 @@ run(prompt: str) -> AgentTask
 Runs an agent with the given prompt.
 
 Parameters:
+
 - `prompt` (required): The instruction for the agent to execute
 
 Returns:
+
 - An `AgentTask` object representing the running task
 
 #### get_status()
@@ -79,6 +82,7 @@ get_status() -> Optional[Dict[str, Any]]
 Gets the status of the current task.
 
 Returns:
+
 - A dictionary containing task status information (`id`, `status`, `result`), or `None` if no task has been run
 
 ### AgentTask Class

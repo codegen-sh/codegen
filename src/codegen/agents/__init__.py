@@ -1,6 +1,5 @@
-"""
-Codegen Agent API module.
-"""
+"""Codegen Agent API module."""
+
 from codegen.agents.agent import Agent
 
-__all__ = ["Agent"] 
+__all__ = ["Agent"]
