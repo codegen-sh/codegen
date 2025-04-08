@@ -77,7 +77,7 @@ class TestAgentTask:
         
         # Verify API was called with correct params
         mock_agents_api.get_agent_run_v1_organizations_org_id_agent_run_agent_run_id_get.assert_called_once_with(
-            agent_run_id="123",  # Use string ID as stored in agent_task.id
+            agent_run_id=123,  # Use string ID as stored in agent_task.id
             org_id=42,
             authorization="Bearer test-token"
         )
@@ -220,7 +220,7 @@ class TestAgentIntegration:
     def mock_response(self):
         """Create a mock response for API calls"""
         mock_response = MagicMock() # Remove spec=AgentRunResponse
-        mock_response.id = "987"
+        mock_response.id = 987
         mock_response.status = "running"
         mock_response.result = None
         mock_response.web_url = "https://example.com/run/987"
@@ -230,7 +230,7 @@ class TestAgentIntegration:
     def mock_updated_response(self):
         """Create a mock updated response for API calls"""
         mock_updated = {
-            "id": "987",
+            "id": 987,
             "status": "completed",
             "result": {"output": "Task completed successfully"},
             "web_url": "https://example.com/run/987"
@@ -266,7 +266,7 @@ class TestAgentIntegration:
             job = agent.run("Execute this instruction")
             
             # Verify job properties
-            assert job.id == "987"
+            assert job.id == 987
             assert job.status == "running"
             assert job.result is None
             
@@ -275,14 +275,14 @@ class TestAgentIntegration:
             
             # Verify API calls
             mock_agents_api.get_agent_run_v1_organizations_org_id_agent_run_agent_run_id_get.assert_called_once_with(
-                agent_run_id="987",  # Use string ID
+                agent_run_id=987,
                 org_id=123,
                 authorization="Bearer test-token"
             )
             
             # Verify status
             assert isinstance(status, dict)
-            assert status["id"] == "987"
+            assert status["id"] == 987
             assert status["status"] == "completed"
             assert status["result"] == {"output": "Task completed successfully"}
             assert status["web_url"] == "https://example.com/run/987"
