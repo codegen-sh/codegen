@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Generic, TypeVar
+from typing import Generic, TypeVar
 
 from pydantic import BaseModel, Field, StrictBytes, StrictInt
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping
+from collections.abc import Mapping
 
 T = TypeVar("T")
 
