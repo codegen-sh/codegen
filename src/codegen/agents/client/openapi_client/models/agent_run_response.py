@@ -31,7 +31,8 @@ class AgentRunResponse(BaseModel):
     status: Optional[StrictStr] = None
     created_at: Optional[StrictStr] = None
     result: Optional[StrictStr] = None
-    __properties: ClassVar[List[str]] = ["id", "organization_id", "status", "created_at", "result"]
+    web_url: Optional[StrictStr] = None
+    __properties: ClassVar[List[str]] = ["id", "organization_id", "status", "created_at", "result", "web_url"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -103,7 +104,8 @@ class AgentRunResponse(BaseModel):
             "organization_id": obj.get("organization_id"),
             "status": obj.get("status"),
             "created_at": obj.get("created_at"),
-            "result": obj.get("result")
+            "result": obj.get("result"),
+            "web_url": obj.get("web_url")
         })
         return _obj
 

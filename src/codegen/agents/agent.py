@@ -17,9 +17,10 @@ class AgentTask:
         self.org_id = org_id
         self.status = task_data.status
         self.result = task_data.result
+        self.web_url = task_data.web_url
         self._api_client = api_client
         self._agents_api = AgentsApi(api_client)
-    
+        
     def refresh(self) -> None:
         """Refresh the job status from the API."""
         if self.id is None:
@@ -81,7 +82,6 @@ class Agent:
             authorization=f"Bearer {self.token}",
             _headers={"Content-Type": "application/json"}
         )
-        
         # Convert API response to dict for Job initialization
         
         job = AgentTask(agent_run_response, self.api_client, self.org_id)
@@ -101,6 +101,7 @@ class Agent:
             return {
                 "id": self.current_job.id,
                 "status": self.current_job.status,
-                "result": self.current_job.result
+                "result": self.current_job.result,
+                "web_url": self.current_job.web_url
             }
         return None
