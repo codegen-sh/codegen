@@ -26,11 +26,11 @@ from urllib.parse import quote
 from typing import Tuple, Optional, List, Dict, Union
 from pydantic import SecretStr
 
-from openapi_client.configuration import Configuration
-from openapi_client.api_response import ApiResponse, T as ApiResponseT
-import openapi_client.models
-from openapi_client import rest
-from openapi_client.exceptions import (
+from codegen.agents.client.openapi_client.configuration import Configuration
+from codegen.agents.client.openapi_client.api_response import ApiResponse, T as ApiResponseT
+import codegen.agents.client.openapi_client as openapi_client
+from codegen.agents.client.openapi_client import rest
+from codegen.agents.client.openapi_client.exceptions import (
     ApiValueError,
     ApiException,
     BadRequestException,
