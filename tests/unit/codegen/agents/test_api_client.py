@@ -89,8 +89,8 @@ class TestApiClient:
 
     def test_sanitize_for_serialization_datetime(self, api_client):
         """Test sanitization of datetime values"""
-        dt = datetime.datetime(2022, 1, 1, 12, 0, 0)
-        assert api_client.sanitize_for_serialization(dt) == "2022-01-01T12:00:00"
+        dt = datetime.datetime(2022, 1, 1, 12, 0, 0, tzinfo=datetime.timezone.utc)
+        assert api_client.sanitize_for_serialization(dt) == "2022-01-01T12:00:00+00:00"
 
         date = datetime.date(2022, 1, 1)
         assert api_client.sanitize_for_serialization(date) == "2022-01-01"
