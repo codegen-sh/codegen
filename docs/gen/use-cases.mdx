@@ -1,0 +1,196 @@
+---
+title: "Common Use Cases"
+sidebarTitle: "Use Cases"
+icon: "lightbulb"
+iconType: "solid"
+---
+
+# Common Use Cases for Codegen
+
+Codegen is designed to streamline your development workflow and help you accomplish tasks more efficiently. Here are some common ways teams use Codegen:
+
+## Code Research and Understanding
+
+<AccordionGroup>
+  <Accordion title="Exploring Unfamiliar Codebases" icon="compass">
+    ```
+    @codegen How does the authentication flow work in our app?
+    ```
+    
+    Codegen will analyze the codebase, identify authentication-related files, and explain the flow with relevant code snippets and diagrams.
+  </Accordion>
+  
+  <Accordion title="Finding Code Examples" icon="magnifying-glass">
+    ```
+    @codegen Show me examples of how we use the API client in our codebase
+    ```
+    
+    Codegen will search for and present examples of API client usage across your codebase, helping you understand patterns and conventions.
+  </Accordion>
+  
+  <Accordion title="Tracing Function Calls" icon="route">
+    ```
+    @codegen Trace the execution path of the processPayment function
+    ```
+    
+    Codegen will analyze the call graph to show you how the function is called, what dependencies it has, and what other functions it calls.
+  </Accordion>
+</AccordionGroup>
+
+## Code Modifications and Refactoring
+
+<AccordionGroup>
+  <Accordion title="Implementing New Features" icon="plus">
+    ```
+    @codegen Add input validation to the user registration form
+    ```
+    
+    Codegen will locate the registration form, implement appropriate validation logic, and create a PR with the changes.
+  </Accordion>
+  
+  <Accordion title="Fixing Bugs" icon="bug">
+    ```
+    @codegen Fix the issue where the dashboard doesn't load user data
+    ```
+    
+    Codegen will investigate the issue, identify the root cause, and implement a fix with appropriate error handling.
+  </Accordion>
+  
+  <Accordion title="Refactoring Code" icon="arrows-rotate">
+    ```
+    @codegen Refactor the UserService class to use dependency injection
+    ```
+    
+    Codegen will restructure the class to follow dependency injection patterns while maintaining functionality.
+  </Accordion>
+  
+  <Accordion title="Updating Dependencies" icon="arrow-up">
+    ```
+    @codegen Update our React components to use the latest API
+    ```
+    
+    Codegen will identify components using deprecated APIs and update them to use the current recommended patterns.
+  </Accordion>
+</AccordionGroup>
+
+## Code Reviews and Quality
+
+<AccordionGroup>
+  <Accordion title="Reviewing Pull Requests" icon="code-pull-request">
+    ```
+    @codegen Review PR #123
+    ```
+    
+    Codegen will analyze the PR, provide feedback on code quality, suggest improvements, and identify potential issues.
+  </Accordion>
+  
+  <Accordion title="Improving Test Coverage" icon="vial">
+    ```
+    @codegen Add unit tests for the PaymentProcessor class
+    ```
+    
+    Codegen will create comprehensive tests covering different scenarios and edge cases for the specified class.
+  </Accordion>
+  
+  <Accordion title="Code Quality Checks" icon="check">
+    ```
+    @codegen Check our error handling in the API routes
+    ```
+    
+    Codegen will analyze error handling patterns, identify inconsistencies or gaps, and suggest improvements.
+  </Accordion>
+</AccordionGroup>
+
+## Documentation and Knowledge Sharing
+
+<AccordionGroup>
+  <Accordion title="Generating Documentation" icon="file-lines">
+    ```
+    @codegen Create documentation for our authentication API
+    ```
+    
+    Codegen will analyze the API and create comprehensive documentation with endpoints, parameters, and examples.
+  </Accordion>
+  
+  <Accordion title="Explaining Complex Logic" icon="diagram-project">
+    ```
+    @codegen Explain the caching strategy in our app
+    ```
+    
+    Codegen will analyze the caching implementation and provide a clear explanation with diagrams and examples.
+  </Accordion>
+  
+  <Accordion title="Creating Onboarding Materials" icon="user-plus">
+    ```
+    @codegen Create a guide for new developers on our project structure
+    ```
+    
+    Codegen will generate a comprehensive guide explaining the project's architecture, key components, and conventions.
+  </Accordion>
+</AccordionGroup>
+
+## Project Management
+
+<AccordionGroup>
+  <Accordion title="Issue Triage" icon="clipboard-list">
+    ```
+    @codegen Find all issues related to authentication
+    ```
+    
+    Codegen will search through Linear or GitHub issues to find and summarize authentication-related tasks.
+  </Accordion>
+  
+  <Accordion title="Task Breakdown" icon="puzzle-piece">
+    ```
+    @codegen Break down the task of implementing the new notification system
+    ```
+    
+    Codegen will analyze the requirements and create a detailed breakdown of subtasks needed to implement the feature.
+  </Accordion>
+  
+  <Accordion title="Status Updates" icon="chart-line">
+    ```
+    @codegen What's the status of our API migration project?
+    ```
+    
+    Codegen will gather information from issues, PRs, and commits to provide a comprehensive status update.
+  </Accordion>
+</AccordionGroup>
+
+## Advanced Use Cases
+
+<AccordionGroup>
+  <Accordion title="Large-Scale Refactoring" icon="wand-magic-sparkles">
+    ```
+    @codegen Convert all our Promise-based code to use async/await
+    ```
+    
+    Codegen can help plan and execute large-scale code transformations across your codebase.
+  </Accordion>
+  
+  <Accordion title="Architecture Analysis" icon="building">
+    ```
+    @codegen Analyze our microservice dependencies
+    ```
+    
+    Codegen will map out service dependencies, identify potential bottlenecks, and suggest architectural improvements.
+  </Accordion>
+  
+  <Accordion title="Performance Optimization" icon="gauge-high">
+    ```
+    @codegen Identify performance bottlenecks in our rendering logic
+    ```
+    
+    Codegen will analyze the code for performance issues and suggest optimizations with measurable impact.
+  </Accordion>
+</AccordionGroup>
+
+## Getting Started
+
+To start using Codegen for these use cases:
+
+1. [Install Codegen](https://codegen.sh/install) and connect it to your GitHub, Slack, and Linear accounts
+2. Mention `@codegen` in your Slack channel followed by your request
+3. Review Codegen's response and provide feedback to help it improve
+
+For more detailed information on Codegen's capabilities, see the [Capabilities](/gen/capabilities) page.

@@ -1,0 +1,117 @@
+---
+title: "How Codegen Works"
+sidebarTitle: "How It Works"
+icon: "gears"
+iconType: "solid"
+---
+
+# How Codegen Works
+
+Codegen is an expert software engineering agent designed to help development teams build better software. This document explains the architecture and workflow of Codegen.
+
+## Architecture Overview
+
+Codegen operates through a sophisticated system with several key components:
+
+<Frame caption="Codegen Architecture">
+  <img src="/images/codegen-architecture.png" alt="Codegen Architecture Diagram" />
+</Frame>
+
+### Core Components
+
+1. **Trigger System**
+   - Monitors various channels (Slack, GitHub, Linear, API)
+   - Detects when users mention or interact with Codegen
+   - Captures context from the triggering environment
+
+2. **Context Gathering**
+   - Analyzes the codebase structure
+   - Retrieves relevant information from integrations
+   - Builds a comprehensive understanding of the task
+
+3. **Task Planning**
+   - Breaks down complex requests into actionable steps
+   - Determines the optimal approach to solve the problem
+   - Identifies required tools and resources
+
+4. **Execution Engine**
+   - Runs commands in a sandboxed environment
+   - Makes code changes through precise edits
+   - Interacts with external services via API
+
+5. **Response Generation**
+   - Creates clear, concise responses
+   - Formats information appropriately for the channel
+   - Provides links to relevant resources
+
+## Workflow
+
+When you interact with Codegen, the following process occurs:
+
+1. **Trigger**: You mention Codegen in Slack, tag it in a GitHub PR, or interact with it in Linear
+2. **Context Analysis**: Codegen gathers relevant information about your request
+3. **Planning**: It determines the best approach to solve your problem
+4. **Execution**: Codegen performs necessary actions (code analysis, edits, searches)
+5. **Response**: It provides a helpful response in the same channel where you triggered it
+
+## Available Tools
+
+Codegen has access to a powerful set of tools:
+
+### Code Analysis & Navigation
+- Search codebases using text or regex patterns
+- View file contents and metadata
+- Analyze code structure and dependencies
+- Reveal symbol definitions and usages
+
+### File Operations
+- View, create, edit, and delete files
+- Rename files while updating all imports
+- Move symbols between files
+- Commit changes to disk
+
+### Semantic Editing
+- Make precise, context-aware code edits
+- Analyze affected code structures
+- Preview changes before applying
+- Ensure code quality with linting
+
+### Web Search
+- Search the web for information
+- View specific web pages for reference
+
+### Integration Tools
+- Create and manage GitHub issues and PRs
+- Interact with Linear tickets
+- Send messages in Slack
+- And more...
+
+## Best Practices for Working with Codegen
+
+To get the most out of Codegen:
+
+1. **Be Specific**: Clearly describe what you want Codegen to do
+2. **Provide Context**: Mention relevant files, issues, or PRs
+3. **Break Down Complex Tasks**: Ask for one thing at a time for best results
+4. **Review Changes**: Always review PRs created by Codegen before merging
+5. **Provide Feedback**: Let Codegen know if its response was helpful
+
+## Security and Privacy
+
+Codegen operates with security as a priority:
+
+- All code operations happen in isolated sandboxed environments
+- Codegen only accesses repositories you've explicitly granted it access to
+- Your code is never used to train AI models
+- All operations follow the principle of least privilege
+
+## Limitations
+
+While powerful, Codegen has some limitations:
+
+- It cannot access private networks or systems outside its integrations
+- Very large codebases may take longer to analyze
+- Complex architectural decisions still benefit from human oversight
+- It works best with well-structured, documented code
+
+For more information about Codegen's capabilities, see the [Capabilities](/gen/capabilities) page.
