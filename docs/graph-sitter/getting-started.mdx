@@ -1,0 +1,342 @@
+---
+title: "Getting Started"
+sidebarTitle: "Getting Started"
+icon: "bolt"
+iconType: "solid"
+---
+
+A quick tour of Codegen in a Jupyter notebook.
+
+## Installation
+
+Install [codegen](https://pypi.org/project/codegen/) on Pypi via [uv](https://github.com/astral-sh/uv):
+
+```bash
+uv tool install codegen
+```
+
+## Quick Start with Jupyter
+
+The [codegen notebook](/cli/notebook) command creates a virtual environment and opens a Jupyter notebook for quick prototyping. This is often the fastest way to get up and running.
+
+```bash
+# Launch Jupyter with a demo notebook
+codegen notebook --demo
+```
+
+
+<Tip>
+  The `notebook --demo` comes pre-configured to load [FastAPI](https://github.com/fastapi/fastapi)'s codebase, so you can start
+  exploring right away!
+</Tip>
+
+<Note>
+  Prefer working in your IDE? See [IDE Usage](/introduction/ide-usage)
+</Note>
+
+## Initializing a Codebase
+
+Instantiating a [Codebase](/api-reference/core/Codebase) will automatically parse a codebase and make it available for manipulation.
+
+```python
+from codegen import Codebase
+
+# Clone + parse fastapi/fastapi
+codebase = Codebase.from_repo('fastapi/fastapi')
+
+# Or, parse a local repository
+codebase = Codebase("path/to/git/repo")
+```
+
+<Note>
+  This will automatically infer the programming language of the codebase and
+  parse all files in the codebase. Learn more about [parsing codebases here](/building-with-codegen/parsing-codebases)
+</Note>
+
+## Exploring Your Codebase
+
+Let's explore the codebase we just initialized.
+
+Here are some common patterns for code navigation in Codegen:
+
+- Iterate over all [Functions](/api-reference/core/Function) with [Codebase.functions](/api-reference/core/Codebase#functions)
+- View class inheritance with [Class.superclasses](/api-reference/core/Class#superclasses)
+- View function usages with [Function.usages](/api-reference/core/Function#usages)
+- View inheritance hierarchies with [inheritance APIs](https://docs.codegen.com/building-with-codegen/class-api#working-with-inheritance)
+- Identify recursive functions by looking at [FunctionCalls](https://docs.codegen.com/building-with-codegen/function-calls-and-callsites)
+- View function call-sites with [Function.call_sites](/api-reference/core/Function#call-sites)
+
+```python
+# Print overall stats
+print("🔍 Codebase Analysis")
+print("=" * 50)
+print(f"📚 Total Classes: {len(codebase.classes)}")
+print(f"⚡ Total Functions: {len(codebase.functions)}")
+print(f"🔄 Total Imports: {len(codebase.imports)}")
+
+# Find class with most inheritance
+if codebase.classes:
+    deepest_class = max(codebase.classes, key=lambda x: len(x.superclasses))
+    print(f"\n🌳 Class with most inheritance: {deepest_class.name}")
+    print(f"   📊 Chain Depth: {len(deepest_class.superclasses)}")
+    print(f"   ⛓️ Chain: {' -> '.join(s.name for s in deepest_class.superclasses)}")
+
+# Find first 5 recursive functions
+recursive = [f for f in codebase.functions
+            if any(call.name == f.name for call in f.function_calls)][:5]
+if recursive:
+    print(f"\n🔄 Recursive functions:")
+    for func in recursive:
+        print(f"  - {func.name}")
+```
+
+## Analyzing Tests
+
+Let's specifically drill into large test files, which can be cumbersome to manage.
+
+```python
+from collections import Counter
+
+# Filter to all test functions and classes
+test_functions = [x for x in codebase.functions if x.name.startswith('test_')]
+test_classes = [x for x in codebase.classes if x.name.startswith('Test')]
+
+print("🧪 Test Analysis")
+print("=" * 50)
+print(f"📝 Total Test Functions: {len(test_functions)}")
+print(f"🔬 Total Test Classes: {len(test_classes)}")
+print(f"📊 Tests per File: {len(test_functions) / len(codebase.files):.1f}")
+
+# Find files with the most tests
+print("\n📚 Top Test Files by Class Count")
+print("-" * 50)
+file_test_counts = Counter([x.file for x in test_classes])
+for file, num_tests in file_test_counts.most_common()[:5]:
+    print(f"🔍 {num_tests} test classes: {file.filepath}")
+    print(f"   📏 File Length: {len(file.source)} lines")
+    print(f"   💡 Functions: {len(file.functions)}")
+```
+
+## Splitting Up Large Test Files
+
+Lets split up the largest test files into separate modules for better organization.
+
+This uses Codegen's [codebase.move_to_file(...)](/building-with-codegen/moving-symbols), which will:
+- update all imports
+- (optionally) move dependencies
+- do so very fast ⚡️
+
+While maintaining correctness.
+
+```python
+filename = 'tests/test_path.py'
+print(f"📦 Splitting Test File: {filename}")
+print("=" * 50)
+
+# Grab a file
+file = codebase.get_file(filename)
+base_name = filename.replace('.py', '')
+
+# Group tests by subpath
+test_groups = {}
+for test_function in file.functions:
+    if test_function.name.startswith('test_'):
+        test_subpath = '_'.join(test_function.name.split('_')[:3])
+        if test_subpath not in test_groups:
+            test_groups[test_subpath] = []
+        test_groups[test_subpath].append(test_function)
+
+# Print and process each group
+for subpath, tests in test_groups.items():
+    print(f"\\n{subpath}/")
+    new_filename = f"{base_name}/{subpath}.py"
+
+    # Create file if it doesn't exist
+    if not codebase.has_file(new_filename):
+        new_file = codebase.create_file(new_filename)
+    file = codebase.get_file(new_filename)
+
+    # Move each test in the group
+    for test_function in tests:
+        print(f"    - {test_function.name}")
+        test_function.move_to_file(new_file, strategy="add_back_edge")
+
+# Commit changes to disk
+codebase.commit()
+```
+
+<Warning>
+  In order to commit changes to your filesystem, you must call
+  [codebase.commit()](/api-reference/core/Codebase#commit). Learn more about
+  [commit() and reset()](/building-with-codegen/commit-and-reset).
+</Warning>
+
+### Finding Specific Content
+
+Once you have a general sense of your codebase, you can filter down to exactly what you're looking for. Codegen's graph structure makes it straightforward and performant to find and traverse specific code elements:
+
+```python
+# Grab specific content by name
+my_resource = codebase.get_symbol('TestResource')
+
+# Find classes that inherit from a specific base
+resource_classes = [
+    cls for cls in codebase.classes
+    if cls.is_subclass_of('Resource')
+]
+
+# Find functions with specific decorators
+test_functions = [
+    f for f in codebase.functions
+    if any('pytest' in d.source for d in f.decorators)
+]
+
+# Find files matching certain patterns
+test_files = [
+    f for f in codebase.files
+    if f.name.startswith('test_')
+]
+```
+
+## Safe Code Transformations
+
+Codegen guarantees that code transformations maintain correctness. It automatically handles updating imports, references, and dependencies. Here are some common transformations:
+
+```python
+# Move all Enum classes to a dedicated file
+for cls in codebase.classes:
+    if cls.is_subclass_of('Enum'):
+        # Codegen automatically:
+        # - Updates all imports that reference this class
+        # - Maintains the class's dependencies
+        # - Preserves comments and decorators
+        # - Generally performs this in a sane manner
+        cls.move_to_file(f'enums.py')
+
+# Rename a function and all its usages
+old_function = codebase.get_function('process_data')
+old_function.rename('process_resource')  # Updates all references automatically
+
+# Change a function's signature
+handler = codebase.get_function('event_handler')
+handler.get_parameter('e').rename('event') # Automatically updates all call-sites
+handler.add_parameter('timeout: int = 30')  # Handles formatting and edge cases
+handler.add_return_type('Response | None')
+
+# Perform surgery on call-sites
+for fcall in handler.call_sites:
+    arg = fcall.get_arg_by_parameter_name('env')
+    # f(..., env={ data: x }) => f(..., env={ data: x or None })
+    if isinstance(arg.value, Collection):
+        data_key = arg.value.get('data')
+        data_key.value.edit(f'{data_key.value} or None')
+```
+
+<Tip>
+  When moving symbols, Codegen will automatically update all imports and
+  references. See [Moving Symbols](/building-with-codegen/moving-symbols) to
+  learn more.
+</Tip>
+
+## Leveraging Graph Relations
+
+Codegen's graph structure makes it easy to analyze relationships between code elements across files:
+
+```python
+# Find dead code
+for func in codebase.functions:
+    if len(func.usages) == 0:
+        print(f'🗑️ Dead code: {func.name}')
+        func.remove()
+
+# Analyze import relationships
+file = codebase.get_file('api/endpoints.py')
+print("\nFiles that import endpoints.py:")
+for import_stmt in file.inbound_imports:
+    print(f"  {import_stmt.file.path}")
+
+print("\nFiles that endpoints.py imports:")
+for import_stmt in file.imports:
+    if import_stmt.resolved_symbol:
+        print(f"  {import_stmt.resolved_symbol.file.path}")
+
+# Explore class hierarchies
+base_class = codebase.get_class('BaseModel')
+if base_class:
+    print(f"\nClasses that inherit from {base_class.name}:")
+    for subclass in base_class.subclasses:
+        print(f"  {subclass.name}")
+        # We can go deeper in the inheritance tree
+        for sub_subclass in subclass.subclasses:
+            print(f"    └─ {sub_subclass.name}")
+```
+
+<Note>
+  Learn more about [dependencies and
+  references](/building-with-codegen/dependencies-and-usages) or [imports](/building-with-codegen/imports) and [exports](/building-with-codegen/exports).
+</Note>
+
+## Advanced Settings
+
+Codegen also supports a number of advanced settings that can be used to customize the behavior of the graph construction process.
+
+These flags are helpful for debugging problematic repos, optimizing Codegen’s performance, or testing unreleased or experimental (potentially backwards-breaking) features.
+
+```python
+from codegen import Codebase
+from codegen.configs import CodebaseConfig
+
+# Initialize a Codebase with custom configuration
+codebase = Codebase(
+    "path/to/git/repo"",
+    config=CodebaseConfig(
+        verify_graph=True,
+        method_usages=False,
+        sync_enabled=True,
+        generics=False,
+        import_resolution_overrides={
+          "old_module": "new_module"
+        },
+        ts_language_engine=True,
+        v8_ts_engine=True
+    )
+)
+```
+
+To learn more about available settings, see the [Advanced Settings](/introduction/advanced-settings) page.
+
+<Warning>
+These are considered experimental and unstable features that may be removed or changed in the future.
+</Warning>
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card
+    title="View Tutorials"
+    icon="graduation-cap"
+    href="/tutorials/at-a-glance"
+  >
+    Follow step-by-step tutorials for common code transformation tasks like
+    modernizing React codebases or migrating APIs.
+  </Card>
+  <Card
+    title="Learn Core Concepts"
+    icon="book"
+    href="/building-with-codegen/at-a-glance"
+  >
+    Understand key concepts like working with files, functions, imports, and the
+    call graph to effectively manipulate code.
+  </Card>
+  <Card title="IDE Setup" icon="window" href="/introduction/ide-usage">
+    Iterate locally with your favorite IDE, work with a debugger and build sophisticated codemods
+  </Card>
+  <Card
+    title="Integrate with AI Tools"
+    icon="microchip"
+    href="/introduction/work-with-ai"
+  >
+    Learn how to use Codegen with Cursor, Devin, Windsurf, and more.
+  </Card>
+
+</CardGroup>

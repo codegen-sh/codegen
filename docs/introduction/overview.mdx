@@ -5,112 +5,62 @@ icon: "code"
 iconType: "solid"
 ---
 
-[Codegen](https://github.com/codegen-sh/codegen-sdk) is a python library for manipulating codebases.
+The [Codegen SDK](https://github.com/codegen-sh/codegen-sdk) enables developers to programmatically interact with [Codegen](https://codegen.com) SWE agents.
 
-It provides a scriptable interface to a powerful, multi-lingual language server built on top of [Tree-sitter](https://tree-sitter.github.io/tree-sitter/).
+<Tip>Go to [developer settings](https://codegen.sh/developer) to generate an API token</Tip>
 
 ```python
-from codegen import Codebase
+from codegen.agents.agent import Agent
 
-# Codegen builds a complete graph connecting
-# functions, classes, imports and their relationships
-codebase = Codebase("./")
+# Initialize the Agent with your organization ID and API token
+agent = Agent(
+    org_id="YOUR_ORG_ID",  # Find this at codegen.com/developer
+    token="YOUR_API_TOKEN",  # Get this from codegen.com/developer
+    # base_url="https://codegen-sh-rest-api.modal.run",  # Optional - defaults to production
+)
 
-# Work with code without dealing with syntax trees or parsing
-for function in codebase.functions:
-    # Comprehensive static analysis for references, dependencies, etc.
-    if not function.usages:
-        # Auto-handles references and imports to maintain correctness
-        function.remove()
+# Run an agent with a prompt
+task = agent.run(prompt="Implement a new feature to sort users by last login.")
 
-# Fast, in-memory code index
-codebase.commit()
+# Check the initial status
+print(task.status)
+
+# Refresh the task to get updated status (tasks can take time)
+task.refresh()
+
+# Check the updated status
+print(task.status)
+
+# Once task is complete, you can access the result
+if task.status == "completed":
+    print(task.result)  # Result often contains code, summaries, or links
 ```
 
 
 <Note>
-Codegen handles complex refactors while maintaining correctness, enabling a broad set of advanced code manipulation programs.
+Codegen agents can research code, create PRs, modify Linear tickets, and much more.
 </Note>
 
-<Tip>Codegen works with both Python and Typescript/JSX codebases. Learn more about language support [here](/building-with-codegen/language-support).</Tip>
+## Installation
 
-## Quick Started
 
-<Note>
-Codegen requires Python 3.12 - 3.13 (recommended: Python 3.13+).
-</Note>
-
-### Using UV (Recommended)
-```bash
-uv tool install codegen --python 3.13
-```
-
-### Using Pipx
-
-<Warning>
-Pipx is not officially supported by Codegen, but it should still work.
-</Warning>
+Install the SDK using pip or uv:
 
 ```bash
-pipx install codegen
+pip install codegen
+# or
+uv pip install codegen
 ```
 
-<Note>
-For further & more in depth installation instructions, see the [installation guide](/introduction/installation).
-</Note>
+## What can I do with the Codegen SDK?
 
-## What can I do with Codegen?
+The Codegen SDK is your gateway to programmatically interacting with your AI Software Engineer. You can use it to:
 
-Codegen's simple yet powerful APIs enable a range of applications, including:
+- **Automate development tasks**: Assign tasks like implementing features, fixing bugs, writing tests, or improving documentation to the agent.
+- **Integrate AI into your workflows**: Trigger agent tasks from your CI/CD pipelines, scripts, or other development tools.
+- **Provide context and guidance**: Supply the agent with specific instructions, relevant code snippets, or background information to ensure it performs tasks according to your requirements.
 
-<CardGroup cols={2}>
-  <Card
-    title="Build a Code Agent"
-    icon="robot"
-    href="/tutorials/build-code-agent"
-  >
-    Create an intelligent agent that can analyze and manipulate your codebase using natural language.
-  </Card>
-  <Card
-    title="Visualize Your Codebase"
-    icon="diagram-project"
-    href="/tutorials/codebase-visualization"
-  >
-    Generate interactive visualizations of your codebase's structure, dependencies, and relationships.
-  </Card>
-  <Card
-    title="Mine Codebase Data"
-    icon="database"
-    href="/tutorials/training-data"
-  >
-    Create high-quality training data for fine-tuning LLMs on your codebase.
-  </Card>
-  <Card
-    title="Build Codemods"
-    icon="wand-magic-sparkles"
-    href="/tutorials/at-a-glance#api-migrations"
-  >
-    Create powerful code transformations to automate large-scale changes.
-  </Card>
-</CardGroup>
-
-See below for an example call graph visualization generated with Codegen.
-
-<Frame caption="Call graph visualization for modal/modal-client/_Client">
-<iframe
-  width="100%"
-  height="500px"
-  scrolling="no"
-  src={`https://codegen.sh/embedded/graph?id=66e2e195-ceec-4935-876a-ed4cfc1731c7&zoom=0.5&targetNodeName=_Client`}
-  className="rounded-xl"
-  style={{
-    backgroundColor: "#15141b",
-  }}
-></iframe>
-</Frame>
-<Info>
-View source code on [modal/modal-client](https://github.com/modal-labs/modal-client/blob/cbac0d80dfd98588027ecd21850152776be3ab82/modal/client.py#L70). View codemod on [codegen.sh](https://www.codegen.sh/codemod/66e2e195-ceec-4935-876a-ed4cfc1731c7/public/diff)
-</Info>
+Essentially, the SDK allows you to leverage Codegen's AI capabilities wherever you can run Python code.
 
 ## Get Started
 

@@ -1,0 +1,125 @@
+---
+title: "Installation"
+sidebarTitle: "Installation"
+icon: "download"
+iconType: "solid"
+---
+
+Install and set up Codegen in your development environment.
+
+#### We currently support:
+- Running Codegen in Python 3.12 - 3.13 (recommended: Python 3.13+)
+- macOS and Linux
+  - macOS is supported
+  - Linux is supported on x86_64 and aarch64 with glibc 2.34+
+  - Windows is supported via WSL. See [here](https://docs.codegen.com/building-with-codegen/codegen-with-wsl) for more details.
+- Python, Typescript, Javascript and React codebases
+
+## Prerequisites
+
+We recommend using [uv](https://github.com/astral-sh/uv) for installation. If you haven't installed `uv` yet:
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+## Installing Codegen
+
+```bash
+uv tool install codegen --python 3.13
+```
+
+
+<Note>
+This makes the `codegen` command available globally in your terminal, while keeping its dependencies isolated.
+</Note>
+
+## Quick Start
+
+Let's walk through a minimal example of using Codegen in a project:
+
+1. Navigate to your repository:
+   ```bash
+   cd path/to/your/project
+   ```
+
+2. Initialize Codegen in your project with [codegen init](/cli/init):
+   ```bash
+   codegen init
+   ```
+
+   This creates a `.codegen/` directory with:
+   ```bash
+   .codegen/
+   ├── .venv/            # Python virtual environment (gitignored)
+   ├── config.toml       # Project configuration
+   ├── codemods/         # Your codemod implementations
+   ├── jupyter/          # Jupyter notebooks for exploration
+   └── codegen-system-prompt.txt  # AI system prompt
+   ```
+
+3. Create your first codemod with [codegen create](/cli/create):
+   ```bash
+   codegen create organize-imports \
+     -d "Sort and organize imports according to PEP8"
+   ```
+    <Note>
+        The `-d` flag in `codegen create` generates an AI-powered implementation. This requires a Github account registered on [codegen.sh](https://codegen.sh)
+    </Note>
+
+
+
+4. Run your codemod with [codegen run](/cli/run):
+   ```bash
+   codegen run organize-imports
+   ```
+
+5. Reset any filesystem changes (excluding `.codegen/*`) with [codegen reset](/cli/reset):
+   ```bash
+   codegen reset
+   ```
+
+## Troubleshooting
+
+Having issues? Here are some common problems and their solutions:
+
+- **I'm hitting an UV error related to `[[ packages ]]`**: This means you're likely using an outdated version of UV. Try updating to the latest version with: `uv self update`.
+- **I'm hitting an error about `No module named 'codegen.sdk.extensions.utils'`**: The compiled cython extensions are out of sync. Update them with `uv sync --reinstall-package codegen`.
+- **I'm hitting a `RecursionError: maximum recursion depth exceeded` error while parsing my codebase**: If you are using python 3.12, try upgrading to 3.13. If you are already on 3.13, try upping the recursion limit with `sys.setrecursionlimit(10000)`.
+
+<Note>
+For more help, join our [community Slack](/introduction/community) or check the [FAQ](/introduction/faq).
+</Note>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="IDE Integration"
+    icon="window"
+    href="/introduction/ide-usage"
+  >
+    Learn how to use Codegen effectively in VSCode, Cursor, and other IDEs.
+  </Card>
+  <Card
+    title="Tutorials"
+    icon="graduation-cap"
+    href="/tutorials/at-a-glance"
+  >
+    Follow step-by-step tutorials for common code transformation tasks.
+  </Card>
+  <Card
+    title="Work with AI"
+    icon="microchip"
+    href="/introduction/work-with-ai"
+  >
+    Leverage AI assistants like Copilot, Cursor and Devin
+    </Card>
+  <Card
+    title="Guides"
+    icon="hammer"
+    href="/building-with-codegen/at-a-glance"
+  >
+    Learn more about building with Codegen
+    </Card>
+
+</CardGroup>

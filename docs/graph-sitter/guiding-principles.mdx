@@ -1,0 +1,75 @@
+---
+title: "Guiding Principles"
+sidebarTitle: "Principles"
+icon: "compass"
+iconType: "solid"
+---
+
+Codegen was developed by working backwards from real-world, large-scale codebase migrations. Instead of starting with abstract syntax trees and parser theory, we started with the question: "How do developers actually think about code changes?"
+
+This practical origin led to four core principles that shape Codegen's design:
+
+## Intuitive APIs
+
+Write code that reads like natural language, without worrying about abstract syntax trees or parser internals. Codegen provides high-level APIs that map directly to the transformations developers want to perform:
+
+```python
+# Methods that read like English
+function.rename("new_name")  # Not ast.update_node(function_node, "name", "new_name")
+function.move_to_file("new_file.py")  # Not ast.relocate_node(function_node, "new_file.py")
+
+# Clean, readable properties
+if function.is_async:  # Not ast.get_node_attribute(function_node, "async")
+    print(function.name)  # Not ast.get_node_name(function_node)
+
+# Natural iteration patterns
+for usage in function.usages:  # Not ast.find_references(function_node)
+    print(f"Used in {usage.file.name}")
+```
+
+## No Sharp Edges
+
+Focus on your high-level intent while Codegen handles the intricate details.
+
+Codegen operations handle the edge cases - it should be hard to break lint.
+
+```python
+# Moving a function? Codegen handles:
+function.move_to_file("new_file.py")
+# ✓ Updating all import statements
+# ✓ Preserving dependencies
+# ✓ Maintaining references
+# ✓ Fixing relative imports
+# ✓ Resolving naming conflicts
+
+# Renaming a symbol? Codegen manages:
+class_def.rename("NewName")
+# ✓ Updating all usages
+# ✓ Handling string references
+# ✓ Preserving docstrings
+# ✓ Maintaining inheritance
+```
+
+## Performance through Pre-Computation
+
+Codegen frontloads as much as possible to enable fast, efficient transformations.
+
+It is built with the insight that each codebase only needs to be parsed once per commit.
+
+<Tip>
+  Learn more about parsing the codebase graph in the [How it
+  Works](/introduction/how-it-works) guide.
+</Tip>
+
+## Python-First Composability
+
+Codegen embraces Python's strength as a "glue language" - its ability to seamlessly integrate different tools and APIs. This makes it natural to compose Codegen with your existing toolchain:
+
+- Build complex transforms by combining simpler operations
+- Integrate Codegen with your existing tools (linters, type checkers, test frameworks, AI tools)
+
+<Note>
+  Python's rich ecosystem makes it ideal for code manipulation tasks. Codegen is
+  designed to be one tool in your toolbox, not a replacement for your entire
+  workflow.
+</Note>
