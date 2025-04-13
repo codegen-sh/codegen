@@ -71,102 +71,14 @@
 			"group": "Introduction",
 			"pages": [
 				"introduction/overview",
-				"introduction/getting-started",
-				"introduction/installation",
-				"introduction/ide-usage",
-				"introduction/work-with-ai",
-				"introduction/how-it-works",
-				"introduction/advanced-settings",
-				"introduction/guiding-principles",
 				"introduction/community",
 				"introduction/about",
 				"introduction/faq"
 			]
 		},
 		{
-			"group": "Tutorials",
-			"pages": [
-				"tutorials/at-a-glance",
-				"tutorials/build-code-agent",
-				"tutorials/slack-bot",
-				"tutorials/github-review-bot",
-				"tutorials/deep-code-research",
-				"tutorials/codebase-analytics-dashboard",
-				"tutorials/training-data",
-				"tutorials/codebase-visualization",
-				"tutorials/migrating-apis",
-				"tutorials/organize-your-codebase",
-				"tutorials/promise-to-async-await",
-				"tutorials/modularity",
-				"tutorials/manage-feature-flags",
-				"tutorials/deleting-dead-code",
-				"tutorials/increase-type-coverage",
-				"tutorials/managing-typescript-exports",
-				"tutorials/converting-default-exports",
-				"tutorials/creating-documentation",
-				"tutorials/react-modernization",
-				"tutorials/unittest-to-pytest",
-				"tutorials/sqlalchemy-1.6-to-2.0",
-				"tutorials/fixing-import-loops-in-pytorch",
-				"tutorials/python2-to-python3",
-				"tutorials/flask-to-fastapi",
-				"tutorials/build-mcp",
-				"tutorials/neo4j-graph",
-				"tutorials/attributions"
-			]
-		},
-		{
-			"group": "Building with Codegen",
-			"pages": [
-				"building-with-codegen/at-a-glance",
-				"building-with-codegen/parsing-codebases",
-				"building-with-codegen/reusable-codemods",
-				"building-with-codegen/dot-codegen",
-				"building-with-codegen/function-decorator",
-				"building-with-codegen/language-support",
-				"building-with-codegen/commit-and-reset",
-				"building-with-codegen/git-operations",
-				"building-with-codegen/files-and-directories",
-				"building-with-codegen/the-editable-api",
-				"building-with-codegen/symbol-api",
-				"building-with-codegen/class-api",
-				"building-with-codegen/imports",
-				"building-with-codegen/exports",
-				"building-with-codegen/inheritable-behaviors",
-				"building-with-codegen/statements-and-code-blocks",
-				"building-with-codegen/dependencies-and-usages",
-				"building-with-codegen/function-calls-and-callsites",
-				"building-with-codegen/variable-assignments",
-				"building-with-codegen/local-variables",
-				"building-with-codegen/comments-and-docstrings",
-				"building-with-codegen/external-modules",
-				"building-with-codegen/type-annotations",
-				"building-with-codegen/moving-symbols",
-				"building-with-codegen/collections",
-				"building-with-codegen/traversing-the-call-graph",
-				"building-with-codegen/react-and-jsx",
-				"building-with-codegen/codebase-visualization",
-				"building-with-codegen/flagging-symbols",
-				"building-with-codegen/calling-out-to-llms",
-				"building-with-codegen/semantic-code-search",
-				"building-with-codegen/reducing-conditions"
-			]
-		},
-		{
 			"group": "Changelog",
 			"pages": ["changelog/changelog"]
-		},
-		{
-			"group": "CLI",
-			"pages": [
-				"cli/about",
-				"cli/init",
-				"cli/notebook",
-				"cli/create",
-				"cli/run",
-				"cli/reset",
-				"cli/expert"
-			]
 		},
 		{
 			"group": "Blog",
@@ -176,15 +88,6 @@
 				"blog/act-via-code",
 				"blog/promise-to-async-await-twilio",
 				"blog/fixing-import-loops"
-			]
-		},
-		{
-			"group": "codegen",
-			"pages": [
-				"gen/introduction",
-				"gen/capabilities",
-				"gen/integrations",
-				"gen/faq"
 			]
 		},
 		{
