@@ -72,6 +72,7 @@ dependencies = [
   "datasets",
   "colorlog>=6.9.0",
   "codegen-sdk-pink>=0.1.0",
+  "dateutil",
 ]
 
 license = { text = "Apache-2.0" }

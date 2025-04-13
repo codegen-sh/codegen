@@ -7,7 +7,7 @@
 </p>
 
 <h2 align="center">
-  Scriptable interface to a powerful, multi-lingual language server.
+  The SWE that Never Sleeps
 </h2>
 
 <div align="center">
@@ -22,72 +22,48 @@
 
 <br />
 
-[Codegen](https://docs.codegen.com) is a python library for manipulating codebases.
+The Codegen SDK provides a programmatic interface to code agents provided by [Codegen](https://codegen.com).
 
 ```python
-from codegen import Codebase
+from codegen.agents.agent import Agent
 
-# Codegen builds a complete graph connecting
-# functions, classes, imports and their relationships
-codebase = Codebase("./")
+# Initialize the Agent with your organization ID and API token
+agent = Agent(
+    org_id="YOUR_ORG_ID",  # Find this at codegen.com/developer
+    token="YOUR_API_TOKEN",  # Get this from codegen.com/developer
+    # base_url="https://codegen-sh-rest-api.modal.run",  # Optional - defaults to production
+)
 
-# Work with code without dealing with syntax trees or parsing
-for function in codebase.functions:
-    # Comprehensive static analysis for references, dependencies, etc.
-    if not function.usages:
-        # Auto-handles references and imports to maintain correctness
-        function.move_to_file("deprecated.py")
+# Run an agent with a prompt
+task = agent.run(prompt="Implement a new feature to sort users by last login.")
+
+# Check the initial status
+print(task.status)
+
+# Refresh the task to get updated status (tasks can take time)
+task.refresh()
+
+# Check the updated status
+print(task.status)
+
+# Once task is complete, you can access the result
+if task.status == "completed":
+    print(task.result)  # Result often contains code, summaries, or links
 ```
-
-Write code that transforms code. Codegen combines the parsing power of [Tree-sitter](https://tree-sitter.github.io/tree-sitter/) with the graph algorithms of [rustworkx](https://github.com/Qiskit/rustworkx) to enable scriptable, multi-language code manipulation at scale.
 
 ## Installation and Usage
 
-We support
+Install the SDK using pip or uv:
 
-- Running Codegen in Python 3.12 - 3.13 (recommended: Python 3.13+)
-- macOS and Linux
-  - macOS is supported
-  - Linux is supported on x86_64 and aarch64 with glibc 2.34+
-  - Windows is supported via WSL. See [here](https://docs.codegen.com/building-with-codegen/codegen-with-wsl) for more details.
-- Python, Typescript, Javascript and React codebases
-
-```
-# Install inside existing project
+```bash
+pip install codegen
+# or
 uv pip install codegen
-
-# Install global CLI
-uv tool install codegen --python 3.13
-
-# Create a codemod for a given repo
-cd path/to/repo
-codegen init
-codegen create test-function
-
-# Run the codemod
-codegen run test-function
-
-# Create an isolated venv with codegen => open jupyter
-codegen notebook
 ```
 
-## Usage
+Get started at [codegen.com](https://codegen.com) and get your API token at [codegen.com/developer](https://codegen.com/developer).
 
-See [Getting Started](https://docs.codegen.com/introduction/getting-started) for a full tutorial.
-
-```
-from codegen import Codebase
-```
-
-## Troubleshooting
-
-Having issues? Here are some common problems and their solutions:
-
-- **I'm hitting an UV error related to `[[ packages ]]`**: This means you're likely using an outdated version of UV. Try updating to the latest version with: `uv self update`.
-- **I'm hitting an error about `No module named 'codegen.sdk.extensions.utils'`**: The compiled cython extensions are out of sync. Update them with `uv sync --reinstall-package codegen`.
-- **I'm hitting a `RecursionError: maximum recursion depth exceeded` error while parsing my codebase**: If you are using python 3.12, try upgrading to 3.13. If you are already on 3.13, try upping the recursion limit with `sys.setrecursionlimit(10000)`.
-
-If you run into additional issues not listed here, please [join our slack community](https://community.codegen.com) and we'll help you out!
+You can interact with your AI engineer via API, or chat with it in Slack, Linear, Github, or on our website.
 
 ## Resources
 
@@ -95,18 +71,6 @@ If you run into additional issues not listed here, please [join our slack commun
 - [Getting Started](https://docs.codegen.com/introduction/getting-started)
 - [Contributing](CONTRIBUTING.md)
 - [Contact Us](https://codegen.com/contact)
-
-## Why Codegen?
-
-Software development is fundamentally programmatic. Refactoring a codebase, enforcing patterns, or analyzing control flow - these are all operations that can (and should) be expressed as programs themselves.
-
-We built Codegen backwards from real-world refactors performed on enterprise codebases. Instead of starting with theoretical abstractions, we focused on creating APIs that match how developers actually think about code changes:
-
-- **Natural mental model**: Write transforms that read like your thought process - "move this function", "rename this variable", "add this parameter". No more wrestling with ASTs or manual import management.
-
-- **Battle-tested on complex codebases**: Handle Python, TypeScript, and React codebases with millions of lines of code.
-
-- **Built for advanced intelligences**: As AI developers become more sophisticated, they need expressive yet precise tools to manipulate code. Codegen provides a programmatic interface that both humans and AI can use to express complex transformations through code itself.
 
 ## Contributing
 
