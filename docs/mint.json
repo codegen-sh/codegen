@@ -47,11 +47,8 @@
 	"tabs": [
 		{
 			"name": "API Reference",
+			"openapi": "https://codegen-sh--rest-api.modal.run/api/openapi.json",
 			"url": "/api-reference"
-		},
-		{
-			"name": "CLI",
-			"url": "/cli"
 		},
 		{
 			"name": "Blog",
