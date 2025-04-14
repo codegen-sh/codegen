@@ -22,7 +22,7 @@
 
 <br />
 
-[Codegen](https://docs.codegen.com) is a python library for manipulating codebases.
+[Codegen](https://docs.codegen.com) is a powerful Python library for analyzing, manipulating, and transforming codebases at scale. It provides a high-level, intuitive API that makes complex code operations simple and maintainable.
 
 ```python
 from codegen import Codebase
@@ -41,18 +41,27 @@ for function in codebase.functions:
 
 Write code that transforms code. Codegen combines the parsing power of [Tree-sitter](https://tree-sitter.github.io/tree-sitter/) with the graph algorithms of [rustworkx](https://github.com/Qiskit/rustworkx) to enable scriptable, multi-language code manipulation at scale.
 
+## Key Features
+
+- **Intuitive API**: Manipulate code with natural operations like `move`, `rename`, and `add_parameter`
+- **Multi-language Support**: Works with Python, TypeScript, JavaScript, and React codebases
+- **Dependency Tracking**: Automatically manages imports and references when moving code
+- **Static Analysis**: Analyze code structure, dependencies, and usage patterns
+- **Performance**: Built with Rust and Cython for speed and efficiency
+- **Scriptable Transformations**: Create reusable codemods for common refactoring tasks
+
 ## Installation and Usage
 
-We support
+We support:
 
 - Running Codegen in Python 3.12 - 3.13 (recommended: Python 3.13+)
 - macOS and Linux
   - macOS is supported
   - Linux is supported on x86_64 and aarch64 with glibc 2.34+
   - Windows is supported via WSL. See [here](https://docs.codegen.com/building-with-codegen/codegen-with-wsl) for more details.
-- Python, Typescript, Javascript and React codebases
+- Python, TypeScript, JavaScript and React codebases
 
-```
+```bash
 # Install inside existing project
 uv pip install codegen
 
@@ -71,13 +80,36 @@ codegen run test-function
 codegen notebook
 ```
 
-## Usage
+## Getting Started
 
 See [Getting Started](https://docs.codegen.com/introduction/getting-started) for a full tutorial.
 
-```
+```python
 from codegen import Codebase
+
+# Initialize a codebase
+codebase = Codebase("./")
+
+# Find all functions with a specific name pattern
+functions = codebase.find_functions(name_pattern="test_*")
+
+# Analyze imports
+for module in codebase.modules:
+    print(f"Module {module.name} imports: {[imp.name for imp in module.imports]}")
+
+# Refactor code
+for class_def in codebase.find_classes(name_pattern="*Service"):
+    # Add a new method to all service classes
+    class_def.add_method("async def health_check(self) -> bool:\n    return True")
 ```
+
+## Common Use Cases
+
+- **Large-scale Refactoring**: Rename classes, move functions, or restructure modules across your entire codebase
+- **Code Analysis**: Identify unused code, analyze dependencies, or find code patterns
+- **API Migration**: Update deprecated API calls throughout your codebase
+- **Code Generation**: Programmatically generate boilerplate code or test fixtures
+- **Enforcing Patterns**: Ensure consistent coding patterns and architectural boundaries
 
 ## Troubleshooting
 
@@ -91,8 +123,10 @@ If you run into additional issues not listed here, please [join our slack commun
 
 ## Resources
 
-- [Docs](https://docs.codegen.com)
+- [Documentation](https://docs.codegen.com)
 - [Getting Started](https://docs.codegen.com/introduction/getting-started)
+- [API Reference](https://docs.codegen.com/api-reference)
+- [Examples](https://docs.codegen.com/examples)
 - [Contributing](CONTRIBUTING.md)
 - [Contact Us](https://codegen.com/contact)
 
