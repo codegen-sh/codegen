@@ -22,7 +22,7 @@
 
 <br />
 
-[Codegen](https://docs.codegen.com) is a python library for manipulating codebases.
+[Codegen](https://docs.codegen.com) is a powerful Python library for analyzing, manipulating, and transforming codebases at scale. It provides a high-level API that makes complex code operations intuitive and reliable.
 
 ```python
 from codegen import Codebase
@@ -40,6 +40,14 @@ for function in codebase.functions:
 ```
 
 Write code that transforms code. Codegen combines the parsing power of [Tree-sitter](https://tree-sitter.github.io/tree-sitter/) with the graph algorithms of [rustworkx](https://github.com/Qiskit/rustworkx) to enable scriptable, multi-language code manipulation at scale.
+
+## Key Features
+
+- **Semantic Understanding**: Analyze code structure, dependencies, and relationships
+- **Safe Refactoring**: Automatically handle imports, references, and dependencies
+- **Multi-Language Support**: Work with Python, TypeScript, JavaScript, and React
+- **Performance**: Built with Rust and Cython for speed and efficiency
+- **Developer-Friendly API**: Intuitive interface that matches how developers think about code
 
 ## Installation and Usage
 
@@ -71,12 +79,52 @@ codegen run test-function
 codegen notebook
 ```
 
-## Usage
+## Usage Examples
 
 See [Getting Started](https://docs.codegen.com/introduction/getting-started) for a full tutorial.
 
-```
+### Basic Usage
+
+```python
 from codegen import Codebase
+
+# Initialize a codebase
+codebase = Codebase("./")
+
+# Find all functions in the codebase
+all_functions = codebase.functions
+
+# Find functions with specific names
+handlers = codebase.functions.filter(lambda f: f.name.endswith("_handler"))
+
+# Analyze function dependencies
+for function in handlers:
+    print(f"Function: {function.name}")
+    print(f"  Calls: {[f.name for f in function.calls]}")
+    print(f"  Called by: {[f.name for f in function.called_by]}")
+```
+
+### Refactoring Example
+
+```python
+from codegen import Codebase
+
+codebase = Codebase("./")
+
+# Find a specific class
+user_class = codebase.classes.find(lambda c: c.name == "User")
+
+# Add a new method to the class
+user_class.add_method("""
+def is_active(self) -> bool:
+    \"\"\"Check if the user account is active.\"\"\"
+    return self.status == 'active'
+""")
+
+# Rename a method across the entire codebase
+old_method = user_class.methods.find(lambda m: m.name == "check_status")
+if old_method:
+    old_method.rename("get_status")
 ```
 
 ## Troubleshooting
