@@ -1,0 +1,7 @@
+#! /bin/bash
+
+# Load environment variables from .env file
+source .env
+
+# Connect to PostgreSQL using the environment variables
+PGPASSWORD=$POSTGRESQL_PASSWORD psql -h $POSTGRESQL_HOST -U ${POSTGRESQL_USER:-postgres} -d ${POSTGRESQL_DATABASE:-postgres}

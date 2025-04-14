@@ -1,10 +1,45 @@
 [project]
 name = "swebench-agent-run"
 version = "0.1.0"
-description = "Add your description here"
+description = "SWE-bench agent runner for evaluating model fixes"
 readme = "README.md"
 requires-python = ">=3.12, <3.14"
-dependencies = ["modal>=0.73.25"]
+dependencies = [
+  "modal>=0.73.25",
+  "tqdm>=4.66.0",
+  "click>=8.1.0",
+  "codegen",
+  "swebench>=3.0.15",
+  "tenacity>=9.0.0",
+]
 
-[tool.setuptools]
-py-modules = ["entry_point", "run_eval"]
+[project.optional-dependencies]
+metrics = ["psycopg2-binary"]
+dev = ["ruff", "mypy"]
+all = ["swebench-agent-run[metrics,dev]"]
+
+[project.scripts]
+swe-agent = "agent_cli:main"
+swe-eval = "eval_cli:main"
+modal-deploy = "modal_harness:deploy"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.uv.sources]
+codegen = { path = "../../../" }

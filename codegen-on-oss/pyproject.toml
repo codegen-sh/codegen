@@ -1,0 +1,125 @@
+[project]
+name = "codegen-on-oss"
+version = "0.0.1"
+description = "Testing codegen parsing on popular OSS repositories"
+authors = [{ name = "Chris Lee", email = "clee@codegen.com" }]
+readme = "README.md"
+keywords = ['python']
+requires-python = ">=3.12,<4.0"
+classifiers = [
+  "Intended Audience :: Developers",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+  "boto3>=1.36.21",
+  "click>=8.1.8",
+  "codegen>=0.6.2",
+  "loguru>=0.7.3",
+  "modal>=0.73.51",
+  "pydantic-settings>=2.7.1",
+  "pygithub>=2.5.0",
+]
+
+[project.urls]
+Repository = "https://github.com/codegen-sh/codegen-on-oss"
+
+[dependency-groups]
+dev = [
+  "pytest>=7.2.0",
+  "pre-commit>=2.20.0",
+  "tox-uv>=1.11.3",
+  "deptry>=0.22.0",
+  "mypy>=0.991",
+  "pytest-cov>=4.0.0",
+  "ruff>=0.9.2",
+  "types-boto3[s3]>=1.36.21",
+]
+
+[project.scripts]
+cgparse = "codegen_on_oss.cli:cli"
+
+[project.optional-dependencies]
+sql = ["alembic>=1.14.1", "psycopg2-binary>=2.9.10", "sqlalchemy>=2.0.38"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.setuptools]
+py-modules = ["codegen_on_oss"]
+
+[tool.mypy]
+files = ["codegen_on_oss"]
+disallow_untyped_defs = true
+disallow_any_unimported = true
+no_implicit_optional = true
+check_untyped_defs = true
+warn_return_any = true
+warn_unused_ignores = true
+show_error_codes = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+fix = true
+
+[tool.ruff.lint]
+select = [
+  # flake8-2020
+  "YTT",
+  # flake8-bandit
+  "S",
+  # flake8-bugbear
+  "B",
+  # flake8-builtins
+  "A",
+  # flake8-comprehensions
+  "C4",
+  # flake8-debugger
+  "T10",
+  # flake8-simplify
+  "SIM",
+  # isort
+  "I",
+  # mccabe
+  "C90",
+  # pycodestyle
+  "E",
+  "W",
+  # pyflakes
+  "F",
+  # pygrep-hooks
+  "PGH",
+  # pyupgrade
+  "UP",
+  # ruff
+  "RUF",
+  # tryceratops
+  "TRY",
+]
+ignore = [
+  # LineTooLong
+  "E501",
+  # DoNotAssignLambda
+  "E731",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+
+[tool.ruff.format]
+preview = true
+
+[tool.coverage.report]
+skip_empty = true
+
+[tool.coverage.run]
+branch = true
+source = ["codegen_on_oss"]

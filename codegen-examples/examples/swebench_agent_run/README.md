@@ -1,38 +1,94 @@
-# INSTRUCTIONS
+# SWE-bench Agent Runner
 
-1. Create a `.env` file in the `swebench_agent_run` directory (codegen-examples/examples/swebench_agent_run) and add your API keys.
+Tool for running and evaluating model fixes using SWE-bench.
 
-1. cd into the `codegen-examples/examples/swebench_agent_run` directory
+## Setup
 
-1. Create a `.venv` with `uv venv` and activate it with `source .venv/bin/activate`
+1. Using the `.env.template` reference, create a `.env` file in the project root and add your API keys:
 
-1. Install the dependencies with `uv pip install .`
+   ```env
+   OPENAI_API_KEY=your_key_here
+   MODAL_TOKEN_ID=your_token_id
+   MODAL_TOKEN_SECRET=your_token_secret
+   ```
 
-1. Install the codegen dependencies with `uv add codegen`
+1. Create and activate a virtual environment:
 
-- Note: If you'd like to install the dependencies using the global environment, use `uv pip install -e ../../../` instead of `uv pip install .`. This will allow you to test modifications to the codegen codebase. You will need to run `uv pip install -e ../../../` each time you make changes to the codebase.
+   ```bash
+   uv venv
+   source .venv/bin/activate
+   ```
 
-6. Ensure that you have a modal account and profile set up. If you don't have one, you can create one at https://modal.com/
+1. Install the package:
 
-1. Activate the appropriate modal profile `python -m modal profile activate <profile_name>`
+   ```bash
+   # Basic installation
+   uv pip install -e .
 
-1. Launch the modal app with `python -m modal deploy --env=<env_name> entry_point.py`
+   # With metrics support
+   uv pip install -e ".[metrics]"
 
-1. Run the evaluation with `python -m run_eval` with the desired options:
+   # With development tools
+   uv pip install -e ".[dev]"
 
-- ```bash
-  $ python run_eval.py --help
-  Usage: run_eval.py [OPTIONS]
+   # Install everything
+   uv pip install -e ".[all]"
+   ```
 
-  Options:
-  --use-existing-preds TEXT       The run ID of the existing predictions to
-                                  use.
+1. Set up Modal:
+
+   - Create an account at https://modal.com/ if you don't have one
+   - Activate your Modal profile:
+     ```bash
+     python -m modal profile activate <profile_name>
+     ```
+
+## Usage
+
+The package provides two main command-line tools:
+
+### Testing SWE CodeAgent
+
+Run the agent on a specific repository:
+
+```bash
+# Using the installed command
+swe-agent --repo pallets/flask --prompt "Analyze the URL routing system"
+
+# Options
+swe-agent --help
+Options:
+  --agent-class [DefaultAgent|CustomAgent]  Agent class to use
+  --repo TEXT                               Repository to analyze (owner/repo)
+  --prompt TEXT                             Prompt for the agent
+  --help                                    Show this message and exit
+```
+
+### Running SWE-Bench Eval
+
+Deploy modal app
+
+```bash
+./deploy.sh
+```
+
+Run evaluations on model fixes:
+
+```bash
+# Using the installed command
+swe-eval --dataset lite --length 10
+
+# Options
+swe-eval --help
+Options:
+  --use-existing-preds TEXT      Run ID of existing predictions
   --dataset [lite|full|verified|lite_small|lite_medium|lite_large]
-                                  The dataset to use.
-  --length INTEGER                The number of examples to process.
-  --instance-id TEXT              The instance ID of the example to process.
-  --repo TEXT                     The repo to use.
+  --length INTEGER               Number of examples to process
+  --instance-id TEXT             Specific instance ID to process
+  --repo TEXT                    Specific repo to evaluate
+  --local                        Run evaluation locally
   --instance-ids LIST_OF_STRINGS  The instance IDs of the examples to process.
                                   Example: --instance-ids <instance_id1>,<instance_id2>,...
-  --help                          Show this message and exit.
-  ```
+  --push-metrics                 Push results to metrics database (Requires additional database environment variables)
+  --help                         Show this message and exit
+```

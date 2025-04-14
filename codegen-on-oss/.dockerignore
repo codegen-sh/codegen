@@ -1,0 +1,5 @@
+.git/
+repositories/
+.venv/
+.vscode/
+output/
