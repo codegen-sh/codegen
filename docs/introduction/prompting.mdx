@@ -1,0 +1,36 @@
+---
+title: "Effective Prompting"
+sidebarTitle: "Prompting"
+icon: "lightbulb"
+iconType: "solid"
+---
+
+To get the best results from Codegen, treat it like a skilled teammate: provide clear, specific instructions and sufficient context. Vague requests lead to ambiguous outcomes.
+
+<Tip>
+  Codegen is based on Anthropic's Claude 3.7. You can prompt it similarly to
+  ChatGPT or other LLM-based assistants
+</Tip>
+
+## The Core Principle: Specificity
+
+Instead of "Fix the user service," try:
+
+> In the `my-web-app` repo (PR #42), refactor the `UserService` class in `src/services/user.ts` to use the `UserRepository` pattern shown in `ProductService`/`ProductRepository`.
+
+If there are specific implementation details you want included, make sure to specify. For example:
+
+> Ensure all tests in `tests/services/user.test.ts` pass and add new tests for the repository with 90%+ coverage. Update the diagram in `docs/architecture/user-service.md`.
+
+## Elements of a Strong Prompt
+
+1.  **Scope:** What repository, branch, or files are involved? (e.g., `my-web-app` repo, `PR #42`, `src/services/user.ts`)
+2.  **Goal:** What is the high-level objective? (e.g., Refactor `UserService`, improve testability)
+3.  **Tasks:** What specific actions should the agent take? Use a numbered or bulleted list for clarity. (e.g., Extract logic to `UserRepository`, use dependency injection, update tests, update diagram)
+4.  **Context/Patterns:** Are there existing patterns, examples, or documentation to reference? (e.g., `ProductService`, `ProductRepository`)
+5.  **Success Criteria:** How will you know the task is done correctly? (e.g., Tests pass, 90%+ coverage, diagram updated)
+
+<Note>
+  Clear, detailed prompts empower Codegen agents to deliver accurate results
+  faster, significantly streamlining your workflow.
+</Note>
