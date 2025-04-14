@@ -22,7 +22,7 @@
 
 <br />
 
-[Codegen](https://docs.codegen.com) is a python library for manipulating codebases.
+[Codegen](https://docs.codegen.com) is a Python library for manipulating codebases at scale with a natural, intuitive API.
 
 ```python
 from codegen import Codebase
@@ -43,16 +43,16 @@ Write code that transforms code. Codegen combines the parsing power of [Tree-sit
 
 ## Installation and Usage
 
-We support
+We support:
 
 - Running Codegen in Python 3.12 - 3.13 (recommended: Python 3.13+)
 - macOS and Linux
-  - macOS is supported
+  - macOS is fully supported
   - Linux is supported on x86_64 and aarch64 with glibc 2.34+
   - Windows is supported via WSL. See [here](https://docs.codegen.com/building-with-codegen/codegen-with-wsl) for more details.
-- Python, Typescript, Javascript and React codebases
+- Python, TypeScript, JavaScript and React codebases
 
-```
+```bash
 # Install inside existing project
 uv pip install codegen
 
@@ -62,10 +62,10 @@ uv tool install codegen --python 3.13
 # Create a codemod for a given repo
 cd path/to/repo
 codegen init
-codegen create test-function
+codegen create my-function . -d "describe what you want to do"
 
 # Run the codemod
-codegen run test-function
+codegen run my-function --apply-local
 
 # Create an isolated venv with codegen => open jupyter
 codegen notebook
@@ -75,9 +75,30 @@ codegen notebook
 
 See [Getting Started](https://docs.codegen.com/introduction/getting-started) for a full tutorial.
 
-```
+```python
 from codegen import Codebase
+
+# Initialize a codebase object
+codebase = Codebase("./")
+
+# Find and manipulate functions
+for function in codebase.functions:
+    # Analyze function properties
+    print(f"Function: {function.name}, Lines: {len(function.body_lines)}")
+
+    # Rename functions matching a pattern
+    if function.name.startswith("old_"):
+        new_name = function.name.replace("old_", "new_")
+        function.rename(new_name)
 ```
+
+## Features
+
+- **Intuitive API**: Work with code using natural operations like `rename()`, `move_to_file()`, and `add_parameter()`
+- **Multi-language support**: Works with Python, TypeScript, JavaScript, and React
+- **Comprehensive analysis**: Automatically tracks references, dependencies, and usages
+- **Import management**: Handles import statements automatically when moving or renaming code
+- **Codemod framework**: Create, share, and run code transformations with the CLI
 
 ## Troubleshooting
 
@@ -91,8 +112,10 @@ If you run into additional issues not listed here, please [join our slack commun
 
 ## Resources
 
-- [Docs](https://docs.codegen.com)
+- [Documentation](https://docs.codegen.com)
 - [Getting Started](https://docs.codegen.com/introduction/getting-started)
+- [API Reference](https://docs.codegen.com/api-reference/codebase)
+- [CLI Commands](https://docs.codegen.com/cli/about)
 - [Contributing](CONTRIBUTING.md)
 - [Contact Us](https://codegen.com/contact)
 
