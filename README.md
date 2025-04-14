@@ -7,7 +7,7 @@
 </p>
 
 <h2 align="center">
-  Scriptable interface to a powerful, multi-lingual language server.
+  🚀 Scriptable interface to a powerful, multi-lingual language server.
 </h2>
 
 <div align="center">
@@ -22,7 +22,7 @@
 
 <br />
 
-[Codegen](https://docs.codegen.com) is a python library for manipulating codebases.
+[Codegen](https://docs.codegen.com) is a ✨ python library for manipulating codebases.
 
 ```python
 from codegen import Codebase
@@ -89,14 +89,14 @@ Having issues? Here are some common problems and their solutions:
 
 If you run into additional issues not listed here, please [join our slack community](https://community.codegen.com) and we'll help you out!
 
-## Resources
+## 📚 Resources
 
 - [Docs](https://docs.codegen.com)
 - [Getting Started](https://docs.codegen.com/introduction/getting-started)
 - [Contributing](CONTRIBUTING.md)
 - [Contact Us](https://codegen.com/contact)
 
-## Why Codegen?
+## 🤔 Why Codegen?
 
 Software development is fundamentally programmatic. Refactoring a codebase, enforcing patterns, or analyzing control flow - these are all operations that can (and should) be expressed as programs themselves.
 
