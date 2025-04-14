@@ -68,8 +68,9 @@
 			"group": "Introduction",
 			"pages": [
 				"introduction/overview",
-				"introduction/community",
+				"introduction/capabilities",
 				"introduction/prompting",
+				"introduction/community",
 				"introduction/about",
 				"introduction/faq"
 			]
