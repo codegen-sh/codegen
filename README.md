@@ -56,7 +56,7 @@ We support
 # Install inside existing project
 uv pip install codegen
 
-# Install global CLI
+# Install global CLI (recommended for most users)
 uv tool install codegen --python 3.13
 
 # Create a codemod for a given repo
