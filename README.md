@@ -22,6 +22,10 @@
 
 <br />
 
+<p align="center"><em>Last updated: March 30, 2025</em></p>
+
+<br />
+
 [Codegen](https://docs.codegen.com) is a python library for manipulating codebases.
 
 ```python
