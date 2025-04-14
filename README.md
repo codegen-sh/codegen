@@ -75,8 +75,11 @@ codegen notebook
 
 See [Getting Started](https://docs.codegen.com/introduction/getting-started) for a full tutorial.
 
-```
+```python
 from codegen import Codebase
+
+# For AI agent functionality
+from codegen import Agent
 ```
 
 ## Troubleshooting

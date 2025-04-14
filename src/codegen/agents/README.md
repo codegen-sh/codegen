@@ -15,7 +15,11 @@ pip install codegen
 ### Basic Example
 
 ```python
-from codegen.agents.agent import Agent
+# You can import Agent directly from the top-level package
+from codegen import Agent
+
+# Or use the full import path
+# from codegen.agents.agent import Agent
 
 # Initialize the Agent with your organization ID and API token
 agent = Agent(
