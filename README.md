@@ -7,7 +7,7 @@
 </p>
 
 <h2 align="center">
-  Scriptable interface to a powerful, multi-lingual language server.
+  🌈 Scriptable interface to a powerful, multi-lingual language server.
 </h2>
 
 <div align="center">
