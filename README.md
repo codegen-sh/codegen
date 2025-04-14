@@ -87,7 +87,7 @@ Having issues? Here are some common problems and their solutions:
 - **I'm hitting an error about `No module named 'codegen.sdk.extensions.utils'`**: The compiled cython extensions are out of sync. Update them with `uv sync --reinstall-package codegen`.
 - **I'm hitting a `RecursionError: maximum recursion depth exceeded` error while parsing my codebase**: If you are using python 3.12, try upgrading to 3.13. If you are already on 3.13, try upping the recursion limit with `sys.setrecursionlimit(10000)`.
 
-If you run into additional issues not listed here, please [join our slack community](https://community.codegen.com) and we'll help you out!
+If you run into additional issues not listed here, please [join our slack community](https://community.codegen.com) and we'll help you out! You can also check our [GitHub issues](https://github.com/codegen-sh/codegen/issues) for known problems and solutions.
 
 ## Resources
 
