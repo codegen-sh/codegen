@@ -1,5 +1,9 @@
 <br />
 
+<div align="center" style="background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet); padding: 10px; margin-bottom: 20px;">
+  <h1 style="color: white; text-shadow: 1px 1px 2px black;">🌈 CODEGEN 🌈</h1>
+</div>
+
 <p align="center">
   <a href="https://docs.codegen.com">
     <img src="https://i.imgur.com/6RF9W0z.jpeg" />
@@ -7,7 +11,7 @@
 </p>
 
 <h2 align="center">
-  Scriptable interface to a powerful, multi-lingual language server.
+  <span style="color: #ff0000;">S</span><span style="color: #ff7f00;">c</span><span style="color: #ffff00;">r</span><span style="color: #00ff00;">i</span><span style="color: #0000ff;">p</span><span style="color: #4b0082;">t</span><span style="color: #9400d3;">a</span><span style="color: #ff0000;">b</span><span style="color: #ff7f00;">l</span><span style="color: #ffff00;">e</span> <span style="color: #00ff00;">i</span><span style="color: #0000ff;">n</span><span style="color: #4b0082;">t</span><span style="color: #9400d3;">e</span><span style="color: #ff0000;">r</span><span style="color: #ff7f00;">f</span><span style="color: #ffff00;">a</span><span style="color: #00ff00;">c</span><span style="color: #0000ff;">e</span> <span style="color: #4b0082;">t</span><span style="color: #9400d3;">o</span> <span style="color: #ff0000;">a</span> <span style="color: #ff7f00;">p</span><span style="color: #ffff00;">o</span><span style="color: #00ff00;">w</span><span style="color: #0000ff;">e</span><span style="color: #4b0082;">r</span><span style="color: #9400d3;">f</span><span style="color: #ff0000;">u</span><span style="color: #ff7f00;">l</span><span style="color: #ffff00;">,</span> <span style="color: #00ff00;">m</span><span style="color: #0000ff;">u</span><span style="color: #4b0082;">l</span><span style="color: #9400d3;">t</span><span style="color: #ff0000;">i</span><span style="color: #ff7f00;">-</span><span style="color: #ffff00;">l</span><span style="color: #00ff00;">i</span><span style="color: #0000ff;">n</span><span style="color: #4b0082;">g</span><span style="color: #9400d3;">u</span><span style="color: #ff0000;">a</span><span style="color: #ff7f00;">l</span> <span style="color: #ffff00;">l</span><span style="color: #00ff00;">a</span><span style="color: #0000ff;">n</span><span style="color: #4b0082;">g</span><span style="color: #9400d3;">u</span><span style="color: #ff0000;">a</span><span style="color: #ff7f00;">g</span><span style="color: #ffff00;">e</span> <span style="color: #00ff00;">s</span><span style="color: #0000ff;">e</span><span style="color: #4b0082;">r</span><span style="color: #9400d3;">v</span><span style="color: #ff0000;">e</span><span style="color: #ff7f00;">r</span><span style="color: #ffff00;">.</span>
 </h2>
 
 <div align="center">
@@ -115,3 +119,10 @@ Please see our [Contributing Guide](CONTRIBUTING.md) for instructions on how to 
 ## Enterprise
 
 For more information on enterprise engagements, please [contact us](https://codegen.com/contact) or [request a demo](https://codegen.com/request-demo).
+
+<div align="center">
+  <p>
+    <span style="color: #ff0000;">T</span><span style="color: #ff7f00;">h</span><span style="color: #ffff00;">a</span><span style="color: #00ff00;">n</span><span style="color: #0000ff;">k</span><span style="color: #4b0082;">s</span> <span style="color: #9400d3;">f</span><span style="color: #ff0000;">o</span><span style="color: #ff7f00;">r</span> <span style="color: #ffff00;">u</span><span style="color: #00ff00;">s</span><span style="color: #0000ff;">i</span><span style="color: #4b0082;">n</span><span style="color: #9400d3;">g</span> <span style="color: #ff0000;">C</span><span style="color: #ff7f00;">o</span><span style="color: #ffff00;">d</span><span style="color: #00ff00;">e</span><span style="color: #0000ff;">g</span><span style="color: #4b0082;">e</span><span style="color: #9400d3;">n</span><span style="color: #ff0000;">!</span>
+  </p>
+  <p>🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈</p>
+</div>
