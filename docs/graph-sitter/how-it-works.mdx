@@ -1,0 +1,89 @@
+---
+title: "Under the Hood"
+sidebarTitle: "How it Works"
+icon: "gear"
+iconType: "solid"
+subtitle: "How Codegen's codebase graph works"
+---
+
+Codegen performs advanced static analysis to build a rich graph representation of your codebase. This pre-computation step analyzes dependencies, references, types, and control flow to enable fast and reliable code manipulation operations.
+
+<Note>
+  Codegen is built on top of
+  [Tree-sitter](https://tree-sitter.github.io/tree-sitter/) and
+  [rustworkx](https://github.com/Qiskit/rustworkx) and has implemented most
+  language server features from scratch.
+</Note>
+<Info>
+  Codegen is open source. Check out the [source
+  code](https://github.com/codegen-sh/codegen-sdk) to learn more!
+</Info>
+
+## The Codebase Graph
+
+At the heart of Codegen is a comprehensive graph representation of your code. When you initialize a [Codebase](/api-reference/core/Codebase), it performs static analysis to construct a rich graph structure connecting code elements:
+
+```python
+# Initialize and analyze the codebase
+from codegen import Codebase
+codebase = Codebase("./")
+
+# Access pre-computed relationships
+function = codebase.get_symbol("process_data")
+print(f"Dependencies: {function.dependencies}")  # Instant lookup
+print(f"Usages: {function.usages}")  # No parsing needed
+```
+
+### Building the Graph
+
+Codegen's graph construction happens in two stages:
+
+1. **AST Parsing**: We use [Tree-sitter](https://tree-sitter.github.io/tree-sitter/) as our foundation for parsing code into Abstract Syntax Trees. Tree-sitter provides fast, reliable parsing across multiple languages.
+
+2. **Multi-file Graph Construction**: Custom parsing logic, implemented in [rustworkx](https://github.com/Qiskit/rustworkx) and Python, analyzes these ASTs to construct a more sophisticated graph structure. This graph captures relationships between [symbols](/building-with-codegen/symbol-api), [files](/building-with-codegen/files-and-directories), [imports](/building-with-codegen/imports), and more.
+
+### Performance Through Pre-computation
+
+Pre-computing a rich index enables Codegen to make certain operations very fast that that are relevant to refactors and code analysis:
+
+- Finding all usages of a symbol
+- Detecting circular dependencies
+- Analyzing the dependency graphs
+- Tracing call graphs
+- Static analysis-based code retrieval for RAG
+- ...etc.
+
+<Tip>
+  Pre-parsing the codebase enables constant-time lookups rather than requiring
+  re-parsing or real-time analysis.
+</Tip>
+
+## Multi-Language Support
+
+One of Codegen's core principles is that many programming tasks are fundamentally similar across languages.
+
+Currently, Codegen supports:
+
+- [Python](/api-reference/python)
+- [TypeScript](/api-reference/typescript)
+- [React & JSX](/building-with-codegen/react-and-jsx)
+
+<Note>
+  Learn about how Codegen handles language specifics in the [Language
+  Support](/building-with-codegen/language-support) guide.
+</Note>
+
+We've started with these ecosystems but designed our architecture to be extensible. The graph-based approach provides a consistent interface across languages while handling language-specific details under the hood.
+
+## Build with Us
+
+Codegen is just getting started, and we're excited about the possibilities ahead. We enthusiastically welcome contributions from the community, whether it's:
+
+- Adding support for new languages
+- Implementing new analysis capabilities
+- Improving performance
+- Expanding the API
+- Adding new transformations
+- Improving documentation
+
+Check out our [community guide](/introduction/community) to get involved!

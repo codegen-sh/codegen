@@ -1,0 +1,159 @@
+---
+title: "Codegen"
+sidebarTitle: "Overview"
+icon: "code"
+iconType: "solid"
+---
+
+[Codegen](https://github.com/codegen-sh/codegen-sdk) is a python library for manipulating codebases.
+
+It provides a scriptable interface to a powerful, multi-lingual language server built on top of [Tree-sitter](https://tree-sitter.github.io/tree-sitter/).
+
+```python
+from codegen import Codebase
+
+# Codegen builds a complete graph connecting
+# functions, classes, imports and their relationships
+codebase = Codebase("./")
+
+# Work with code without dealing with syntax trees or parsing
+for function in codebase.functions:
+    # Comprehensive static analysis for references, dependencies, etc.
+    if not function.usages:
+        # Auto-handles references and imports to maintain correctness
+        function.remove()
+
+# Fast, in-memory code index
+codebase.commit()
+```
+
+
+<Note>
+Codegen handles complex refactors while maintaining correctness, enabling a broad set of advanced code manipulation programs.
+</Note>
+
+<Tip>Codegen works with both Python and Typescript/JSX codebases. Learn more about language support [here](/building-with-codegen/language-support).</Tip>
+
+## Quick Started
+
+<Note>
+Codegen requires Python 3.12 - 3.13 (recommended: Python 3.13+).
+</Note>
+
+### Using UV (Recommended)
+```bash
+uv tool install codegen --python 3.13
+```
+
+### Using Pipx
+
+<Warning>
+Pipx is not officially supported by Codegen, but it should still work.
+</Warning>
+
+```bash
+pipx install codegen
+```
+
+<Note>
+For further & more in depth installation instructions, see the [installation guide](/introduction/installation).
+</Note>
+
+## What can I do with Codegen?
+
+Codegen's simple yet powerful APIs enable a range of applications, including:
+
+<CardGroup cols={2}>
+  <Card
+    title="Build a Code Agent"
+    icon="robot"
+    href="/tutorials/build-code-agent"
+  >
+    Create an intelligent agent that can analyze and manipulate your codebase using natural language.
+  </Card>
+  <Card
+    title="Visualize Your Codebase"
+    icon="diagram-project"
+    href="/tutorials/codebase-visualization"
+  >
+    Generate interactive visualizations of your codebase's structure, dependencies, and relationships.
+  </Card>
+  <Card
+    title="Mine Codebase Data"
+    icon="database"
+    href="/tutorials/training-data"
+  >
+    Create high-quality training data for fine-tuning LLMs on your codebase.
+  </Card>
+  <Card
+    title="Build Codemods"
+    icon="wand-magic-sparkles"
+    href="/tutorials/at-a-glance#api-migrations"
+  >
+    Create powerful code transformations to automate large-scale changes.
+  </Card>
+</CardGroup>
+
+See below for an example call graph visualization generated with Codegen.
+
+<Frame caption="Call graph visualization for modal/modal-client/_Client">
+<iframe
+  width="100%"
+  height="500px"
+  scrolling="no"
+  src={`https://codegen.sh/embedded/graph?id=66e2e195-ceec-4935-876a-ed4cfc1731c7&zoom=0.5&targetNodeName=_Client`}
+  className="rounded-xl"
+  style={{
+    backgroundColor: "#15141b",
+  }}
+></iframe>
+</Frame>
+<Info>
+View source code on [modal/modal-client](https://github.com/modal-labs/modal-client/blob/cbac0d80dfd98588027ecd21850152776be3ab82/modal/client.py#L70). View codemod on [codegen.sh](https://www.codegen.sh/codemod/66e2e195-ceec-4935-876a-ed4cfc1731c7/public/diff)
+</Info>
+
+## Get Started
+
+import {
+  COMMUNITY_SLACK_URL,
+  CODEGEN_SDK_GITHUB_URL,
+} from "/snippets/links.mdx";
+
+<CardGroup cols={2}>
+  <Card
+    title="Get Started"
+    icon="graduation-cap"
+    href="/introduction/getting-started"
+  >
+    Follow our step-by-step tutorial to start manipulating code with Codegen.
+  </Card>
+  <Card title="Tutorials" icon="diagram-project" href="/tutorials/at-a-glance">
+    Learn how to use Codegen for common code transformation tasks.
+  </Card>
+  <Card title="View on GitHub" icon="github" href={CODEGEN_SDK_GITHUB_URL}>
+    Star us on GitHub and contribute to the project.
+  </Card>
+  <Card title="Join our Slack" icon="slack" href={COMMUNITY_SLACK_URL}>
+    Get help and connect with the Codegen community.
+  </Card>
+</CardGroup>
+
+## Why Codegen?
+
+Many software engineering tasks - refactors, enforcing patterns, analyzing control flow, etc. - are fundamentally programmatic operations. Yet the tools we use to express these transformations often feel disconnected from how we think about code.
+
+Codegen was engineered backwards from real-world refactors we performed for enterprises at [Codegen, Inc.](/introduction/about). Instead of starting with theoretical abstractions, we built the set of APIs that map directly to how humans and AI think about code changes:
+
+- **Natural Mental Model**: Express transformations through high-level operations that match how you reason about code changes, not low-level text or AST manipulation.
+- **Clean Business Logic**: Let the engine handle the complexities of imports, references, and cross-file dependencies.
+- **Scale with Confidence**: Make sweeping changes across large codebases consistently across Python, TypeScript, JavaScript, and React.
+
+As AI becomes increasingly sophisticated, we're seeing a fascinating shift: AI agents aren't bottlenecked by their ability to understand code or generate solutions. Instead, they're limited by their ability to efficiently manipulate codebases. The challenge isn't the "brain" - it's the "hands."
+
+We built Codegen with a key insight: future AI agents will need to ["act via code,"](/blog/act-via-code) building their own sophisticated tools for code manipulation. Rather than generating diffs or making direct text changes, these agents will:
+
+1. Express transformations as composable programs
+2. Build higher-level tools by combining primitive operations
+3. Create and maintain their own abstractions for common patterns
+
+This creates a shared language that both humans and AI can reason about effectively, making code changes more predictable, reviewable, and maintainable. Whether you're a developer writing a complex refactoring script or an AI agent building transformation tools, Codegen provides the foundation for expressing code changes as they should be: through code itself.

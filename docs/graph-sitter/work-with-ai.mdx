@@ -1,0 +1,86 @@
+---
+title: "Working with AI"
+sidebarTitle: "AI Integration"
+icon: "microchip"
+iconType: "solid"
+---
+
+Codegen is designed to be used with AI assistants. This document describes how to use Codegen with common AI tools, including Copilot, Cursor, Devin and more.
+
+## System Prompt
+
+Codegen provides a `.txt` file that you can drag-and-drop into any chat assistant. This is roughly 60k tokens and will enable chat assistants like, ChatGPT, Claude 3.5 etc. to build effectively with Codegen.
+
+import {
+  CODEGEN_SYSTEM_PROMPT
+} from "/snippets/links.mdx";
+
+<Card title="Download System Prompt" href={CODEGEN_SYSTEM_PROMPT} icon="download">
+  Download System Prompt
+</Card>
+
+<Tip>Learn about leveraging this in IDE chat assistants like Cursor [here](/introduction/ide-usage#iterating-with-chat-assistants)</Tip>
+
+## Generating System Prompts
+
+The [Codegen CLI](/cli/about) provides commands to generate `.md` files that can be fed to any AI assistant for more accurate and contextual help.
+
+When you create a new codemod via [codegen create](/cli/create):
+
+```bash
+codegen create delete-dead-imports . --description "Delete unused imports"
+```
+
+Codegen automatically generates an optimized ["system prompt"](https://news.ycombinator.com/item?id=37880023) that includes:
+
+- An introduction to Codegen
+- Codegen API documentation
+- Examples of relevant transformations
+
+You can find this generated prompt in the `.codegen/prompts/<codemod-name>-system-prompt.md` file.
+
+<Note>
+  All contents of the `.codegen/prompts` directory are by default ignored the
+  `.gitignore` file. after running [codegen init](/cli/init)
+</Note>
+
+This `.md` file can be used with any AI assistant (Claude, GPT-4, etc.) to get more accurate and contextual help.
+
+## Example Workflow
+
+<Steps>
+  <Step title="Create a codemod with description">
+    Use the [create command](/cli/create) with a detailed description of what you want to accomplish:
+    ```bash
+    codegen create modernize-components . --description "Convert class components to functional components with hooks"
+    ```
+  </Step>
+  <Step title="Review the generated system prompt">
+    Check the AI context that Codegen generated for your transformation: ```bash
+    cat codegen-sh/codemods/modernize-components/prompt.md ```
+  </Step>
+
+<Step title="Iterate in Copilot, Cursor or Windsurf">
+  Reference your codemod when asking questions to get contextual help: ```
+  @codegen-sh/codemods/modernize-components How should I handle
+  componentDidMount? ```
+</Step>
+
+  <Step title="Get contextual help">
+    The AI will understand you're working on React modernization and provide relevant suggestions about using useEffect hooks and other modern React patterns.
+  </Step>
+</Steps>
+
+## Copilot, Cursor and Windsurf (IDEs)
+
+When using IDE chat assistants, you can leverage Codegen's context by mentioning your codemod in composer mode:
+
+```bash
+@.codegen/codemods/upgrade-react18 @.codegen/prompts/system-prompt.md
+```
+
+This will ensure that the IDE's native chat model is aware of the APIs and common patterns for Codegen.
+
+## Devin, OpenHands and Semi-autonomous Code Agents
+
+<Warning>Coming soon!</Warning>
