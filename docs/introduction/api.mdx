@@ -1,0 +1,77 @@
+---
+title: "Codegen SDK"
+sidebarTitle: "API"
+icon: "code"
+iconType: "solid"
+---
+
+The [Codegen SDK](https://github.com/codegen-sh/codegen-sdk) enables developers to programmatically interact with [Codegen](https://codegen.com) SWE agents via API.
+
+<Tip>
+  Go to [developer settings](https://codegen.sh/token) to generate an API token
+</Tip>
+
+```python
+from codegen import Agent
+
+# Initialize the Agent with your organization ID and API token
+agent = Agent(org_id="...", token="...")
+
+# Run an agent with a prompt
+task = agent.run(prompt="Leave a review on PR #123")
+
+# Check the initial status
+print(task.status)
+
+# Refresh the task to get updated status (tasks can take time)
+task.refresh()
+
+if task.status == "completed":
+    print(task.result)  # Result often contains code, summaries, or links
+```
+
+<Note>
+  Codegen agents can research code, create PRs, modify Linear tickets, and more.
+</Note>
+
+## Installation
+
+Install the SDK using pip or uv:
+
+```bash
+pip install codegen
+# or
+uv pip install codegen
+```
+
+## What can I do with the Codegen SDK?
+
+The Codegen SDK is your gateway to programmatically interacting with your AI Software Engineer. You can use it to:
+
+- **Automate development tasks**: Assign tasks like implementing features, fixing bugs, writing tests, or improving documentation to the agent.
+- **Integrate AI into your workflows**: Trigger agent tasks from your CI/CD pipelines, scripts, or other development tools.
+- **Provide context and guidance**: Supply the agent with specific instructions, relevant code snippets, or background information to ensure it performs tasks according to your requirements.
+
+Essentially, the SDK allows you to leverage Codegen's AI capabilities wherever you can run Python code.
+
+## Get Started
+
+import {
+  COMMUNITY_SLACK_URL,
+  CODEGEN_SDK_GITHUB_URL,
+} from "/snippets/links.mdx";
+
+<CardGroup cols={2}>
+  <Card title="Create Account" icon="user-plus" href="https://codegen.sh/login">
+    Sign up for a free account and get your API token.
+  </Card>
+  <Card title="Join our Slack" icon="slack" href={COMMUNITY_SLACK_URL}>
+    Get help and connect with the Codegen community.
+  </Card>
+  <Card title="Tutorials" icon="diagram-project" href="/tutorials/at-a-glance">
+    Learn how to use Codegen for common code transformation tasks.
+  </Card>
+  <Card title="View on GitHub" icon="github" href={CODEGEN_SDK_GITHUB_URL}>
+    Star us on GitHub and contribute to the project.
+  </Card>
+</CardGroup>
