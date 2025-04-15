@@ -92,13 +92,7 @@
 		},
 		{
 			"group": "Blog",
-			"pages": [
-				"blog/posts",
-				"blog/devin",
-				"blog/act-via-code",
-				"blog/promise-to-async-await-twilio",
-				"blog/fixing-import-loops"
-			]
+			"pages": ["blog/posts", "blog/devin", "blog/act-via-code"]
 		}
 	],
 	"footerSocials": {
