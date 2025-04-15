@@ -69,6 +69,7 @@
 			"pages": [
 				"introduction/overview",
 				"introduction/capabilities",
+				"introduction/api",
 				"introduction/prompting",
 				"introduction/community",
 				"introduction/about",
