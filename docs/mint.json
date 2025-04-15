@@ -76,6 +76,16 @@
 			]
 		},
 		{
+			"group": "Integrations",
+			"pages": [
+				"integrations/slack",
+				"integrations/linear",
+				"integrations/github",
+				"integrations/web-search",
+				"integrations/sandboxes"
+			]
+		},
+		{
 			"group": "Changelog",
 			"pages": ["changelog/changelog"]
 		},

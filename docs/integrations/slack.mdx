@@ -1,0 +1,42 @@
+---
+title: "Slack Integration"
+sidebarTitle: "Slack"
+icon: "slack"
+---
+
+Connect Codegen to your Slack workspace to enable seamless communication between agents and your team.
+
+## Capabilities
+
+The Slack integration allows agents to interact within your designated channels:
+
+- **Send Messages:** Post updates, ask questions, report results, and notify team members.
+- **Read Messages:** (Optional) Agents can be configured to read messages in specific channels to gather context or respond to requests (requires careful permission setup).
+- **User Mentions:** Tag specific users or groups for notifications.
+
+## How Agents Use Slack
+
+Agents use Slack primarily for communication and notifications:
+
+- **Progress Updates:** Informing a channel or user when a task starts, encounters an issue, or is completed.
+- **Requesting Feedback:** Asking for clarification or input on a specific implementation detail or ambiguity.
+- **Sharing Results:** Posting links to created PRs, summaries of changes, or errors encountered.
+- **Notifications:** Alerting the team about build failures, successful deployments, or critical issues identified.
+
+## Installation
+
+Add the Codegen Slack App to your workspace to enable agent communication.
+
+<Card
+  title="Add Codegen to Slack"
+  icon="slack"
+  href="https://codegen.sh/integrations"
+>
+  Install the Codegen app from the Slack App Directory and choose the channels
+  it can access.
+</Card>
+
+<Note>
+  Configure channel access carefully to ensure agents communicate in the
+  appropriate places.
+</Note>

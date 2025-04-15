@@ -1,0 +1,34 @@
+---
+title: "Code Execution Sandboxes"
+sidebarTitle: "Sandboxes"
+icon: "box"
+---
+
+Codegen agents operate within secure, isolated sandbox environments where they can safely execute code, install dependencies, and run commands without affecting your local machine or production systems.
+
+## Capabilities
+
+Each sandbox provides a controlled environment with:
+
+- **File System Access:** Read, write, and modify files within the sandbox's temporary file system.
+- **Terminal Access:** Execute shell commands (`bash`, `sh`, etc.) to run scripts, linters, formatters, build tools, and other necessary commands.
+- **Process Execution:** Run code in various languages (Python, Node.js, etc., depending on the sandbox image).
+- **Networking:** Controlled network access for tasks like installing packages or fetching data (can be restricted).
+
+## How Agents Use Sandboxes
+
+Agents utilize sandboxes for a variety of tasks:
+
+- **Testing Code:** Running unit tests, integration tests, or linters against the code they've written or modified.
+- **Verifying Changes:** Executing the code to ensure it runs correctly before committing.
+- **Installing Dependencies:** Using package managers (`pip`, `npm`, `yarn`) to install necessary libraries.
+- **Running Tools:** Executing build scripts, code formatters, or other development utilities.
+
+## Configuration
+
+Sandboxes are typically configured per-agent run or defined within your Codegen settings. You often don't need to manage them directly, but advanced configurations might allow specifying Docker images or environment variables.
+
+<Note>
+  Sandboxes are ephemeral; their state is not typically persisted between agent
+  runs unless specifically configured for caching or stateful operations.
+</Note>
