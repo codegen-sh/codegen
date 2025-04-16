@@ -512,7 +512,6 @@ dependencies = [
     { name = "astor" },
     { name = "click" },
     { name = "codegen-api-client" },
-    { name = "codegen-sdk-pink" },
     { name = "codeowners" },
     { name = "colorlog" },
     { name = "dataclasses-json" },
@@ -584,6 +583,9 @@ lsp = [
     { name = "lsprotocol" },
     { name = "pygls" },
 ]
+pink = [
+    { name = "codegen-sdk-pink" },
+]
 types = [
     { name = "types-networkx" },
     { name = "types-requests" },
@@ -635,8 +637,8 @@ requires-dist = [
     { name = "astor", specifier = ">=0.8.1,<1.0.0" },
     { name = "attrs", marker = "extra == 'lsp'", specifier = ">=25.1.0" },
     { name = "click", specifier = ">=8.1.7" },
-    { name = "codegen-api-client", git = "https://github.com/codegen-sh/codegen-api-client" },
-    { name = "codegen-sdk-pink", specifier = ">=0.1.0" },
+    { name = "codegen-api-client" },
+    { name = "codegen-sdk-pink", marker = "extra == 'pink'", specifier = ">=0.1.0" },
     { name = "codeowners", specifier = ">=0.6.0,<1.0.0" },
     { name = "colorlog", specifier = ">=6.9.0" },
     { name = "dataclasses-json", specifier = ">=0.6.4,<1.0.0" },
@@ -707,7 +709,7 @@ requires-dist = [
     { name = "wrapt", specifier = ">=1.16.0,<2.0.0" },
     { name = "xmltodict", specifier = ">=0.13.0,<1.0.0" },
 ]
-provides-extras = ["lsp", "types"]
+provides-extras = ["lsp", "pink", "types"]
 
 [package.metadata.requires-dev]
 dev = [
@@ -717,7 +719,7 @@ dev = [
     { name = "black", specifier = ">=24.8.0" },
     { name = "braintrust", specifier = ">=0.0.160" },
     { name = "cibuildwheel", extras = ["uv"], specifier = ">=2.22.0" },
-    { name = "codegen-api-client", git = "https://github.com/codegen-sh/codegen-api-client" },
+    { name = "codegen-api-client", specifier = ">=1.0.0" },
     { name = "coverage", specifier = ">=7.6.1,<8.0.0" },
     { name = "cython", specifier = ">=3.0.11" },
     { name = "deptry", specifier = ">=0.22.0" },
@@ -751,12 +753,16 @@ dev = [
 [[package]]
 name = "codegen-api-client"
 version = "1.0.0"
-source = { git = "https://github.com/codegen-sh/codegen-api-client#5b3991473eb24194327a49a2d49656a68cbf3439" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pydantic" },
     { name = "python-dateutil" },
     { name = "typing-extensions" },
     { name = "urllib3" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/69/df/8a2bf96f96df71f44619dbd003852804dedd5c331846ad99e5476749bf96/codegen_api_client-1.0.0.tar.gz", hash = "sha256:4e925e25dfdda4afaba8c0b223c5bf2736da2a38d34ee30a92777692e4f34783", size = 26173 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/31/66/5bafb6e567d636e87a2fbedeca2300bc1a3a21a7b8cd5ec418e94538b57d/codegen_api_client-1.0.0-py3-none-any.whl", hash = "sha256:12f8fcfabe512bc88917fa750784d75b79b3a50495dc2c311c58ea83120f44a7", size = 44767 },
 ]
 
 [[package]]

@@ -162,14 +162,11 @@ dev-dependencies = [
   "modal>=0.73.25",
   "pytest-lsp>=1.0.0b1",
   "cython>=3.0.11",
-  "codegen-api-client",
+  "codegen-api-client>=1.0.0",
 ]
 
 [tool.uv.workspace]
 exclude = ["codegen-examples"]
-
-[tool.uv.sources]
-codegen-api-client = { git = "https://github.com/codegen-sh/codegen-api-client" }
 
 
 [tool.cython-lint]
