@@ -3,9 +3,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from codegen.agents.agent import Agent, AgentTask
-from codegen.agents.client.openapi_client.api.agents_api import AgentsApi
-from codegen.agents.client.openapi_client.configuration import Configuration
-from codegen.agents.client.openapi_client.models.agent_run_response import AgentRunResponse
+from codegen_api_client.api.agents_api import AgentsApi
+from codegen_api_client.configuration import Configuration
+from codegen_api_client.models.agent_run_response import AgentRunResponse
 from codegen.agents.constants import CODEGEN_BASE_API_URL
 
 

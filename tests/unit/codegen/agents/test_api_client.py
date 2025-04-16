@@ -6,11 +6,10 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pydantic import SecretStr
 
-from codegen.agents.client.openapi_client.api_client import ApiClient
-from codegen.agents.client.openapi_client.api_response import ApiResponse
-from codegen.agents.client.openapi_client.configuration import Configuration
-from codegen.agents.client.openapi_client.exceptions import ApiException, ApiValueError
-
+from codegen_api_client.api_client import ApiClient
+from codegen_api_client.api_response import ApiResponse
+from codegen_api_client.configuration import Configuration
+from codegen_api_client.exceptions import ApiException, ApiValueError
 
 class TestEnum(Enum):
     VALUE1 = "value1"
@@ -31,17 +30,17 @@ class TestApiClient:
     def api_client(self):
         config = Configuration()
         # Mock the RESTClientObject to avoid making actual HTTP requests
-        with patch("codegen.agents.client.openapi_client.rest.RESTClientObject") as mock_rest:
+        with patch("codegen_api_client.rest.RESTClientObject") as mock_rest:
             client = ApiClient(configuration=config)
             # Return the client with mocked rest_client
             yield client
 
     def test_init_default_configuration(self):
         """Test initialization with default configuration"""
-        with patch("codegen.agents.client.openapi_client.configuration.Configuration.get_default") as mock_get_default:
+        with patch("codegen_api_client.configuration.Configuration.get_default") as mock_get_default:
             mock_config = MagicMock()
             mock_get_default.return_value = mock_config
-            with patch("codegen.agents.client.openapi_client.rest.RESTClientObject"):
+            with patch("codegen_api_client.rest.RESTClientObject"):
                 client = ApiClient()
                 assert client.configuration == mock_config
                 assert client.user_agent == "OpenAPI-Generator/1.0.0/python"
@@ -327,7 +326,7 @@ class TestApiClient:
         # Mock deserialize method and ApiResponse constructor
         with (
             patch.object(api_client, "deserialize") as mock_deserialize,
-            patch("codegen.agents.client.openapi_client.api_client.ApiResponse", return_value=mock_api_response) as mock_api_response_class,
+            patch("codegen_api_client.api_client.ApiResponse", return_value=mock_api_response) as mock_api_response_class,
         ):
             mock_deserialize.return_value = {"name": "test", "value": 123}
 
@@ -351,7 +350,7 @@ class TestApiClient:
         response_data.getheaders.return_value = {"Content-Type": "application/json"}
 
         # Mock methods
-        with patch.object(api_client, "deserialize") as mock_deserialize, patch("codegen.agents.client.openapi_client.exceptions.ApiException.from_response") as mock_exception:
+        with patch.object(api_client, "deserialize") as mock_deserialize, patch("codegen_api_client.exceptions.ApiException.from_response") as mock_exception:
             mock_deserialize.return_value = {"error": "Bad Request"}
             mock_exception.side_effect = ApiException(400)
 
