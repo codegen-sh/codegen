@@ -82,6 +82,7 @@
 				"integrations/slack",
 				"integrations/linear",
 				"integrations/github",
+				"integrations/repository-configuration",
 				"integrations/web-search",
 				"integrations/sandboxes"
 			]

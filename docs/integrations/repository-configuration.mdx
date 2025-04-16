@@ -1,0 +1,83 @@
+---
+title: "Repository Configuration"
+description: "Configure and manage your GitHub repositories for use with Codegen"
+---
+
+# Repository Configuration
+
+Codegen integrates with your GitHub repositories to provide powerful code analysis and generation capabilities. The Repository Configuration page allows you to manage which repositories Codegen has access to and configure specific settings for each repository.
+
+## Accessing Repository Settings
+
+You can access the repository configuration page by:
+
+1. Logging into your Codegen account
+2. Navigating to the `/repos` page in the app
+3. Selecting a specific repository to view or edit its settings
+
+## Repository List
+
+The main repository page displays a list of all GitHub repositories that Codegen has access to. For each repository, you can see:
+
+- **Repository Name**: The full name of the repository (organization/repo-name)
+- **Primary Status**: Whether the repository is set as your primary repository
+- **Links**: Quick access to GitHub and repository settings
+
+### Search and Filter
+
+You can search for specific repositories using the search box at the top of the page. This is particularly useful if you have many repositories connected to Codegen.
+
+### Pagination
+
+If you have many repositories, they will be paginated for easier navigation. Use the pagination controls at the bottom of the list to move between pages.
+
+## Repository Settings
+
+When you select a specific repository, you can configure the following settings:
+
+### Primary Repository
+
+You can designate one repository as your "primary" repository. This is important because:
+
+- The primary repository is used as the default when you interact with Codegen
+- When using Codegen in Slack or other integrations, commands will target the primary repository by default unless you specify otherwise
+- Only one repository can be set as primary at a time
+
+To set a repository as primary:
+
+1. Navigate to the repository's settings page
+2. Check the "Set as primary repository" checkbox
+3. Click "Save"
+
+### Repository Rules
+
+You can define specific rules for how Codegen should interact with each repository. These rules are written in markdown format and can include:
+
+- Code style guidelines
+- Architectural patterns to follow
+- Areas of the codebase to avoid modifying
+- Special handling instructions for certain files or directories
+- Any other guidance you want Codegen to follow when working with this repository
+
+Repository rules are particularly useful for:
+- Ensuring consistent code quality
+- Preventing modifications to sensitive parts of your codebase
+- Guiding Codegen to follow your team's best practices
+
+## GitHub Configuration
+
+From the repositories page, you can also configure which GitHub repositories Codegen has access to:
+
+1. Click the "Configure GitHub" button in the top-right corner
+2. You'll be redirected to GitHub's app installation page
+3. Select which repositories you want to grant Codegen access to
+4. Save your changes
+
+## Best Practices
+
+- **Set a Primary Repository**: Always designate a primary repository to ensure Codegen knows which codebase to work with by default
+- **Define Clear Rules**: Provide specific, clear rules for each repository to guide Codegen's behavior
+- **Limit Access**: Only grant Codegen access to repositories it needs to work with
+- **Review Regularly**: Periodically review your repository settings to ensure they remain appropriate as your codebase evolves
+
+By properly configuring your repositories, you can ensure that Codegen provides the most value while respecting your team's workflow and code standards.
