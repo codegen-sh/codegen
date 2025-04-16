@@ -1,0 +1,56 @@
+---
+title: "Repository Configuration"
+description: "Configure how Codegen interacts with your repositories"
+---
+
+# Repository Configuration
+
+The Repository Configuration page allows you to manage how Codegen interacts with your repositories. You can access this page by navigating to the `/repos` route in the Codegen app.
+
+## Repository List
+
+The main repository page displays a list of all repositories that Codegen has access to. For each repository, you can see:
+
+- Repository name
+- Primary status (whether it's set as the primary repository)
+- Links to GitHub and repository settings
+
+## Repository Settings
+
+When you click on a repository in the list, you'll be taken to the repository settings page where you can configure:
+
+### Primary Repository
+
+You can designate one repository as the "primary repository" by checking the "Set as primary repository" option. The primary repository is used as the default when Codegen is triggered without explicitly specifying a repository.
+
+When you set a repository as primary:
+- It becomes the default repository used before any `SetActiveCodebase` command is executed
+- Only one repository can be primary at a time
+- Setting a new primary repository will automatically unset any previously designated primary repository
+
+### Repository Rules
+
+The "Repository rules" section allows you to specify custom instructions that Codegen should follow when working with this specific repository. These rules are written in markdown format and can include:
+
+- Coding style guidelines
+- Project-specific conventions
+- Architectural patterns to follow
+- Testing requirements
+- Deployment considerations
+- Any other repository-specific instructions
+
+These rules will be included in Codegen's context when it's working with the repository, helping it to better understand your project's requirements and constraints.
+
+## Managing Repository Access
+
+To add or remove repositories that Codegen can access, click the "Configure GitHub" button in the top-right corner of the repository list page. This will take you to GitHub where you can manage which repositories Codegen has access to.
+
+## Best Practices
+
+1. **Set a Primary Repository**: If you work primarily with one repository, set it as the primary repository to streamline your workflow.
+
+2. **Be Specific with Rules**: When writing repository rules, be clear and specific about what you want Codegen to do or avoid.
+
+3. **Keep Rules Updated**: As your project evolves, remember to update the repository rules to reflect any changes in your development practices.
+
+4. **Use Markdown Formatting**: Take advantage of markdown formatting in your rules to create well-structured, easy-to-read instructions.
