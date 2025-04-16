@@ -4,12 +4,12 @@ from enum import Enum
 from unittest.mock import MagicMock, patch
 
 import pytest
-from pydantic import SecretStr
-
 from codegen_api_client.api_client import ApiClient
 from codegen_api_client.api_response import ApiResponse
 from codegen_api_client.configuration import Configuration
 from codegen_api_client.exceptions import ApiException, ApiValueError
+from pydantic import SecretStr
+
 
 class TestEnum(Enum):
     VALUE1 = "value1"
