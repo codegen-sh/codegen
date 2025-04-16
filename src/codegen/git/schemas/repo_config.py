@@ -25,6 +25,9 @@ class RepoConfig(BaseModel):
     base_path: str | None = None  # root directory of the codebase within the repo
     subdirectories: list[str] | None = None
 
+    # Additional sandbox settings
+    setup_commands: list[str] | None = None
+
     @classmethod
     def from_envs(cls) -> "RepoConfig":
         default_repo_config = RepositoryConfig()
