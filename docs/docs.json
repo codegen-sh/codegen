@@ -39,10 +39,15 @@
 			},
 			{
 				"tab": "API Reference",
-				"openapi": {
-					"source": "https://api.codegen.com/api/openapi.json",
-					"directory": "/api-reference"
-				}
+				"groups": [
+					{
+						"group": "Endpoints",
+						"openapi": {
+							"source": "/api-reference/openapi3.json",
+							"directory": "api-reference"
+						}
+					}
+				]
 			},
 			{
 				"tab": "Blog",
