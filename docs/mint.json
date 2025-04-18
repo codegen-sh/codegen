@@ -47,7 +47,7 @@
 	"tabs": [
 		{
 			"name": "API Reference",
-			"openapi": "https://codegen-sh--rest-api.modal.run/api/openapi.json",
+			"openapi": "https://api.codegen.com/api/openapi.json",
 			"url": "/api-reference"
 		},
 		{
