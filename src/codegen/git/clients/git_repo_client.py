@@ -25,7 +25,7 @@ logger = get_logger(__name__)
 
 
 class GitRepoClient:
-    """Wrapper around PyGithub's Remote Repository."""
+    """TODO: deprecated use the one in cloud instead."""
 
     repo_config: RepoConfig
     gh_client: GithubClient
