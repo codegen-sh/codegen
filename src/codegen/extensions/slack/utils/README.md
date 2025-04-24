@@ -19,12 +19,7 @@ from codegen.extensions.slack.utils import safe_add_reaction
 client = WebClient(token="your-token")
 
 # Safely add a reaction
-response = safe_add_reaction(
-    client=client,
-    channel="C12345",
-    timestamp="1234567890.123456",
-    name="thumbsup"
-)
+response = safe_add_reaction(client=client, channel="C12345", timestamp="1234567890.123456", name="thumbsup")
 
 # The function will not raise an exception if the reaction already exists
 ```
