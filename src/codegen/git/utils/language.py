@@ -134,7 +134,7 @@ def _determine_language_by_git_file_count(folder_path: str) -> ProgrammingLangua
 
     # Use the specified subfolder path for language detection if provided
     subdirs = [base_path] if base_path else None
-    
+
     # Walk through the directory
     for rel_path, _ in repo_operator.iter_files(subdirs=subdirs, ignore_list=GLOBAL_FILE_IGNORE_LIST):
         # Convert to Path object
