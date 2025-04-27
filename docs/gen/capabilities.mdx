@@ -65,3 +65,38 @@ Codegen's brain (powered by Claude 3.7 Sonnet) intelligently selects and combine
 4. Provide clear, helpful responses back in Slack
 
 This seamless integration allows you to manage your entire development workflow through simple conversations, without having to switch between different platforms and interfaces.
+
+## Recommended Best Practices for Using Codegen
+
+Here are some recommended best practices for integrating Codegen effectively into your development workflow:
+
+### Workflow Integration
+
+- **Small bug fixes**: For minor issues, consider using Codegen for instant fixes and merges
+- **Larger tickets**: A multi-step approach often works best:
+  1. Ask Codegen to do a first pass on the implementation
+  2. Check out the branch and review the changes
+  3. Add any necessary adjustments
+  4. QA the changes
+  5. Merge the code
+
+### When to Use Codegen vs. IDE
+
+Consider using Codegen for:
+- Initial exploration and first pass on tickets and engineering efforts
+- Quickly gathering context on issues (e.g., explaining errors in notification threads)
+- Understanding the "blast radius" of a given change to assess its impact
+- Getting a solid first pass at approximately 80% of your work
+
+Use your preferred IDE (like Cursor or VS Code) for:
+- Making precise adjustments after Codegen's first pass
+- Detailed work that requires deep context
+
+### Effectiveness Tips
+
+- Be diligent about analyzing tasks and determining how to break them down for Codegen
+- Split complex tasks into manageable chunks
+- Don't hesitate to discard unhelpful outputs and try a different approach
+- View Codegen as a powerful assistant rather than an infallible oracle
+
+These practices can help you leverage Codegen effectively while maintaining high code quality and productivity.
