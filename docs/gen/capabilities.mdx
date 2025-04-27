@@ -65,3 +65,38 @@ Codegen's brain (powered by Claude 3.7 Sonnet) intelligently selects and combine
 4. Provide clear, helpful responses back in Slack
 
 This seamless integration allows you to manage your entire development workflow through simple conversations, without having to switch between different platforms and interfaces.
+
+## How the Codegen Team Uses Codegen
+
+The Codegen team itself uses Codegen to build and improve Codegen! Here's how the team maximizes productivity with their own tool:
+
+### Workflow Integration
+
+- **Small bug fixes**: For minor issues, Codegen is used for instant merges
+- **Larger tickets**: The team uses a multi-step approach:
+  1. Ask Codegen to do a first pass (triggered from Slack thread discussing the bug/feature or Linear ticket)
+  2. Check out the branch and review the changes
+  3. Add any necessary adjustments
+  4. QA the changes
+  5. Merge the code
+
+### IDE vs. Codegen
+
+The team uses Codegen for:
+- Initial exploration and first pass on the majority of tickets and engineering efforts
+- Quickly gathering context on issues (e.g., explaining sentry errors in Slack notification threads)
+- Specifying the "blast radius" of a given change to understand its impact
+- Treating Codegen as a solid first pass at 80% of their work
+
+The team then uses their IDE (like Cursor) for:
+- Making precise adjustments after Codegen's first pass
+- Detailed work that requires deep context
+
+### Best Practices
+
+- The team is diligent about analyzing tasks and determining how an agent would approach them
+- They split complex tasks into manageable chunks
+- They're liberal with deleting unhelpful outputs in Slack/Linear
+- They view Codegen as a very solid first pass rather than an infallible oracle
+
+This approach allows the Codegen team to leverage their own tool effectively while maintaining high code quality and productivity.
