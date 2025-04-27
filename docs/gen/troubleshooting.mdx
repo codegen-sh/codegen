@@ -1,0 +1,98 @@
+---
+title: "Troubleshooting"
+sidebarTitle: "Troubleshooting"
+icon: "wrench"
+---
+
+# Troubleshooting Codegen
+
+This guide helps you diagnose and resolve common issues you might encounter when using Codegen.
+
+## Connection Issues
+
+### Codegen Not Responding in Slack
+
+If Codegen doesn't respond to your messages in Slack:
+
+1. **Check the mention format**: Ensure you're properly mentioning Codegen with `@codegen`
+2. **Verify installation**: Confirm that Codegen has been added to your Slack workspace
+3. **Check channel access**: Make sure Codegen has been invited to the channel where you're trying to use it
+4. **Wait for processing**: Complex requests may take longer to process
+
+### GitHub Integration Problems
+
+If Codegen can't access your repositories:
+
+1. **Check permissions**: Verify that you've granted Codegen access to the relevant repositories at [codegen.sh/repos](https://codegen.sh/repos)
+2. **Repository visibility**: Ensure the repository is either public or that Codegen has been granted access to private repositories
+3. **Organization settings**: If you're using GitHub Organizations, check that Codegen has been approved by an organization admin
+
+### Linear Integration Issues
+
+If Codegen can't access or create Linear issues:
+
+1. **Verify connection**: Check that your Linear account is connected in the [Codegen dashboard](https://codegen.sh/dashboard)
+2. **API access**: Ensure that the Codegen app has the necessary permissions in Linear
+3. **Team access**: Confirm that Codegen has access to the relevant teams in Linear
+
+## Usage Problems
+
+### Unclear or Incorrect Responses
+
+If Codegen's responses are unclear or incorrect:
+
+1. **Provide more context**: Be more specific in your request, including relevant file paths or issue numbers
+2. **Break down complex requests**: Split large tasks into smaller, more manageable requests
+3. **Reference specific code**: Include links to relevant files or PRs in your request
+
+### Code Generation Issues
+
+If Codegen generates incorrect or incomplete code:
+
+1. **Review the code**: Always review generated code before merging it
+2. **Provide feedback**: Let Codegen know what's wrong with the generated code
+3. **Refine your request**: Be more specific about what you want the code to do
+4. **Check for edge cases**: Ensure your request accounts for all possible scenarios
+
+### PR Creation Failures
+
+If Codegen fails to create a pull request:
+
+1. **Repository access**: Verify that Codegen has write access to the repository
+2. **Branch conflicts**: Check if there are conflicts with the target branch
+3. **CI checks**: Ensure that any required CI checks are passing
+4. **Branch protection**: Check if the target branch has protection rules that prevent direct pushes
+
+## Common Error Messages
+
+### "Repository not found"
+
+This error occurs when Codegen can't access a repository:
+
+1. **Check the repository name**: Ensure you've specified the correct repository name
+2. **Verify access**: Confirm that Codegen has been granted access to the repository
+3. **Repository exists**: Make sure the repository actually exists and hasn't been deleted or renamed
+
+### "Permission denied"
+
+This error indicates that Codegen doesn't have the necessary permissions:
+
+1. **Check repository permissions**: Ensure Codegen has the required access level (read/write)
+2. **Organization permissions**: Verify that Codegen has been approved by your organization
+3. **Branch protection**: Check if branch protection rules are preventing Codegen from pushing changes
+
+### "Rate limit exceeded"
+
+This error occurs when you've exceeded GitHub's API rate limits:
+
+1. **Wait and retry**: Wait for the rate limit to reset (usually within an hour)
+2. **Reduce request frequency**: Limit the number of requests you make to Codegen in a short period
+3. **Optimize requests**: Make more focused requests that require fewer API calls
+
+## Getting Additional Help
+
+If you're still experiencing issues after trying these troubleshooting steps:
+
+1. **Check the FAQ**: Review the [FAQ](/gen/faq) for answers to common questions
+2. **Contact support**: Reach out to the Codegen team through the [support channels](/introduction/community)
+3. **Provide details**: When reporting an issue, include as much detail as possible, including error messages and steps to reproduce the problem

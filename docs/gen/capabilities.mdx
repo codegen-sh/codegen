@@ -65,3 +65,117 @@ Codegen's brain (powered by Claude 3.7 Sonnet) intelligently selects and combine
 4. Provide clear, helpful responses back in Slack
 
 This seamless integration allows you to manage your entire development workflow through simple conversations, without having to switch between different platforms and interfaces.
+
+## Recommended Best Practices for Using Codegen
+
+Here are some recommended best practices for integrating Codegen effectively into your development workflow:
+
+### Workflow Integration
+
+- **Small bug fixes**: For minor issues, consider using Codegen for instant fixes and merges
+
+  **Example**: 
+  ```
+  @codegen Fix the typo in the login button text in src/components/LoginForm.tsx
+  ```
+  
+  Codegen will quickly locate the issue, make the correction, and create a PR that can be immediately reviewed and merged.
+
+- **Larger tickets**: A multi-step approach often works best:
+  1. Ask Codegen to do a first pass on the implementation
+  2. Check out the branch and review the changes
+  3. Add any necessary adjustments
+  4. QA the changes
+  5. Merge the code
+
+  **Example**:
+  ```
+  @codegen Create a PR to implement JWT authentication in our Express backend
+  ```
+  
+  Codegen will analyze your codebase, implement a JWT authentication system, and create a PR. You can then review the implementation, make any necessary adjustments, test thoroughly, and merge when ready.
+
+### When to Use Codegen vs. IDE
+
+Consider using Codegen for:
+- Initial exploration and first pass on tickets and engineering efforts
+
+  **Example**:
+  ```
+  @codegen How would you implement a rate limiting middleware for our API?
+  ```
+  
+  Codegen will analyze your codebase and suggest an implementation approach, which you can then refine in your IDE.
+
+- Quickly gathering context on issues (e.g., explaining errors in notification threads)
+
+  **Example**:
+  ```
+  @codegen Why are we getting this error in our logs: "TypeError: Cannot read property 'id' of undefined"?
+  ```
+  
+  Codegen will investigate the error by examining your codebase and recent changes, providing insights on the root cause.
+
+- Understanding the "blast radius" of a given change to assess its impact
+
+  **Example**:
+  ```
+  @codegen What would be affected if we change the User interface to make the 'email' field optional?
+  ```
+  
+  Codegen will analyze your codebase to identify all places that depend on the User interface and might be affected by this change.
+
+- Getting a solid first pass at approximately 80% of your work
+
+  **Example**:
+  ```
+  @codegen Create a PR to add pagination to our user list API endpoint
+  ```
+  
+  Codegen will implement pagination in your API, handling the core functionality that you can then refine and extend.
+
+Use your preferred IDE (like Cursor or VS Code) for:
+- Making precise adjustments after Codegen's first pass
+
+  After Codegen creates a PR implementing a feature, you can check out the branch in your IDE to make specific adjustments to the implementation.
+
+- Detailed work that requires deep context
+
+  Complex refactoring that spans multiple files and requires a deep understanding of the codebase's architecture might be better handled in your IDE after getting initial guidance from Codegen.
+
+### Effectiveness Tips
+
+- Be diligent about analyzing tasks and determining how to break them down for Codegen
+
+  **Example**: Instead of asking Codegen to "Implement a new authentication system," break it down into smaller tasks like "Create a login form component," "Implement JWT token generation on the backend," and "Add authentication middleware to protected routes."
+
+- Split complex tasks into manageable chunks
+
+  **Example**: When implementing a new feature like a shopping cart, you might ask Codegen to:
+  1. First create the data models
+  2. Then implement the API endpoints
+  3. Finally, create the UI components
+
+- Don't hesitate to discard unhelpful outputs and try a different approach
+
+  If Codegen's implementation doesn't meet your needs, provide specific feedback about what's missing or incorrect, and ask for a revised implementation.
+
+- View Codegen as a powerful assistant rather than an infallible oracle
+
+  Use Codegen to accelerate your development process, but always review its output critically and be prepared to make adjustments as needed.
+
+These practices can help you leverage Codegen effectively while maintaining high code quality and productivity.
+
+## Limitations and Known Issues
+
+While Codegen is a powerful tool, it's important to be aware of its limitations:
+
+- **Complex architectural decisions**: Codegen works best with clear, specific tasks rather than open-ended architectural decisions.
+
+- **Very large codebases**: Performance may be affected when working with extremely large codebases.
+
+- **Specialized domain knowledge**: Codegen may need additional context when working with highly specialized or domain-specific code.
+
+- **External service integration**: Codegen can't directly interact with external services beyond GitHub, Slack, and Linear.
+
+We're continuously working to improve Codegen and address these limitations. For the most up-to-date information, check our [changelog](/changelog/changelog).

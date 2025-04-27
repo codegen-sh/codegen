@@ -1,0 +1,94 @@
+---
+title: "Getting Started"
+sidebarTitle: "Getting Started"
+icon: "rocket"
+---
+
+# Getting Started with Codegen
+
+This guide will help you set up Codegen and start using it with your team. Codegen is an AI-powered development assistant that integrates with GitHub, Slack, and Linear to streamline your development workflow.
+
+## Installation
+
+1. Visit the [Codegen installation page](https://codegen.sh/install)
+2. Log in with your GitHub account
+3. Grant the necessary permissions to access your repositories
+4. Connect your Slack workspace
+5. (Optional) Connect your Linear account for project management integration
+
+<Frame caption="Installation process">
+<img src="/images/codegen-bot-intro.png" />
+</Frame>
+
+## First Steps with Codegen
+
+Once you've installed Codegen, you can start interacting with it in your Slack workspace:
+
+1. **Add Codegen to a channel**: Invite the Codegen bot to any channel where you want to use it
+2. **Mention Codegen**: Start a conversation by mentioning `@codegen` followed by your request
+3. **Wait for a response**: Codegen will process your request and respond in the thread
+
+## Example Interactions
+
+Here are some examples of how to interact with Codegen:
+
+### Code Review
+
+```
+@codegen Can you review my PR? https://github.com/your-org/your-repo/pull/123
+```
+
+Codegen will analyze the PR and provide feedback directly on GitHub, as well as a summary in Slack.
+
+### Bug Investigation
+
+```
+@codegen Why are the tests failing in the auth module?
+```
+
+Codegen will investigate the issue by examining the codebase and recent changes, then provide insights on potential causes.
+
+### Feature Implementation
+
+```
+@codegen Create a PR to add input validation to the login form in the auth module
+```
+
+Codegen will analyze the codebase, implement the requested feature, and create a pull request for your review.
+
+### Codebase Questions
+
+```
+@codegen How does the authentication flow work in our app?
+```
+
+Codegen will analyze the codebase and explain the authentication flow, including relevant files and functions.
+
+## Best Practices for Using Codegen
+
+For the most effective experience with Codegen:
+
+1. **Be specific in your requests**: Provide clear context and details about what you need
+2. **Start with smaller tasks**: Begin with simple requests to understand Codegen's capabilities
+3. **Review Codegen's work**: Always review code changes before merging them
+4. **Provide feedback**: Let Codegen know if its responses are helpful or need improvement
+
+For more detailed best practices, see the [Capabilities](/gen/capabilities#recommended-best-practices-for-using-codegen) page.
+
+## Troubleshooting
+
+If you encounter issues with Codegen:
+
+- **Codegen doesn't respond**: Make sure you've properly mentioned `@codegen` in your message
+- **Repository access issues**: Check that you've granted Codegen access to the relevant repositories
+- **Unclear responses**: Try rephrasing your request with more specific details
+- **Integration problems**: Visit the [Codegen dashboard](https://codegen.sh/dashboard) to verify your integrations are properly connected
+
+## Next Steps
+
+Now that you're familiar with the basics, explore these resources to get more out of Codegen:
+
+- [Capabilities](/gen/capabilities): Learn about all of Codegen's features
+- [Integrations](/gen/integrations): Discover how Codegen works with other tools
+- [FAQ](/gen/faq): Find answers to common questions
+- [Use Cases](/use-cases/I.%20Upgrading%20APIs): Explore real-world applications of Codegen
