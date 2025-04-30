@@ -4,6 +4,7 @@
 	--input-padding-horizontal: 8px;
 	--input-margin-vertical: 4px;
 	--input-margin-horizontal: 0;
+	--message-max-height: 150px; /* Added for collapsed messages */
 }
 
 body {
@@ -37,6 +38,8 @@ body {
 	border-radius: 6px;
 	max-width: 90%;
 	word-wrap: break-word;
+	cursor: pointer; /* Added to indicate clickable */
+	transition: max-height 0.3s ease; /* Added for smooth transition */
 }
 
 .user-message {
@@ -54,6 +57,7 @@ body {
 
 .message-content {
 	margin-bottom: 5px;
+	overflow: hidden; /* Added for collapsed state */
 }
 
 .code-block {
@@ -241,4 +245,45 @@ body {
 .markdown th {
 	background-color: var(--vscode-editor-inactiveSelectionBackground);
 	font-weight: 600;
+}
+
+/* Added for collapsed messages */
+.message-content.collapsed {
+	max-height: var(--message-max-height);
+	overflow: hidden;
+	position: relative;
+}
+
+/* Added gradient fade for collapsed messages */
+.message-content.collapsed::after {
+	content: "";
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	height: 40px;
+	background: linear-gradient(
+		to bottom,
+		transparent,
+		var(--vscode-editor-inactiveSelectionBackground)
+	);
+	pointer-events: none;
+}
+
+/* Adjust gradient color for user messages */
+.user-message .message-content.collapsed::after {
+	background: linear-gradient(
+		to bottom,
+		transparent,
+		var(--vscode-button-background)
+	);
+}
+
+/* Added expand indicator */
+.expand-indicator {
+	text-align: center;
+	font-size: 12px;
+	color: var(--vscode-descriptionForeground);
+	margin-top: 4px;
+	user-select: none;
 }

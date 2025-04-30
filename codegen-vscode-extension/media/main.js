@@ -51,6 +51,30 @@
 		}
 	}
 
+	// Check if content needs to be collapsed
+	function shouldCollapseContent(contentElement) {
+		// Get the computed max-height value from CSS variable
+		const maxHeight = parseInt(
+			getComputedStyle(document.documentElement).getPropertyValue('--message-max-height')
+		);
+		
+		// If the content is taller than the max height, it should be collapsed
+		return contentElement.scrollHeight > maxHeight;
+	}
+
+	// Toggle message expansion
+	function toggleMessageExpansion(contentElement, indicatorElement) {
+		if (contentElement.classList.contains("collapsed")) {
+			// Expand
+			contentElement.classList.remove("collapsed");
+			indicatorElement.textContent = "Click to collapse";
+		} else {
+			// Collapse
+			contentElement.classList.add("collapsed");
+			indicatorElement.textContent = "Click to expand";
+		}
+	}
+
 	// Render all messages
 	function renderMessages() {
 		messagesContainer.innerHTML = "";
@@ -64,6 +88,34 @@
 			contentElement.className = "message-content markdown";
 			contentElement.innerHTML = formatMarkdown(message.content);
 			messageElement.appendChild(contentElement);
+
+			// Add expand indicator element
+			const expandIndicator = document.createElement("div");
+			expandIndicator.className = "expand-indicator";
+			messageElement.appendChild(expandIndicator);
+
+			// Check if content should be collapsed (after adding to DOM to get accurate height)
+			setTimeout(() => {
+				if (shouldCollapseContent(contentElement)) {
+					contentElement.classList.add("collapsed");
+					expandIndicator.textContent = "Click to expand";
+				} else {
+					expandIndicator.style.display = "none"; // Hide indicator if not needed
+				}
+			}, 0);
+
+			// Add click event to toggle expansion
+			messageElement.addEventListener("click", (e) => {
+				// Don't toggle if clicking on code action buttons
+				if (e.target.closest(".code-action-button")) {
+					return;
+				}
+				
+				// Toggle expansion
+				if (shouldCollapseContent(contentElement)) {
+					toggleMessageExpansion(contentElement, expandIndicator);
+				}
+			});
 
 			// Code block (if any)
 			if (message.code) {
