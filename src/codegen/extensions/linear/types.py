@@ -1,4 +1,6 @@
-from pydantic import BaseModel
+from typing import Optional
+
+from pydantic import BaseModel, Field
 
 
 class LinearUser(BaseModel):
@@ -28,6 +30,41 @@ class LinearIssue(BaseModel):
     team_id: str | None = None
 
 
+class LinearAttachment(BaseModel):
+    """Represents a file attachment in Linear."""
+
+    id: str
+    url: str
+    title: str
+    subtitle: Optional[str] = None
+    size: Optional[int] = None
+    content_type: Optional[str] = None
+    source: Optional[str] = None
+    issue_id: Optional[str] = None
+
+
+class LinearUploadHeader(BaseModel):
+    """Header for file upload."""
+
+    key: str
+    value: str
+
+
+class LinearUploadFile(BaseModel):
+    """Response from file upload request."""
+
+    assetUrl: str
+    uploadUrl: str
+    headers: list[LinearUploadHeader]
+
+
+class LinearUploadResponse(BaseModel):
+    """Response from fileUpload mutation."""
+
+    success: bool
+    uploadFile: LinearUploadFile
+
+
 class LinearEvent(BaseModel):
     """Represents a Linear webhook event."""
 
@@ -38,3 +75,4 @@ class LinearEvent(BaseModel):
     created_at: str | None = None  # ISO timestamp
     organization_id: str | None = None
     team_id: str | None = None
+    attachments: list[LinearAttachment] = Field(default_factory=list)  # Attachments associated with the event

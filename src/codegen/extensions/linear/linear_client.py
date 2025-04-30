@@ -1,11 +1,13 @@
+import mimetypes
 import os
+from pathlib import Path
 from typing import Optional
 
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from codegen.extensions.linear.types import LinearComment, LinearIssue, LinearTeam, LinearUser
+from codegen.extensions.linear.types import LinearAttachment, LinearComment, LinearIssue, LinearTeam, LinearUploadResponse, LinearUser
 from codegen.shared.logging.get_logger import get_logger
 
 logger = get_logger(__name__)
@@ -293,3 +295,171 @@ class LinearClient:
         except Exception as e:
             msg = f"Error getting teams\n{data}\n{e}"
             raise Exception(msg)
+
+    def get_issue_attachments(self, issue_id: str) -> list[LinearAttachment]:
+        """Get all attachments for an issue.
+
+        Args:
+            issue_id: ID of the issue to get attachments for
+
+        Returns:
+            List of LinearAttachment objects
+        """
+        query = """
+            query getIssueAttachments($issueId: String!) {
+                issue(id: $issueId) {
+                    attachments {
+                        nodes {
+                            id
+                            url
+                            title
+                            subtitle
+                            size
+                            contentType
+                            source
+                        }
+                    }
+                }
+            }
+        """
+
+        variables = {"issueId": issue_id}
+        response = self.session.post(
+            self.api_endpoint,
+            headers=self.api_headers,
+            json={"query": query, "variables": variables},
+        )
+        data = response.json()
+
+        try:
+            attachments_data = data["data"]["issue"]["attachments"]["nodes"]
+            return [
+                LinearAttachment(
+                    id=attachment["id"],
+                    url=attachment["url"],
+                    title=attachment["title"],
+                    subtitle=attachment.get("subtitle"),
+                    size=attachment.get("size"),
+                    content_type=attachment.get("contentType"),
+                    source=attachment.get("source"),
+                    issue_id=issue_id,
+                )
+                for attachment in attachments_data
+            ]
+        except Exception as e:
+            logger.exception(f"Error getting issue attachments: {e}")
+            return []
+
+    def download_attachment(self, attachment_url: str) -> bytes:
+        """Download a file attachment from Linear.
+
+        Args:
+            attachment_url: URL of the attachment to download
+
+        Returns:
+            Binary content of the attachment
+        """
+        # Linear files are stored at uploads.linear.app
+        headers = {"Authorization": f"Bearer {self.access_token}"}
+
+        try:
+            response = self.session.get(attachment_url, headers=headers)
+            response.raise_for_status()
+            return response.content
+        except Exception as e:
+            logger.exception(f"Error downloading attachment: {e}")
+            msg = f"Failed to download attachment: {e}"
+            raise Exception(msg)
+
+    def request_upload_url(self, content_type: str, filename: str, size: int) -> LinearUploadResponse:
+        """Request a pre-signed URL for file upload.
+
+        Args:
+            content_type: MIME type of the file
+            filename: Name of the file
+            size: Size of the file in bytes
+
+        Returns:
+            LinearUploadResponse with upload URL and headers
+        """
+        mutation = """
+            mutation FileUpload($contentType: String!, $filename: String!, $size: Int!) {
+                fileUpload(contentType: $contentType, filename: $filename, size: $size) {
+                    success
+                    uploadFile {
+                        assetUrl
+                        uploadUrl
+                        headers {
+                            key
+                            value
+                        }
+                    }
+                }
+            }
+        """
+
+        variables = {
+            "contentType": content_type,
+            "filename": filename,
+            "size": size,
+        }
+
+        response = self.session.post(
+            self.api_endpoint,
+            headers=self.api_headers,
+            json={"query": mutation, "variables": variables},
+        )
+        data = response.json()
+
+        try:
+            return LinearUploadResponse.model_validate(data["data"])
+        except Exception as e:
+            logger.exception(f"Error requesting upload URL: {e}")
+            msg = f"Failed to request upload URL: {e}"
+            raise Exception(msg)
+
+    def upload_file(self, file_path: str) -> str:
+        """Upload a file to Linear.
+
+        Args:
+            file_path: Path to the file to upload
+
+        Returns:
+            URL of the uploaded file
+        """
+        path = Path(file_path)
+        if not path.exists():
+            msg = f"File not found: {file_path}"
+            raise FileNotFoundError(msg)
+
+        # Get file info
+        file_size = path.stat().st_size
+        file_name = path.name
+        content_type = mimetypes.guess_type(file_path)[0] or "application/octet-stream"
+
+        # Request upload URL
+        upload_response = self.request_upload_url(content_type, file_name, file_size)
+
+        if not upload_response.success or not upload_response.uploadFile:
+            msg = "Failed to request upload URL"
+            raise Exception(msg)
+
+        upload_url = upload_response.uploadFile.uploadUrl
+        asset_url = upload_response.uploadFile.assetUrl
+
+        # Prepare headers for the PUT request
+        headers = {
+            "Content-Type": content_type,
+            "Cache-Control": "public, max-age=31536000",
+        }
+
+        # Add headers from the upload response
+        for header in upload_response.uploadFile.headers:
+            headers[header.key] = header.value
+
+        # Upload the file
+        with open(file_path, "rb") as file:
+            response = self.session.put(upload_url, headers=headers, data=file)
+            response.raise_for_status()
+
+        return asset_url
