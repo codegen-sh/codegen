@@ -54,10 +54,12 @@
 	// Check if content needs to be collapsed
 	function shouldCollapseContent(contentElement) {
 		// Get the computed max-height value from CSS variable
-		const maxHeight = parseInt(
-			getComputedStyle(document.documentElement).getPropertyValue('--message-max-height')
+		const maxHeight = Number.parseInt(
+			getComputedStyle(document.documentElement).getPropertyValue(
+				"--message-max-height",
+			),
 		);
-		
+
 		// If the content is taller than the max height, it should be collapsed
 		return contentElement.scrollHeight > maxHeight;
 	}
@@ -110,7 +112,7 @@
 				if (e.target.closest(".code-action-button")) {
 					return;
 				}
-				
+
 				// Toggle expansion
 				if (shouldCollapseContent(contentElement)) {
 					toggleMessageExpansion(contentElement, expandIndicator);
