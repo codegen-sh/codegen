@@ -49,6 +49,7 @@ class RepoConfig(BaseModel):
         # Use organization name in the path if available
         if self.organization_name:
             return Path(f"/tmp/{self.organization_name}/{self.name}")
+        # Fall back to the original path format if no organization name is available
         return Path(f"{self.base_dir}/{self.name}")
 
     @property
