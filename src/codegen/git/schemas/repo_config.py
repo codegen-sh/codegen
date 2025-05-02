@@ -4,9 +4,6 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from codegen.configs.models.repository import RepositoryConfig
-from codegen.git.schemas.enums import RepoVisibility
-from codegen.shared.enums.programming_language import ProgrammingLanguage
 from codegen.shared.logging.get_logger import get_logger
 
 logger = get_logger(__name__)
@@ -86,9 +83,7 @@ class RepoConfig(BaseModel):
         language = os.environ.get("REPO_LANGUAGE", default_repo_config.language if default_repo_config else None)
         language_str = language.upper() if language else "PYTHON"  # Ensure language is a string for mypy
         base_dir = os.environ.get("REPO_BASE_DIR", default_repo_config.base_dir if default_repo_config else "/tmp")
-        default_branch = os.environ.get(
-            "REPO_DEFAULT_BRANCH", default_repo_config.default_branch if default_repo_config else None
-        )
+        default_branch = os.environ.get("REPO_DEFAULT_BRANCH", default_repo_config.default_branch if default_repo_config else None)
         clone_url = os.environ.get("REPO_CLONE_URL", default_repo_config.clone_url if default_repo_config else None)
         ssh_url = os.environ.get("REPO_SSH_URL", default_repo_config.ssh_url if default_repo_config else None)
         html_url = os.environ.get("REPO_HTML_URL", default_repo_config.html_url if default_repo_config else None)
@@ -97,31 +92,15 @@ class RepoConfig(BaseModel):
         username = os.environ.get("REPO_USERNAME", default_repo_config.username if default_repo_config else None)
         password = os.environ.get("REPO_PASSWORD", default_repo_config.password if default_repo_config else None)
         ssh_key = os.environ.get("REPO_SSH_KEY", default_repo_config.ssh_key if default_repo_config else None)
-        ssh_key_path = os.environ.get(
-            "REPO_SSH_KEY_PATH", default_repo_config.ssh_key_path if default_repo_config else None
-        )
-        ssh_key_passphrase = os.environ.get(
-            "REPO_SSH_KEY_PASSPHRASE", default_repo_config.ssh_key_passphrase if default_repo_config else None
-        )
-        ssh_known_hosts = os.environ.get(
-            "REPO_SSH_KNOWN_HOSTS", default_repo_config.ssh_known_hosts if default_repo_config else None
-        )
-        ssh_known_hosts_path = os.environ.get(
-            "REPO_SSH_KNOWN_HOSTS_PATH", default_repo_config.ssh_known_hosts_path if default_repo_config else None
-        )
+        ssh_key_path = os.environ.get("REPO_SSH_KEY_PATH", default_repo_config.ssh_key_path if default_repo_config else None)
+        ssh_key_passphrase = os.environ.get("REPO_SSH_KEY_PASSPHRASE", default_repo_config.ssh_key_passphrase if default_repo_config else None)
+        ssh_known_hosts = os.environ.get("REPO_SSH_KNOWN_HOSTS", default_repo_config.ssh_known_hosts if default_repo_config else None)
+        ssh_known_hosts_path = os.environ.get("REPO_SSH_KNOWN_HOSTS_PATH", default_repo_config.ssh_known_hosts_path if default_repo_config else None)
         ssh_config = os.environ.get("REPO_SSH_CONFIG", default_repo_config.ssh_config if default_repo_config else None)
-        ssh_config_path = os.environ.get(
-            "REPO_SSH_CONFIG_PATH", default_repo_config.ssh_config_path if default_repo_config else None
-        )
-        ssh_agent_socket = os.environ.get(
-            "REPO_SSH_AGENT_SOCKET", default_repo_config.ssh_agent_socket if default_repo_config else None
-        )
-        ssh_agent_pid = os.environ.get(
-            "REPO_SSH_AGENT_PID", default_repo_config.ssh_agent_pid if default_repo_config else None
-        )
-        ssh_agent_auth_sock = os.environ.get(
-            "REPO_SSH_AGENT_AUTH_SOCK", default_repo_config.ssh_agent_auth_sock if default_repo_config else None
-        )
+        ssh_config_path = os.environ.get("REPO_SSH_CONFIG_PATH", default_repo_config.ssh_config_path if default_repo_config else None)
+        ssh_agent_socket = os.environ.get("REPO_SSH_AGENT_SOCKET", default_repo_config.ssh_agent_socket if default_repo_config else None)
+        ssh_agent_pid = os.environ.get("REPO_SSH_AGENT_PID", default_repo_config.ssh_agent_pid if default_repo_config else None)
+        ssh_agent_auth_sock = os.environ.get("REPO_SSH_AGENT_AUTH_SOCK", default_repo_config.ssh_agent_auth_sock if default_repo_config else None)
         ssh_agent_auth_sock_path = os.environ.get(
             "REPO_SSH_AGENT_AUTH_SOCK_PATH",
             default_repo_config.ssh_agent_auth_sock_path if default_repo_config else None,
