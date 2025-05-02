@@ -85,7 +85,8 @@ class RepoOperator:
 
     @property
     def repo_path(self) -> str:
-        return os.path.join(self.base_dir, self.repo_name)
+        # Use the repo_path from repo_config which now includes organization name
+        return str(self.repo_config.repo_path)
 
     @property
     def remote_git_repo(self) -> GitRepoClient:
@@ -209,8 +210,9 @@ class RepoOperator:
     # SET UP
     ####################################################################################################################
     def setup_repo_dir(self, setup_option: SetupOption = SetupOption.PULL_OR_CLONE, shallow: bool = True) -> None:
-        os.makedirs(self.base_dir, exist_ok=True)
-        os.chdir(self.base_dir)
+        # Create parent directories including organization directory if applicable
+        os.makedirs(os.path.dirname(self.repo_path), exist_ok=True)
+        os.chdir(os.path.dirname(self.repo_path))
         if setup_option is SetupOption.CLONE:
             # if repo exists delete, then clone, else clone
             clone_repo(shallow=shallow, repo_path=self.repo_path, clone_url=self.clone_url)

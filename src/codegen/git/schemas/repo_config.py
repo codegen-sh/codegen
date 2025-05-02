@@ -46,6 +46,9 @@ class RepoConfig(BaseModel):
 
     @property
     def repo_path(self) -> Path:
+        # Use organization name in the path if available
+        if self.organization_name:
+            return Path(f"/tmp/{self.organization_name}/{self.name}")
         return Path(f"{self.base_dir}/{self.name}")
 
     @property
