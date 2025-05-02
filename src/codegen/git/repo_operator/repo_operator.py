@@ -90,7 +90,9 @@ class RepoOperator:
 
     @property
     def remote_git_repo(self) -> GitRepoClient:
-        if not self.access_token and self.repo_config.visibility != RepoVisibility.PUBLIC:
+        # Check if we have an access token for non-public repos
+        if not self.access_token:
+            # Since visibility is no longer in RepoConfig, we'll assume we need a token
             msg = "Must initialize with access_token to get remote"
             raise ValueError(msg)
 
@@ -143,7 +145,7 @@ class RepoOperator:
         email_level = None
         levels = ["system", "global", "user", "repository"]
         for level in levels:
-            with git_cli.config_reader(level) as reader:
+            with git_cli.config_reader(level) as reader:  # type: ignore
                 if reader.has_option("user", "name") and not username:
                     username = username or reader.get("user", "name")
                     user_level = user_level or level
@@ -481,7 +483,7 @@ class RepoOperator:
 
     def _get_username_email(self) -> tuple[str, str] | None:
         for level in ["user", "global", "system"]:
-            with self.git_cli.config_reader(level) as reader:
+            with self.git_cli.config_reader(level) as reader:  # type: ignore
                 if reader.has_section("user"):
                     user, email = reader.get_value("user", "name"), reader.get_value("user", "email")
                     if isinstance(user, str) and isinstance(email, str) and user != CODEGEN_BOT_NAME and email != CODEGEN_BOT_EMAIL:
