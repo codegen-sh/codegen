@@ -5,6 +5,12 @@
 		"description": "API for application developers",
 		"version": "1.0.0"
 	},
+	"servers": [
+		{
+			"url": "https://api.codegen.com",
+			"description": "Codegen API"
+		}
+	],
 	"paths": {
 		"/v1/organizations/{org_id}/users": {
 			"get": {
