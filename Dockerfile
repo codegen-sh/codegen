@@ -11,7 +11,7 @@ RUN bash nodesource_setup.sh
 RUN apt-get update && apt-get install -y jq nodejs
 RUN corepack enable
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install --system coverage
-RUN --mount=type=cache,target=/root/.cache/uv uv tool install codecov-cli --python 3.10
+RUN --mount=type=cache,target=/root/.cache/uv uv tool install codecov-cli --python 3.13
 RUN --mount=type=cache,target=/root/.cache/uv uv tool install pre-commit --with pre-commit-uv
 WORKDIR /codegen-sdk
 ENTRYPOINT [ "uv", "run", "--frozen", "/bin/bash"]

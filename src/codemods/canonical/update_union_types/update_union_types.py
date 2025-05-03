@@ -9,14 +9,14 @@ from tests.shared.skills.skill import Skill
 @skill(
     canonical=True,
     prompt="""Generate a Python codemod that updates type annotations from the old Union[x, y] syntax to the new x | y syntax for migration from Python 3.9 to
-Python 3.10. The codemod should iterate through all files in a codebase, check for imports of Union from typing, and replace occurrences of Union in
+Python 3.13. The codemod should iterate through all files in a codebase, check for imports of Union from typing, and replace occurrences of Union in
 both generic type and subscript forms. Ensure that the new syntax is correctly formatted, handling cases with multiple types and removing any empty
 strings from trailing commas.""",
     uid="7637d11a-b907-4716-a09f-07776f81a359",
 )
 @canonical
 class UpdateUnionTypes(Codemod, Skill):
-    """This updates the Union [ x , y ] syntax for x | y for migrations for python 3.9 to python 3.10"""
+    """This updates the Union [ x , y ] syntax for x | y for migrations for python 3.9 to python 3.13"""
 
     language = ProgrammingLanguage.PYTHON
 
