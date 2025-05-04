@@ -51,9 +51,9 @@ def get_generated_imports():
 )
 
 
-def fix_ruff_imports(objects: list[DocumentedObject]):
+def fix_ruff_imports(objects: list[DocumentedObject]) -> None:
     root, _ = split_git_path(str(Path(__file__)))
-    to_add = []
+    to_add: list[str] = []
     for obj in objects:
         to_add.append(f"{obj.module}.{obj.name}")
     generics = tomlkit.array()
@@ -66,12 +66,12 @@ def fix_ruff_imports(objects: list[DocumentedObject]):
     config.write_text(tomlkit.dumps(toml_config))
 
 
-def get_runner_imports(include_codegen=True, include_private_imports: bool = True) -> str:
+def get_runner_imports(include_codegen: bool = True, include_private_imports: bool = True) -> str:
     # get the imports from the apidoc, py_apidoc, and ts_apidoc
     gs_objects = get_documented_objects()
     gs_public_objects = list(chain(gs_objects["apidoc"], gs_objects["py_apidoc"], gs_objects["ts_apidoc"]))
     fix_ruff_imports(gs_public_objects)
-    gs_public_imports = {f"from {obj.module} import {obj.name}" for obj in gs_public_objects}
+    gs_public_imports: set[str] = {f"from {obj.module} import {obj.name}" for obj in gs_public_objects}
 
     # construct import string with all imports
     ret = IMPORT_STRING_TEMPLATE.format(

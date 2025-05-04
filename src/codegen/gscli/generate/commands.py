@@ -2,6 +2,8 @@ import json
 import os
 import re
 import shutil
+import sys
+from typing import Any
 
 import click
 from termcolor import colored
@@ -66,7 +68,7 @@ def _generate_codebase_typestubs() -> None:
     # right now this command expects you to run it from here
     if not initial_dir.endswith("codegen/codegen-backend"):
         print(colored("Error: Must be in a directory ending with 'codegen/codegen-backend'", "red"))
-        exit(1)
+        sys.exit(1)
 
     out_dir = os.path.abspath(os.path.join(initial_dir, "typings"))
     frontend_typestubs_dir = os.path.abspath(os.path.join(initial_dir, os.pardir, "codegen-frontend/assets/typestubs/graphsitter"))
@@ -113,6 +115,7 @@ def generate_docs(docs_dir: str) -> None:
 @generate.command()
 @click.argument("filepath", default=sdk.__path__[0] + "/system-prompt.txt", required=False)
 def system_prompt(filepath: str) -> None:
+    """Generate the system prompt and write it to the specified file"""
     print(f"Generating system prompt and writing to {filepath}...")
     new_system_prompt = get_system_prompt()
     with open(filepath, "w") as f:
@@ -121,6 +124,7 @@ def system_prompt(filepath: str) -> None:
 
 
 def get_snippet_pattern(target_name: str) -> str:
+    """Generate a regex pattern to match code snippets with the given target name"""
     pattern = rf"\[//\]: # \(--{re.escape(target_name)}--\)\s*(?:\[//\]: # \(--{re.escape(AUTO_GENERATED_COMMENT)}--\)\s*)?"
     pattern += CODE_SNIPPETS_REGEX
     return pattern
@@ -153,9 +157,9 @@ def generate_codegen_sdk_docs(docs_dir: str) -> None:
 
     # Write the generated docs to the file system, splitting between core, python, and typescript
     # keep track of where we put each one so we can update the mint.json
-    python_set = set()
-    typescript_set = set()
-    core_set = set()
+    python_set: set[str] = set()
+    typescript_set: set[str] = set()
+    core_set: set[str] = set()
     # TODO replace this with new `get_mdx_for_class` function
     for class_doc in gs_docs.classes:
         class_name = class_doc.title
@@ -178,7 +182,7 @@ def generate_codegen_sdk_docs(docs_dir: str) -> None:
     # Update the core, python, and typescript page sets in mint.json
     mint_file_path = os.path.join(docs_dir, "mint.json")
     with open(mint_file_path) as mint_file:
-        mint_data = json.load(mint_file)
+        mint_data: dict[str, Any] = json.load(mint_file)
 
     # Find the "Codebase SDK" group where we want to add the pages
     codebase_sdk_group = next(group for group in mint_data["navigation"] if group["group"] == "API Reference")
