@@ -3,12 +3,16 @@ import os
 import re
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
+from typing import TypeVar, Union
 
 import astor
 
 from codegen.shared.logging.get_logger import get_logger
 
 logger = get_logger(__name__)
+
+# Define a type variable for AST nodes
+ASTNode = TypeVar("ASTNode", ast.FunctionDef, ast.AnnAssign, ast.Assign)
 
 
 class MethodRemover(ast.NodeTransformer):
@@ -44,7 +48,7 @@ class MethodRemover(ast.NodeTransformer):
 
 
 class FieldRemover(ast.NodeTransformer):
-    def __init__(self, conditions: list[Callable[[ast.FunctionDef], bool]]):
+    def __init__(self, conditions: list[Callable[[Union[ast.AnnAssign, ast.Assign]], bool]]):
         self.conditions = conditions
 
     def visit_ClassDef(self, node: ast.ClassDef) -> ast.ClassDef:
@@ -79,20 +83,22 @@ def _remove_methods(source: str, conditions: list[Callable[[ast.FunctionDef], bo
     return astor.to_source(modified_tree)
 
 
-def _remove_fields(source: str, conditions: list[Callable[[ast.FunctionDef], bool]]) -> str:
+def _remove_fields(source: str, conditions: list[Callable[[Union[ast.AnnAssign, ast.Assign]], bool]]) -> str:
     tree = ast.parse(source)
     transformer = FieldRemover(conditions)
     modified_tree = transformer.visit(tree)
     return astor.to_source(modified_tree)
 
 
-def _starts_with_underscore(node: ast.FunctionDef | ast.AnnAssign | ast.Assign) -> bool:
+def _starts_with_underscore(node: Union[ast.FunctionDef, ast.AnnAssign, ast.Assign]) -> bool:
     if isinstance(node, ast.FunctionDef):
         return node.name.startswith("_") and (not node.name.startswith("__") and not node.name.endswith("__"))
     elif isinstance(node, ast.Assign):
-        return node.targets[0].id.startswith("_")
+        if isinstance(node.targets[0], ast.Name):
+            return node.targets[0].id.startswith("_")
     elif isinstance(node, ast.AnnAssign):
-        return node.target.id.startswith("_")
+        if isinstance(node.target, ast.Name):
+            return node.target.id.startswith("_")
     return False
 
 
@@ -121,7 +127,9 @@ def _strip_internal_symbols(file: str, root: str) -> None:
             _has_decorator("noapidoc"),
         ]
 
-        modified_content = _remove_fields(original_content, [_starts_with_underscore])
+        # Type cast _starts_with_underscore to the correct type for _remove_fields
+        field_condition = _starts_with_underscore
+        modified_content = _remove_fields(original_content, [field_condition])
         modified_content = _remove_methods(modified_content, conditions)
 
         if modified_content.strip().endswith(":"):
