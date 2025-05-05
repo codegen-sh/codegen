@@ -33,7 +33,6 @@ if TYPE_CHECKING:
     from codegen.sdk.core.statements.return_statement import ReturnStatement
     from codegen.sdk.core.symbol import Symbol
 
-
 TDecorator = TypeVar("TDecorator", bound="Decorator", default=Decorator)
 TCodeBlock = TypeVar("TCodeBlock", bound="CodeBlock", default=CodeBlock)
 TParameter = TypeVar("TParameter", bound="Parameter", default=Parameter)
@@ -155,26 +154,6 @@ class Function(
     def valid_symbol_names(self) -> list[Importable]:
         return sort_editables(self.parameters.symbols + self.descendant_symbols, reverse=True)
 
-    # Faster implementation which uses more memory
-    # @noapidoc
-    # @reader
-    # def resolve_name(self, name: str, start_byte: int | None = None) -> Symbol | Import | WildcardImport | None:
-    #     if symbols := self.valid_symbol_names.get(name, None):
-    #         for symbol in symbols:
-    #             from codegen.sdk.core.class_definition import Class
-    #
-    #             if (symbol.start_byte if isinstance(symbol, Class | Function) else symbol.end_byte) <= start_byte:
-    #                 return symbol
-    #     return super().resolve_name(name, start_byte)
-    #
-    # @cached_property
-    # @noapidoc
-    # def valid_symbol_names(self) -> dict[str, list[Importable]]:
-    #     ret = defaultdict(list)
-    #     for elem in sort_editables(self.parameters.symbols + self.descendant_symbols, reverse=True):
-    #         ret[elem.name].append(elem)
-    #     return ret
-    #
     ###########################################################################################################
     # PROPERTIES
     ###########################################################################################################
@@ -261,6 +240,33 @@ class Function(
             return
 
         self.add_keyword("async")
+
+    @writer
+    def remove_async(self) -> None:
+        """Removes the async keyword from a function.
+
+        Converts an asynchronous function to be synchronous by removing the 'async' keyword from its definition.
+        This method has no effect if the function is not asynchronous.
+
+        Returns:
+            None
+
+        Note:
+            This method has no effect if the function is not asynchronous.
+        """
+        if not self.is_async:
+            return
+
+        # Find the async keyword node
+        for node in self.children_by_field_types(self.ctx.node_classes.keywords):
+            if node == "async":
+                # Remove the async keyword and any following whitespace
+                node_source = node.source
+                if node_source.endswith(" "):
+                    node.edit("")
+                else:
+                    node.edit("", newline=False)
+                return
 
     @writer
     def rename_local_variable(self, old_var_name: str, new_var_name: str, fuzzy_match: bool = False) -> None:
