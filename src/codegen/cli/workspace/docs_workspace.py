@@ -4,7 +4,7 @@ from pathlib import Path
 from rich.status import Status
 
 
-def populate_api_docs(dest: Path, api_docs: dict[str, str], status: Status):
+def populate_api_docs(dest: Path, api_docs: dict[str, str], status: Status) -> None:
     """Writes all API docs to the docs folder"""
     status.update("Populating API documentation...")
     # Remove existing docs

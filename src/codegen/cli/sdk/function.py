@@ -34,7 +34,7 @@ class Function:
 
         return cls(name=name, codemod_id=response.codemod_id, version_id=response.version_id, _api_client=api_client)
 
-    def run(self, pr: bool = False, **kwargs) -> RunCodemodOutput:
+    def run(self, pr: bool = False, **kwargs: dict) -> RunCodemodOutput:
         """Run the function with the given arguments.
 
         Args:

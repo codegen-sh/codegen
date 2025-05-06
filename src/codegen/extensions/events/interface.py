@@ -4,11 +4,11 @@ import modal  # deptry: ignore
 
 
 class EventHandlerManagerProtocol(Protocol):
-    def subscribe_handler_to_webhook(self, func_name: str, modal_app: modal.App, event_name):
+    def subscribe_handler_to_webhook(self, func_name: str, modal_app: modal.App, event_name: str) -> None:
         pass
 
-    def unsubscribe_handler_to_webhook(self, func_name: str, modal_app: modal.App, event_name):
+    def unsubscribe_handler_to_webhook(self, func_name: str, modal_app: modal.App, event_name: str) -> None:
         pass
 
-    def unsubscribe_all_handlers(self):
+    def unsubscribe_all_handlers(self) -> None:
         pass
