@@ -125,7 +125,7 @@ jobs:
           codecov_token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Notify parse tests failure
-        uses: slackapi/slack-github-action@v2.0.0
+        uses: slackapi/slack-github-action@v2.1.0
         if: failure() && github.event_name == 'push' && false
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}

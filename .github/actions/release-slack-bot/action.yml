@@ -11,7 +11,7 @@ runs:
   using: "composite"
   steps:
     # TODO: use python exec instead
-    - uses: slackapi/slack-github-action@v2.0.0
+    - uses: slackapi/slack-github-action@v2.1.0
       with:
         method: chat.postMessage
         token: ${{ inputs.slack-token }}
