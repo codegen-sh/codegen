@@ -1,3 +1,5 @@
+from typing import Optional, Union
+
 from pydantic import BaseModel
 
 
@@ -17,15 +19,17 @@ class LinearTeam(BaseModel):
 class LinearComment(BaseModel):
     id: str
     body: str
-    user: LinearUser | None = None
+    user: Optional[LinearUser] = None
+    # Add title field with default None to prevent AttributeError
+    title: Optional[str] = None
 
 
 class LinearIssue(BaseModel):
     id: str
     title: str
-    description: str | None = None
-    priority: int | None = None
-    team_id: str | None = None
+    description: Optional[str] = None
+    priority: Optional[int] = None
+    team_id: Optional[str] = None
 
 
 class LinearEvent(BaseModel):
@@ -33,8 +37,8 @@ class LinearEvent(BaseModel):
 
     action: str  # e.g. "create", "update", "remove"
     type: str  # e.g. "Issue", "Comment", "Project"
-    data: LinearIssue | LinearComment  # The actual event data
+    data: Union[LinearIssue, LinearComment]  # The actual event data
     url: str  # URL to the resource in Linear
-    created_at: str | None = None  # ISO timestamp
-    organization_id: str | None = None
-    team_id: str | None = None
+    created_at: Optional[str] = None  # ISO timestamp
+    organization_id: Optional[str] = None
+    team_id: Optional[str] = None
