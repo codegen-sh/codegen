@@ -38,8 +38,8 @@ jobs:
           done
           echo "python_files=${python_files[*]}" >> $GITHUB_ENV
 
-      - name: Add MyPy annotator
-        uses: pr-annotators/mypy-pr-annotator@v1.0.0
+      # - name: Add MyPy annotator
+      #   uses: pr-annotators/mypy-pr-annotator@v1.0.0
 
       - name: Run mypy
         if: ${{ env.python_files != '' }}
