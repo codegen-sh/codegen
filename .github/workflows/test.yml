@@ -19,6 +19,8 @@ jobs:
           require: write
           username: ${{ github.triggering_actor }}
           error-if-missing: true
+          # Skip permission check for the bot user
+          skip-check-users: codegen-sh[bot]
 
   unit-tests:
     needs: access-check
