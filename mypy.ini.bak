@@ -1,0 +1,51 @@
+[mypy]
+# renovate: datasource=python-version depName=python
+python_version = 3.12
+
+# Report missing imports.
+ignore_missing_imports = True
+
+# Follow imports and report import errors
+follow_imports = normal
+
+# Allow variables to be typed as 'Any' implicitly
+# These should all be removed once Codegen fixes these errors
+disallow_any_unimported = False
+disallow_any_expr = False
+disallow_any_decorated = False
+disallow_any_generics = False
+disallow_any_explicit = False
+
+# Disallow calling functions without type annotations
+disallow_untyped_calls = False
+# Temporarily disabled until Codegen can be used to fix these errors
+
+# Check the bodies of untyped function definitions
+check_untyped_defs = False
+# Temporarily disabled until Codegen can be used to fix these errors
+
+# Strictly enforce distinction between None and non-None types
+# Temporarily disabled until Codegen can be used to fix these errors
+
+# Show error codes in error messages
+show_error_codes = True
+show_error_context = True
+warn_unused_ignores = True
+# Pretty = false for mypy to work in pycharm
+pretty = False
+# Excluded Directories
+exclude = (?x)(
+          .idea/.*
+          | .mypy_cache/.*
+          | .pytest_cache/.*
+          | .ruff_cache/.*
+          | .vscode/.*
+          | .*/codegen_tests/.*
+          | .*/tests/.*
+          | venv/.*
+          | scripts/.*
+          | .*/codemods/.*/test_.*/
+          | ^/expected/
+          | tests/unit/skills/snapshots/*
+    )
+plugins = pydantic.mypy
