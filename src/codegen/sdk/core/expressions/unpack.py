@@ -31,6 +31,7 @@ class Unpack(Unwrappable[Parent], HasValue, IWrapper, Generic[Parent]):
 
         Unwraps the content of a node by removing its wrapping syntax and merging its content with its parent node.
         Specifically handles dictionary unwrapping, maintaining proper indentation and formatting.
+        Supports multiple spread elements and maintains their order.
 
         Args:
             node (Expression | None): The node to unwrap. If None, uses the instance's value node.
@@ -40,7 +41,7 @@ class Unpack(Unwrappable[Parent], HasValue, IWrapper, Generic[Parent]):
         """
         from codegen.sdk.core.symbol_groups.dict import Dict
 
-        node = node or self._value_node
+        node = node or self._value_node.resolved_value
         if isinstance(node, Dict) and isinstance(self.parent, Dict):
             if self.start_point[0] != self.parent.start_point[0]:
                 self.remove(delete_formatting=False)
@@ -54,10 +55,13 @@ class Unpack(Unwrappable[Parent], HasValue, IWrapper, Generic[Parent]):
                 else:
                     # Delete the remaining characters on this line
                     self.remove_byte_range(self.end_byte, next_sibling.start_byte - next_sibling.start_point[1])
-
             else:
                 self.remove()
-            for k, v in node.items():
-                self.parent[k] = v.source.strip()
-            if node.unpack:
-                self.parent._underlying.append(self.node.unpack.source)
+
+            # Add all items from the unwrapped dictionary
+            for child in node._underlying:
+                if isinstance(child, Unpack):
+                    self.parent._underlying.append(child)
+                    self.parent.unpacks.append(child)
+                else:  # Regular key-value pair
+                    self.parent._underlying.append(child)

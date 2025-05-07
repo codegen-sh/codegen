@@ -5,8 +5,8 @@ from tree_sitter import Node as TSNode
 from codegen.sdk.core.autocommit import writer
 from codegen.sdk.core.expressions import Expression
 from codegen.sdk.core.expressions.string import String
+from codegen.sdk.core.expressions.unpack import Unpack
 from codegen.sdk.core.interfaces.editable import Editable
-from codegen.sdk.core.interfaces.has_attribute import HasAttribute
 from codegen.sdk.core.node_id_factory import NodeId
 from codegen.sdk.core.symbol_groups.dict import Dict, Pair
 from codegen.sdk.extensions.autocommit import reader
@@ -71,13 +71,13 @@ class TSPair(Pair):
 
 
 @apidoc
-class TSDict(Dict, HasAttribute):
+class TSDict(Dict[Expression, Parent]):
     """A typescript dict object. You can use standard operations to operate on this dict (IE len, del, set, get, etc)"""
 
     def __init__(self, ts_node: TSNode, file_node_id: NodeId, ctx: "CodebaseContext", parent: Parent, delimiter: str = ",", pair_type: type[Pair] = TSPair) -> None:
         super().__init__(ts_node, file_node_id, ctx, parent, delimiter=delimiter, pair_type=pair_type)
 
-    def __getitem__(self, __key: str) -> TExpression:
+    def __getitem__(self, __key: str) -> Expression:
         for pair in self._underlying:
             pair_match = None
 
@@ -116,7 +116,7 @@ class TSDict(Dict, HasAttribute):
                         if __key == new_value:
                             pair_match.edit(f"{__key}")
                         else:
-                            pair.value.edit(f"{new_value}")
+                            pair_match.value.edit(f"{new_value}")
                     # CASE: {a}
                     else:
                         if __key == new_value:
@@ -142,3 +142,58 @@ class TSDict(Dict, HasAttribute):
     @override
     def resolve_attribute(self, name: str) -> "Expression | None":
         return self.get(name, None)
+
+    def merge(self, *others: "Dict[Expression, Parent] | str") -> None:
+        """Merge multiple dictionaries into a new dictionary.
+
+        Preserves spread operators and function calls in their original form.
+        Later dictionaries take precedence over earlier ones for duplicate keys.
+        In TypeScript, duplicate keys and spreads are allowed - later ones override earlier ones.
+
+        Args:
+            *others: Other Dict objects or dictionary strings.
+                    The strings can be either Python dicts (e.g. "{'x': 1}")
+                    or TypeScript objects (e.g. "{x: 1}")
+
+        Returns:
+            None
+        """
+        # Keep track of all items in order
+        merged_items = []
+
+        # First add all items from this dictionary
+        for child in self._underlying:
+            if isinstance(child, Unpack):
+                merged_items.append(child.source)
+            elif child.key is not None:
+                merged_items.append(f"{child.key.source}: {child.value.source}")
+
+        # Then add items from other dictionaries
+        for other in others:
+            if isinstance(other, Dict):
+                # Handle Dict objects from our SDK
+                for child in other._underlying:
+                    if isinstance(child, Unpack):
+                        merged_items.append(child.source)
+                    elif child.key is not None:
+                        merged_items.append(f"{child.key.source}: {child.value.source}")
+            elif isinstance(other, str):
+                # Handle dictionary string
+                content = other.strip().strip("{}").strip()
+                if not content:  # Skip empty dicts
+                    continue
+
+                # Parse the content
+                parts = content.split(",")
+                for part in parts:
+                    part = part.strip()
+                    merged_items.append(part)
+            else:
+                msg = f"Cannot merge with object of type {type(other)}"
+                raise TypeError(msg)
+
+        # Create merged source
+        merged_source = "{" + ", ".join(merged_items) + "}"
+
+        # Replace this dict's source with merged source
+        self.edit(merged_source)

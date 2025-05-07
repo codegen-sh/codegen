@@ -650,3 +650,309 @@ function foo() {}
 let obj = {1: "a", a: foo()}
 """
     )
+
+
+def test_dict_merge_basic(tmpdir) -> None:
+    """Test basic merge functionality in TypeScript dictionaries."""
+    file = "test.ts"
+    # language=typescript
+    content = """
+const base1 = {x: 1, y: 2}
+const base2 = {a: 3, ...base1}
+const base3 = {c: 4, d: 5}
+const result = {m: 0, ...base2, n: 5}
+"""
+    with get_codebase_session(tmpdir=tmpdir, files={"test.ts": content}, programming_language=ProgrammingLanguage.TYPESCRIPT) as codebase:
+        file = codebase.get_file(file)
+        result = file.get_symbol("result").value
+
+        # Should work - adding new keys
+        result.merge("{p: 6, q: 7}")
+        codebase.commit()
+        assert (
+            file.content
+            == """
+const base1 = {x: 1, y: 2}
+const base2 = {a: 3, ...base1}
+const base3 = {c: 4, d: 5}
+const result = {m: 0, ...base2, n: 5, p: 6, q: 7}
+"""
+        )
+
+
+def test_dict_merge_duplicate_keys(tmpdir) -> None:
+    """Test merging with duplicate keys in TypeScript dictionaries."""
+    file = "test.ts"
+    # language=typescript
+    content = """
+const base1 = {x: 1, y: 2}
+const base2 = {a: 3, ...base1}
+const base3 = {c: 4, d: 5}
+const result = {m: 0, ...base2, n: 5}
+"""
+    with get_codebase_session(tmpdir=tmpdir, files={"test.ts": content}, programming_language=ProgrammingLanguage.TYPESCRIPT) as codebase:
+        file = codebase.get_file(file)
+        result = file.get_symbol("result").value
+
+        # Should work - duplicate keys are allowed in TypeScript
+        result.merge("{a: 9}")
+        codebase.commit()
+        assert (
+            file.content
+            == """
+const base1 = {x: 1, y: 2}
+const base2 = {a: 3, ...base1}
+const base3 = {c: 4, d: 5}
+const result = {m: 0, ...base2, n: 5, a: 9}
+"""
+        )
+
+
+def test_dict_merge_multiple_unpacks(tmpdir) -> None:
+    """Test merging multiple TypeScript dictionaries with unpacks."""
+    file = "test.ts"
+    # language=typescript
+    content = """
+const base1 = {x: 1, y: 2}
+const base2 = {a: 3, ...base1}
+const base3 = {c: 4, d: 5}
+const result = {m: 0, ...base2, n: 5, p: 6, q: 7}
+"""
+    with get_codebase_session(tmpdir=tmpdir, files={"test.ts": content}, programming_language=ProgrammingLanguage.TYPESCRIPT) as codebase:
+        file = codebase.get_file(file)
+        result = file.get_symbol("result").value
+
+        # Should work - new unique keys and unpacks
+        result.merge("{s: 10, ...base3}")
+        codebase.commit()
+        assert (
+            file.content
+            == """
+const base1 = {x: 1, y: 2}
+const base2 = {a: 3, ...base1}
+const base3 = {c: 4, d: 5}
+const result = {m: 0, ...base2, n: 5, p: 6, q: 7, s: 10, ...base3}
+"""
+        )
+
+
+def test_dict_merge_objects(tmpdir) -> None:
+    """Test merging TypeScript Dict objects directly."""
+    file = "test.ts"
+    # language=typescript
+    content = """
+const dict1 = {x: 1, y: 2}
+const dict2 = {a: 3, ...dict1}
+const dict3 = {b: 4, c: 5}
+const dict4 = {d: 6, ...dict3}
+const result = {m: 0}
+"""
+    with get_codebase_session(tmpdir=tmpdir, files={"test.ts": content}, programming_language=ProgrammingLanguage.TYPESCRIPT) as codebase:
+        file = codebase.get_file(file)
+        result = file.get_symbol("result").value
+        dict2 = file.get_symbol("dict2").value
+        dict3 = file.get_symbol("dict3").value
+        dict4 = file.get_symbol("dict4").value
+
+        # Should work - merging multiple Dict objects
+        result.merge(dict2, dict3)
+        codebase.commit()
+        assert (
+            file.content
+            == """
+const dict1 = {x: 1, y: 2}
+const dict2 = {a: 3, ...dict1}
+const dict3 = {b: 4, c: 5}
+const dict4 = {d: 6, ...dict3}
+const result = {m: 0, a: 3, ...dict1, b: 4, c: 5}
+"""
+        )
+
+
+def test_dict_unwrap_basic(tmpdir) -> None:
+    """Test basic unwrapping of spread operators in TypeScript dictionaries."""
+    file = "test.ts"
+    # language=typescript
+    content = """
+const base = {x: 1, y: 2}
+const dict1 = {a: 1, ...base, b: 2}
+"""
+    with get_codebase_session(tmpdir=tmpdir, files={"test.ts": content}, programming_language=ProgrammingLanguage.TYPESCRIPT) as codebase:
+        file = codebase.get_file(file)
+        dict1 = file.get_symbol("dict1").value
+        assert len(dict1.unpacks) == 1
+        dict1.unwrap()
+        codebase.commit()
+        assert (
+            file.content
+            == """
+const base = {x: 1, y: 2}
+const dict1 = {a: 1, b: 2, x: 1, y: 2}
+"""
+        )
+
+
+def test_dict_unwrap_multiple_spreads(tmpdir) -> None:
+    """Test unwrapping multiple spread operators in TypeScript dictionaries."""
+    file = "test.ts"
+    # language=typescript
+    content = """
+const base1 = {x: 1, y: 2}
+const base2 = {z: 3, w: 4}
+const dict1 = {a: 1, ...base1, b: 2, ...base2, c: 3}
+"""
+    with get_codebase_session(tmpdir=tmpdir, files={"test.ts": content}, programming_language=ProgrammingLanguage.TYPESCRIPT) as codebase:
+        file = codebase.get_file(file)
+        dict1 = file.get_symbol("dict1").value
+        assert len(dict1.unpacks) == 2
+        dict1.unwrap()
+        codebase.commit()
+        assert (
+            file.content
+            == """
+const base1 = {x: 1, y: 2}
+const base2 = {z: 3, w: 4}
+const dict1 = {a: 1, b: 2, c: 3, x: 1, y: 2, z: 3, w: 4}
+"""
+        )
+
+
+def test_dict_unwrap_nested_spreads(tmpdir) -> None:
+    """Test unwrapping nested spread operators in TypeScript dictionaries."""
+    file = "test.ts"
+    # language=typescript
+    content = """
+const base1 = {x: 1, y: 2}
+const base2 = {z: 3, ...base1}
+const dict1 = {a: 1, ...base2, b: 2}
+"""
+    with get_codebase_session(tmpdir=tmpdir, files={"test.ts": content}, programming_language=ProgrammingLanguage.TYPESCRIPT) as codebase:
+        file = codebase.get_file(file)
+        dict1 = file.get_symbol("dict1").value
+        assert len(dict1.unpacks) == 1
+        dict1.unwrap()
+        codebase.commit()
+        assert (
+            file.content
+            == """
+const base1 = {x: 1, y: 2}
+const base2 = {z: 3, ...base1}
+const dict1 = {a: 1, b: 2, z: 3, ...base1}
+"""
+        )
+
+
+def test_dict_merge_variadic(tmpdir) -> None:
+    """Test merging multiple dictionaries using variadic arguments."""
+    file = "test.ts"
+    content = """
+const dict1 = {a: 1}
+const dict2 = {b: 2}
+const dict3 = {c: 3}
+const result = {m: 0}
+"""
+    with get_codebase_session(tmpdir=tmpdir, files={"test.ts": content}, programming_language=ProgrammingLanguage.TYPESCRIPT) as codebase:
+        file = codebase.get_file(file)
+        result = file.get_symbol("result").value
+        dict2 = file.get_symbol("dict2").value
+        dict3 = file.get_symbol("dict3").value
+
+        # Test merging multiple Dict objects and strings
+        result.merge(dict2, dict3, "{x: 4}", "{y: 5}")
+        codebase.commit()
+        assert (
+            file.content
+            == """
+const dict1 = {a: 1}
+const dict2 = {b: 2}
+const dict3 = {c: 3}
+const result = {m: 0, b: 2, c: 3, x: 4, y: 5}
+"""
+        )
+
+
+def test_dict_merge_variadic_with_spreads(tmpdir) -> None:
+    """Test merging multiple dictionaries with spreads using variadic arguments."""
+    file = "test.ts"
+    content = """
+const base1 = {x: 1}
+const base2 = {y: 2}
+const dict1 = {a: 1, ...base1}
+const dict2 = {b: 2, ...base2}
+const result = {m: 0}
+"""
+    with get_codebase_session(tmpdir=tmpdir, files={"test.ts": content}, programming_language=ProgrammingLanguage.TYPESCRIPT) as codebase:
+        file = codebase.get_file(file)
+        result = file.get_symbol("result").value
+        dict1 = file.get_symbol("dict1").value
+        dict2 = file.get_symbol("dict2").value
+
+        # Test merging multiple Dict objects with spreads
+        result.merge(dict1, dict2, "{z: 3}")
+        codebase.commit()
+        assert (
+            file.content
+            == """
+const base1 = {x: 1}
+const base2 = {y: 2}
+const dict1 = {a: 1, ...base1}
+const dict2 = {b: 2, ...base2}
+const result = {m: 0, a: 1, ...base1, b: 2, ...base2, z: 3}
+"""
+        )
+
+
+def test_dict_merge_variadic_duplicate_keys(tmpdir) -> None:
+    """Test merging multiple dictionaries with duplicate keys using variadic arguments."""
+    file = "test.ts"
+    content = """
+const dict1 = {a: 1, b: 2}
+const dict2 = {c: 3, d: 4}
+const result = {m: 0}
+"""
+    with get_codebase_session(tmpdir=tmpdir, files={"test.ts": content}, programming_language=ProgrammingLanguage.TYPESCRIPT) as codebase:
+        file = codebase.get_file(file)
+        result = file.get_symbol("result").value
+        dict1 = file.get_symbol("dict1").value
+        dict2 = file.get_symbol("dict2").value
+
+        # Test merging with duplicate keys - should work in TypeScript
+        result.merge(dict1, dict2, "{a: 5}")  # Duplicate 'a' key is allowed
+        codebase.commit()
+        assert (
+            file.content
+            == """
+const dict1 = {a: 1, b: 2}
+const dict2 = {c: 3, d: 4}
+const result = {m: 0, a: 1, b: 2, c: 3, d: 4, a: 5}
+"""
+        )
+
+
+def test_dict_merge_variadic_duplicate_spreads(tmpdir) -> None:
+    """Test merging multiple dictionaries with duplicate spreads using variadic arguments."""
+    file = "test.ts"
+    content = """
+const base1 = {x: 1}
+const dict1 = {...base1}
+const dict2 = {y: 2}
+const result = {m: 0}
+"""
+    with get_codebase_session(tmpdir=tmpdir, files={"test.ts": content}, programming_language=ProgrammingLanguage.TYPESCRIPT) as codebase:
+        file = codebase.get_file(file)
+        result = file.get_symbol("result").value
+        dict1 = file.get_symbol("dict1").value
+        dict2 = file.get_symbol("dict2").value
+
+        # Test merging with duplicate spreads - should work in TypeScript
+        result.merge(dict1, dict2, "{...base1}")  # Duplicate spread is allowed
+        codebase.commit()
+        assert (
+            file.content
+            == """
+const base1 = {x: 1}
+const dict1 = {...base1}
+const dict2 = {y: 2}
+const result = {m: 0, ...base1, y: 2, ...base1}
+"""
+        )
