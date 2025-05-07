@@ -1,5 +1,9 @@
+import gc
+import os
+import time
 from pathlib import Path
 
+import psutil
 import rich
 from rich.panel import Panel
 from rich.status import Status
@@ -27,6 +31,9 @@ def parse_codebase(
     Returns:
         Parsed Codebase object
     """
+    # Force garbage collection before parsing to free up memory
+    gc.collect()
+
     codebase = Codebase(
         projects=[
             ProjectConfig(
@@ -51,21 +58,36 @@ def run_local(
         function: The function to run
         diff_preview: Number of lines of diff to preview (None for all)
     """
+    # Get initial memory usage
+    process = psutil.Process(os.getpid())
+    initial_memory = process.memory_info().rss / (1024 * 1024)  # Convert to MB
+
     # Parse codebase and run
     with Status(f"[bold]Parsing codebase at {session.repo_path} with subdirectories {function.subdirectories or 'ALL'} and language {function.language or 'AUTO'} ...", spinner="dots") as status:
+        start_time = time.time()
         codebase = parse_codebase(repo_path=session.repo_path, subdirectories=function.subdirectories, language=function.language)
-        status.update("[bold green]✓ Parsed codebase")
+        parse_time = time.time() - start_time
+        status.update(f"[bold green]✓ Parsed codebase in {parse_time:.2f}s")
+
+        # Memory usage after parsing
+        post_parse_memory = process.memory_info().rss / (1024 * 1024)
 
         status.update("[bold]Running codemod...")
+        start_time = time.time()
         function.run(codebase)  # Run the function
-        status.update("[bold green]✓ Completed codemod")
+        run_time = time.time() - start_time
+        status.update(f"[bold green]✓ Completed codemod in {run_time:.2f}s")
 
     # Get the diff from the codebase
     result = codebase.get_diff()
 
+    # Final memory usage
+    final_memory = process.memory_info().rss / (1024 * 1024)
+
     # Handle no changes case
     if not result:
         rich.print("\n[yellow]No changes were produced by this codemod[/yellow]")
+        rich.print(f"\n[dim]Memory usage: {initial_memory:.2f}MB → {final_memory:.2f}MB (Δ {final_memory - initial_memory:.2f}MB)[/dim]")
         return
 
     # Show diff preview if requested
@@ -84,3 +106,11 @@ def run_local(
     # Apply changes
     rich.print("")
     rich.print("[green]✓ Changes have been applied to your local filesystem[/green]")
+
+    # Print memory usage statistics
+    rich.print(f"\n[dim]Memory usage: {initial_memory:.2f}MB → {final_memory:.2f}MB (Δ {final_memory - initial_memory:.2f}MB)[/dim]")
+    rich.print(f"[dim]Parsing: {parse_time:.2f}s, Execution: {run_time:.2f}s[/dim]")
+
+    # Clean up to free memory
+    del codebase
+    gc.collect()
