@@ -6,22 +6,37 @@ icon: "slack"
 
 Connect Codegen to your Slack workspace to enable seamless communication between agents and your team.
 
-## Capabilities
+## Capabilities & Functions
 
-The integration for Slack allows agents to interact within your designated channels:
+Codegen functions as a full-fledged software engineer that you can interact with directly through Slack. When responding to messages in Slack, Codegen can:
 
-- **Send Messages:** Post updates, ask questions, report results, and notify team members.
-- **Read Messages:** (Optional) Agents can be configured to read messages in specific channels to gather context or respond to requests (requires careful permission setup).
-- **User Mentions:** Tag specific users or groups for notifications.
+- **Perform Research:** Search the web for information, documentation, or solutions to problems.
+- **Manage Issues:** Triage and update issues in Linear or GitHub based on your requests.
+- **Develop Code:** Make code changes, improvements, or implement new features across your repositories.
+- **Create Pull Requests:** Draft, review, and submit PRs with detailed descriptions and context.
+- **Provide Updates:** Keep you informed about progress, blockers, or completion of tasks.
+- **Request Clarification:** Ask for additional context or guidance when needed to complete a task effectively.
+- **Share Results:** Deliver summaries, documentation, links to PRs, or explanations of changes made.
 
-## How Agents Use Slack
+All of these capabilities are accessible through natural language interactions in your Slack workspace, allowing your team to leverage Codegen's assistance without context switching between different platforms.
 
-Agents use Slack primarily for communication and notifications:
+## Installation
 
-- **Progress Updates:** Informing a channel or user when a task starts, encounters an issue, or is completed.
-- **Requesting Feedback:** Asking for clarification or input on a specific implementation detail or ambiguity.
-- **Sharing Results:** Posting links to created PRs, summaries of changes, or errors encountered.
-- **Notifications:** Alerting the team about build failures, successful deployments, or critical issues identified.
+Add the Codegen app for Slack to your workspace to enable agent communication.
+
+<Card
+  title="Add Codegen to Slack"
+  icon="slack"
+  href="https://codegen.sh/integrations"
+>
+  Install the Codegen app for Slack from the Slack Marketplace and choose the
+  channels it can access.
+</Card>
+
+<Note>
+  Configure channel access carefully to ensure agents communicate in the
+  appropriate places.
+</Note>
 
 ## Message Response Behavior
 
@@ -50,21 +65,3 @@ Codegen responds to the following messages in Slack:
 **User Permissions and Access Control:**
 
 Codegen's actions on connected repositories are governed by the permissions of the user who initiated the interaction via Slack. The bot itself does not have independent permissions to repositories. Access to repositories and the ability to trigger actions are determined by the Codegen user's authenticated account and their associated repository permissions. We recommend configuring channel access carefully during installation to ensure the Codegen app for Slack is only present in channels where its use is appropriate.
-
-## Installation
-
-Add the Codegen app for Slack to your workspace to enable agent communication.
-
-<Card
-  title="Add Codegen to Slack"
-  icon="slack"
-  href="https://codegen.sh/integrations"
->
-  Install the Codegen app for Slack from the Slack Marketplace and choose the
-  channels it can access.
-</Card>
-
-<Note>
-  Configure channel access carefully to ensure agents communicate in the
-  appropriate places.
-</Note>
