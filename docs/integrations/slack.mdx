@@ -1,5 +1,5 @@
 ---
-title: "Slack Integration"
+title: "Integration for Slack"
 sidebarTitle: "Slack"
 icon: "slack"
 ---
@@ -8,7 +8,7 @@ Connect Codegen to your Slack workspace to enable seamless communication between
 
 ## Capabilities
 
-The Slack integration allows agents to interact within your designated channels:
+The integration for Slack allows agents to interact within your designated channels:
 
 - **Send Messages:** Post updates, ask questions, report results, and notify team members.
 - **Read Messages:** (Optional) Agents can be configured to read messages in specific channels to gather context or respond to requests (requires careful permission setup).
@@ -23,17 +23,45 @@ Agents use Slack primarily for communication and notifications:
 - **Sharing Results:** Posting links to created PRs, summaries of changes, or errors encountered.
 - **Notifications:** Alerting the team about build failures, successful deployments, or critical issues identified.
 
+## Message Response Behavior
+
+Codegen responds to the following messages in Slack:
+
+- **Direct Messages:**
+
+  - Responds to any DM sent to the Codegen app for Slack
+  - Has visibility into previous messages in the conversation (not just threaded replies)
+  - This provides a more natural conversation experience as many users don't thread messages in DMs
+
+- **Channel Messages:**
+  - Responds to any message that @mentions Codegen in channels where the app for Slack is installed
+  - Only has visibility into the local context of the thread/conversation
+  - Sending subsequent messages within a thread routes to the same agent
+  - New messages in an active thread will interrupt the agent if it's currently working
+
+## Data Privacy and Security
+
+**Message Content Handling:**
+
+- **Third-Party LLM APIs:** To provide its core functionality, Codegen shares message content with third-party Large Language Model (LLM) APIs, specifically OpenAI and Anthropic.
+- **Data Retention:** Outside of the LLM API interactions, message content is retained by Codegen solely for the purpose of displaying it within the Codegen user interface.
+- **Metadata from Private Channels:** When messages from private Slack channels are processed, Codegen does not expose private metadata, such as the original author's name or username, in the Codegen web app.
+
+**User Permissions and Access Control:**
+
+Codegen's actions on connected repositories are governed by the permissions of the user who initiated the interaction via Slack. The bot itself does not have independent permissions to repositories. Access to repositories and the ability to trigger actions are determined by the Codegen user's authenticated account and their associated repository permissions. We recommend configuring channel access carefully during installation to ensure the Codegen app for Slack is only present in channels where its use is appropriate.
+
 ## Installation
 
-Add the Codegen Slack App to your workspace to enable agent communication.
+Add the Codegen app for Slack to your workspace to enable agent communication.
 
 <Card
   title="Add Codegen to Slack"
   icon="slack"
   href="https://codegen.sh/integrations"
 >
-  Install the Codegen app from the Slack Marketplace and choose the channels it
-  can access.
+  Install the Codegen app for Slack from the Slack Marketplace and choose the
+  channels it can access.
 </Card>
 
 <Note>
