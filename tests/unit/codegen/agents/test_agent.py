@@ -146,6 +146,21 @@ class TestAgent:
             agent = Agent(token="test-token", org_id=42, base_url=custom_url)
             mock_config.assert_called_once_with(host=custom_url, access_token="test-token")
 
+    def test_web_url_with_no_job(self, agent):
+        """Test web_url property when no job has been run"""
+        assert agent.web_url is None
+
+    def test_web_url_with_job(self, agent):
+        """Test web_url property returns current job's web_url"""
+        # Setup mock job
+        mock_job = MagicMock(spec=AgentTask)
+        mock_job.web_url = "https://example.com/run/456"
+
+        agent.current_job = mock_job
+
+        # Check web_url
+        assert agent.web_url == "https://example.com/run/456"
+
     def test_run(self, agent, mock_agents_api):
         """Test run method creates and returns job"""
         # Setup mock API response
@@ -249,6 +264,9 @@ class TestAgentIntegration:
             assert job.id == 987
             assert job.status == "running"
             assert job.result is None
+
+            # Verify web_url property
+            assert agent.web_url == "https://example.com/run/987"
 
             # Check status
             status = agent.get_status()

@@ -63,6 +63,17 @@ class Agent:
         # Current job
         self.current_job = None
 
+    @property
+    def web_url(self) -> Optional[str]:
+        """Get the URL for the current job.
+
+        Returns:
+            str: The web URL for the current job, or None if no job has been run.
+        """
+        if self.current_job:
+            return self.current_job.web_url
+        return None
+
     def run(self, prompt: str) -> AgentTask:
         """Run an agent with the given prompt.
 
