@@ -1,0 +1,194 @@
+---
+title: Repository Rules
+description: Learn how to configure custom rules for Codegen to follow when working with your repositories
+---
+
+# Repository Rules
+
+Repository rules allow you to define specific instructions that Codegen will follow when working with your codebase. These rules can help ensure that Codegen adheres to your team's coding standards, follows project-specific conventions, or handles certain files in specific ways.
+
+## Overview
+
+Repository rules are custom instructions written in markdown format that guide Codegen's behavior when interacting with your repository. These rules can be defined in two ways:
+
+1. **Through the Codegen web interface** - Configure rules in your repository settings
+2. **Using rule files in your repository** - Create special files that Codegen automatically detects
+
+When Codegen works with your repository, it automatically detects and follows these rules, ensuring that its actions align with your team's expectations and requirements.
+
+## Configuring Rules via Web Interface
+
+The simplest way to configure repository rules is through the Codegen web interface:
+
+1. Log in to your Codegen account at [codegen.sh](https://codegen.sh)
+2. Navigate to **Repositories** in the sidebar
+3. Select the repository you want to configure
+4. In the repository settings page, find the **Repository rules** section
+5. Enter your rules in markdown format in the text area
+6. Click **Save** to apply your changes
+
+![Repository Rules Setting](../../images/repo-rules-setting.png)
+
+## Configuring Rules via Files
+
+Alternatively, you can define rules directly in your repository using special files. Codegen automatically detects and follows rules defined in these files:
+
+- `.cursorrules` - A file at the root of your repository
+- `.clinerules` - A file at the root of your repository
+- `.windsurfrules` - A file at the root of your repository
+- `.cursor/rules/**/*.mdc` - Any `.mdc` files in the `.cursor/rules` directory
+- `**/*.mdc` - Any `.mdc` files anywhere in your repository
+
+These files should contain your rules in markdown format. When Codegen works with your repository, it automatically detects these files and follows the rules defined in them.
+
+### Example: Creating Rules in `.cursor/rules`
+
+1. Create a `.cursor/rules` directory in your repository:
+
+```bash
+mkdir -p .cursor/rules
+```
+
+2. Create a new file with your rules, for example `.cursor/rules/coding-standards.mdc`:
+
+```markdown
+# Coding Standards
+
+1. **File Organization**
+   - Place all React components in the `src/components` directory
+   - Place all utility functions in the `src/utils` directory
+   - Place all API calls in the `src/api` directory
+
+2. **Naming Conventions**
+   - Use PascalCase for component names
+   - Use camelCase for function and variable names
+   - Use UPPER_SNAKE_CASE for constants
+
+3. **Code Style**
+   - Use 2 spaces for indentation
+   - Use single quotes for strings
+   - Add semicolons at the end of statements
+   - Maximum line length is 80 characters
+```
+
+3. Commit and push these changes to your repository
+
+## Rule Format and Examples
+
+Repository rules are written in markdown format, which allows for rich formatting and structure. Here are some examples of effective repository rules:
+
+### Example 1: General Development Guidelines
+
+```markdown
+# Development Guidelines
+
+## Code Structure
+- Follow the MVC pattern for all new features
+- Place all database models in the `app/models` directory
+- Place all controllers in the `app/controllers` directory
+- Place all views in the `app/views` directory
+
+## Testing Requirements
+- Write unit tests for all new functions
+- Maintain at least 80% code coverage
+- Use descriptive test names that explain what is being tested
+
+## Documentation
+- Add JSDoc comments to all public functions
+- Update the README.md when adding new features
+- Document all API endpoints in the API.md file
+```
+
+### Example 2: Project-Specific Instructions
+
+```markdown
+# Project-Specific Instructions
+
+## Feature Flags
+- All new features should be behind a feature flag
+- Feature flags should be defined in `config/feature_flags.js`
+- Default value for all feature flags should be `false` in development
+
+## Database Migrations
+- Never modify existing migrations
+- Create new migrations for all schema changes
+- Follow the naming convention: `YYYYMMDD_description.js`
+
+## Third-Party Services
+- All API keys should be stored in environment variables
+- Never commit API keys or secrets to the repository
+- Document all third-party service integrations in `docs/integrations.md`
+```
+
+### Example 3: Task Approach Template
+
+```markdown
+# Task Approach
+
+1. **Analysis & Planning**
+   - First, analyze the requirements thoroughly
+   - Create a detailed implementation plan with clear steps
+   - I'll review and approve before you start coding
+
+2. **Development Guidelines**
+   - Make small, focused changes
+   - Commit early and frequently with descriptive messages
+   - Open a PR as soon as possible to catch integration issues
+   - Follow all monorepo guidelines and project architecture
+
+3. **Quality Standards**
+   - Write tests for all new functionality
+   - Include appropriate documentation
+   - Consider edge cases and error handling
+   - Ensure code is performant and maintainable
+
+4. **Communication**
+   - Don't write code until you're highly confident (95%+) in your approach
+   - Ask clarifying questions when requirements are ambiguous
+   - Provide regular status updates
+   - Flag any potential architectural concerns early
+
+5. **Architecture**
+   - For significant changes, create Architecture Decision Records (ADRs)
+   - Place ADRs in docs/technical/architecture/decisions
+   - Explain tradeoffs and alternatives considered
+```
+
+## Best Practices
+
+To get the most out of repository rules, follow these best practices:
+
+1. **Be specific and clear** - Write rules that are specific, clear, and actionable
+2. **Organize rules logically** - Group related rules together and use headings to create a clear structure
+3. **Focus on what matters** - Include rules that are important for your project and team
+4. **Keep rules up to date** - Regularly review and update your rules as your project evolves
+5. **Use examples** - Include examples to illustrate how rules should be applied
+6. **Explain the why** - Explain why rules exist to help Codegen understand their importance
+
+## Rule Precedence
+
+If you define rules in multiple places, Codegen follows this precedence order:
+
+1. Rules defined in the web interface
+2. Rules defined in repository files (`.cursorrules`, `.clinerules`, `.windsurfrules`)
+3. Rules defined in `.cursor/rules/**/*.mdc` files
+4. Rules defined in other `.mdc` files
+
+Rules defined in the web interface take precedence over rules defined in files.
+
+## Troubleshooting
+
+If Codegen is not following your repository rules as expected, check the following:
+
+1. **Rule format** - Ensure your rules are written in valid markdown format
+2. **Rule location** - Verify that your rule files are in the correct location
+3. **Rule content** - Make sure your rules are clear, specific, and actionable
+4. **Rule conflicts** - Check for conflicting rules in different locations
+5. **Rule updates** - Ensure you've saved your changes in the web interface or committed and pushed your file changes
+
+## Conclusion
+
+Repository rules are a powerful way to customize Codegen's behavior and ensure it follows your team's standards and conventions. By defining clear, specific rules, you can help Codegen work more effectively with your codebase and produce better results.
+
+For more information about working with Codegen, check out our [documentation](https://docs.codegen.sh).
+
