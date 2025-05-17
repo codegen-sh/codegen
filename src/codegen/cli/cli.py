@@ -16,6 +16,7 @@ from codegen.cli.commands.profile.main import profile_command
 from codegen.cli.commands.reset.main import reset_command
 from codegen.cli.commands.run.main import run_command
 from codegen.cli.commands.run_on_pr.main import run_on_pr_command
+from codegen.cli.commands.sandbox.main import sandbox_command
 from codegen.cli.commands.serve.main import serve_command
 from codegen.cli.commands.start.main import start_command
 from codegen.cli.commands.style_debug.main import style_debug_command
@@ -25,10 +26,16 @@ click.rich_click.USE_RICH_MARKUP = True
 install(show_locals=True)
 
 
-@click.group()
+@click.group(invoke_without_command=True)
 @click.version_option(prog_name="codegen", message="%(version)s")
-def main():
-    """Codegen CLI - Transform your code with AI."""
+@click.pass_context
+def main(ctx):
+    """Codegen CLI - Transform your code with AI.
+
+    If no command is specified, defaults to running the 'sandbox' command.
+    """
+    if ctx.invoked_subcommand is None:
+        ctx.invoke(sandbox_command)
 
 
 # Wrap commands with error handler
@@ -51,6 +58,7 @@ main.add_command(config_command)
 main.add_command(lsp_command)
 main.add_command(serve_command)
 main.add_command(start_command)
+main.add_command(sandbox_command)
 
 
 if __name__ == "__main__":
