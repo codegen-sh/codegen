@@ -4,4 +4,55 @@ sidebarTitle: "Web Preview"
 icon: "browser"
 ---
 
-Information about the web preview feature in sandboxes will be added here.
+Codegen's Web Preview feature lets you start a development server in your sandbox and view your running application directly in the Codegen interface.
+
+## How it Works
+
+Define your web server startup commands just like [Setup Commands](./setup-commands). Instead of taking a snapshot, Codegen keeps the server running as a long-lived process.
+
+A "View Web Preview" button appears on the agent trace page once the server starts. Click it to open your running application in a new tab through Codegen's secure proxy.
+
+<Frame caption="Access the Web Preview from the agent trace page">
+  <img
+    src="/images/web-preview-trace-button.png"
+    alt="Web Preview button on Trace Page"
+  />
+</Frame>
+
+## Configuration
+
+You configure Web Preview commands in a manner similar to Setup Commands, likely within the same repository settings area (e.g., `https://codegen.com/{your_org}/{repo_name}/settings/web-preview`).
+
+You'll provide the command(s) necessary to start your development server. Ensure that your server is configured to listen on an appropriate host (often `0.0.0.0`) and a predictable port that Codegen can then expose.
+
+## Common Examples
+
+The primary use case is starting a development web server:
+
+```bash
+# For a Node.js/npm project
+npm run dev
+```
+
+```bash
+# For a Python/Django project
+python manage.py runserver 0.0.0.0:8000
+```
+
+```bash
+# For a Ruby on Rails project
+bundle exec rails server -b 0.0.0.0
+```
+
+<Tip>
+  The Web Preview server runs within the same sandbox environment as your other
+  agent tasks, meaning it has access to the same file system (including any
+  changes made by the agent) and the [Environment
+  Variables](./environment-variables).
+</Tip>
+
+<Note>
+  The web preview is intended for development and debugging purposes. The server
+  is typically only accessible while the agent run is active or for a short
+  period afterward, and it's not designed for public hosting.
+</Note>
