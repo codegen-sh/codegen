@@ -40,7 +40,8 @@
               "sandboxes/overview",
               "sandboxes/setup-commands",
               "sandboxes/web-preview",
-              "sandboxes/environment-variables"
+              "sandboxes/environment-variables",
+              "sandboxes/editor"
             ]
           }
         ]
