@@ -32,7 +32,8 @@
 							"integrations/linear",
 							"integrations/github",
 							"integrations/web-search",
-							"integrations/sandboxes"
+							"integrations/sandboxes",
+							"integrations/postgres"
 						]
 					}
 				]
