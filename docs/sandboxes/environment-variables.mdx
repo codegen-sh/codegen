@@ -1,0 +1,34 @@
+---
+title: "Environment Variables"
+sidebarTitle: "Env Variables"
+icon: "code-block"
+---
+
+Codegen sandboxes come pre-configured with a set of environment variables to facilitate common development tasks and ensure smooth operation of tools and package managers. Understanding these variables can be helpful when debugging or customizing setup scripts.
+
+## Standard Environment Variables
+
+The following environment variables are typically available within Codegen sandboxes:
+
+| Variable                          | Description                                                                                                                                 |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NVM_DIR`                         | Specifies the directory where Node Version Manager (NVM) is installed. The exact path is set during sandbox initialization.                 |
+| `PATH`                            | The system's execution search path. It's augmented to include the `bin` directory of the currently active Node.js version (managed by NVM). |
+| `NVM_BIN`                         | Points to the `bin` directory of the currently active Node.js version. This is also set dynamically by NVM.                                 |
+| `NODE_VERSION`                    | Indicates the version of Node.js that is currently active in the sandbox, as managed by NVM.                                                |
+| `NODE_OPTIONS`                    | `" --max-old-space-size=8192"` Configures V8 to allow a max old space size of 8192MB. Useful for memory-intensive Node.js apps.             |
+| `DEBIAN_FRONTEND`                 | `"noninteractive"` Instructs Debian-based package managers (like `apt`) to run without interactive prompts.                                 |
+| `PYTHONUNBUFFERED`                | `"1"` Forces `stdout` and `stderr` for Python to be unbuffered, meaning output is written immediately.                                      |
+| `COREPACK_ENABLE_DOWNLOAD_PROMPT` | `"0"` Disables the Corepack prompt when it needs to download a package manager (like Yarn or pnpm).                                         |
+| `PYTHONPATH`                      | `"/usr/local/lib/python3.13/site-packages"` Adds the specified directory to Python's module search path. (Python version may vary).         |
+| `IS_SANDBOX`                      | `"true"` A boolean flag indicating the environment is a Codegen sandbox.                                                                    |
+| `NPM_CONFIG_YES`                  | `"true"` Configures npm to automatically answer "yes" to prompts.                                                                           |
+| `PIP_NO_INPUT`                    | `"1"` Instructs pip (Python's package installer) to operate in non-interactive mode.                                                        |
+| `YARN_ENABLE_IMMUTABLE_INSTALLS`  | `"false"` Disables Yarn's "immutable installs" feature, allowing `yarn install` to modify the lockfile.                                     |
+
+<Note>
+  The values for variables like `NVM_DIR`, `PATH`, `NVM_BIN`, and `NODE_VERSION`
+  are typically set dynamically during the sandbox setup process, depending on
+  the specific NVM and Node.js versions being used. The `PYTHONPATH` may also
+  vary based on the Python installation within the sandbox.
+</Note>
