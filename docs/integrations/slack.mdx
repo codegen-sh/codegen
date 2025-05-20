@@ -6,6 +6,19 @@ icon: "slack"
 
 Connect Codegen to your Slack workspace to enable seamless communication between agents and your team.
 
+<div className="add-to-slack-container" style={{ textAlign: 'center', margin: '2rem 0' }}>
+  <a href="https://codegen.sh/integrations" className="add-to-slack-button">
+    <img 
+      alt="Add to Slack" 
+      height="40" 
+      width="139" 
+      src="https://platform.slack-edge.com/img/add_to_slack.png" 
+      srcSet="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x" 
+    />
+  </a>
+  <p style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>Click the button above to install Codegen in your Slack workspace</p>
+</div>
+
 ## Capabilities & Functions
 
 Codegen functions as a full-fledged software engineer that you can interact with directly through Slack. When responding to messages in Slack, Codegen can:
@@ -22,14 +35,14 @@ All of these capabilities are accessible through natural language interactions i
 
 ## Installation
 
-Add the Codegen app for Slack to your workspace to enable agent communication.
+Add the Codegen integration for Slack to your workspace to enable agent communication.
 
 <Card
   title="Add Codegen to Slack"
   icon="slack"
   href="https://codegen.sh/integrations"
 >
-  Install the Codegen app for Slack from the Slack Marketplace and choose the
+  Install the Codegen integration for Slack from the Slack Marketplace and choose the
   channels it can access.
 </Card>
 
@@ -38,18 +51,50 @@ Add the Codegen app for Slack to your workspace to enable agent communication.
   appropriate places.
 </Note>
 
+## Configuration Instructions
+
+After installing the integration for Slack from the Slack Marketplace, follow these steps to configure it for your team:
+
+### Channel Setup
+- **Create a dedicated channel**: We recommend creating a channel like `#codegen` for general agent interactions.
+- **Invite the Codegen bot**: Type `/invite @codegen` in any channel where you want Codegen to participate.
+
+### Trigger Configuration
+Codegen agents can be triggered in several ways:
+- **Direct mentions**: Type `@codegen` followed by your request in any channel where the bot is present.
+- **Thread replies**: Reply to a Codegen message in a thread to continue the conversation.
+- **Direct messages**: Send a DM to the Codegen bot for private conversations.
+
+### Notification Settings
+Configure which events trigger notifications in Slack:
+1. Go to your [Codegen Dashboard](https://codegen.sh/settings/notifications)
+2. Under "Notification Settings", select which events should post to Slack:
+   - PR creation and updates
+   - Build failures
+   - Deployment events
+   - Agent task completions
+3. Choose which channels should receive different types of notifications
+
+### Permission Management
+For security, you can control which team members can interact with Codegen:
+1. Go to your [Codegen Dashboard](https://codegen.sh/settings/permissions)
+2. Under "Slack Permissions", configure:
+   - Which users can trigger agent actions
+   - Which repositories can be accessed via Slack commands
+   - What level of access is permitted (read-only, PR creation, etc.)
+
 ## Message Response Behavior
 
 Codegen responds to the following messages in Slack:
 
 - **Direct Messages:**
 
-  - Responds to any DM sent to the Codegen app for Slack
+  - Responds to any DM sent to the Codegen integration for Slack
   - Has visibility into previous messages in the conversation (not just threaded replies)
   - This provides a more natural conversation experience as many users don't thread messages in DMs
 
 - **Channel Messages:**
-  - Responds to any message that @mentions Codegen in channels where the app for Slack is installed
+  - Responds to any message that @mentions Codegen in channels where the integration for Slack is installed
   - Only has visibility into the local context of the thread/conversation
   - Sending subsequent messages within a thread routes to the same agent
   - New messages in an active thread will interrupt the agent if it's currently working
@@ -64,4 +109,4 @@ Codegen responds to the following messages in Slack:
 
 **User Permissions and Access Control:**
 
-Codegen's actions on connected repositories are governed by the permissions of the user who initiated the interaction via Slack. The bot itself does not have independent permissions to repositories. Access to repositories and the ability to trigger actions are determined by the Codegen user's authenticated account and their associated repository permissions. We recommend configuring channel access carefully during installation to ensure the Codegen app for Slack is only present in channels where its use is appropriate.
+Codegen's actions on connected repositories are governed by the permissions of the user who initiated the interaction via Slack. The bot itself does not have independent permissions to repositories. Access to repositories and the ability to trigger actions are determined by the Codegen user's authenticated account and their associated repository permissions. We recommend configuring channel access carefully during installation to ensure the Codegen integration for Slack is only present in channels where its use is appropriate.
