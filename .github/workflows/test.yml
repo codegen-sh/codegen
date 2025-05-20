@@ -62,7 +62,7 @@ jobs:
         size: [ small, large ]
         exclude:
           # Exclude large codemod tests when not needed
-          - size: ${{(contains(github.event.pull_request.labels.*.name, 'big-codemod-tests') || github.event_name == 'push' || github.event_name == 'workflow_dispatch') && 'kevin' || 'large')}
+          - size: ${{(contains(github.event.pull_request.labels.*.name, 'big-codemod-tests') || github.event_name == 'push' || github.event_name == 'workflow_dispatch') && 'kevin' || 'large'}
           - size: large
             sync_graph: true
     concurrency:
