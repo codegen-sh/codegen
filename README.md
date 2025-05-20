@@ -22,7 +22,32 @@
 
 <br />
 
-The Codegen SDK provides a programmatic interface to code agents provided by [Codegen](https://codegen.com).
+# Codegen SDK
+
+The Codegen SDK provides a programmatic interface to AI-powered code agents provided by [Codegen](https://codegen.com). It enables developers to integrate intelligent code generation, analysis, and transformation capabilities into their workflows and applications.
+
+## Features
+
+- **AI-Powered Code Generation**: Generate code based on natural language descriptions
+- **Code Analysis**: Analyze codebases for patterns, issues, and insights
+- **Code Transformation**: Refactor and transform code with intelligent understanding of context
+- **Multi-Language Support**: Works with Python, JavaScript, TypeScript, and more
+- **Integration with Development Workflows**: Seamlessly integrate with your existing tools
+- **Extensible Architecture**: Build custom extensions and workflows
+
+## Installation
+
+Install the SDK using pip or uv:
+
+```bash
+pip install codegen
+# or
+uv pip install codegen
+```
+
+Requires Python 3.12 or newer.
+
+## Quick Start
 
 ```python
 from codegen.agents.agent import Agent
@@ -51,31 +76,89 @@ if task.status == "completed":
     print(task.result)  # Result often contains code, summaries, or links
 ```
 
-## Installation and Usage
+## Advanced Usage
 
-Install the SDK using pip or uv:
+### Working with Specific Files
 
-```bash
-pip install codegen
-# or
-uv pip install codegen
+```python
+from codegen.agents.agent import Agent
+
+agent = Agent(org_id="YOUR_ORG_ID", token="YOUR_API_TOKEN")
+
+# Analyze a specific file
+task = agent.run(
+    prompt="Analyze this file for potential bugs and suggest improvements.",
+    files=["path/to/your/file.py"]
+)
+
+# Wait for completion and get results
+task.wait_until_complete()
+print(task.result)
 ```
 
-Get started at [codegen.com](https://codegen.com) and get your API token at [codegen.com/developer](https://codegen.com/developer).
+### Transforming Code
 
-You can interact with your AI engineer via API, or chat with it in Slack, Linear, Github, or on our website.
+```python
+from codegen.agents.agent import Agent
+
+agent = Agent(org_id="YOUR_ORG_ID", token="YOUR_API_TOKEN")
+
+# Transform code based on requirements
+task = agent.run(
+    prompt="Refactor this code to use async/await pattern instead of callbacks.",
+    files=["path/to/your/file.js"]
+)
+
+# Wait for completion and get results
+task.wait_until_complete()
+print(task.result)
+```
+
+## Command Line Interface
+
+The SDK includes a powerful CLI tool that allows you to interact with Codegen directly from your terminal:
+
+```bash
+# Get help
+codegen --help
+
+# Initialize configuration
+codegen init
+
+# Run an agent with a prompt
+codegen run "Implement a function to calculate Fibonacci numbers"
+
+# Analyze a file
+codegen analyze path/to/file.py
+```
+
+## Integrations
+
+Codegen integrates with popular development tools:
+
+- **Slack**: Chat with your AI engineer in Slack
+- **GitHub**: Get PR reviews and code suggestions
+- **Linear**: Manage tasks and issues with AI assistance
+- **Web Interface**: Use the web UI at [codegen.com](https://codegen.com)
 
 ## Resources
 
-- [Docs](https://docs.codegen.com)
-- [Getting Started](https://docs.codegen.com/introduction/getting-started)
-- [Contributing](CONTRIBUTING.md)
+- [Documentation](https://docs.codegen.com)
+- [Getting Started Guide](https://docs.codegen.com/introduction/getting-started)
+- [API Reference](https://docs.codegen.com/api-reference)
+- [Examples](https://github.com/codegen-sh/codegen-examples)
+- [Contributing Guide](CONTRIBUTING.md)
 - [Contact Us](https://codegen.com/contact)
 
 ## Contributing
 
-Please see our [Contributing Guide](CONTRIBUTING.md) for instructions on how to set up the development environment and submit contributions.
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for instructions on how to set up the development environment and submit contributions.
 
 ## Enterprise
 
 For more information on enterprise engagements, please [contact us](https://codegen.com/contact) or [request a demo](https://codegen.com/request-demo).
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
