@@ -86,10 +86,7 @@ from codegen.agents.agent import Agent
 agent = Agent(org_id="YOUR_ORG_ID", token="YOUR_API_TOKEN")
 
 # Analyze a specific file
-task = agent.run(
-    prompt="Analyze this file for potential bugs and suggest improvements.",
-    files=["path/to/your/file.py"]
-)
+task = agent.run(prompt="Analyze this file for potential bugs and suggest improvements.", files=["path/to/your/file.py"])
 
 # Wait for completion and get results
 task.wait_until_complete()
@@ -104,10 +101,7 @@ from codegen.agents.agent import Agent
 agent = Agent(org_id="YOUR_ORG_ID", token="YOUR_API_TOKEN")
 
 # Transform code based on requirements
-task = agent.run(
-    prompt="Refactor this code to use async/await pattern instead of callbacks.",
-    files=["path/to/your/file.js"]
-)
+task = agent.run(prompt="Refactor this code to use async/await pattern instead of callbacks.", files=["path/to/your/file.js"])
 
 # Wait for completion and get results
 task.wait_until_complete()
@@ -161,4 +155,3 @@ For more information on enterprise engagements, please [contact us](https://code
 ## License
 
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
-
