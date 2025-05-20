@@ -29,12 +29,12 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 To use this node, you need to create credentials for the Codegen API:
 
 1. Get your API token from [Codegen](https://codegen.com)
-2. Use this token in the Codegen API credentials in n8n
+1. Use this token in the Codegen API credentials in n8n
 
 ## Resources
 
-* [Codegen API Documentation](https://docs.codegen.com/introduction/api)
-* [n8n Community Nodes Documentation](https://docs.n8n.io/integrations/community-nodes/)
+- [Codegen API Documentation](https://docs.codegen.com/introduction/api)
+- [n8n Community Nodes Documentation](https://docs.n8n.io/integrations/community-nodes/)
 
 ## Version history
 
@@ -43,4 +43,3 @@ To use this node, you need to create credentials for the Codegen API:
 ## License
 
 [MIT](https://github.com/codegen-sh/codegen/blob/main/LICENSE.md)
-
