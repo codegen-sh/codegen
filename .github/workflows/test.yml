@@ -19,13 +19,9 @@ jobs:
           require: write
           username: ${{ github.triggering_actor }}
           error-if-missing: true
-        # Skip this check for bot users
-        if: ${{ !endsWith(github.triggering_actor, '[bot]') }}
 
   unit-tests:
-    # Run if access-check is successful or skipped (for bot users)
     needs: access-check
-    if: ${{ always() && (needs.access-check.result == 'success' || needs.access-check.result == 'skipped') }}
     runs-on: ubuntu-latest-8
     steps:
       - uses: actions/checkout@v4
@@ -54,7 +50,7 @@ jobs:
   codemod-tests:
     needs: access-check
     # TODO: re-enable when this check is a develop required check
-    if: ${{ always() && (needs.access-check.result == 'success' || needs.access-check.result == 'skipped') && false }}
+    if: false
     runs-on: ubuntu-latest-32
     strategy:
       matrix:
@@ -62,7 +58,7 @@ jobs:
         size: [ small, large ]
         exclude:
           # Exclude large codemod tests when not needed
-          - size: ${{(contains(github.event.pull_request.labels.*.name, 'big-codemod-tests') || github.event_name == 'push' || github.event_name == 'workflow_dispatch') && 'kevin' || 'large'}
+          - size: ${{(contains(github.event.pull_request.labels.*.name, 'big-codemod-tests') || github.event_name == 'push' || github.event_name == 'workflow_dispatch') && 'kevin' || 'large'}}
           - size: large
             sync_graph: true
     concurrency:
@@ -95,7 +91,7 @@ jobs:
 
   parse-tests:
     needs: access-check
-    if: ${{ always() && (needs.access-check.result == 'success' || needs.access-check.result == 'skipped') && (contains(github.event.pull_request.labels.*.name, 'parse-tests') || github.event_name == 'push' || github.event_name == 'workflow_dispatch') }}
+    if: contains(github.event.pull_request.labels.*.name, 'parse-tests') || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest-32
     steps:
       - uses: actions/checkout@v4
@@ -166,7 +162,6 @@ jobs:
 
   integration-tests:
     needs: access-check
-    if: ${{ always() && (needs.access-check.result == 'success' || needs.access-check.result == 'skipped') }}
     runs-on: ubuntu-latest-16
     steps:
       - uses: actions/checkout@v4
