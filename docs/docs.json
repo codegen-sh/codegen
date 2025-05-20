@@ -39,9 +39,9 @@
             "pages": [
               "sandboxes/overview",
               "sandboxes/setup-commands",
-              "sandboxes/web-preview",
+              "sandboxes/editor",
               "sandboxes/environment-variables",
-              "sandboxes/editor"
+              "sandboxes/web-preview"
             ]
           }
         ]

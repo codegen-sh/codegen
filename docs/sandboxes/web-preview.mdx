@@ -25,6 +25,12 @@ You configure Web Preview commands in a manner similar to Setup Commands, likely
 
 You'll provide the command(s) necessary to start your development server. Ensure that your server is configured to listen on an appropriate host (often `0.0.0.0`) and a predictable port that Codegen can then expose.
 
+<Warning>
+  The web server started for Web Preview **MUST** listen on port 3000. Codegen
+  is specifically configured to look for and expose applications running on this
+  port within the sandbox.
+</Warning>
+
 ## Common Examples
 
 The primary use case is starting a development web server:
