@@ -31,7 +31,8 @@
               "integrations/slack",
               "integrations/linear",
               "integrations/github",
-              "integrations/web-search"
+              "integrations/web-search",
+             	"integrations/postgres"
             ]
           },
           {
