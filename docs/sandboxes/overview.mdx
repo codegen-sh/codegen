@@ -29,6 +29,5 @@ Agents utilize sandboxes for a variety of tasks:
 Sandboxes are typically configured per-agent run or defined within your Codegen settings. You often don't need to manage them directly, but advanced configurations might allow specifying Docker images or environment variables.
 
 <Note>
-  Sandboxes are ephemeral; their state is not typically persisted between agent
-  runs unless specifically configured for caching or stateful operations.
+  Sandboxes maintain file system persistence between agent interactions within the same context. For example, when continuing a conversation across different Slack messages or Linear comments, the sandbox state is preserved, allowing agents to seamlessly continue their work without losing context or having to reinstall dependencies.
 </Note>{" "}

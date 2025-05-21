@@ -44,6 +44,10 @@
 							"sandboxes/environment-variables",
 							"sandboxes/web-preview"
 						]
+					},
+					{
+						"group": "Settings",
+						"pages": ["settings/repo-rules", "settings/model-configuration"]
 					}
 				]
 			},

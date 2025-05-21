@@ -1,0 +1,58 @@
+---
+title: "LLM Configuration"
+sidebarTitle: "Model Config"
+icon: "brain-circuit"
+---
+
+Codegen offers flexibility in choosing the Large Language Model (LLM) that powers your agent, allowing you to select from various providers and specific models. You can also configure custom API keys and base URLs if you have specific arrangements or need to use self-hosted models.
+
+## Accessing LLM Configuration
+
+LLM Configuration settings are applied globally for your entire organization. You can access and modify these settings by navigating to:
+
+[**codegen.com/settings/model**](https://codegen.com/settings/model)
+
+This central location ensures that all agents operating under your organization adhere to the selected LLM provider and model, unless specific per-repository or per-agent overrides are explicitly configured (if supported by your plan).
+
+<Frame caption="LLM Configuration UI at codegen.com/settings/model">
+  <img src="/images/llm-configuration.png" alt="LLM Configuration UI" />
+</Frame>
+
+As shown in the UI, you can generally configure the following:
+
+- **LLM Provider:** Select the primary LLM provider you wish to use. Codegen supports major providers such as:
+  - Anthropic
+  - OpenAI
+  - Google (Gemini)
+- **LLM Model:** Once a provider is selected, you can choose a specific model from that provider's offerings (e.g., Claude 3.7, GPT-4, Gemini Pro).
+
+## Model Recommendation
+
+<Warning>
+  While Codegen provides access to a variety of models for experimentation and
+  specific use cases, **we highly encourage the use of Anthropic's Claude 3.7
+  (Haiku)**. Our internal testing and prompt engineering are heavily optimized
+  for Claude 3.7, and it consistently delivers the best performance,
+  reliability, and cost-effectiveness for most software engineering tasks
+  undertaken by Codegen agents. Other models are made available primarily for
+  users who are curious or have unique, pre-existing workflows.
+</Warning>
+
+## Custom API Keys and Base URLs
+
+For advanced users or those with specific enterprise agreements with LLM providers, Codegen may allow you to use your own API keys and, in some cases, custom base URLs (e.g., for Azure OpenAI deployments or other proxy/gateway services).
+
+- **Custom API Key:** If you provide your own API key, usage will be billed to your account with the respective LLM provider.
+- **Custom Base URL:** This allows Codegen to route LLM requests through a different endpoint than the provider's default API.
+
+<Tip>
+  Using the default Codegen-managed LLM configuration (especially with Claude
+  3.7) is recommended for most users to ensure optimal performance and to
+  benefit from our continuous prompt improvements.
+</Tip>
+
+<Note>
+  The availability of specific models, providers, and custom configuration
+  options may vary based on your Codegen plan and the current platform
+  capabilities.
+</Note>
