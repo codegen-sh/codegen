@@ -21,8 +21,8 @@ Connect your Linear workspace to Codegen to enable agent interactions.
 </Card>
 
 <Note>
-  API access allows agents to interact with issues and projects according to
-  your permissions in Linear.
+  API access allows agents to interact with issues and projects according
+  to your permissions in Linear.
 </Note>
 
 ## Capabilities
@@ -31,6 +31,7 @@ The Linear integration provides read and write access, enabling agents to manage
 
 - **Read Access:** Fetch issue details, read comments, view project status, list team members.
 - **Write Access:** Update issue status (e.g., to "In Progress", "Done"), add comments, link GitHub PRs to issues, create new issues, assign tasks.
+- **Multi Agent Systems:** Create sub-issues and assign child agents to break down complex tasks into manageable pieces. [Learn more](#multi-agent-systems).
 
 ## How Agents Use Linear
 
@@ -40,3 +41,23 @@ Agents use the Linear integration to streamline project management:
 - **Link Code:** Connect implemented changes (GitHub PRs) directly to the relevant Linear issue.
 - **Provide Updates:** Post comments on issues with progress reports, results, or questions.
 - **Create Tasks:** Generate new issues for follow-up work, bugs discovered, or sub-tasks.
+
+## Multi Agent Systems
+
+### Overview
+
+Once you've enabled linear self assign, a codegen agent, which is assigned to a linear issue (or has been tagged in one), can spawn child agents by creating sub-issues and assigning itself to those sub issues. Once the child agents are finished with their tasks they will send a message to their parent agent notifying them that their task has been completed.
+
+### Best Practices
+
+#### Triggering the Child Agents
+
+If you'd like to have codegen break up a linear issue into small issues and assign child agents to them you should instruct it to do so in the description of the original linear issue.
+
+#### Shared Context/Code
+
+If you'd like the child agents to share any context please instruct the parent to include this in the description of the sub-issues. You can also instruct the parent agent to include code that the child agents may need to share in the git branch it will provide to the child agents as scaffolding.
+
+#### Grandfather Agents
+
+If you'd like the child agents to themselves spin off child agents, you'll have to explicitly instruct the parent to do so. We do not recommend going beyond a depth of 3.
