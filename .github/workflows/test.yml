@@ -13,6 +13,8 @@ on:
 jobs:
   access-check:
     runs-on: ubuntu-latest
+    # Skip the access check entirely if the triggering actor is the Codegen bot
+    if: github.triggering_actor != 'codegen-sh[bot]'
     steps:
       - uses: actions-cool/check-user-permission@v2
         with:
@@ -21,7 +23,9 @@ jobs:
           error-if-missing: true
 
   unit-tests:
-    needs: access-check
+    # Update the needs condition to handle the case where access-check is skipped
+    needs: [access-check]
+    if: always() && (needs.access-check.result == 'success' || needs.access-check.result == 'skipped')
     runs-on: ubuntu-latest-8
     steps:
       - uses: actions/checkout@v4
@@ -49,8 +53,8 @@ jobs:
 
   codemod-tests:
     needs: access-check
-    # TODO: re-enable when this check is a develop required check
-    if: false
+    # Update the condition to handle the case where access-check is skipped
+    if: (always() && (needs.access-check.result == 'success' || needs.access-check.result == 'skipped')) && false
     runs-on: ubuntu-latest-32
     strategy:
       matrix:
@@ -58,7 +62,7 @@ jobs:
         size: [ small, large ]
         exclude:
           # Exclude large codemod tests when not needed
-          - size: ${{(contains(github.event.pull_request.labels.*.name, 'big-codemod-tests') || github.event_name == 'push' || github.event_name == 'workflow_dispatch') && 'kevin' || 'large'}}
+          - size: ${{(contains(github.event.pull_request.labels.*.name, 'big-codemod-tests') || github.event_name == 'push' || github.event_name == 'workflow_dispatch') && 'kevin' || 'large')}
           - size: large
             sync_graph: true
     concurrency:
@@ -91,7 +95,7 @@ jobs:
 
   parse-tests:
     needs: access-check
-    if: contains(github.event.pull_request.labels.*.name, 'parse-tests') || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    if: (always() && (needs.access-check.result == 'success' || needs.access-check.result == 'skipped')) && (contains(github.event.pull_request.labels.*.name, 'parse-tests') || github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest-32
     steps:
       - uses: actions/checkout@v4
@@ -162,6 +166,7 @@ jobs:
 
   integration-tests:
     needs: access-check
+    if: always() && (needs.access-check.result == 'success' || needs.access-check.result == 'skipped')
     runs-on: ubuntu-latest-16
     steps:
       - uses: actions/checkout@v4
