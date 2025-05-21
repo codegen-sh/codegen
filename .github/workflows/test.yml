@@ -19,9 +19,12 @@ jobs:
           require: write
           username: ${{ github.triggering_actor }}
           error-if-missing: true
+        # Skip permission check for the codegen bot
+        if: ${{ github.triggering_actor != 'codegen-sh[bot]' }}
 
   unit-tests:
-    needs: access-check
+    # Only require access-check if it's not the codegen bot
+    needs: ${{ github.triggering_actor != 'codegen-sh[bot]' && 'access-check' || '' }}
     runs-on: ubuntu-latest-8
     steps:
       - uses: actions/checkout@v4
@@ -48,7 +51,8 @@ jobs:
           codecov_token: ${{ secrets.CODECOV_TOKEN }}
 
   codemod-tests:
-    needs: access-check
+    # Only require access-check if it's not the codegen bot
+    needs: ${{ github.triggering_actor != 'codegen-sh[bot]' && 'access-check' || '' }}
     # TODO: re-enable when this check is a develop required check
     if: false
     runs-on: ubuntu-latest-32
@@ -90,7 +94,8 @@ jobs:
           GITHUB_WORKSPACE: $GITHUB_WORKSPACE
 
   parse-tests:
-    needs: access-check
+    # Only require access-check if it's not the codegen bot
+    needs: ${{ github.triggering_actor != 'codegen-sh[bot]' && 'access-check' || '' }}
     if: contains(github.event.pull_request.labels.*.name, 'parse-tests') || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest-32
     steps:
@@ -161,7 +166,8 @@ jobs:
             }
 
   integration-tests:
-    needs: access-check
+    # Only require access-check if it's not the codegen bot
+    needs: ${{ github.triggering_actor != 'codegen-sh[bot]' && 'access-check' || '' }}
     runs-on: ubuntu-latest-16
     steps:
       - uses: actions/checkout@v4
