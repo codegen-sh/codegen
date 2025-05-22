@@ -132,8 +132,11 @@ def _determine_language_by_git_file_count(folder_path: str) -> ProgrammingLangua
     repo_config = RepoConfig.from_repo_path(repo_path=git_root)
     repo_operator = RepoOperator(repo_config=repo_config)
 
+    # Use the specified subfolder path for language detection if provided
+    subdirs = [base_path] if base_path else None
+
     # Walk through the directory
-    for rel_path, _ in repo_operator.iter_files(subdirs=[base_path] if base_path else None, ignore_list=GLOBAL_FILE_IGNORE_LIST):
+    for rel_path, _ in repo_operator.iter_files(subdirs=subdirs, ignore_list=GLOBAL_FILE_IGNORE_LIST):
         # Convert to Path object
         file_path = Path(git_root) / Path(rel_path)
 

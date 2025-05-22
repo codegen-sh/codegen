@@ -200,7 +200,7 @@ class Codebase(
         if repo_path is not None:
             main_project = ProjectConfig.from_path(
                 repo_path,
-                programming_language=ProgrammingLanguage(language.upper()) if language else None,
+                programming_language=ProgrammingLanguage(language.upper()) if isinstance(language, str) and language else language,
             )
             projects = [main_project]
         else:
@@ -1392,7 +1392,7 @@ class Codebase(
             logger.info("Initializing Codebase...")
             project = ProjectConfig.from_repo_operator(
                 repo_operator=repo_operator,
-                programming_language=ProgrammingLanguage(language.upper()) if language else None,
+                programming_language=ProgrammingLanguage(language.upper()) if isinstance(language, str) and language else language,
             )
             codebase = Codebase(projects=[project], config=config, secrets=secrets)
             logger.info("Codebase initialization complete")
