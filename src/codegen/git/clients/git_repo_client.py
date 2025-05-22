@@ -218,6 +218,12 @@ class GitRepoClient:
             logger.info(f"Repo {self.repo.name} is private. Disabling draft PRs.")
             draft = False
 
+        # First check if a PR already exists for this branch to avoid Sentry errors
+        existing_pr = self.get_pull_by_branch_and_state(head_branch_name=head_branch_name, base_branch_name=base_branch_name)
+        if existing_pr:
+            logger.info(f"Pull request for head branch: {head_branch_name} already exists at {existing_pr.html_url}. Skipping creation.")
+            return existing_pr
+
         try:
             pr = self.repo.create_pull(title=title or f"Draft PR for {head_branch_name}", body=body or "", head=head_branch_name, base=base_branch_name, draft=draft)
             logger.info(f"Created pull request for head branch: {head_branch_name} at {pr.html_url}")

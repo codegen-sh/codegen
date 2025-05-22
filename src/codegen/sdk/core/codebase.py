@@ -998,12 +998,19 @@ class Codebase(
             raise ValueError(msg)
         self._op.stage_and_commit_all_changes(message=title)
         self._op.push_changes()
-        return self._op.remote_git_repo.create_pull(
+        # Use get_or_create_pull instead of create_pull to avoid errors when PR already exists
+        pr = self._op.remote_git_repo.get_or_create_pull(
             head_branch_name=self._op.git_cli.active_branch.name,
             base_branch_name=self._op.default_branch,
             title=title,
             body=body,
         )
+
+        if pr is None:
+            msg = f"Failed to create PR for branch {self._op.git_cli.active_branch.name}"
+            raise ValueError(msg)
+
+        return pr
 
     ####################################################################################################################
     # GRAPH VISUALIZATION
