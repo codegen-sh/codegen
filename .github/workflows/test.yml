@@ -22,7 +22,7 @@ jobs:
           else
             echo "is_bot=false" >> $GITHUB_OUTPUT
           fi
-      
+
       - uses: actions-cool/check-user-permission@v2
         if: steps.check-bot.outputs.is_bot == 'false'
         with:
