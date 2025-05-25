@@ -25,10 +25,10 @@ If there are specific implementation details you want included, make sure to spe
 ## Elements of a Strong Prompt
 
 1.  **Scope:** What repository, branch, or files are involved? (e.g., `my-web-app` repo, `PR #42`, `src/services/user.ts`)
-2.  **Goal:** What is the high-level objective? (e.g., Refactor `UserService`, improve testability)
-3.  **Tasks:** What specific actions should the agent take? Use a numbered or bulleted list for clarity. (e.g., Extract logic to `UserRepository`, use dependency injection, update tests, update diagram)
-4.  **Context/Patterns:** Are there existing patterns, examples, or documentation to reference? (e.g., `ProductService`, `ProductRepository`)
-5.  **Success Criteria:** How will you know the task is done correctly? (e.g., Tests pass, 90%+ coverage, diagram updated)
+1. **Goal:** What is the high-level objective? (e.g., Refactor `UserService`, improve testability)
+1. **Tasks:** What specific actions should the agent take? Use a numbered or bulleted list for clarity. (e.g., Extract logic to `UserRepository`, use dependency injection, update tests, update diagram)
+1. **Context/Patterns:** Are there existing patterns, examples, or documentation to reference? (e.g., `ProductService`, `ProductRepository`)
+1. **Success Criteria:** How will you know the task is done correctly? (e.g., Tests pass, 90%+ coverage, diagram updated)
 
 ## Platform-Specific Guidance
 
@@ -43,9 +43,9 @@ Example Slack prompt:
 ```
 @codegen In the `api-server` repo, can you:
 1. Add input validation to the `/users` endpoint
-2. Use the same validation pattern as `/products` 
-3. Add tests covering edge cases
-4. Update the OpenAPI spec
+1. Use the same validation pattern as `/products`
+1. Add tests covering edge cases
+1. Update the OpenAPI spec
 
 Let me know when you have a PR ready! 🚀
 ```
@@ -82,8 +82,8 @@ Example GitHub prompt:
 ```
 @codegen Please review this PR focusing on:
 1. Security implications of the new auth flow
-2. Performance impact of the database queries
-3. Test coverage for edge cases
+1. Performance impact of the database queries
+1. Test coverage for edge cases
 
 Also check if the error handling follows our patterns in `utils/errors.ts`.
 ```
@@ -162,10 +162,10 @@ For interconnected changes:
 ```
 I need to update the user model across multiple services:
 1. Add `preferences` field to User model in `user-service`
-2. Update the GraphQL schema in `api-gateway`
-3. Modify the frontend components in `web-app/src/components/user/`
-4. Add database migration scripts
-5. Update all related tests
+1. Update the GraphQL schema in `api-gateway`
+1. Modify the frontend components in `web-app/src/components/user/`
+1. Add database migration scripts
+1. Update all related tests
 
 Please coordinate these changes and create PRs in the correct order.
 ```
@@ -218,3 +218,4 @@ If you're unsure how to structure a prompt for your specific use case:
 - Ask Codegen to suggest how to break down complex tasks
 - Reference the [capabilities documentation](/introduction/capabilities) to understand available tools
 - Check out real examples in our [use cases section](/use-cases)
+
