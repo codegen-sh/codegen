@@ -1,6 +1,5 @@
 import os
 import re
-import resource
 import sys
 from abc import abstractmethod
 from collections.abc import Generator, Sequence
@@ -438,7 +437,11 @@ class SourceFile(
         try:
             self.parse(ctx)
         except RecursionError as e:
-            logger.exception(f"RecursionError parsing file {filepath}: {e} at depth {sys.getrecursionlimit()} and {resource.getrlimit(resource.RLIMIT_STACK)}")
+            if sys.platform == "win32":
+                logger.exception(f"RecursionError parsing file {filepath}: {e} at depth {sys.getrecursionlimit()}")
+            else:
+                import resource
+                logger.exception(f"RecursionError parsing file {filepath}: {e} at depth {sys.getrecursionlimit()} and {resource.getrlimit(resource.RLIMIT_STACK)}")
             raise e
         except Exception as e:
             logger.exception(f"Failed to parse file {filepath}: {e}")
