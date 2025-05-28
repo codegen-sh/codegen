@@ -47,7 +47,11 @@
 					},
 					{
 						"group": "Settings",
-						"pages": ["settings/repo-rules", "settings/model-configuration"]
+						"pages": [
+							"settings/agent-permissions",
+							"settings/repo-rules",
+							"settings/model-configuration"
+						]
 					}
 				]
 			},
