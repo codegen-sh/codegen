@@ -1,0 +1,129 @@
+---
+title: "Sandbox Size"
+sidebarTitle: "Sandbox Size"
+icon: "expand"
+---
+
+Sandbox Size determines the computational resources allocated to your AI agent's execution environment. Different sandbox sizes provide varying levels of CPU, memory, and storage capacity to handle tasks of different complexity and resource requirements.
+
+## Available Sandbox Sizes
+
+Codegen offers multiple sandbox size options to match your workload requirements:
+
+### Small
+- **CPU**: 2 vCPUs
+- **Memory**: 4 GB RAM
+- **Storage**: 20 GB
+- **Best for**: Simple code changes, documentation updates, small scripts
+
+### Medium (Default)
+- **CPU**: 4 vCPUs
+- **Memory**: 8 GB RAM
+- **Storage**: 40 GB
+- **Best for**: Most development tasks, testing, moderate complexity projects
+
+### Large
+- **CPU**: 8 vCPUs
+- **Memory**: 16 GB RAM
+- **Storage**: 80 GB
+- **Best for**: Large codebases, complex builds, data processing tasks
+
+### Extra Large
+- **CPU**: 16 vCPUs
+- **Memory**: 32 GB RAM
+- **Storage**: 160 GB
+- **Best for**: Heavy computational tasks, large-scale testing, enterprise applications
+
+## Configuring Sandbox Size
+
+You can configure the sandbox size at different levels:
+
+### Organization Level
+Set a default sandbox size for your entire organization:
+
+1. Navigate to [codegen.com/settings/sandboxes](https://codegen.com/settings/sandboxes)
+2. Select your preferred default sandbox size
+3. Save the configuration
+
+### Repository Level
+Override the organization default for specific repositories:
+
+1. Go to [codegen.com/repos](https://codegen.com/repos)
+2. Select the repository you want to configure
+3. Choose a specific sandbox size for that repository
+4. Save your changes
+
+### Task Level
+Specify sandbox size when requesting specific tasks:
+
+```
+@codegen --sandbox-size=large
+Please run the full test suite and generate a performance report
+```
+
+## Choosing the Right Size
+
+Consider these factors when selecting a sandbox size:
+
+### Project Characteristics
+- **Codebase Size**: Larger repositories may need more storage and memory
+- **Build Complexity**: Complex build processes require more CPU and memory
+- **Dependencies**: Projects with many dependencies need more storage space
+- **Test Suites**: Comprehensive test suites benefit from additional resources
+
+### Task Requirements
+- **Code Analysis**: Large-scale analysis tasks need more memory
+- **Compilation**: Building large projects requires more CPU
+- **Data Processing**: Working with large datasets needs more memory and storage
+- **Parallel Operations**: Concurrent tasks benefit from additional CPU cores
+
+## Performance Considerations
+
+### Resource Utilization
+- Monitor your tasks to see if they're hitting resource limits
+- Upgrade to a larger size if you notice performance bottlenecks
+- Downgrade to save costs if resources are consistently underutilized
+
+### Cost Optimization
+- Start with the default Medium size for most tasks
+- Scale up only when necessary for specific workloads
+- Consider repository-specific sizing for different project types
+
+<Tip>
+  Most development tasks work well with the default Medium sandbox size. Only
+  upgrade to larger sizes if you're experiencing performance issues or working
+  with particularly resource-intensive projects.
+</Tip>
+
+## Monitoring and Optimization
+
+### Resource Monitoring
+The Codegen platform provides insights into:
+- CPU utilization during task execution
+- Memory usage patterns
+- Storage consumption
+- Task completion times
+
+### Automatic Recommendations
+Based on usage patterns, Codegen may suggest:
+- Optimal sandbox sizes for specific repositories
+- Cost-saving opportunities through downsizing
+- Performance improvements through upsizing
+
+<Note>
+  Sandbox size changes take effect immediately for new tasks. Running tasks
+  will continue with their original resource allocation until completion.
+</Note>
+
+## Billing and Limits
+
+- Sandbox size affects your usage costs
+- Larger sandboxes consume more compute credits
+- Organization admins can set limits on maximum sandbox sizes
+- Usage reports show resource consumption by sandbox size
+
+<Warning>
+  Very large sandbox sizes should be used judiciously as they consume
+  significantly more resources and may impact your usage limits.
+</Warning>
+

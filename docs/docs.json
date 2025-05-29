@@ -42,6 +42,7 @@
 							"sandboxes/setup-commands",
 							"sandboxes/editor",
 							"sandboxes/environment-variables",
+							"sandboxes/sandbox-size",
 							"sandboxes/web-preview"
 						]
 					},
@@ -50,6 +51,7 @@
 						"pages": [
 							"settings/agent-permissions",
 							"settings/repo-rules",
+							"settings/secrets",
 							"settings/model-configuration"
 						]
 					}
