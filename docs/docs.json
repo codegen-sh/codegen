@@ -26,6 +26,13 @@
 						]
 					},
 					{
+						"group": "Organizations",
+						"pages": [
+							"organizations/get-organizations",
+							"organizations/repositories/repository-rules"
+						]
+					},
+					{
 						"group": "Integrations",
 						"pages": [
 							"integrations/slack",
