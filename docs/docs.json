@@ -50,6 +50,7 @@
 						"group": "Settings",
 						"pages": [
 							"settings/agent-permissions",
+							"settings/organization-rules",
 							"settings/repo-rules",
 							"settings/model-configuration"
 						]
