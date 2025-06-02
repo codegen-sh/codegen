@@ -31,6 +31,9 @@
               "integrations/slack",
               "integrations/linear",
               "integrations/github",
+              "integrations/notion",
+              "integrations/figma",
+              "integrations/circleci",
               "integrations/web-search",
               "integrations/postgres"
             ]
