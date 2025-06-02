@@ -28,9 +28,9 @@
           {
             "group": "Integrations",
             "pages": [
+              "integrations/github",
               "integrations/slack",
               "integrations/linear",
-              "integrations/github",
               "integrations/notion",
               "integrations/figma",
               "integrations/circleci",
@@ -43,8 +43,9 @@
             "pages": [
               "sandboxes/overview",
               "sandboxes/setup-commands",
-              "sandboxes/editor",
               "sandboxes/environment-variables",
+              "sandboxes/secrets",
+              "sandboxes/editor",
               "sandboxes/web-preview"
             ]
           },
