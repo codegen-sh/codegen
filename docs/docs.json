@@ -14,7 +14,7 @@
         "tab": "Documentation",
         "groups": [
           {
-            "group": "Introduction",
+            "group": "Overview",
             "pages": [
               "introduction/overview",
               "introduction/capabilities",
@@ -26,11 +26,15 @@
             ]
           },
           {
+            "group": "Capabilities",
+            "pages": ["capabilities/wake-up"]
+          },
+          {
             "group": "Integrations",
             "pages": [
-              "integrations/github",
               "integrations/slack",
               "integrations/linear",
+              "integrations/github",
               "integrations/notion",
               "integrations/figma",
               "integrations/circleci",
