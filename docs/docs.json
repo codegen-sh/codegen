@@ -11,11 +11,7 @@
 	"navigation": [
 		{
 			"group": "Get Started",
-			"pages": [
-				"introduction",
-				"quickstart",
-				"development"
-			]
+			"pages": ["introduction", "quickstart", "development"]
 		},
 		{
 			"group": "Essentials",
@@ -29,9 +25,7 @@
 		},
 		{
 			"group": "Architecture",
-			"pages": [
-				"architecture/scope-keys"
-			]
+			"pages": ["architecture/scope-keys"]
 		},
 		{
 			"tab": "Documentation",
