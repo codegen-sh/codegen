@@ -23,7 +23,10 @@
 						"name": "org_id",
 						"in": "path",
 						"required": true,
-						"schema": { "type": "string", "title": "Org Id" }
+						"schema": {
+							"type": "string",
+							"title": "Org Id"
+						}
 					},
 					{
 						"name": "skip",
@@ -52,7 +55,9 @@
 						"name": "authorization",
 						"in": "header",
 						"required": false,
-						"schema": { "title": "Authorization" }
+						"schema": {
+							"title": "Authorization"
+						}
 					}
 				],
 				"responses": {
@@ -60,7 +65,9 @@
 						"description": "Successful Response",
 						"content": {
 							"application/json": {
-								"schema": { "$ref": "#/components/schemas/Page_UserResponse_" }
+								"schema": {
+									"$ref": "#/components/schemas/Page_UserResponse_"
+								}
 							}
 						}
 					},
@@ -88,7 +95,9 @@
 						"description": "Validation Error",
 						"content": {
 							"application/json": {
-								"schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
 							}
 						}
 					}
@@ -106,19 +115,27 @@
 						"name": "org_id",
 						"in": "path",
 						"required": true,
-						"schema": { "type": "string", "title": "Org Id" }
+						"schema": {
+							"type": "string",
+							"title": "Org Id"
+						}
 					},
 					{
 						"name": "user_id",
 						"in": "path",
 						"required": true,
-						"schema": { "type": "string", "title": "User Id" }
+						"schema": {
+							"type": "string",
+							"title": "User Id"
+						}
 					},
 					{
 						"name": "authorization",
 						"in": "header",
 						"required": false,
-						"schema": { "title": "Authorization" }
+						"schema": {
+							"title": "Authorization"
+						}
 					}
 				],
 				"responses": {
@@ -126,7 +143,9 @@
 						"description": "Successful Response",
 						"content": {
 							"application/json": {
-								"schema": { "$ref": "#/components/schemas/UserResponse" }
+								"schema": {
+									"$ref": "#/components/schemas/UserResponse"
+								}
 							}
 						}
 					},
@@ -164,7 +183,9 @@
 						"description": "Validation Error",
 						"content": {
 							"application/json": {
-								"schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
 							}
 						}
 					}
@@ -175,27 +196,34 @@
 			"post": {
 				"tags": ["agents", "agents", "agents"],
 				"summary": "Create Agent Run",
-				"description": "Create a new agent run.\n\nCreates and initiates a long-running agent process based on the provided prompt.\nThe process will complete asynchronously, and the response contains the agent run ID\nwhich can be used to check the status later. The requesting user must be a member\nof the specified organization.\n\nRate limit: 10 requests per minute.",
+				"description": "Create a new agent run.\n\nCreates and initiates a long-running agent process based on the provided prompt.\nThe process will complete asynchronously, and the response contains the agent run ID\nwhich can be used to check the status later. The requesting user must be a member\nof the specified organization.\n\nThis endpoint accepts both a text prompt and an optional image file upload.\n\nRate limit: 10 requests per minute.",
 				"operationId": "create_agent_run_v1_organizations__org_id__agent_run_post",
 				"parameters": [
 					{
 						"name": "org_id",
 						"in": "path",
 						"required": true,
-						"schema": { "type": "integer", "title": "Org Id" }
+						"schema": {
+							"type": "integer",
+							"title": "Org Id"
+						}
 					},
 					{
 						"name": "authorization",
 						"in": "header",
 						"required": false,
-						"schema": { "title": "Authorization" }
+						"schema": {
+							"title": "Authorization"
+						}
 					}
 				],
 				"requestBody": {
 					"required": true,
 					"content": {
 						"application/json": {
-							"schema": { "$ref": "#/components/schemas/CreateAgentRunInput" }
+							"schema": {
+								"$ref": "#/components/schemas/CreateAgentRunInput"
+							}
 						}
 					}
 				},
@@ -204,7 +232,9 @@
 						"description": "Successful Response",
 						"content": {
 							"application/json": {
-								"schema": { "$ref": "#/components/schemas/AgentRunResponse" }
+								"schema": {
+									"$ref": "#/components/schemas/AgentRunResponse"
+								}
 							}
 						}
 					},
@@ -238,11 +268,23 @@
 						},
 						"description": "Forbidden"
 					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NoReposFoundInOrgErrorResponse"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
 					"422": {
 						"description": "Validation Error",
 						"content": {
 							"application/json": {
-								"schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
 							}
 						}
 					}
@@ -260,19 +302,27 @@
 						"name": "agent_run_id",
 						"in": "path",
 						"required": true,
-						"schema": { "type": "integer", "title": "Agent Run Id" }
+						"schema": {
+							"type": "integer",
+							"title": "Agent Run Id"
+						}
 					},
 					{
 						"name": "org_id",
 						"in": "path",
 						"required": true,
-						"schema": { "type": "integer", "title": "Org Id" }
+						"schema": {
+							"type": "integer",
+							"title": "Org Id"
+						}
 					},
 					{
 						"name": "authorization",
 						"in": "header",
 						"required": false,
-						"schema": { "title": "Authorization" }
+						"schema": {
+							"title": "Authorization"
+						}
 					}
 				],
 				"responses": {
@@ -280,7 +330,9 @@
 						"description": "Successful Response",
 						"content": {
 							"application/json": {
-								"schema": { "$ref": "#/components/schemas/AgentRunResponse" }
+								"schema": {
+									"$ref": "#/components/schemas/AgentRunResponse"
+								}
 							}
 						}
 					},
@@ -318,7 +370,9 @@
 						"description": "Validation Error",
 						"content": {
 							"application/json": {
-								"schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
 							}
 						}
 					}
@@ -359,7 +413,9 @@
 						"name": "authorization",
 						"in": "header",
 						"required": false,
-						"schema": { "title": "Authorization" }
+						"schema": {
+							"title": "Authorization"
+						}
 					}
 				],
 				"responses": {
@@ -387,7 +443,9 @@
 						"description": "Validation Error",
 						"content": {
 							"application/json": {
-								"schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
 							}
 						}
 					}
@@ -447,22 +505,56 @@
 			},
 			"AgentRunResponse": {
 				"properties": {
-					"id": { "type": "integer", "title": "Id" },
-					"organization_id": { "type": "integer", "title": "Organization Id" },
+					"id": {
+						"type": "integer",
+						"title": "Id"
+					},
+					"organization_id": {
+						"type": "integer",
+						"title": "Organization Id"
+					},
 					"status": {
-						"anyOf": [{ "type": "string" }, { "type": "null" }],
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
 						"title": "Status"
 					},
 					"created_at": {
-						"anyOf": [{ "type": "string" }, { "type": "null" }],
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
 						"title": "Created At"
 					},
 					"web_url": {
-						"anyOf": [{ "type": "string" }, { "type": "null" }],
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
 						"title": "Web Url"
 					},
 					"result": {
-						"anyOf": [{ "type": "string" }, { "type": "null" }],
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
 						"title": "Result"
 					}
 				},
@@ -472,7 +564,27 @@
 				"description": "Represents an agent run in API responses"
 			},
 			"CreateAgentRunInput": {
-				"properties": { "prompt": { "type": "string", "title": "Prompt" } },
+				"properties": {
+					"prompt": {
+						"type": "string",
+						"title": "Prompt"
+					},
+					"images": {
+						"anyOf": [
+							{
+								"items": {
+									"type": "string"
+								},
+								"type": "array"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Images",
+						"description": "List of base64 encoded data URIs representing images to be processed by the agent"
+					}
+				},
 				"type": "object",
 				"required": ["prompt"],
 				"title": "CreateAgentRunInput"
@@ -480,7 +592,9 @@
 			"HTTPValidationError": {
 				"properties": {
 					"detail": {
-						"items": { "$ref": "#/components/schemas/ValidationError" },
+						"items": {
+							"$ref": "#/components/schemas/ValidationError"
+						},
 						"type": "array",
 						"title": "Detail"
 					}
@@ -488,11 +602,35 @@
 				"type": "object",
 				"title": "HTTPValidationError"
 			},
+			"NoReposFoundInOrgErrorResponse": {
+				"properties": {
+					"message": {
+						"type": "string",
+						"title": "Message",
+						"default": "No repos found in the organization. Please add some repos and try again."
+					},
+					"status_code": {
+						"type": "integer",
+						"title": "Status Code",
+						"default": 404
+					}
+				},
+				"type": "object",
+				"title": "NoReposFoundInOrgErrorResponse"
+			},
 			"OrganizationResponse": {
 				"properties": {
-					"id": { "type": "integer", "title": "Id" },
-					"name": { "type": "string", "title": "Name" },
-					"settings": { "$ref": "#/components/schemas/OrganizationSettings" }
+					"id": {
+						"type": "integer",
+						"title": "Id"
+					},
+					"name": {
+						"type": "string",
+						"title": "Name"
+					},
+					"settings": {
+						"$ref": "#/components/schemas/OrganizationSettings"
+					}
 				},
 				"type": "object",
 				"required": ["id", "name", "settings"],
@@ -518,14 +656,28 @@
 			"Page_OrganizationResponse_": {
 				"properties": {
 					"items": {
-						"items": { "$ref": "#/components/schemas/OrganizationResponse" },
+						"items": {
+							"$ref": "#/components/schemas/OrganizationResponse"
+						},
 						"type": "array",
 						"title": "Items"
 					},
-					"total": { "type": "integer", "title": "Total" },
-					"page": { "type": "integer", "title": "Page" },
-					"size": { "type": "integer", "title": "Size" },
-					"pages": { "type": "integer", "title": "Pages" }
+					"total": {
+						"type": "integer",
+						"title": "Total"
+					},
+					"page": {
+						"type": "integer",
+						"title": "Page"
+					},
+					"size": {
+						"type": "integer",
+						"title": "Size"
+					},
+					"pages": {
+						"type": "integer",
+						"title": "Pages"
+					}
 				},
 				"type": "object",
 				"required": ["items", "total", "page", "size", "pages"],
@@ -534,14 +686,28 @@
 			"Page_UserResponse_": {
 				"properties": {
 					"items": {
-						"items": { "$ref": "#/components/schemas/UserResponse" },
+						"items": {
+							"$ref": "#/components/schemas/UserResponse"
+						},
 						"type": "array",
 						"title": "Items"
 					},
-					"total": { "type": "integer", "title": "Total" },
-					"page": { "type": "integer", "title": "Page" },
-					"size": { "type": "integer", "title": "Size" },
-					"pages": { "type": "integer", "title": "Pages" }
+					"total": {
+						"type": "integer",
+						"title": "Total"
+					},
+					"page": {
+						"type": "integer",
+						"title": "Page"
+					},
+					"size": {
+						"type": "integer",
+						"title": "Size"
+					},
+					"pages": {
+						"type": "integer",
+						"title": "Pages"
+					}
 				},
 				"type": "object",
 				"required": ["items", "total", "page", "size", "pages"],
@@ -581,19 +747,49 @@
 			},
 			"UserResponse": {
 				"properties": {
-					"id": { "type": "integer", "title": "Id" },
+					"id": {
+						"type": "integer",
+						"title": "Id"
+					},
 					"email": {
-						"anyOf": [{ "type": "string" }, { "type": "null" }],
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
 						"title": "Email"
 					},
-					"github_user_id": { "type": "string", "title": "Github User Id" },
-					"github_username": { "type": "string", "title": "Github Username" },
+					"github_user_id": {
+						"type": "string",
+						"title": "Github User Id"
+					},
+					"github_username": {
+						"type": "string",
+						"title": "Github Username"
+					},
 					"avatar_url": {
-						"anyOf": [{ "type": "string" }, { "type": "null" }],
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
 						"title": "Avatar Url"
 					},
 					"full_name": {
-						"anyOf": [{ "type": "string" }, { "type": "null" }],
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
 						"title": "Full Name"
 					}
 				},
@@ -612,12 +808,27 @@
 			"ValidationError": {
 				"properties": {
 					"loc": {
-						"items": { "anyOf": [{ "type": "string" }, { "type": "integer" }] },
+						"items": {
+							"anyOf": [
+								{
+									"type": "string"
+								},
+								{
+									"type": "integer"
+								}
+							]
+						},
 						"type": "array",
 						"title": "Location"
 					},
-					"msg": { "type": "string", "title": "Message" },
-					"type": { "type": "string", "title": "Error Type" }
+					"msg": {
+						"type": "string",
+						"title": "Message"
+					},
+					"type": {
+						"type": "string",
+						"title": "Error Type"
+					}
 				},
 				"type": "object",
 				"required": ["loc", "msg", "type"],
