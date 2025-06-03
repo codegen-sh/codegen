@@ -25,9 +25,7 @@
 		},
 		{
 			"group": "Architecture",
-			"pages": [
-				"architecture/context-inheritance"
-			]
+			"pages": ["architecture/context-inheritance"]
 		},
 		{
 			"tab": "Documentation",
