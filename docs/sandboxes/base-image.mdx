@@ -8,10 +8,12 @@ Codegen sandboxes are built on a custom Docker image that provides a comprehensi
 
 - **Python 3.13** (via `ghcr.io/astral-sh/uv:python3.13-bookworm`)
 - **Node.js 22.14.0** (managed via NVM)
-- **Essential development tools**: git, curl, ripgrep, fd-find, gh (GitHub CLI)
+- **Essential development tools**: git, curl, ripgrep, fd-find, gh (GitHub CLI), tree
 - **Package managers**: uv, npm, yarn, pnpm
 - **Editors**: nano, vim
 - **System utilities**: tmux, supervisor, nginx
+- **Security tools**: semgrep, trufflehog (via Homebrew)
+- **Additional tools**: Homebrew, code-server, uvicorn
 
 ## Dockerfile
 
@@ -27,9 +29,11 @@ ENV NVM_DIR=/usr/local/nvm \
     PYTHONUNBUFFERED=1 \
     COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
     PYTHONPATH="/usr/local/lib/python3.13/site-packages" \
-    IS_SANDBOX=True
+    IS_SANDBOX=True \
+    USER=linuxbrew \
+    HOMEBREW_NO_AUTO_UPDATE=1
 
-ENV PATH=$NVM_DIR/versions/node/$NODE_VERSION/bin:/usr/local/nvm:/usr/local/bin:$PATH
+ENV PATH=$NVM_DIR/versions/node/$NODE_VERSION/bin:/usr/local/nvm:/usr/local/bin:/root/.local/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$PATH
 
 ARG INVALIDATE_FILES_LAYER=1
 # Copy configuration files and set permissions
@@ -42,6 +46,7 @@ COPY setup_ssh_keys.sh /usr/local/bin/setup_ssh_keys.sh
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY error.html /usr/share/nginx/html/error.html
 COPY tmux_output_script.sh /usr/local/bin/tmux_output_script.sh
+COPY pre-push.sh /root/.git-templates/hooks/pre-push
 
 # Install dependencies and set up environment in a single layer
 RUN apt-get update && apt-get install -y -o Dpkg::Options::="--force-confold" \
@@ -51,6 +56,7 @@ RUN apt-get update && apt-get install -y -o Dpkg::Options::="--force-confold" \
     gh \
     lsof \
     ripgrep \
+    tree \
     openssh-server \
     nginx-full \
     fcgiwrap \
@@ -59,6 +65,8 @@ RUN apt-get update && apt-get install -y -o Dpkg::Options::="--force-confold" \
     vim \
     supervisor \
     netcat-openbsd \
+    sudo \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p -m 755 /etc/apt/keyrings \
     && wget -nv -O- https://cli.github.com/packages/githubcli-archive-keyring.gpg | tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
@@ -67,7 +75,7 @@ RUN apt-get update && apt-get install -y -o Dpkg::Options::="--force-confold" \
     # Set up environment variables and save it to /etc/profile.d/nvm.sh
     && echo "export NVM_DIR=\"$NVM_DIR\"" >> /etc/profile.d/nvm.sh \
     && echo "[ -s \"$NVM_DIR/nvm.sh\" ] && \. \"$NVM_DIR/nvm.sh\"" >> /etc/profile.d/nvm.sh \
-    && echo "export PATH=\"$NVM_DIR/versions/node/$NODE_VERSION/bin:\$PATH\"" >> /etc/profile.d/nvm.sh \
+    && echo "export PATH=\"$NVM_DIR/versions/node/$NODE_VERSION/bin:/usr/local/nvm:/usr/local/bin:/root/.local/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:\$PATH\"" >> /etc/profile.d/nvm.sh \
     && echo "export NVM_BIN=\"$NVM_DIR/versions/node/$NODE_VERSION/bin\"" >> /etc/profile.d/nvm.sh \
     && echo "export NODE_VERSION=\"$NODE_VERSION\"" >> /etc/profile.d/nvm.sh \
     && echo "export NODE_OPTIONS=\"--max-old-space-size=8192\"" >> /etc/profile.d/nvm.sh \
@@ -82,6 +90,9 @@ RUN apt-get update && apt-get install -y -o Dpkg::Options::="--force-confold" \
     && chmod +x /etc/profile.d/nvm.sh \
     # Run the SSH setup script
     && /usr/local/bin/setup_ssh_user.sh \
+    # Setup global pre-push git hook for semgrep secret scan
+    && chmod +x /root/.git-templates/hooks/pre-push \
+    && git config --global init.templateDir /root/.git-templates \
     # Install nvm, Node.js, and code-server
     && mkdir -p $NVM_DIR \
     && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash \
@@ -93,7 +104,23 @@ RUN apt-get update && apt-get install -y -o Dpkg::Options::="--force-confold" \
     && corepack prepare yarn@stable --activate \
     && corepack prepare pnpm@latest --activate \
     && curl -fsSL https://raw.githubusercontent.com/coder/code-server/refs/tags/v4.99.1/install.sh | sh \
-    && uv tool install uvicorn[standard]
+    && uv tool install uvicorn[standard] \
+    && pip install semgrep \
+    && git clone https://github.com/Homebrew/brew /home/linuxbrew/.linuxbrew/Homebrew \
+    && mkdir /home/linuxbrew/.linuxbrew/bin \
+    && ln -s /home/linuxbrew/.linuxbrew/Homebrew/bin/brew /home/linuxbrew/.linuxbrew/bin/brew
+
+# Ensure correct permissions
+RUN useradd -m -s /bin/bash $USER && \
+    chown -R $USER:$USER /home/linuxbrew
+
+WORKDIR /home/linuxbrew
+
+# Initialize Homebrew environment and install gitleaks
+RUN eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)" \
+    && echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> /home/linuxbrew/.bashrc \
+    && chown -R $USER:$USER /home/linuxbrew/.bashrc \
+    && su - $USER -c 'brew install trufflehog'
 
 ENTRYPOINT ["/usr/local/bin/start.sh"]
 ```
@@ -108,6 +135,7 @@ Essential development tools are pre-installed, including:
 - **Git** for version control
 - **GitHub CLI** for GitHub integration
 - **ripgrep** and **fd-find** for fast file searching
+- **tree** for directory visualization
 - **tmux** for terminal multiplexing
 - **nginx** for web server capabilities
 
@@ -116,6 +144,17 @@ Multiple package managers are available:
 - **uv** for Python package management
 - **npm**, **yarn**, and **pnpm** for Node.js packages
 - **corepack** for managing package manager versions
+- **Homebrew** for additional system packages
+
+### Security Features
+The image includes security scanning tools:
+- **semgrep** for static analysis and secret detection
+- **trufflehog** for credential scanning (installed via Homebrew)
+- **Pre-push git hooks** for automated security checks
 
 ### SSH and Remote Access
-The image includes SSH server configuration for remote access and development, with proper user setup and key management. 
+The image includes SSH server configuration for remote access and development, with proper user setup and key management.
+
+### Code Server Integration
+**code-server** is pre-installed, enabling VS Code-like editing capabilities directly in the browser for enhanced development experience.
+
