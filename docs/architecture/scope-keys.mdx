@@ -1,0 +1,156 @@
+---
+title: "Scope Keys: How Context Inheritance Works"
+description: "Understanding how Codegen groups related interactions and inherits context across conversations"
+---
+
+# Scope Keys: How Context Inheritance Works
+
+Scope keys are Codegen's way of grouping related agent runs together so that context can be inherited between interactions. Think of them as conversation threads that help Codegen understand when different requests are part of the same ongoing work.
+
+## What Are Scope Keys?
+
+A scope key is a unique identifier that groups related agent interactions. When you interact with Codegen multiple times in the same "scope," each new interaction can build on the context and work from previous interactions in that scope.
+
+This enables powerful workflows like:
+- Continuing conversations in the same Slack thread
+- Building on previous work in the same Linear ticket  
+- Adding commits to existing PRs instead of creating new ones
+- Maintaining context across multiple requests
+
+## How Scope Keys Work by Platform
+
+### Slack Threads
+**Scope Key Format:** `slack-{thread_timestamp}`
+
+When you mention Codegen in a Slack thread, all messages in that thread share the same scope key. This means:
+- Codegen remembers the entire conversation history
+- Follow-up requests build on previous work
+- Context from earlier messages is automatically inherited
+
+```
+Thread: "Can you fix the login bug?"
+├── Codegen creates PR #123
+└── "Please also add input validation" 
+    └── Codegen adds commits to PR #123 (same scope!)
+```
+
+### Linear Issues  
+**Scope Key Format:** `linear-{issue_id}`
+
+All work on the same Linear issue shares a scope key. This enables:
+- Building on previous implementations
+- Maintaining context across multiple comments
+- Continuing work where you left off
+
+```
+Linear Issue CG-456: "Improve test coverage"
+├── Comment: "Add tests for auth module"
+│   └── Codegen creates PR #789
+└── Comment: "Also need integration tests"
+    └── Codegen adds to PR #789 (same scope!)
+```
+
+### GitHub PRs
+**Scope Key Format:** `github-pr-{pr_number}-{repo_id}`
+
+Work on the same PR is grouped together, allowing:
+- Adding commits to existing PRs
+- Responding to review feedback
+- Iterating on the same feature branch
+
+```
+PR #123: "Add user authentication"
+├── Initial PR created
+├── Review comment: "Fix the validation logic"
+│   └── Codegen adds fixing commit
+└── Review comment: "Add error handling"  
+    └── Codegen adds another commit (same PR!)
+```
+
+### API Calls
+**Scope Key Format:** `api-{run_id}` or derived from task timeline
+
+API interactions can inherit scope from:
+- The task timeline if provided
+- Previous API calls in the same session
+- Falls back to unique run ID if no context
+
+## Why This Matters
+
+### ✅ With Scope Keys (Good)
+```
+Slack Thread:
+You: "Create a PR to fix the login bug"
+Codegen: Creates PR #123
+
+You: "Please also add input validation"  
+Codegen: Adds commits to PR #123 ← Same PR!
+
+You: "The tests are failing"
+Codegen: Fixes tests in PR #123 ← Still same PR!
+```
+
+### ❌ Without Scope Keys (Bad)
+```
+You: "Create a PR to fix the login bug"
+Codegen: Creates PR #123
+
+You: "Please also add input validation"
+Codegen: Creates PR #124 ← New PR! 😞
+
+You: "The tests are failing"  
+Codegen: Creates PR #125 ← Another new PR! 😞
+```
+
+## Best Practices
+
+### Do This ✅
+- **Continue conversations in the same thread/ticket** - This ensures context is inherited
+- **Ask for changes in the same scope** - Codegen will update existing work
+- **Reference previous work** - Codegen can build on what it already knows
+
+### Avoid This ❌  
+- **Starting new threads for related work** - Context gets lost
+- **Creating new tickets for follow-ups** - Breaks the scope chain
+- **Asking for "new PRs" unnecessarily** - Usually you want to update existing work
+
+## Technical Implementation
+
+Scope keys are implemented in the agent runner system:
+
+```python
+# Each platform implements scope key generation
+class SlackRunner:
+    def agent_run_scope_key(self) -> str:
+        return f"slack-{self.slack_thread_ts}"
+
+class LinearRunner:  
+    def agent_run_scope_key(self) -> str:
+        return f"linear-{self.linear_issue_id}"
+
+class GithubRunner:
+    def agent_run_scope_key(self) -> str:
+        return f"github-pr-{self.pr_number}-{self.repo_id}"
+```
+
+When a new agent run starts, the system:
+1. Generates the appropriate scope key
+2. Looks up previous runs with the same scope key
+3. Inherits context from those previous runs
+4. Continues the work in the same "conversation"
+
+## Troubleshooting
+
+**Problem:** Codegen keeps creating new PRs instead of updating existing ones
+**Solution:** Make sure you're asking for changes in the same Slack thread, Linear issue, or PR where the original work was done.
+
+**Problem:** Codegen doesn't remember previous context
+**Solution:** Check that you're interacting in the same scope (same thread/ticket/PR) as the previous interaction.
+
+**Problem:** Context seems to be inherited from unrelated work
+**Solution:** This might indicate a scope key collision - check that you're working in the right thread/ticket/PR.
+
+---
+
+Understanding scope keys helps you work more effectively with Codegen by ensuring your requests build on each other rather than starting from scratch each time.
+
