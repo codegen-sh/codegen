@@ -17,7 +17,6 @@
             "group": "Overview",
             "pages": [
               "introduction/overview",
-              "introduction/capabilities",
               "introduction/api",
               "introduction/prompting",
               "introduction/community",
@@ -27,14 +26,14 @@
           },
           {
             "group": "Capabilities",
-            "pages": ["capabilities/wake-up"]
+            "pages": ["capabilities/capabilities", "capabilities/wake-up"]
           },
           {
             "group": "Integrations",
             "pages": [
+              "integrations/github",
               "integrations/slack",
               "integrations/linear",
-              "integrations/github",
               "integrations/notion",
               "integrations/figma",
               "integrations/circleci",
