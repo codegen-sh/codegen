@@ -1,0 +1,139 @@
+---
+title: "Context Inheritance: When Codegen Remembers Previous Work"
+description: "Understanding when Codegen builds on previous conversations and when it starts fresh"
+---
+
+# Context Inheritance: When Codegen Remembers Previous Work
+
+Codegen is designed to build on previous work and maintain context across related interactions. Understanding when this happens helps you work more effectively and avoid frustrating experiences like getting multiple PRs when you wanted updates to an existing one.
+
+## When Codegen Remembers Context
+
+Codegen automatically inherits context and builds on previous work when you interact within the same "conversation scope." Here's when this happens:
+
+### Slack Threads
+**Codegen remembers everything in the same thread**
+
+When you mention Codegen in a Slack thread, it can see and build on all previous messages in that thread. This means:
+- Follow-up requests build on previous work
+- Codegen remembers the entire conversation history
+- Context from earlier messages is automatically available
+
+```
+Thread: "Can you fix the login bug?"
+├── Codegen creates PR #123
+└── "Please also add input validation" 
+    └── Codegen adds commits to PR #123 (same PR!)
+```
+
+### Linear Issues  
+**Codegen remembers all work on the same ticket**
+
+All interactions on the same Linear issue share context. This enables:
+- Building on previous implementations
+- Maintaining context across multiple comments
+- Continuing work where you left off
+
+```
+Linear Issue CG-456: "Improve test coverage"
+├── Comment: "Add tests for auth module"
+│   └── Codegen creates PR #789
+└── Comment: "Also need integration tests"
+    └── Codegen adds to PR #789 (same PR!)
+```
+
+### GitHub PRs
+**Codegen remembers all work on the same pull request**
+
+When you comment on a PR that Codegen created, it will:
+- Add commits to the existing PR
+- Respond to review feedback
+- Continue iterating on the same feature branch
+
+```
+PR #123: "Add user authentication"
+├── Initial PR created
+├── Review comment: "Fix the validation logic"
+│   └── Codegen adds fixing commit
+└── Review comment: "Add error handling"  
+    └── Codegen adds another commit (same PR!)
+```
+
+## When Codegen Starts Fresh
+
+Codegen will start a new conversation (and potentially create new PRs) when:
+
+- **New Slack threads** - Starting a new thread breaks the context
+- **New Linear tickets** - Different tickets are treated as separate work
+- **Different repositories** - Work in different repos doesn't share context
+- **API calls without context** - Direct API calls start fresh unless context is provided
+
+## Why This Matters
+
+### ✅ Working With Context (Good Experience)
+```
+Slack Thread:
+You: "Create a PR to fix the login bug"
+Codegen: Creates PR #123
+
+You: "Please also add input validation"  
+Codegen: Adds commits to PR #123 ← Same PR!
+
+You: "The tests are failing"
+Codegen: Fixes tests in PR #123 ← Still same PR!
+```
+
+### ❌ Breaking Context (Frustrating Experience)
+```
+You: "Create a PR to fix the login bug"
+Codegen: Creates PR #123
+
+[You start a new Slack thread]
+You: "Please also add input validation"
+Codegen: Creates PR #124 ← New PR! 😞
+
+[You create a new Linear ticket]
+You: "The tests are failing"  
+Codegen: Creates PR #125 ← Another new PR! 😞
+```
+
+## Best Practices
+
+### Do This ✅
+- **Continue conversations in the same thread/ticket** - This ensures context is inherited
+- **Ask for changes in the same place** - Codegen will update existing work
+- **Reference previous work** - Codegen can build on what it already knows
+- **Use reply threads in Slack** - Keep related work together
+
+### Avoid This ❌  
+- **Starting new threads for related work** - Context gets lost
+- **Creating new tickets for follow-ups** - Breaks the context chain
+- **Asking for "new PRs" unnecessarily** - Usually you want to update existing work
+- **Switching between different communication channels** - Each channel has separate context
+
+## Common Scenarios
+
+**Scenario**: "I asked Codegen to create a PR, but now I want to add more features to it"
+**Solution**: Ask for the changes in the same Slack thread or Linear ticket where you made the original request.
+
+**Scenario**: "Codegen created multiple PRs for what should be one feature"
+**Solution**: Make sure all related requests happen in the same conversation thread.
+
+**Scenario**: "I want Codegen to start completely fresh on a similar but different task"
+**Solution**: Start a new Slack thread or create a new Linear ticket to break context inheritance.
+
+## Troubleshooting
+
+**Problem**: Codegen keeps creating new PRs instead of updating existing ones
+**Solution**: Make sure you're asking for changes in the same Slack thread or Linear issue where the original work was done.
+
+**Problem**: Codegen doesn't remember previous context
+**Solution**: Check that you're interacting in the same conversation thread as the previous interaction.
+
+**Problem**: Codegen is building on unrelated previous work
+**Solution**: You might be in a thread with previous unrelated work - consider starting a new thread for your task.
+
+---
+
+Understanding when Codegen inherits context helps you work more effectively by ensuring your requests build on each other rather than starting from scratch each time.
+

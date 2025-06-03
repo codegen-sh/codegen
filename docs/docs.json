@@ -25,7 +25,9 @@
 		},
 		{
 			"group": "Architecture",
-			"pages": ["architecture/scope-keys"]
+			"pages": [
+				"architecture/context-inheritance"
+			]
 		},
 		{
 			"tab": "Documentation",
