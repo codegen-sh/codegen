@@ -67,6 +67,12 @@
 							"source": "/api-reference/openapi3.json",
 							"directory": "api-reference"
 						}
+					},
+					{
+						"group": "Guides",
+						"pages": [
+							"api-reference/agent-run-logs"
+						]
 					}
 				]
 			},
