@@ -3,6 +3,7 @@ from pydantic.fields import Field
 
 import codegen.cli.sdk.decorator
 from codegen.cli.utils.count_functions_2 import NumberType
+from codegen.sdk.core.codebase import Codebase
 
 # from app.codemod.compilation.models.context import CodemodContext
 # from app.codemod.compilation.models.pr_options import PROptions
@@ -21,7 +22,7 @@ class CountFunctionsArgs(BaseModel):
 
 
 @codegen.cli.sdk.decorator.function("count-functions")
-def run(codebase, pr_options, arguments: CountFunctionsArgs):
+def run(codebase: Codebase, pr_options: dict, arguments: CountFunctionsArgs) -> None:
     # Count Functions in Codebase
 
     # Initialize a total function counter
