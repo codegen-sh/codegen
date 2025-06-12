@@ -10,7 +10,7 @@ The Atlassian Document Format (ADF) is a JSON-based format that represents rich 
 
 ### Basic Usage
 
-```python
+````python
 from codegen.shared.markdown_adf import MarkdownToADFAdapter
 
 # Create an adapter instance
@@ -29,7 +29,7 @@ Here's some Python code:
 ```python
 def greet(name):
     print(f"Hello, {name}!")
-```
+````
 
 ## Lists
 
@@ -38,11 +38,12 @@ def greet(name):
 - Item 3
 
 > This is a blockquote with important information.
-"""
+> """
 
 adf_document = adapter.convert(markdown_text)
 print(json.dumps(adf_document, indent=2))
-```
+
+````
 
 ### Output Structure
 
@@ -56,31 +57,31 @@ The adapter returns an `ADFDocument` which is a dictionary with the following st
         # Array of ADF nodes
     ]
 }
-```
+````
 
 ## Supported Markdown Elements
 
 ### Text Formatting
 
-| Markdown | ADF Mark Type | Description |
-|----------|---------------|-------------|
-| `**bold**` | `strong` | Bold text |
-| `*italic*` | `em` | Italic text |
-| `` `code` `` | `code` | Inline code |
-| `[link](url)` | `link` | Hyperlinks |
-| `~~strikethrough~~` | `strike` | Strikethrough text |
+| Markdown            | ADF Mark Type | Description        |
+| ------------------- | ------------- | ------------------ |
+| `**bold**`          | `strong`      | Bold text          |
+| `*italic*`          | `em`          | Italic text        |
+| `` `code` ``        | `code`        | Inline code        |
+| `[link](url)`       | `link`        | Hyperlinks         |
+| `~~strikethrough~~` | `strike`      | Strikethrough text |
 
 ### Block Elements
 
-| Markdown | ADF Node Type | Description |
-|----------|---------------|-------------|
-| `# Heading` | `heading` | Headings (H1-H6) |
-| Paragraphs | `paragraph` | Regular paragraphs |
-| ``` code ``` | `codeBlock` | Code blocks with optional language |
-| `- item` | `bulletList` | Bullet lists |
-| `1. item` | `orderedList` | Numbered lists |
-| `> quote` | `blockquote` | Block quotes |
-| `---` | `rule` | Horizontal rules |
+| Markdown    | ADF Node Type | Description                        |
+| ----------- | ------------- | ---------------------------------- |
+| `# Heading` | `heading`     | Headings (H1-H6)                   |
+| Paragraphs  | `paragraph`   | Regular paragraphs                 |
+| `code`      | `codeBlock`   | Code blocks with optional language |
+| `- item`    | `bulletList`  | Bullet lists                       |
+| `1. item`   | `orderedList` | Numbered lists                     |
+| `> quote`   | `blockquote`  | Block quotes                       |
+| `---`       | `rule`        | Horizontal rules                   |
 
 ### Advanced Features
 
@@ -99,6 +100,7 @@ adf = adapter.convert(markdown)
 ```
 
 Results in:
+
 ```json
 {
   "version": 1,
@@ -107,13 +109,49 @@ Results in:
     {
       "type": "paragraph",
       "content": [
-        {"type": "text", "text": "This is "},
-        {"type": "text", "text": "bold", "marks": [{"type": "strong"}]},
-        {"type": "text", "text": " and "},
-        {"type": "text", "text": "italic", "marks": [{"type": "em"}]},
-        {"type": "text", "text": " text with "},
-        {"type": "text", "text": "inline code", "marks": [{"type": "code"}]},
-        {"type": "text", "text": "."}
+        {
+          "type": "text",
+          "text": "This is "
+        },
+        {
+          "type": "text",
+          "text": "bold",
+          "marks": [
+            {
+              "type": "strong"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " and "
+        },
+        {
+          "type": "text",
+          "text": "italic",
+          "marks": [
+            {
+              "type": "em"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": " text with "
+        },
+        {
+          "type": "text",
+          "text": "inline code",
+          "marks": [
+            {
+              "type": "code"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "text": "."
+        }
       ]
     }
   ]
@@ -122,15 +160,16 @@ Results in:
 
 ### Code Block with Language
 
-```python
-markdown = '''```python
+````python
+markdown = """```python
 def hello():
     print("Hello, world!")
-```'''
+```"""
 adf = adapter.convert(markdown)
-```
+````
 
 Results in:
+
 ```json
 {
   "version": 1,
@@ -138,9 +177,14 @@ Results in:
   "content": [
     {
       "type": "codeBlock",
-      "attrs": {"language": "python"},
+      "attrs": {
+        "language": "python"
+      },
       "content": [
-        {"type": "text", "text": "def hello():\n    print(\"Hello, world!\")"}
+        {
+          "type": "text",
+          "text": "def hello():\n    print(\"Hello, world!\")"
+        }
       ]
     }
   ]
@@ -150,11 +194,11 @@ Results in:
 ### Lists
 
 ```python
-markdown = '''
+markdown = """
 - First item
 - Second item with **bold** text
 - Third item
-'''
+"""
 adf = adapter.convert(markdown)
 ```
 
@@ -194,6 +238,7 @@ The module includes comprehensive tests covering:
 - Edge cases and malformed input
 
 Run tests with:
+
 ```bash
 pytest tests/shared/test_markdown_adf_adapter.py
 ```
@@ -212,4 +257,3 @@ pytest tests/shared/test_markdown_adf_adapter.py
 - Custom ADF node types (panels, mentions, etc.)
 - Configuration options for conversion behavior
 - Performance optimizations for large documents
-

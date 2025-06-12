@@ -1,13 +1,12 @@
-"""
-Type definitions for Atlassian Document Format (ADF) structures.
-"""
+"""Type definitions for Atlassian Document Format (ADF) structures."""
 
-from typing import Any, Dict, List, Literal, Optional, TypedDict, Union
 from enum import Enum
+from typing import Any, Literal, Optional, TypedDict, Union
 
 
 class ADFNodeType(str, Enum):
     """ADF node types."""
+
     DOC = "doc"
     PARAGRAPH = "paragraph"
     HEADING = "heading"
@@ -27,6 +26,7 @@ class ADFNodeType(str, Enum):
 
 class ADFMarkType(str, Enum):
     """ADF mark types for inline formatting."""
+
     STRONG = "strong"
     EM = "em"
     CODE = "code"
@@ -39,63 +39,72 @@ class ADFMarkType(str, Enum):
 
 class ADFMark(TypedDict, total=False):
     """ADF mark structure for inline formatting."""
+
     type: ADFMarkType
-    attrs: Optional[Dict[str, Any]]
+    attrs: Optional[dict[str, Any]]
 
 
 class ADFNode(TypedDict, total=False):
     """Base ADF node structure."""
+
     type: ADFNodeType
-    content: Optional[List["ADFNode"]]
-    attrs: Optional[Dict[str, Any]]
-    marks: Optional[List[ADFMark]]
+    content: Optional[list["ADFNode"]]
+    attrs: Optional[dict[str, Any]]
+    marks: Optional[list[ADFMark]]
     text: Optional[str]
 
 
 class ADFTextNode(ADFNode):
     """ADF text node with required text field."""
+
     type: Literal[ADFNodeType.TEXT]
     text: str
-    marks: Optional[List[ADFMark]]
+    marks: Optional[list[ADFMark]]
 
 
 class ADFParagraphNode(ADFNode):
     """ADF paragraph node."""
+
     type: Literal[ADFNodeType.PARAGRAPH]
-    content: List[ADFNode]
+    content: list[ADFNode]
 
 
 class ADFHeadingNode(ADFNode):
     """ADF heading node."""
+
     type: Literal[ADFNodeType.HEADING]
-    content: List[ADFNode]
-    attrs: Dict[str, int]  # Contains level: 1-6
+    content: list[ADFNode]
+    attrs: dict[str, int]  # Contains level: 1-6
 
 
 class ADFCodeBlockNode(ADFNode):
     """ADF code block node."""
+
     type: Literal[ADFNodeType.CODE_BLOCK]
-    content: List[ADFTextNode]
-    attrs: Optional[Dict[str, str]]  # Contains language if specified
+    content: list[ADFTextNode]
+    attrs: Optional[dict[str, str]]  # Contains language if specified
 
 
 class ADFListNode(ADFNode):
     """ADF list node (bullet or ordered)."""
+
     type: Union[Literal[ADFNodeType.BULLET_LIST], Literal[ADFNodeType.ORDERED_LIST]]
-    content: List["ADFListItemNode"]
+    content: list["ADFListItemNode"]
 
 
 class ADFListItemNode(ADFNode):
     """ADF list item node."""
+
     type: Literal[ADFNodeType.LIST_ITEM]
-    content: List[ADFNode]
+    content: list[ADFNode]
 
 
 class ADFDocument(TypedDict):
     """Complete ADF document structure."""
+
     version: Literal[1]
     type: Literal[ADFNodeType.DOC]
-    content: List[ADFNode]
+    content: list[ADFNode]
 
 
 # Type aliases for convenience
@@ -108,4 +117,3 @@ AnyADFNode = Union[
     ADFListNode,
     ADFListItemNode,
 ]
-
