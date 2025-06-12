@@ -1,0 +1,5 @@
+Collecting markdown
+  Downloading markdown-3.8-py3-none-any.whl.metadata (5.1 kB)
+Downloading markdown-3.8-py3-none-any.whl (106 kB)
+Installing collected packages: markdown
+Successfully installed markdown-3.8
