@@ -30,6 +30,7 @@
 						"pages": [
 							"integrations/slack",
 							"integrations/linear",
+							"integrations/jira",
 							"integrations/github",
 							"integrations/web-search",
 							"integrations/postgres"
