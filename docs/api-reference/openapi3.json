@@ -1,884 +1,1467 @@
 {
 	"openapi": "3.1.0",
 	"info": {
-	  "title": "Developer API",
-	  "description": "API for application developers",
-	  "version": "1.0.0"
+		"title": "Developer API",
+		"description": "API for application developers",
+		"version": "1.0.0"
 	},
 	"servers": [
-	  {
-		"url": "https://api.codegen.com",
-		"description": "Codegen API"
-	  }
+		{
+			"url": "https://api.codegen.com",
+			"description": "Codegen API"
+		}
 	],
 	"paths": {
-	  "/v1/organizations/{org_id}/users": {
-		"get": {
-		  "tags": [
-			"users",
-			"users",
-			"users"
-		  ],
-		  "summary": "Get Users",
-		  "description": "Get paginated list of users for a specific organization.\n\nReturns a paginated list of all users associated with the specified organization.\nThe requesting user must be a member of the organization to access this endpoint.\n\nRate limit: 60 requests per 30 seconds.",
-		  "operationId": "get_users_v1_organizations__org_id__users_get",
-		  "parameters": [
-			{
-			  "name": "org_id",
-			  "in": "path",
-			  "required": true,
-			  "schema": {
-				"type": "string",
-				"title": "Org Id"
-			  }
-			},
-			{
-			  "name": "skip",
-			  "in": "query",
-			  "required": false,
-			  "schema": {
-				"type": "integer",
-				"minimum": 0,
-				"default": 0,
-				"title": "Skip"
-			  }
-			},
-			{
-			  "name": "limit",
-			  "in": "query",
-			  "required": false,
-			  "schema": {
-				"type": "integer",
-				"maximum": 100,
-				"minimum": 1,
-				"default": 100,
-				"title": "Limit"
-			  }
-			},
-			{
-			  "name": "authorization",
-			  "in": "header",
-			  "required": false,
-			  "schema": {
-				"title": "Authorization"
-			  }
+		"/v1/organizations/{org_id}/users": {
+			"get": {
+				"tags": [
+					"users",
+					"users",
+					"users"
+				],
+				"summary": "Get Users",
+				"description": "Get paginated list of users for a specific organization.\n\nReturns a paginated list of all users associated with the specified organization.\nThe requesting user must be a member of the organization to access this endpoint.\n\nRate limit: 60 requests per 30 seconds.",
+				"operationId": "get_users_v1_organizations__org_id__users_get",
+				"parameters": [
+					{
+						"name": "org_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Org Id"
+						}
+					},
+					{
+						"name": "skip",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"minimum": 0,
+							"default": 0,
+							"title": "Skip"
+						}
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"maximum": 100,
+							"minimum": 1,
+							"default": 100,
+							"title": "Limit"
+						}
+					},
+					{
+						"name": "authorization",
+						"in": "header",
+						"required": false,
+						"schema": {
+							"title": "Authorization"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Page_UserResponse_"
+								}
+							}
+						}
+					},
+					"429": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/APIRateLimitErrorResponse"
+								}
+							}
+						},
+						"description": "Too Many Requests"
+					},
+					"403": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PermissionsErrorResponse"
+								}
+							}
+						},
+						"description": "Forbidden"
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
 			}
-		  ],
-		  "responses": {
-			"200": {
-			  "description": "Successful Response",
-			  "content": {
-				"application/json": {
-				  "schema": {
-					"$ref": "#/components/schemas/Page_UserResponse_"
-				  }
+		},
+		"/v1/organizations/{org_id}/users/{user_id}": {
+			"get": {
+				"tags": [
+					"users",
+					"users",
+					"users"
+				],
+				"summary": "Get User",
+				"description": "Get details for a specific user in an organization.\n\nReturns detailed information about a user within the specified organization.\nThe requesting user must be a member of the organization to access this endpoint.\n\nRate limit: 60 requests per 30 seconds.",
+				"operationId": "get_user_v1_organizations__org_id__users__user_id__get",
+				"parameters": [
+					{
+						"name": "org_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Org Id"
+						}
+					},
+					{
+						"name": "user_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "User Id"
+						}
+					},
+					{
+						"name": "authorization",
+						"in": "header",
+						"required": false,
+						"schema": {
+							"title": "Authorization"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserResponse"
+								}
+							}
+						}
+					},
+					"429": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/APIRateLimitErrorResponse"
+								}
+							}
+						},
+						"description": "Too Many Requests"
+					},
+					"403": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PermissionsErrorResponse"
+								}
+							}
+						},
+						"description": "Forbidden"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserNotFoundErrorResponse"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
 				}
-			  }
-			},
-			"429": {
-			  "content": {
-				"application/json": {
-				  "schema": {
-					"$ref": "#/components/schemas/APIRateLimitErrorResponse"
-				  }
-				}
-			  },
-			  "description": "Too Many Requests"
-			},
-			"403": {
-			  "content": {
-				"application/json": {
-				  "schema": {
-					"$ref": "#/components/schemas/PermissionsErrorResponse"
-				  }
-				}
-			  },
-			  "description": "Forbidden"
-			},
-			"422": {
-			  "description": "Validation Error",
-			  "content": {
-				"application/json": {
-				  "schema": {
-					"$ref": "#/components/schemas/HTTPValidationError"
-				  }
-				}
-			  }
 			}
-		  }
+		},
+		"/v1/users/me": {
+			"get": {
+				"tags": [
+					"users",
+					"users",
+					"users"
+				],
+				"summary": "Get Current User Info",
+				"description": "Get current user information from API token.\n\nReturns detailed information about the user associated with the provided API token.\nThis is useful for applications that need to identify the current user from their API token.\n\nRate limit: 60 requests per 30 seconds.",
+				"operationId": "get_current_user_info_v1_users_me_get",
+				"parameters": [
+					{
+						"name": "authorization",
+						"in": "header",
+						"required": false,
+						"schema": {
+							"title": "Authorization"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserResponse"
+								}
+							}
+						}
+					},
+					"429": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/APIRateLimitErrorResponse"
+								}
+							}
+						},
+						"description": "Too Many Requests"
+					},
+					"403": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PermissionsErrorResponse"
+								}
+							}
+						},
+						"description": "Forbidden"
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/v1/organizations/{org_id}/agent/run": {
+			"post": {
+				"tags": [
+					"agents",
+					"agents",
+					"agents"
+				],
+				"summary": "Create Agent Run",
+				"description": "Create a new agent run.\n\nCreates and initiates a long-running agent process based on the provided prompt.\nThe process will complete asynchronously, and the response contains the agent run ID\nwhich can be used to check the status later. The requesting user must be a member\nof the specified organization.\n\nThis endpoint accepts both a text prompt and an optional image file upload.\n\nRate limit: 10 requests per minute.",
+				"operationId": "create_agent_run_v1_organizations__org_id__agent_run_post",
+				"parameters": [
+					{
+						"name": "org_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"title": "Org Id"
+						}
+					},
+					{
+						"name": "authorization",
+						"in": "header",
+						"required": false,
+						"schema": {
+							"title": "Authorization"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateAgentRunInput"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AgentRunResponse"
+								}
+							}
+						}
+					},
+					"429": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/APIRateLimitErrorResponse"
+								}
+							}
+						},
+						"description": "Too Many Requests"
+					},
+					"402": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AgentRunLimitReachedErrorResponse"
+								}
+							}
+						},
+						"description": "Payment Required"
+					},
+					"403": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PermissionsErrorResponse"
+								}
+							}
+						},
+						"description": "Forbidden"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NoReposFoundInOrgErrorResponse"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/v1/organizations/{org_id}/agent/run/{agent_run_id}": {
+			"get": {
+				"tags": [
+					"agents",
+					"agents",
+					"agents"
+				],
+				"summary": "Get Agent Run",
+				"description": "Retrieve the status and result of an agent run.\n\nReturns the current status, progress, and any available results for the specified agent run.\nThe agent run must belong to the specified organization. If the agent run is still in progress,\nthis endpoint can be polled to check for completion.\n\nRate limit: 60 requests per 30 seconds.",
+				"operationId": "get_agent_run_v1_organizations__org_id__agent_run__agent_run_id__get",
+				"parameters": [
+					{
+						"name": "agent_run_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"title": "Agent Run Id"
+						}
+					},
+					{
+						"name": "org_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"title": "Org Id"
+						}
+					},
+					{
+						"name": "authorization",
+						"in": "header",
+						"required": false,
+						"schema": {
+							"title": "Authorization"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AgentRunResponse"
+								}
+							}
+						}
+					},
+					"429": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/APIRateLimitErrorResponse"
+								}
+							}
+						},
+						"description": "Too Many Requests"
+					},
+					"403": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PermissionsErrorResponse"
+								}
+							}
+						},
+						"description": "Forbidden"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AgentRunNotFoundErrorResponse"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/v1/organizations/{org_id}/agent/runs": {
+			"get": {
+				"tags": [
+					"agents",
+					"agents",
+					"agents"
+				],
+				"summary": "List Agent Runs",
+				"description": "List agent runs for an organization with optional user filtering.\n\nReturns a paginated list of agent runs for the specified organization.\nOptionally filter by user_id to get only agent runs initiated by a specific user.\nResults are ordered by creation date (newest first).\n\nRate limit: 60 requests per 30 seconds.",
+				"operationId": "list_agent_runs_v1_organizations__org_id__agent_runs_get",
+				"parameters": [
+					{
+						"name": "org_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"title": "Org Id"
+						}
+					},
+					{
+						"name": "user_id",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"type": "integer"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"description": "Filter by user ID who initiated the agent runs",
+							"title": "User Id"
+						},
+						"description": "Filter by user ID who initiated the agent runs"
+					},
+					{
+						"name": "source_type",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"$ref": "#/components/schemas/ApiAgentRunSourceType"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"description": "Filter by source type of the agent runs",
+							"title": "Source Type"
+						},
+						"description": "Filter by source type of the agent runs"
+					},
+					{
+						"name": "skip",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"minimum": 0,
+							"default": 0,
+							"title": "Skip"
+						}
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"maximum": 100,
+							"minimum": 1,
+							"default": 100,
+							"title": "Limit"
+						}
+					},
+					{
+						"name": "authorization",
+						"in": "header",
+						"required": false,
+						"schema": {
+							"title": "Authorization"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Page_AgentRunResponse_"
+								}
+							}
+						}
+					},
+					"429": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/APIRateLimitErrorResponse"
+								}
+							}
+						},
+						"description": "Too Many Requests"
+					},
+					"403": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PermissionsErrorResponse"
+								}
+							}
+						},
+						"description": "Forbidden"
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/v1/organizations": {
+			"get": {
+				"tags": [
+					"organizations",
+					"organizations",
+					"organizations"
+				],
+				"summary": "Get Organizations",
+				"description": "Get organizations for the authenticated user.\n\nReturns a paginated list of all organizations that the authenticated user is a member of.\nResults include basic organization details such as name, ID, and membership information.\nUse pagination parameters to control the number of results returned.\n\nRate limit: 60 requests per 30 seconds.",
+				"operationId": "get_organizations_v1_organizations_get",
+				"parameters": [
+					{
+						"name": "skip",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"minimum": 0,
+							"default": 0,
+							"title": "Skip"
+						}
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"maximum": 100,
+							"minimum": 1,
+							"default": 100,
+							"title": "Limit"
+						}
+					},
+					{
+						"name": "authorization",
+						"in": "header",
+						"required": false,
+						"schema": {
+							"title": "Authorization"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Page_OrganizationResponse_"
+								}
+							}
+						}
+					},
+					"429": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/APIRateLimitErrorResponse"
+								}
+							}
+						},
+						"description": "Too Many Requests"
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/v1/alpha/organizations/{org_id}/agent/run/{agent_run_id}/logs": {
+			"get": {
+				"tags": [
+					"agents-alpha",
+					"agents-alpha",
+					"agents-beta"
+				],
+				"summary": "Get Agent Run Logs",
+				"description": "Retrieve an agent run with its logs using pagination. This endpoint is currently in ALPHA and IS subject to change.\n\nReturns the agent run details along with a paginated list of logs for the specified agent run.\nThe agent run must belong to the specified organization. Logs are returned in chronological order.\nUses standard pagination parameters (skip and limit) and includes pagination metadata in the response.\n\nRate limit: 60 requests per 60 seconds.",
+				"operationId": "get_agent_run_logs_v1_alpha_organizations__org_id__agent_run__agent_run_id__logs_get",
+				"parameters": [
+					{
+						"name": "agent_run_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"title": "Agent Run Id"
+						}
+					},
+					{
+						"name": "org_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"title": "Org Id"
+						}
+					},
+					{
+						"name": "skip",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"minimum": 0,
+							"default": 0,
+							"title": "Skip"
+						}
+					},
+					{
+						"name": "limit",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "integer",
+							"maximum": 100,
+							"minimum": 1,
+							"default": 100,
+							"title": "Limit"
+						}
+					},
+					{
+						"name": "authorization",
+						"in": "header",
+						"required": false,
+						"schema": {
+							"title": "Authorization"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AgentRunWithLogsResponse"
+								}
+							}
+						}
+					},
+					"429": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/APIRateLimitErrorResponse"
+								}
+							}
+						},
+						"description": "Too Many Requests"
+					},
+					"403": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PermissionsErrorResponse"
+								}
+							}
+						},
+						"description": "Forbidden"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AgentRunNotFoundErrorResponse"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
 		}
-	  },
-	  "/v1/organizations/{org_id}/users/{user_id}": {
-		"get": {
-		  "tags": [
-			"users",
-			"users",
-			"users"
-		  ],
-		  "summary": "Get User",
-		  "description": "Get details for a specific user in an organization.\n\nReturns detailed information about a user within the specified organization.\nThe requesting user must be a member of the organization to access this endpoint.\n\nRate limit: 60 requests per 30 seconds.",
-		  "operationId": "get_user_v1_organizations__org_id__users__user_id__get",
-		  "parameters": [
-			{
-			  "name": "org_id",
-			  "in": "path",
-			  "required": true,
-			  "schema": {
-				"type": "string",
-				"title": "Org Id"
-			  }
-			},
-			{
-			  "name": "user_id",
-			  "in": "path",
-			  "required": true,
-			  "schema": {
-				"type": "string",
-				"title": "User Id"
-			  }
-			},
-			{
-			  "name": "authorization",
-			  "in": "header",
-			  "required": false,
-			  "schema": {
-				"title": "Authorization"
-			  }
-			}
-		  ],
-		  "responses": {
-			"200": {
-			  "description": "Successful Response",
-			  "content": {
-				"application/json": {
-				  "schema": {
-					"$ref": "#/components/schemas/UserResponse"
-				  }
-				}
-			  }
-			},
-			"429": {
-			  "content": {
-				"application/json": {
-				  "schema": {
-					"$ref": "#/components/schemas/APIRateLimitErrorResponse"
-				  }
-				}
-			  },
-			  "description": "Too Many Requests"
-			},
-			"403": {
-			  "content": {
-				"application/json": {
-				  "schema": {
-					"$ref": "#/components/schemas/PermissionsErrorResponse"
-				  }
-				}
-			  },
-			  "description": "Forbidden"
-			},
-			"404": {
-			  "content": {
-				"application/json": {
-				  "schema": {
-					"$ref": "#/components/schemas/UserNotFoundErrorResponse"
-				  }
-				}
-			  },
-			  "description": "Not Found"
-			},
-			"422": {
-			  "description": "Validation Error",
-			  "content": {
-				"application/json": {
-				  "schema": {
-					"$ref": "#/components/schemas/HTTPValidationError"
-				  }
-				}
-			  }
-			}
-		  }
-		}
-	  },
-	  "/v1/organizations/{org_id}/agent/run": {
-		"post": {
-		  "tags": [
-			"agents",
-			"agents",
-			"agents"
-		  ],
-		  "summary": "Create Agent Run",
-		  "description": "Create a new agent run.\n\nCreates and initiates a long-running agent process based on the provided prompt.\nThe process will complete asynchronously, and the response contains the agent run ID\nwhich can be used to check the status later. The requesting user must be a member\nof the specified organization.\n\nThis endpoint accepts both a text prompt and an optional image file upload.\n\nRate limit: 10 requests per minute.",
-		  "operationId": "create_agent_run_v1_organizations__org_id__agent_run_post",
-		  "parameters": [
-			{
-			  "name": "org_id",
-			  "in": "path",
-			  "required": true,
-			  "schema": {
-				"type": "integer",
-				"title": "Org Id"
-			  }
-			},
-			{
-			  "name": "authorization",
-			  "in": "header",
-			  "required": false,
-			  "schema": {
-				"title": "Authorization"
-			  }
-			}
-		  ],
-		  "requestBody": {
-			"required": true,
-			"content": {
-			  "application/json": {
-				"schema": {
-				  "$ref": "#/components/schemas/CreateAgentRunInput"
-				}
-			  }
-			}
-		  },
-		  "responses": {
-			"200": {
-			  "description": "Successful Response",
-			  "content": {
-				"application/json": {
-				  "schema": {
-					"$ref": "#/components/schemas/AgentRunResponse"
-				  }
-				}
-			  }
-			},
-			"429": {
-			  "content": {
-				"application/json": {
-				  "schema": {
-					"$ref": "#/components/schemas/APIRateLimitErrorResponse"
-				  }
-				}
-			  },
-			  "description": "Too Many Requests"
-			},
-			"402": {
-			  "content": {
-				"application/json": {
-				  "schema": {
-					"$ref": "#/components/schemas/AgentRunLimitReachedErrorResponse"
-				  }
-				}
-			  },
-			  "description": "Payment Required"
-			},
-			"403": {
-			  "content": {
-				"application/json": {
-				  "schema": {
-					"$ref": "#/components/schemas/PermissionsErrorResponse"
-				  }
-				}
-			  },
-			  "description": "Forbidden"
-			},
-			"404": {
-			  "content": {
-				"application/json": {
-				  "schema": {
-					"$ref": "#/components/schemas/NoReposFoundInOrgErrorResponse"
-				  }
-				}
-			  },
-			  "description": "Not Found"
-			},
-			"422": {
-			  "description": "Validation Error",
-			  "content": {
-				"application/json": {
-				  "schema": {
-					"$ref": "#/components/schemas/HTTPValidationError"
-				  }
-				}
-			  }
-			}
-		  }
-		}
-	  },
-	  "/v1/organizations/{org_id}/agent/run/{agent_run_id}": {
-		"get": {
-		  "tags": [
-			"agents",
-			"agents",
-			"agents"
-		  ],
-		  "summary": "Get Agent Run",
-		  "description": "Retrieve the status and result of an agent run.\n\nReturns the current status, progress, and any available results for the specified agent run.\nThe agent run must belong to the specified organization. If the agent run is still in progress,\nthis endpoint can be polled to check for completion.\n\nRate limit: 60 requests per 30 seconds.",
-		  "operationId": "get_agent_run_v1_organizations__org_id__agent_run__agent_run_id__get",
-		  "parameters": [
-			{
-			  "name": "agent_run_id",
-			  "in": "path",
-			  "required": true,
-			  "schema": {
-				"type": "integer",
-				"title": "Agent Run Id"
-			  }
-			},
-			{
-			  "name": "org_id",
-			  "in": "path",
-			  "required": true,
-			  "schema": {
-				"type": "integer",
-				"title": "Org Id"
-			  }
-			},
-			{
-			  "name": "authorization",
-			  "in": "header",
-			  "required": false,
-			  "schema": {
-				"title": "Authorization"
-			  }
-			}
-		  ],
-		  "responses": {
-			"200": {
-			  "description": "Successful Response",
-			  "content": {
-				"application/json": {
-				  "schema": {
-					"$ref": "#/components/schemas/AgentRunResponse"
-				  }
-				}
-			  }
-			},
-			"429": {
-			  "content": {
-				"application/json": {
-				  "schema": {
-					"$ref": "#/components/schemas/APIRateLimitErrorResponse"
-				  }
-				}
-			  },
-			  "description": "Too Many Requests"
-			},
-			"403": {
-			  "content": {
-				"application/json": {
-				  "schema": {
-					"$ref": "#/components/schemas/PermissionsErrorResponse"
-				  }
-				}
-			  },
-			  "description": "Forbidden"
-			},
-			"404": {
-			  "content": {
-				"application/json": {
-				  "schema": {
-					"$ref": "#/components/schemas/AgentRunNotFoundErrorResponse"
-				  }
-				}
-			  },
-			  "description": "Not Found"
-			},
-			"422": {
-			  "description": "Validation Error",
-			  "content": {
-				"application/json": {
-				  "schema": {
-					"$ref": "#/components/schemas/HTTPValidationError"
-				  }
-				}
-			  }
-			}
-		  }
-		}
-	  },
-	  "/v1/organizations": {
-		"get": {
-		  "tags": [
-			"organizations",
-			"organizations",
-			"organizations"
-		  ],
-		  "summary": "Get Organizations",
-		  "description": "Get organizations for the authenticated user.\n\nReturns a paginated list of all organizations that the authenticated user is a member of.\nResults include basic organization details such as name, ID, and membership information.\nUse pagination parameters to control the number of results returned.\n\nRate limit: 60 requests per 30 seconds.",
-		  "operationId": "get_organizations_v1_organizations_get",
-		  "parameters": [
-			{
-			  "name": "skip",
-			  "in": "query",
-			  "required": false,
-			  "schema": {
-				"type": "integer",
-				"minimum": 0,
-				"default": 0,
-				"title": "Skip"
-			  }
-			},
-			{
-			  "name": "limit",
-			  "in": "query",
-			  "required": false,
-			  "schema": {
-				"type": "integer",
-				"maximum": 100,
-				"minimum": 1,
-				"default": 100,
-				"title": "Limit"
-			  }
-			},
-			{
-			  "name": "authorization",
-			  "in": "header",
-			  "required": false,
-			  "schema": {
-				"title": "Authorization"
-			  }
-			}
-		  ],
-		  "responses": {
-			"200": {
-			  "description": "Successful Response",
-			  "content": {
-				"application/json": {
-				  "schema": {
-					"$ref": "#/components/schemas/Page_OrganizationResponse_"
-				  }
-				}
-			  }
-			},
-			"429": {
-			  "content": {
-				"application/json": {
-				  "schema": {
-					"$ref": "#/components/schemas/APIRateLimitErrorResponse"
-				  }
-				}
-			  },
-			  "description": "Too Many Requests"
-			},
-			"422": {
-			  "description": "Validation Error",
-			  "content": {
-				"application/json": {
-				  "schema": {
-					"$ref": "#/components/schemas/HTTPValidationError"
-				  }
-				}
-			  }
-			}
-		  }
-		}
-	  }
 	},
 	"components": {
-	  "schemas": {
-		"APIRateLimitErrorResponse": {
-		  "properties": {
-			"message": {
-			  "type": "string",
-			  "title": "Message",
-			  "default": "Rate limit exceeded. Please try again later."
-			},
-			"status_code": {
-			  "type": "integer",
-			  "title": "Status Code",
-			  "default": 429
-			}
-		  },
-		  "type": "object",
-		  "title": "APIRateLimitErrorResponse"
-		},
-		"AgentRunLimitReachedErrorResponse": {
-		  "properties": {
-			"message": {
-			  "type": "string",
-			  "title": "Message",
-			  "default": "Alloted agent runs for the current billing plan have been reached. Please upgrade your plan to continue."
-			},
-			"status_code": {
-			  "type": "integer",
-			  "title": "Status Code",
-			  "default": 402
-			}
-		  },
-		  "type": "object",
-		  "title": "AgentRunLimitReachedErrorResponse"
-		},
-		"AgentRunNotFoundErrorResponse": {
-		  "properties": {
-			"message": {
-			  "type": "string",
-			  "title": "Message",
-			  "default": "Agent run not found."
-			},
-			"status_code": {
-			  "type": "integer",
-			  "title": "Status Code",
-			  "default": 404
-			}
-		  },
-		  "type": "object",
-		  "title": "AgentRunNotFoundErrorResponse"
-		},
-		"AgentRunResponse": {
-		  "properties": {
-			"id": {
-			  "type": "integer",
-			  "title": "Id"
-			},
-			"organization_id": {
-			  "type": "integer",
-			  "title": "Organization Id"
-			},
-			"status": {
-			  "anyOf": [
-				{
-				  "type": "string"
+		"schemas": {
+			"APIRateLimitErrorResponse": {
+				"properties": {
+					"message": {
+						"type": "string",
+						"title": "Message",
+						"default": "Rate limit exceeded. Please try again later."
+					},
+					"status_code": {
+						"type": "integer",
+						"title": "Status Code",
+						"default": 429
+					}
 				},
-				{
-				  "type": "null"
-				}
-			  ],
-			  "title": "Status"
+				"type": "object",
+				"title": "APIRateLimitErrorResponse"
 			},
-			"created_at": {
-			  "anyOf": [
-				{
-				  "type": "string"
+			"AgentRunLimitReachedErrorResponse": {
+				"properties": {
+					"message": {
+						"type": "string",
+						"title": "Message",
+						"default": "Alloted agent runs for the current billing plan have been reached. Please upgrade your plan to continue."
+					},
+					"status_code": {
+						"type": "integer",
+						"title": "Status Code",
+						"default": 402
+					}
 				},
-				{
-				  "type": "null"
-				}
-			  ],
-			  "title": "Created At"
+				"type": "object",
+				"title": "AgentRunLimitReachedErrorResponse"
 			},
-			"web_url": {
-			  "anyOf": [
-				{
-				  "type": "string"
+			"AgentRunLogResponse": {
+				"properties": {
+					"agent_run_id": {
+						"type": "integer",
+						"title": "Agent Run Id"
+					},
+					"created_at": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Created At"
+					},
+					"tool_name": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Tool Name"
+					},
+					"message_type": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Message Type"
+					},
+					"thought": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Thought"
+					},
+					"observation": {
+						"anyOf": [
+							{
+								"additionalProperties": true,
+								"type": "object"
+							},
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Observation"
+					},
+					"tool_input": {
+						"anyOf": [
+							{
+								"additionalProperties": true,
+								"type": "object"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Tool Input"
+					},
+					"tool_output": {
+						"anyOf": [
+							{
+								"additionalProperties": true,
+								"type": "object"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Tool Output"
+					}
 				},
-				{
-				  "type": "null"
-				}
-			  ],
-			  "title": "Web Url"
+				"type": "object",
+				"required": [
+					"agent_run_id"
+				],
+				"title": "AgentRunLogResponse",
+				"description": "Represents an agent run log in API responses"
 			},
-			"result": {
-			  "anyOf": [
-				{
-				  "type": "string"
+			"AgentRunNotFoundErrorResponse": {
+				"properties": {
+					"message": {
+						"type": "string",
+						"title": "Message",
+						"default": "Agent run not found."
+					},
+					"status_code": {
+						"type": "integer",
+						"title": "Status Code",
+						"default": 404
+					}
 				},
-				{
-				  "type": "null"
-				}
-			  ],
-			  "title": "Result"
-			}
-		  },
-		  "type": "object",
-		  "required": [
-			"id",
-			"organization_id"
-		  ],
-		  "title": "AgentRunResponse",
-		  "description": "Represents an agent run in API responses"
-		},
-		"CreateAgentRunInput": {
-		  "properties": {
-			"prompt": {
-			  "type": "string",
-			  "title": "Prompt"
+				"type": "object",
+				"title": "AgentRunNotFoundErrorResponse"
 			},
-			"images": {
-			  "anyOf": [
-				{
-				  "items": {
-					"type": "string"
-				  },
-				  "type": "array"
+			"AgentRunResponse": {
+				"properties": {
+					"id": {
+						"type": "integer",
+						"title": "Id"
+					},
+					"organization_id": {
+						"type": "integer",
+						"title": "Organization Id"
+					},
+					"status": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Status"
+					},
+					"created_at": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Created At"
+					},
+					"web_url": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Web Url"
+					},
+					"result": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Result"
+					},
+					"source_type": {
+						"anyOf": [
+							{
+								"$ref": "#/components/schemas/ApiAgentRunSourceType"
+							},
+							{
+								"type": "null"
+							}
+						]
+					}
 				},
-				{
-				  "type": "null"
-				}
-			  ],
-			  "title": "Images",
-			  "description": "List of base64 encoded data URIs representing images to be processed by the agent"
-			}
-		  },
-		  "type": "object",
-		  "required": [
-			"prompt"
-		  ],
-		  "title": "CreateAgentRunInput"
-		},
-		"HTTPValidationError": {
-		  "properties": {
-			"detail": {
-			  "items": {
-				"$ref": "#/components/schemas/ValidationError"
-			  },
-			  "type": "array",
-			  "title": "Detail"
-			}
-		  },
-		  "type": "object",
-		  "title": "HTTPValidationError"
-		},
-		"NoReposFoundInOrgErrorResponse": {
-		  "properties": {
-			"message": {
-			  "type": "string",
-			  "title": "Message",
-			  "default": "No repos found in the organization. Please add some repos and try again."
+				"type": "object",
+				"required": [
+					"id",
+					"organization_id"
+				],
+				"title": "AgentRunResponse",
+				"description": "Represents an agent run in API responses"
 			},
-			"status_code": {
-			  "type": "integer",
-			  "title": "Status Code",
-			  "default": 404
-			}
-		  },
-		  "type": "object",
-		  "title": "NoReposFoundInOrgErrorResponse"
-		},
-		"OrganizationResponse": {
-		  "properties": {
-			"id": {
-			  "type": "integer",
-			  "title": "Id"
-			},
-			"name": {
-			  "type": "string",
-			  "title": "Name"
-			},
-			"settings": {
-			  "$ref": "#/components/schemas/OrganizationSettings"
-			}
-		  },
-		  "type": "object",
-		  "required": [
-			"id",
-			"name",
-			"settings"
-		  ],
-		  "title": "OrganizationResponse",
-		  "description": "Represents an organization in API responses"
-		},
-		"OrganizationSettings": {
-		  "properties": {
-			"enable_pr_creation": {
-			  "type": "boolean",
-			  "title": "Enable Pr Creation",
-			  "default": true
-			},
-			"enable_rules_detection": {
-			  "type": "boolean",
-			  "title": "Enable Rules Detection",
-			  "default": true
-			}
-		  },
-		  "type": "object",
-		  "title": "OrganizationSettings"
-		},
-		"Page_OrganizationResponse_": {
-		  "properties": {
-			"items": {
-			  "items": {
-				"$ref": "#/components/schemas/OrganizationResponse"
-			  },
-			  "type": "array",
-			  "title": "Items"
-			},
-			"total": {
-			  "type": "integer",
-			  "title": "Total"
-			},
-			"page": {
-			  "type": "integer",
-			  "title": "Page"
-			},
-			"size": {
-			  "type": "integer",
-			  "title": "Size"
-			},
-			"pages": {
-			  "type": "integer",
-			  "title": "Pages"
-			}
-		  },
-		  "type": "object",
-		  "required": [
-			"items",
-			"total",
-			"page",
-			"size",
-			"pages"
-		  ],
-		  "title": "Page[OrganizationResponse]"
-		},
-		"Page_UserResponse_": {
-		  "properties": {
-			"items": {
-			  "items": {
-				"$ref": "#/components/schemas/UserResponse"
-			  },
-			  "type": "array",
-			  "title": "Items"
-			},
-			"total": {
-			  "type": "integer",
-			  "title": "Total"
-			},
-			"page": {
-			  "type": "integer",
-			  "title": "Page"
-			},
-			"size": {
-			  "type": "integer",
-			  "title": "Size"
-			},
-			"pages": {
-			  "type": "integer",
-			  "title": "Pages"
-			}
-		  },
-		  "type": "object",
-		  "required": [
-			"items",
-			"total",
-			"page",
-			"size",
-			"pages"
-		  ],
-		  "title": "Page[UserResponse]"
-		},
-		"PermissionsErrorResponse": {
-		  "properties": {
-			"message": {
-			  "type": "string",
-			  "title": "Message",
-			  "default": "You do not have access to this organization."
-			},
-			"status_code": {
-			  "type": "integer",
-			  "title": "Status Code",
-			  "default": 403
-			}
-		  },
-		  "type": "object",
-		  "title": "PermissionsErrorResponse"
-		},
-		"UserNotFoundErrorResponse": {
-		  "properties": {
-			"message": {
-			  "type": "string",
-			  "title": "Message",
-			  "default": "User not found."
-			},
-			"status_code": {
-			  "type": "integer",
-			  "title": "Status Code",
-			  "default": 404
-			}
-		  },
-		  "type": "object",
-		  "title": "UserNotFoundErrorResponse"
-		},
-		"UserResponse": {
-		  "properties": {
-			"id": {
-			  "type": "integer",
-			  "title": "Id"
-			},
-			"email": {
-			  "anyOf": [
-				{
-				  "type": "string"
+			"AgentRunWithLogsResponse": {
+				"properties": {
+					"id": {
+						"type": "integer",
+						"title": "Id"
+					},
+					"organization_id": {
+						"type": "integer",
+						"title": "Organization Id"
+					},
+					"status": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Status"
+					},
+					"created_at": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Created At"
+					},
+					"web_url": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Web Url"
+					},
+					"result": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Result"
+					},
+					"logs": {
+						"items": {
+							"$ref": "#/components/schemas/AgentRunLogResponse"
+						},
+						"type": "array",
+						"title": "Logs"
+					},
+					"total_logs": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Total Logs"
+					},
+					"page": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Page"
+					},
+					"size": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Size"
+					},
+					"pages": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Pages"
+					}
 				},
-				{
-				  "type": "null"
-				}
-			  ],
-			  "title": "Email"
+				"type": "object",
+				"required": [
+					"id",
+					"organization_id",
+					"logs"
+				],
+				"title": "AgentRunWithLogsResponse",
+				"description": "Represents an agent run in API responses"
 			},
-			"github_user_id": {
-			  "type": "string",
-			  "title": "Github User Id"
+			"ApiAgentRunSourceType": {
+				"type": "string",
+				"enum": [
+					"LOCAL",
+					"SLACK",
+					"GITHUB",
+					"GITHUB_CHECK_SUITE",
+					"LINEAR",
+					"API",
+					"CHAT",
+					"JIRA"
+				],
+				"title": "ApiAgentRunSourceType"
 			},
-			"github_username": {
-			  "type": "string",
-			  "title": "Github Username"
-			},
-			"avatar_url": {
-			  "anyOf": [
-				{
-				  "type": "string"
+			"CreateAgentRunInput": {
+				"properties": {
+					"prompt": {
+						"type": "string",
+						"title": "Prompt"
+					},
+					"images": {
+						"anyOf": [
+							{
+								"items": {
+									"type": "string"
+								},
+								"type": "array"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Images",
+						"description": "List of base64 encoded data URIs representing images to be processed by the agent"
+					}
 				},
-				{
-				  "type": "null"
-				}
-			  ],
-			  "title": "Avatar Url"
+				"type": "object",
+				"required": [
+					"prompt"
+				],
+				"title": "CreateAgentRunInput"
 			},
-			"full_name": {
-			  "anyOf": [
-				{
-				  "type": "string"
+			"HTTPValidationError": {
+				"properties": {
+					"detail": {
+						"items": {
+							"$ref": "#/components/schemas/ValidationError"
+						},
+						"type": "array",
+						"title": "Detail"
+					}
 				},
-				{
-				  "type": "null"
-				}
-			  ],
-			  "title": "Full Name"
-			}
-		  },
-		  "type": "object",
-		  "required": [
-			"id",
-			"email",
-			"github_user_id",
-			"github_username",
-			"avatar_url",
-			"full_name"
-		  ],
-		  "title": "UserResponse",
-		  "description": "Represents a user in API responses"
-		},
-		"ValidationError": {
-		  "properties": {
-			"loc": {
-			  "items": {
-				"anyOf": [
-				  {
-					"type": "string"
-				  },
-				  {
-					"type": "integer"
-				  }
-				]
-			  },
-			  "type": "array",
-			  "title": "Location"
+				"type": "object",
+				"title": "HTTPValidationError"
 			},
-			"msg": {
-			  "type": "string",
-			  "title": "Message"
+			"NoReposFoundInOrgErrorResponse": {
+				"properties": {
+					"message": {
+						"type": "string",
+						"title": "Message",
+						"default": "No repos found in the organization. Please add some repos and try again."
+					},
+					"status_code": {
+						"type": "integer",
+						"title": "Status Code",
+						"default": 404
+					}
+				},
+				"type": "object",
+				"title": "NoReposFoundInOrgErrorResponse"
 			},
-			"type": {
-			  "type": "string",
-			  "title": "Error Type"
+			"OrganizationResponse": {
+				"properties": {
+					"id": {
+						"type": "integer",
+						"title": "Id"
+					},
+					"name": {
+						"type": "string",
+						"title": "Name"
+					},
+					"settings": {
+						"$ref": "#/components/schemas/OrganizationSettings"
+					}
+				},
+				"type": "object",
+				"required": [
+					"id",
+					"name",
+					"settings"
+				],
+				"title": "OrganizationResponse",
+				"description": "Represents an organization in API responses"
+			},
+			"OrganizationSettings": {
+				"properties": {
+					"enable_pr_creation": {
+						"type": "boolean",
+						"title": "Enable Pr Creation",
+						"default": true
+					},
+					"enable_rules_detection": {
+						"type": "boolean",
+						"title": "Enable Rules Detection",
+						"default": true
+					}
+				},
+				"type": "object",
+				"title": "OrganizationSettings"
+			},
+			"Page_AgentRunResponse_": {
+				"properties": {
+					"items": {
+						"items": {
+							"$ref": "#/components/schemas/AgentRunResponse"
+						},
+						"type": "array",
+						"title": "Items"
+					},
+					"total": {
+						"type": "integer",
+						"title": "Total"
+					},
+					"page": {
+						"type": "integer",
+						"title": "Page"
+					},
+					"size": {
+						"type": "integer",
+						"title": "Size"
+					},
+					"pages": {
+						"type": "integer",
+						"title": "Pages"
+					}
+				},
+				"type": "object",
+				"required": [
+					"items",
+					"total",
+					"page",
+					"size",
+					"pages"
+				],
+				"title": "Page[AgentRunResponse]"
+			},
+			"Page_OrganizationResponse_": {
+				"properties": {
+					"items": {
+						"items": {
+							"$ref": "#/components/schemas/OrganizationResponse"
+						},
+						"type": "array",
+						"title": "Items"
+					},
+					"total": {
+						"type": "integer",
+						"title": "Total"
+					},
+					"page": {
+						"type": "integer",
+						"title": "Page"
+					},
+					"size": {
+						"type": "integer",
+						"title": "Size"
+					},
+					"pages": {
+						"type": "integer",
+						"title": "Pages"
+					}
+				},
+				"type": "object",
+				"required": [
+					"items",
+					"total",
+					"page",
+					"size",
+					"pages"
+				],
+				"title": "Page[OrganizationResponse]"
+			},
+			"Page_UserResponse_": {
+				"properties": {
+					"items": {
+						"items": {
+							"$ref": "#/components/schemas/UserResponse"
+						},
+						"type": "array",
+						"title": "Items"
+					},
+					"total": {
+						"type": "integer",
+						"title": "Total"
+					},
+					"page": {
+						"type": "integer",
+						"title": "Page"
+					},
+					"size": {
+						"type": "integer",
+						"title": "Size"
+					},
+					"pages": {
+						"type": "integer",
+						"title": "Pages"
+					}
+				},
+				"type": "object",
+				"required": [
+					"items",
+					"total",
+					"page",
+					"size",
+					"pages"
+				],
+				"title": "Page[UserResponse]"
+			},
+			"PermissionsErrorResponse": {
+				"properties": {
+					"message": {
+						"type": "string",
+						"title": "Message",
+						"default": "You do not have access to this organization."
+					},
+					"status_code": {
+						"type": "integer",
+						"title": "Status Code",
+						"default": 403
+					}
+				},
+				"type": "object",
+				"title": "PermissionsErrorResponse"
+			},
+			"UserNotFoundErrorResponse": {
+				"properties": {
+					"message": {
+						"type": "string",
+						"title": "Message",
+						"default": "User not found."
+					},
+					"status_code": {
+						"type": "integer",
+						"title": "Status Code",
+						"default": 404
+					}
+				},
+				"type": "object",
+				"title": "UserNotFoundErrorResponse"
+			},
+			"UserResponse": {
+				"properties": {
+					"id": {
+						"type": "integer",
+						"title": "Id"
+					},
+					"email": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Email"
+					},
+					"github_user_id": {
+						"type": "string",
+						"title": "Github User Id"
+					},
+					"github_username": {
+						"type": "string",
+						"title": "Github Username"
+					},
+					"avatar_url": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Avatar Url"
+					},
+					"full_name": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Full Name"
+					}
+				},
+				"type": "object",
+				"required": [
+					"id",
+					"email",
+					"github_user_id",
+					"github_username",
+					"avatar_url",
+					"full_name"
+				],
+				"title": "UserResponse",
+				"description": "Represents a user in API responses"
+			},
+			"ValidationError": {
+				"properties": {
+					"loc": {
+						"items": {
+							"anyOf": [
+								{
+									"type": "string"
+								},
+								{
+									"type": "integer"
+								}
+							]
+						},
+						"type": "array",
+						"title": "Location"
+					},
+					"msg": {
+						"type": "string",
+						"title": "Message"
+					},
+					"type": {
+						"type": "string",
+						"title": "Error Type"
+					}
+				},
+				"type": "object",
+				"required": [
+					"loc",
+					"msg",
+					"type"
+				],
+				"title": "ValidationError"
 			}
-		  },
-		  "type": "object",
-		  "required": [
-			"loc",
-			"msg",
-			"type"
-		  ],
-		  "title": "ValidationError"
 		}
-	  }
 	}
-  }
+}
