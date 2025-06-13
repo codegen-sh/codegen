@@ -14,7 +14,17 @@ jobs:
   access-check:
     runs-on: ubuntu-latest
     steps:
+      - name: Check if codegen bot
+        id: check-bot
+        run: |
+          if [[ "${{ github.triggering_actor }}" == "codegen-sh[bot]" ]]; then
+            echo "is_bot=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_bot=false" >> $GITHUB_OUTPUT
+          fi
+
       - uses: actions-cool/check-user-permission@v2
+        if: steps.check-bot.outputs.is_bot == 'false'
         with:
           require: write
           username: ${{ github.triggering_actor }}

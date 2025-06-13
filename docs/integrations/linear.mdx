@@ -1,10 +1,10 @@
 ---
 title: "Linear Integration"
 sidebarTitle: "Linear"
-icon: "book"
+icon: "file-lines"
 ---
 
-Integrate Codegen with your Linear workspace to allow agents to interact with issues, manage projects, and keep your team updated.
+Linear is designed to orchestrate teams of humans and agents working together. It's the most efficient way to track progress and scale teams of agents to tackle large, complex tasks. Codegen can take a first pass at virtually any issue, breaking down work and making meaningful progress before human review. We recommend letting Codegen handle the initial exploration and implementation of most tasks.
 
 <img src="/images/linear.png" className="rounded-lg" />
 
@@ -14,7 +14,7 @@ Connect your Linear workspace to Codegen to enable agent interactions.
 
 <Card
   title="Connect Linear Workspace"
-  icon="pencil"
+  icon="linear"
   href="https://linear.app/integrations/codegen"
 >
   Authorize Codegen to access your Linear workspace via the API settings.
@@ -27,10 +27,25 @@ Connect your Linear workspace to Codegen to enable agent interactions.
 
 ## Capabilities
 
-The Linear integration provides read and write access, enabling agents to manage tasks effectively:
+The Linear integration provides comprehensive project management capabilities:
 
-- **Read Access:** Fetch issue details, read comments, view project status, list team members.
-- **Write Access:** Update issue status (e.g., to "In Progress", "Done"), add comments, link GitHub PRs to issues, create new issues, assign tasks.
+- **Create and update issues automatically** - Generate new tasks and update existing ones based on development needs
+- **Track development progress** - Monitor and report on the status of ongoing work
+- **Link code changes to tickets** - Connect GitHub pull requests and commits directly to Linear issues
+- **Sync status updates** - Keep issue statuses current as work progresses through different stages
+- **Multi Agent Systems:** Create sub-issues and assign child agents to break down complex tasks into manageable pieces. [Learn more](#multi-agent-systems).
+
+## Permissions
+
+The Codegen Linear integration requires the following permissions:
+
+- **Create issues for your workspace** - Generate new tasks and tickets as needed
+- **Create issue comments and discussions** - Provide updates, ask questions, and facilitate collaboration
+- **Read access to your workspace data** - Access existing issues, projects, and team information
+- **Write access to update issues and projects** - Modify issue status, assignees, and project details
+- **Assign issues and projects to teams** - Route work to appropriate team members
+- **Mention app in issues and documents** - Enable notifications and cross-references
+- **Receive realtime updates about workspace changes** - Stay synchronized with workspace activity
 
 ## How Agents Use Linear
 
@@ -40,3 +55,28 @@ Agents use the Linear integration to streamline project management:
 - **Link Code:** Connect implemented changes (GitHub PRs) directly to the relevant Linear issue.
 - **Provide Updates:** Post comments on issues with progress reports, results, or questions.
 - **Create Tasks:** Generate new issues for follow-up work, bugs discovered, or sub-tasks.
+
+## Multi Agent Systems
+
+### Overview
+
+Once you've enabled linear self-assign in the settings [page](https://www.codegen.com/settings/permissions), a codegen agent, that has been assigned to a linear issue (or has been tagged in one), can spawn child agents
+by creating sub-issues and assigning itself to those sub-issues. For each sub-issue that codegen assigns to itself a child agent will be spawned and tasked with completing the sub-issue. Once the child agents are
+finished with their tasks they will notify their parent by sending it a message. The parent will then incorporate the child's work into its own as appropriate.
+
+### Best Practices
+
+#### Triggering the Child Agents
+
+If you'd like to have codegen break up a linear issue into smaller issues and assign them to child agents you should instruct it to do so in the
+description of the original linear issue.
+
+#### Shared Context
+
+Before creating sub-issues and assigning them to child agents the parent agent will produce scaffolding in the form of a git branch and include details
+of this branch in the description of the sub-issues. The child agents will then work off of this scaffolding branch. If you have specific scaffolding requirements
+or context you'd like the child agents to share, please include them in the description of the parent issue.
+
+#### Availability
+
+This feature is only available on the Team Plan.

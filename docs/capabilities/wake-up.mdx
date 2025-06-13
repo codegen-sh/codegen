@@ -1,0 +1,67 @@
+---
+title: "Wake Up & Auto-Fix"
+sidebarTitle: "Wake Up"
+icon: "bell"
+---
+
+When your GitHub checks fail, Codegen automatically wakes up to analyze the failures and fix your PR. This intelligent system monitors CI status and proactively resolves issues without manual intervention.
+
+<Tip>Codegen will try to fix broken checks 3x before "tapping out"</Tip>
+
+## How Wake Up Works
+
+Codegen continuously monitors your pull requests and automatically responds to check failures:
+
+- **Automatic Detection:** Monitors GitHub check runs and CI status in real-time
+- **Intelligent Analysis:** Analyzes build logs, test failures, and error messages to understand root causes
+- **Targeted Fixes:** Generates specific code changes to resolve the identified issues
+- **Persistent Retry:** Will attempt to fix issues up to 3 times per PR
+
+## What Triggers Wake Up
+
+Wake up activates when:
+
+- **CI Checks Fail:** Any GitHub check run reports a failure status
+- **Build Errors:** Compilation, linting, or build process failures
+- **Test Failures:** Unit tests, integration tests, or automated test suites fail
+- **Code Quality Issues:** Static analysis tools report violations or warnings
+
+## The Auto-Fix Process
+
+When Codegen wakes up to fix a failing PR, it follows this process:
+
+1. **Detect Failure:** Monitor check status and identify when builds break
+2. **Analyze Logs:** Grep through CI logs to understand specific failure points
+3. **Generate Solution:** Create targeted code changes to resolve identified issues
+4. **Apply Fix:** Automatically commit fixes to the same PR branch
+5. **Re-validate:** Monitor the new check run to ensure the fix was successful
+
+## Retry Logic
+
+Codegen implements intelligent retry behavior:
+
+- **Up to 3 attempts** per PR to resolve failing checks
+- **Progressive analysis** - each retry incorporates learnings from previous attempts
+- **Failure escalation** - if 3 attempts fail, the issue is flagged for human review
+
+## GitHub Integration
+
+The wake-up system integrates deeply with GitHub:
+
+- **Check Run Annotations:** Creates detailed feedback with line-specific suggestions
+- **PR Comments:** Adds contextual suggestions and explanations
+- **Auto-Fix Actions:** Provides one-click fix buttons in the GitHub UI
+- **Status Updates:** Real-time updates on fix progress and results
+
+<Note>
+  Wake up only activates for repositories where Codegen has write access and the
+  feature is enabled. It respects your repository permissions and team
+  workflows.
+</Note>
+
+## Benefits
+
+- **Reduced Context Switching:** No need to manually investigate and fix CI failures
+- **Faster Iteration:** PRs get fixed automatically, keeping development velocity high
+- **Learning from Failures:** Each fix improves Codegen's understanding of your codebase
+- **24/7 Monitoring:** Works around the clock to keep your PRs in good shape

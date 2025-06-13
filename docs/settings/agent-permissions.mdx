@@ -1,0 +1,76 @@
+---
+title: "Agent Permissions"
+sidebarTitle: "Agent Permissions"
+icon: "user-shield"
+---
+
+Agent Permissions allow you to configure what actions the AI agent is allowed to perform across your organization. These settings provide fine-grained control over the agent's capabilities, ensuring it operates within your team's preferred workflows and security boundaries.
+
+## Accessing Agent Permissions
+
+Agent Permission settings are applied globally for your entire organization. You can access and modify these settings by navigating to:
+
+[**codegen.com/settings/permissions**](https://codegen.com/settings/permissions)
+
+<Frame caption="Agent Permissions UI at codegen.com/settings/permissions">
+  <img src="/images/agent-permissions.png" alt="Agent Permissions Configuration" />
+</Frame>
+
+## Available Permission Settings
+
+### Enable PR Creation
+
+**Control whether the codegen agent is able to create pull requests in your repositories in response to user requests.**
+
+When enabled, the agent can automatically create pull requests when implementing features, fixing bugs, or making other code changes. When disabled, the agent will make changes locally but won't create PRs, requiring manual PR creation.
+
+- **Default**: Enabled
+- **Use Case**: Disable if you prefer manual PR creation or have strict PR workflows
+
+### Enable Rules Detection
+
+**Allow the agent to automatically detect and apply rules from .cursorrules and .windsurfrules files in your repositories.**
+
+This setting enables the agent to automatically discover and follow coding standards, style guides, and other rules defined in your repository's configuration files.
+
+- **Default**: Enabled
+- **Use Case**: Disable if you want to manually control rule application or don't use these rule files
+
+### Enable Linear Self-Assign
+
+**Allow the codegen agent to self-assign Linear issues, enabling it to spin off other agents.**
+
+When enabled, the agent can assign itself to Linear issues and potentially delegate work to other agent instances for parallel processing.
+
+- **Default**: Enabled
+- **Use Case**: Disable if you prefer manual issue assignment or want to limit agent autonomy
+
+### Enable Linear Auto State Change
+
+**When enabled, the agent will automatically move Linear issues to 'Started' state when self-assigning them.**
+
+This setting automates the workflow by updating issue status when the agent begins work, providing better visibility into what the agent is actively working on.
+
+- **Default**: Disabled
+- **Use Case**: Enable for automatic issue tracking and improved project visibility
+
+## Best Practices
+
+### Security Considerations
+
+- Review permission settings regularly to ensure they align with your team's security policies
+- Consider disabling PR creation in production environments if you require manual review processes
+- Monitor agent activity when enabling self-assignment features
+
+### Workflow Integration
+
+- Enable Linear Auto State Change if your team relies on Linear for project tracking
+- Coordinate permission settings with your existing CI/CD and review processes
+- Consider your team's preferred level of automation when configuring these settings
+
+## Related Documentation
+
+- [Repository Rules](/settings/repo-rules) - Configure repository-specific behavior
+- [Linear Integration](/integrations/linear) - Set up Linear workspace integration
+- [Model Configuration](/settings/model-configuration) - Configure LLM settings
+

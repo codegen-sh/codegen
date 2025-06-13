@@ -14,10 +14,9 @@
 				"tab": "Documentation",
 				"groups": [
 					{
-						"group": "Introduction",
+						"group": "Overview",
 						"pages": [
 							"introduction/overview",
-							"introduction/capabilities",
 							"introduction/api",
 							"introduction/prompting",
 							"introduction/community",
@@ -26,12 +25,19 @@
 						]
 					},
 					{
+						"group": "Capabilities",
+						"pages": ["capabilities/capabilities", "capabilities/wake-up"]
+					},
+					{
 						"group": "Integrations",
 						"pages": [
+							"integrations/github",
 							"integrations/slack",
 							"integrations/linear",
 							"integrations/jira",
-							"integrations/github",
+							"integrations/notion",
+							"integrations/figma",
+							"integrations/circleci",
 							"integrations/web-search",
 							"integrations/postgres"
 						]
@@ -41,8 +47,9 @@
 						"pages": [
 							"sandboxes/overview",
 							"sandboxes/setup-commands",
-							"sandboxes/editor",
 							"sandboxes/environment-variables",
+							"sandboxes/secrets",
+							"sandboxes/editor",
 							"sandboxes/web-preview"
 						]
 					},
@@ -61,6 +68,10 @@
 							"source": "/api-reference/openapi3.json",
 							"directory": "api-reference"
 						}
+					},
+					{
+						"group": "Guides",
+						"pages": ["api-reference/agent-run-logs"]
 					}
 				]
 			},
@@ -124,5 +135,11 @@
 		"posthog": {
 			"apiKey": "phc_GLxaINoQJnuyCyxDmTciQqzdKBYFVDkY7bRBO4bDdso"
 		}
-	}
+	},
+	"head": [
+		{
+			"tag": "script",
+			"content": "(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-T7G5S78D');"
+		}
+	]
 }

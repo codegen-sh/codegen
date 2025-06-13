@@ -202,11 +202,7 @@
 		},
 		"/v1/users/me": {
 			"get": {
-				"tags": [
-					"users",
-					"users",
-					"users"
-				],
+				"tags": ["users", "users", "users"],
 				"summary": "Get Current User Info",
 				"description": "Get current user information from API token.\n\nReturns detailed information about the user associated with the provided API token.\nThis is useful for applications that need to identify the current user from their API token.\n\nRate limit: 60 requests per 30 seconds.",
 				"operationId": "get_current_user_info_v1_users_me_get",
@@ -461,11 +457,7 @@
 		},
 		"/v1/organizations/{org_id}/agent/runs": {
 			"get": {
-				"tags": [
-					"agents",
-					"agents",
-					"agents"
-				],
+				"tags": ["agents", "agents", "agents"],
 				"summary": "List Agent Runs",
 				"description": "List agent runs for an organization with optional user filtering.\n\nReturns a paginated list of agent runs for the specified organization.\nOptionally filter by user_id to get only agent runs initiated by a specific user.\nResults are ordered by creation date (newest first).\n\nRate limit: 60 requests per 30 seconds.",
 				"operationId": "list_agent_runs_v1_organizations__org_id__agent_runs_get",
@@ -670,11 +662,7 @@
 		},
 		"/v1/alpha/organizations/{org_id}/agent/run/{agent_run_id}/logs": {
 			"get": {
-				"tags": [
-					"agents-alpha",
-					"agents-alpha",
-					"agents-beta"
-				],
+				"tags": ["agents-alpha", "agents-alpha", "agents-beta"],
 				"summary": "Get Agent Run Logs",
 				"description": "Retrieve an agent run with its logs using pagination. This endpoint is currently in ALPHA and IS subject to change.\n\nReturns the agent run details along with a paginated list of logs for the specified agent run.\nThe agent run must belong to the specified organization. Logs are returned in chronological order.\nUses standard pagination parameters (skip and limit) and includes pagination metadata in the response.\n\nRate limit: 60 requests per 60 seconds.",
 				"operationId": "get_agent_run_logs_v1_alpha_organizations__org_id__agent_run__agent_run_id__logs_get",
@@ -909,9 +897,7 @@
 					}
 				},
 				"type": "object",
-				"required": [
-					"agent_run_id"
-				],
+				"required": ["agent_run_id"],
 				"title": "AgentRunLogResponse",
 				"description": "Represents an agent run log in API responses"
 			},
@@ -1111,11 +1097,7 @@
 					}
 				},
 				"type": "object",
-				"required": [
-					"id",
-					"organization_id",
-					"logs"
-				],
+				"required": ["id", "organization_id", "logs"],
 				"title": "AgentRunWithLogsResponse",
 				"description": "Represents an agent run in API responses"
 			},
@@ -1256,13 +1238,7 @@
 					}
 				},
 				"type": "object",
-				"required": [
-					"items",
-					"total",
-					"page",
-					"size",
-					"pages"
-				],
+				"required": ["items", "total", "page", "size", "pages"],
 				"title": "Page[AgentRunResponse]"
 			},
 			"Page_OrganizationResponse_": {
