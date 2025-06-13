@@ -8,16 +8,19 @@ Connect Codegen to your Slack workspace to enable seamless communication between
 
 <img src="/images/slack.png" />
 
+Slack is the most fluid way to communicate with Codegen. Simply tag @codegen in any channel to collaborate directly and give it tasks that leverage all your other integrations. As an agent, Codegen can seamlessly work across platforms—from GitHub to Linear to your databases—all initiated from Slack. We recommend Slack as the lowest barrier entry point for all users.
+
 ## Installation
 
-To use this integration, follow the installation and configuration steps below. 
+To use this integration, follow the installation and configuration steps below.
 
 <Card
   title="Add Codegen to Slack"
   icon="slack"
   href="https://codegen.com/integrations"
 >
-  Create a Codegen account and visit Integrations > Slack to connect your Slack workspace.
+  Create a Codegen account and visit Integrations > Slack to connect your Slack
+  workspace.
 </Card>
 
 <Note>
@@ -27,17 +30,14 @@ To use this integration, follow the installation and configuration steps below.
 
 After installation, proceed to the Configuration Instructions below to finish setup and begin using Codegen in your Slack workspace.
 
-## Capabilities & Functions
+## Capabilities
 
-Codegen functions as a full-fledged software engineer that you can interact with directly through Slack. When responding to messages in Slack, Codegen can:
+The Slack integration enables seamless collaboration with Codegen directly within your workspace:
 
-- **Perform Research:** Search the web for information, documentation, or solutions to problems.
-- **Manage Issues:** Triage and update issues in Linear or GitHub based on your requests.
-- **Develop Code:** Make code changes, improvements, or implement new features across your repositories.
-- **Create Pull Requests:** Draft, review, and submit PRs with detailed descriptions and context.
-- **Provide Updates:** Keep you informed about progress, blockers, or completion of tasks.
-- **Request Clarification:** Ask for additional context or guidance when needed to complete a task effectively.
-- **Share Results:** Deliver summaries, documentation, links to PRs, or explanations of changes made.
+- **Chat with Codegen directly in channels** - Interact naturally through @mentions and direct messages
+- **Get real-time notifications** - Stay updated on task progress and completion
+- **Share code snippets and updates** - Collaborate on code changes and development tasks
+- **Collaborate on development tasks** - Coordinate work across your entire development workflow
 
 All of these capabilities are accessible through natural language interactions in your Slack workspace, allowing your team to leverage Codegen's assistance without context switching between different platforms.
 
@@ -46,16 +46,20 @@ All of these capabilities are accessible through natural language interactions i
 After installing the integration from the Slack Marketplace, configure the bot by inviting it to relevant channels and setting up triggers so Codegen knows when and how to respond.
 
 ### Channel Setup
+
 - **Invite the Codegen bot**: Type `/invite @codegen` in any channel where you want Codegen to participate.
 - (Optional) **Create a dedicated channel**: Some Codegen users find creating a channel like `#codegen` helpful for general agent interactions and to encourage experimentation.
 
 ## What Triggers Slack Messages from Codegen
+
 These triggers kick off new Codegen requests:
+
 - **Direct mentions**: Type `@codegen` followed by your request in any channel where the bot is present.
 - **Thread replies**: Tag `@codegen` in threads to continue the conversation.
 - **Direct messages**: Send a DM to the Codegen bot for private conversations.
 
 In addition, Codegen will send messages to Slack when:
+
 - It starts work on a request you made
 - It receives an additional message while working on a request
 - It completes a task, code change, or research request
@@ -65,6 +69,7 @@ In addition, Codegen will send messages to Slack when:
 Codegen only responds when tagged or messaged directly. Use these approaches to ensure your request reaches it:
 
 - **Direct Messages:**
+
   - Responds to any DM sent to the Codegen integration for Slack
   - Has visibility into previous messages in the conversation (not just threaded replies)
   - This provides a more natural conversation experience as many users don't thread messages in DMs
@@ -75,17 +80,71 @@ Codegen only responds when tagged or messaged directly. Use these approaches to 
   - Sending subsequent messages within a thread routes to the same agent (tag `@codegen` to trigger)
   - New messages to `@codegen` in an active thread will interrupt the agent if it's currently working
 
+## Permissions and Scopes
+
+The Codegen Slack integration requires the following permissions to function effectively:
+
+### Core Messaging Permissions
+- **View messages that mention @codegen** - To respond to direct mentions and requests
+- **Read message history in public and private channels** - To understand context and conversation flow
+- **Read direct messages and group chats** (`mpim:read`) - To enable private conversations with the agent in group DMs and multi-person direct messages
+- **Send messages** - To communicate responses and provide updates
+
+### Enhanced Communication Features
+- **View and react with emojis** - To acknowledge messages and provide feedback through reactions
+
+### User and Workspace Access
+- **View workspace members and email addresses** (`users:read.email`) - Used to map Slack user accounts to Codegen accounts for proper authentication and permission management. This ensures that when a user interacts with Codegen via Slack, their actions are properly attributed to their Codegen account and repository permissions
+- **Access shared files and attachments** - To review and work with shared content like code snippets, images, and documents
+- **Access basic channel information** - To operate appropriately within different channel contexts
+
+### Why These Permissions Are Necessary
+
+- **Email mapping** enables secure account linking between Slack and Codegen, ensuring proper access control
+- **Group DM access** ensures Codegen can participate in team discussions and collaborative planning sessions
+
 ## Data Privacy and Security
 
 **Message Content Handling:**
 
 - **Third-Party LLM APIs:** To provide its core functionality, Codegen shares message content with third-party Large Language Model (LLM) APIs, specifically OpenAI and Anthropic.
 - **Data Retention:** Outside of the LLM API interactions, message content is retained by Codegen solely for the purpose of displaying it within the Codegen user interface.
-- **Metadata from Private Channels:** When messages from private Slack channels are processed, Codegen does not expose private metadata, such as the original author's name or username, in the Codegen web app.
+- **Metadata from Private Channels:** When messages from private Slack channels are processed, Codegen does not expose private metadata, such as the original author's name or username, in the Codegen web app. Private channel names are anonymized and displayed as "Private channel" to non-members.
 
 **User Permissions and Access Control:**
 
 Codegen's actions on connected repositories are governed by the permissions of the user who initiated the interaction via Slack. The bot itself does not have independent permissions to repositories. Access to repositories and the ability to trigger actions are determined by the Codegen user's authenticated account and their associated repository permissions. We recommend configuring channel access carefully during installation to ensure the Codegen integration for Slack is only present in channels where its use is appropriate.
+
+**Privacy Policy:**
+
+For complete details on how we collect, use, and protect your data, please review our [Privacy Policy](https://www.codegen.com/privacy-policy).
+
+## AI Components and Usage
+
+**AI-Powered Functionality:**
+
+Codegen uses artificial intelligence to provide intelligent code assistance, automated development tasks, and natural language interactions. Our AI capabilities include:
+
+- **Code Generation and Analysis:** AI models analyze your codebase and generate appropriate code changes, bug fixes, and improvements
+- **Natural Language Processing:** AI interprets your requests in Slack and converts them into actionable development tasks
+- **Context Understanding:** AI maintains conversation context to provide relevant and coherent responses across interactions
+
+**AI Data Processing:**
+
+- **Message Analysis:** Your Slack messages are processed by AI models to understand intent and generate appropriate responses
+- **Code Context:** When working with repositories, AI models analyze relevant code to provide accurate assistance
+
+**AI Limitations:**
+
+- AI-generated code should be reviewed before deployment
+- Complex tasks may require human oversight and validation
+- AI responses are based on training data and may not always reflect the most current information
+
+## Pricing and Plans
+
+Codegen offers flexible pricing plans to accommodate teams of all sizes. The Slack integration is available across all plan tiers, with usage limits and features varying by plan.
+
+For detailed pricing information and to choose the plan that best fits your team's needs, visit our [Pricing Page](https://www.codegen.com/pricing).
 
 ## Tips for Effective Use
 

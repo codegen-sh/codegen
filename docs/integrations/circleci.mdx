@@ -1,0 +1,72 @@
+---
+title: "CircleCI Integration"
+sidebarTitle: "CircleCI"
+icon: "circle-play"
+---
+
+Monitor and automatically fix failing CI checks with CircleCI integration. Codegen views check status, analyzes build logs, and automatically fixes issues when PRs fail. When Codegen creates a PR and checks fail, it will automatically wake up to investigate the logs and push fixes.
+
+<Warning>
+  CircleCI is currently available for enterprise customers. See
+  [codegen.com/billing](https://codegen.com/billing) for more
+</Warning>
+
+## Capabilities
+
+The CircleCI integration enables intelligent check monitoring and automatic issue resolution:
+
+- **View broken checks and failures** - Monitor CI check status and identify specific failure points
+- **Analyze build logs and error messages** - Grep through logs to understand root causes of failures
+- **Automatically fix failing PRs** - Push corrective changes when checks fail on Codegen-created PRs
+- **Wake up on check failures** - Automatically trigger when CI checks fail to investigate and resolve issues
+
+## Permissions
+
+The Codegen CircleCI integration requires the following permissions:
+
+- **Read project information and settings** - Access pipeline configurations and project details
+- **View build history and logs** - Monitor pipeline execution and analyze failure logs
+- **Read test results and artifacts** - Access build outputs, test reports, and error details
+- **Access check status and details** - Monitor CI check results and failure information
+
+<Note>
+  Codegen operates in read-only mode for CircleCI - it monitors and analyzes but
+  does not trigger builds or modify CI configurations.
+</Note>
+
+## How Agents Use CircleCI
+
+Agents leverage the CircleCI integration to:
+
+- **Monitor Check Status:** Continuously watch for CI check failures on pull requests
+- **Analyze Failure Logs:** Grep through build logs to identify specific errors, test failures, or build issues
+- **Auto-Fix Issues:** When Codegen creates a PR and checks fail, it automatically investigates and pushes fixes
+- **Prevent Broken Merges:** Ensure code quality by resolving CI failures before merge
+
+## Automatic Wake-Up Behavior
+
+When Codegen creates a pull request and CircleCI checks fail, Codegen will automatically:
+
+1. **Detect the failure** - Monitor check status and identify when builds break
+2. **Analyze the logs** - Grep through CircleCI logs to understand the specific failure
+3. **Generate fixes** - Create targeted code changes to resolve the identified issues
+4. **Push updates** - Automatically commit fixes to the same PR branch
+
+This ensures that Codegen-created PRs maintain high quality and don't introduce breaking changes to your codebase.
+
+## Installation
+
+Connect your CircleCI account to Codegen to enable automatic check monitoring and issue resolution.
+
+<Card
+  title="Connect CircleCI Account"
+  icon="circle-play"
+  href="https://codegen.sh/integrations"
+>
+  Authorize Codegen to view your CircleCI check results and build logs.
+</Card>
+
+<Note>
+  Ensure the agent has access to the specific CircleCI projects and
+  organizations you want it to monitor.
+</Note>{" "}

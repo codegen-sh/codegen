@@ -14,10 +14,9 @@
 				"tab": "Documentation",
 				"groups": [
 					{
-						"group": "Introduction",
+						"group": "Overview",
 						"pages": [
 							"introduction/overview",
-							"introduction/capabilities",
 							"introduction/api",
 							"introduction/prompting",
 							"introduction/community",
@@ -26,11 +25,18 @@
 						]
 					},
 					{
+						"group": "Capabilities",
+						"pages": ["capabilities/capabilities", "capabilities/wake-up"]
+					},
+					{
 						"group": "Integrations",
 						"pages": [
+							"integrations/github",
 							"integrations/slack",
 							"integrations/linear",
-							"integrations/github",
+							"integrations/notion",
+							"integrations/figma",
+							"integrations/circleci",
 							"integrations/web-search",
 							"integrations/postgres"
 						]
@@ -40,8 +46,9 @@
 						"pages": [
 							"sandboxes/overview",
 							"sandboxes/setup-commands",
-							"sandboxes/editor",
 							"sandboxes/environment-variables",
+							"sandboxes/secrets",
+							"sandboxes/editor",
 							"sandboxes/web-preview"
 						]
 					},
@@ -60,6 +67,10 @@
 							"source": "/api-reference/openapi3.json",
 							"directory": "api-reference"
 						}
+					},
+					{
+						"group": "Guides",
+						"pages": ["api-reference/agent-run-logs"]
 					}
 				]
 			},

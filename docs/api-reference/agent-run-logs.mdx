@@ -1,0 +1,287 @@
+---
+title: "Agent Run Logs API"
+sidebarTitle: "Agent Run Logs"
+icon: "list"
+iconType: "solid"
+---
+
+<Warning>
+  This endpoint is currently in **ALPHA** status and is subject to change. We welcome your feedback to help improve this API.
+</Warning>
+
+The Agent Run Logs API allows you to retrieve detailed execution logs for agent runs, providing insights into the agent's thought process, tool usage, and execution flow.
+
+## Endpoint
+
+```
+GET /v1/organizations/{org_id}/agent/run/{agent_run_id}/logs
+```
+
+## Authentication
+
+This endpoint requires API token authentication. Include your token in the Authorization header:
+
+```bash
+Authorization: Bearer YOUR_API_TOKEN
+```
+
+## Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `org_id` | integer | Yes | Your organization ID |
+| `agent_run_id` | integer | Yes | The ID of the agent run to retrieve logs for |
+| `skip` | integer | No | Number of logs to skip for pagination (default: 0) |
+| `limit` | integer | No | Maximum number of logs to return (default: 100, max: 100) |
+
+## Response Structure
+
+The endpoint returns an `AgentRunWithLogsResponse` object containing the agent run details and paginated logs:
+
+```json
+{
+  "id": 12345,
+  "organization_id": 67890,
+  "status": "completed",
+  "created_at": "2024-01-15T10:30:00Z",
+  "web_url": "https://app.codegen.com/agent/trace/12345",
+  "result": "Task completed successfully",
+  "logs": [
+    {
+      "agent_run_id": 12345,
+      "created_at": "2024-01-15T10:30:15Z",
+      "tool_name": "ripgrep_search",
+      "message_type": "ACTION",
+      "thought": "I need to search for the user's function in the codebase",
+      "observation": {
+        "status": "success",
+        "results": ["Found 3 matches..."]
+      },
+      "tool_input": {
+        "query": "function getUserData",
+        "file_extensions": [".js", ".ts"]
+      },
+      "tool_output": {
+        "matches": 3,
+        "files": ["src/user.js", "src/api.ts"]
+      }
+    }
+  ],
+  "total_logs": 25,
+  "page": 1,
+  "size": 100,
+  "pages": 1
+}
+```
+
+## Agent Run Log Fields
+
+Each log entry in the `logs` array contains the following fields:
+
+### Core Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `agent_run_id` | integer | The ID of the agent run this log belongs to |
+| `created_at` | string | ISO 8601 timestamp when the log entry was created |
+| `message_type` | string | The type of log entry (see [Log Types](#log-types) below) |
+
+### Agent Reasoning Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `thought` | string \| null | The agent's internal reasoning or thought process for this step |
+
+### Tool Execution Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `tool_name` | string \| null | Name of the tool being executed (e.g., "ripgrep_search", "file_write") |
+| `tool_input` | object \| null | JSON object containing the parameters passed to the tool |
+| `tool_output` | object \| null | JSON object containing the tool's execution results |
+| `observation` | object \| string \| null | The agent's observation of the tool execution results or other contextual data |
+
+## Log Types
+
+The `message_type` field indicates the type of log entry. Here are the possible values:
+
+### Plan Agent Types
+
+| Type | Description |
+|------|-------------|
+| `ACTION` | The agent is executing a tool or taking an action |
+| `PLAN_EVALUATION` | The agent is evaluating or updating its plan |
+| `FINAL_ANSWER` | The agent is providing its final response or conclusion |
+| `ERROR` | An error occurred during execution |
+| `USER_MESSAGE` | A message from the user (e.g., interruptions or additional context) |
+| `USER_GITHUB_ISSUE_COMMENT` | A comment from a GitHub issue that the agent is processing |
+
+### PR Agent Types
+
+| Type | Description |
+|------|-------------|
+| `INITIAL_PR_GENERATION` | The agent is generating the initial pull request |
+| `DETECT_PR_ERRORS` | The agent is detecting errors in a pull request |
+| `FIX_PR_ERRORS` | The agent is fixing errors found in a pull request |
+| `PR_CREATION_FAILED` | Pull request creation failed |
+| `PR_EVALUATION` | The agent is evaluating a pull request |
+
+### Commit Agent Types
+
+| Type | Description |
+|------|-------------|
+| `COMMIT_EVALUATION` | The agent is evaluating commits |
+
+### Link Types
+
+| Type | Description |
+|------|-------------|
+| `AGENT_RUN_LINK` | A link to another related agent run |
+
+## Field Population Patterns
+
+Different log types populate different fields:
+
+### ACTION Logs
+- Always have: `tool_name`, `tool_input`, `tool_output`
+- Often have: `thought`, `observation`
+- Example: Tool executions like searching code, editing files, creating PRs
+
+### PLAN_EVALUATION Logs
+- Always have: `thought`
+- May have: `observation`
+- Rarely have: Tool-related fields
+- Example: Agent reasoning about next steps
+
+### ERROR Logs
+- Always have: `observation` (containing error details)
+- May have: `tool_name` (if error occurred during tool execution)
+- Example: Failed tool executions or system errors
+
+### FINAL_ANSWER Logs
+- Always have: `observation` (containing the final response)
+- May have: `thought`
+- Example: Agent's final response to the user
+
+## Usage Examples
+
+### Basic Log Retrieval
+
+```python
+import requests
+
+url = "https://api.codegen.com/v1/organizations/67890/agent/run/12345/logs"
+headers = {"Authorization": "Bearer YOUR_API_TOKEN"}
+
+response = requests.get(url, headers=headers)
+data = response.json()
+
+print(f"Agent run status: {data['status']}")
+print(f"Total logs: {data['total_logs']}")
+
+for log in data['logs']:
+    print(f"[{log['created_at']}] {log['message_type']}: {log['thought']}")
+```
+
+### Filtering by Log Type
+
+```python
+# Get only ACTION logs to see tool executions
+action_logs = [log for log in data['logs'] if log['message_type'] == 'ACTION']
+
+for log in action_logs:
+    print(f"Tool: {log['tool_name']}")
+    print(f"Input: {log['tool_input']}")
+    print(f"Output: {log['tool_output']}")
+    print("---")
+```
+
+### Pagination Example
+
+```python
+# Get logs in batches of 50
+skip = 0
+limit = 50
+all_logs = []
+
+while True:
+    url = f"https://api.codegen.com/v1/organizations/67890/agent/run/12345/logs?skip={skip}&limit={limit}"
+    response = requests.get(url, headers=headers)
+    data = response.json()
+    
+    all_logs.extend(data['logs'])
+    
+    if len(data['logs']) < limit:
+        break  # No more logs
+    
+    skip += limit
+
+print(f"Retrieved {len(all_logs)} total logs")
+```
+
+### Debugging Failed Runs
+
+```python
+# Find error logs to debug issues
+error_logs = [log for log in data['logs'] if log['message_type'] == 'ERROR']
+
+for error_log in error_logs:
+    print(f"Error at {error_log['created_at']}: {error_log['observation']}")
+    if error_log['tool_name']:
+        print(f"Failed tool: {error_log['tool_name']}")
+```
+
+## Common Use Cases
+
+### 1. Building Monitoring Dashboards
+Use the logs to create dashboards showing:
+- Agent execution progress
+- Tool usage patterns
+- Error rates and types
+- Execution timelines
+
+### 2. Debugging Agent Behavior
+Analyze logs to understand:
+- Why an agent made certain decisions
+- Where errors occurred in the execution flow
+- What tools were used and their results
+
+### 3. Audit and Compliance
+Track agent actions for:
+- Code change auditing
+- Compliance reporting
+- Security monitoring
+
+### 4. Performance Analysis
+Monitor:
+- Tool execution times
+- Common failure patterns
+- Agent reasoning efficiency
+
+## Rate Limits
+
+- **60 requests per 60 seconds** per API token
+- Rate limits are shared across all API endpoints
+
+## Error Responses
+
+| Status Code | Description |
+|-------------|-------------|
+| 400 | Bad Request - Invalid parameters |
+| 401 | Unauthorized - Invalid or missing API token |
+| 403 | Forbidden - Insufficient permissions |
+| 404 | Not Found - Agent run not found |
+| 429 | Too Many Requests - Rate limit exceeded |
+
+## Feedback and Support
+
+Since this endpoint is in ALPHA, we'd love your feedback! Please reach out through:
+
+- [Community Slack](https://join.slack.com/t/codegen-community/shared_invite/zt-2p4xjjzjx-1~3tTbJWZWQUYOLAhvG5rA)
+- [GitHub Issues](https://github.com/codegen-sh/codegen-sdk/issues)
+- Email: support@codegen.com
+
+<Note>
+  The structure and fields of this API may change as we gather feedback and improve the service. We'll provide advance notice of any breaking changes.
+</Note>
+
