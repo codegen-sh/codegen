@@ -14,11 +14,7 @@
 	"paths": {
 		"/v1/organizations/{org_id}/users": {
 			"get": {
-				"tags": [
-					"users",
-					"users",
-					"users"
-				],
+				"tags": ["users", "users", "users"],
 				"summary": "Get Users",
 				"description": "Get paginated list of users for a specific organization.\n\nReturns a paginated list of all users associated with the specified organization.\nThe requesting user must be a member of the organization to access this endpoint.\n\nRate limit: 60 requests per 30 seconds.",
 				"operationId": "get_users_v1_organizations__org_id__users_get",
@@ -110,11 +106,7 @@
 		},
 		"/v1/organizations/{org_id}/users/{user_id}": {
 			"get": {
-				"tags": [
-					"users",
-					"users",
-					"users"
-				],
+				"tags": ["users", "users", "users"],
 				"summary": "Get User",
 				"description": "Get details for a specific user in an organization.\n\nReturns detailed information about a user within the specified organization.\nThe requesting user must be a member of the organization to access this endpoint.\n\nRate limit: 60 requests per 30 seconds.",
 				"operationId": "get_user_v1_organizations__org_id__users__user_id__get",
@@ -262,11 +254,7 @@
 		},
 		"/v1/organizations/{org_id}/agent/run": {
 			"post": {
-				"tags": [
-					"agents",
-					"agents",
-					"agents"
-				],
+				"tags": ["agents", "agents", "agents"],
 				"summary": "Create Agent Run",
 				"description": "Create a new agent run.\n\nCreates and initiates a long-running agent process based on the provided prompt.\nThe process will complete asynchronously, and the response contains the agent run ID\nwhich can be used to check the status later. The requesting user must be a member\nof the specified organization.\n\nThis endpoint accepts both a text prompt and an optional image file upload.\n\nRate limit: 10 requests per minute.",
 				"operationId": "create_agent_run_v1_organizations__org_id__agent_run_post",
@@ -365,11 +353,7 @@
 		},
 		"/v1/organizations/{org_id}/agent/run/{agent_run_id}": {
 			"get": {
-				"tags": [
-					"agents",
-					"agents",
-					"agents"
-				],
+				"tags": ["agents", "agents", "agents"],
 				"summary": "Get Agent Run",
 				"description": "Retrieve the status and result of an agent run.\n\nReturns the current status, progress, and any available results for the specified agent run.\nThe agent run must belong to the specified organization. If the agent run is still in progress,\nthis endpoint can be polled to check for completion.\n\nRate limit: 60 requests per 30 seconds.",
 				"operationId": "get_agent_run_v1_organizations__org_id__agent_run__agent_run_id__get",
@@ -585,11 +569,7 @@
 		},
 		"/v1/organizations": {
 			"get": {
-				"tags": [
-					"organizations",
-					"organizations",
-					"organizations"
-				],
+				"tags": ["organizations", "organizations", "organizations"],
 				"summary": "Get Organizations",
 				"description": "Get organizations for the authenticated user.\n\nReturns a paginated list of all organizations that the authenticated user is a member of.\nResults include basic organization details such as name, ID, and membership information.\nUse pagination parameters to control the number of results returned.\n\nRate limit: 60 requests per 30 seconds.",
 				"operationId": "get_organizations_v1_organizations_get",
@@ -983,10 +963,7 @@
 					}
 				},
 				"type": "object",
-				"required": [
-					"id",
-					"organization_id"
-				],
+				"required": ["id", "organization_id"],
 				"title": "AgentRunResponse",
 				"description": "Represents an agent run in API responses"
 			},
@@ -1138,9 +1115,7 @@
 					}
 				},
 				"type": "object",
-				"required": [
-					"prompt"
-				],
+				"required": ["prompt"],
 				"title": "CreateAgentRunInput"
 			},
 			"HTTPValidationError": {
@@ -1187,11 +1162,7 @@
 					}
 				},
 				"type": "object",
-				"required": [
-					"id",
-					"name",
-					"settings"
-				],
+				"required": ["id", "name", "settings"],
 				"title": "OrganizationResponse",
 				"description": "Represents an organization in API responses"
 			},
@@ -1268,13 +1239,7 @@
 					}
 				},
 				"type": "object",
-				"required": [
-					"items",
-					"total",
-					"page",
-					"size",
-					"pages"
-				],
+				"required": ["items", "total", "page", "size", "pages"],
 				"title": "Page[OrganizationResponse]"
 			},
 			"Page_UserResponse_": {
@@ -1304,13 +1269,7 @@
 					}
 				},
 				"type": "object",
-				"required": [
-					"items",
-					"total",
-					"page",
-					"size",
-					"pages"
-				],
+				"required": ["items", "total", "page", "size", "pages"],
 				"title": "Page[UserResponse]"
 			},
 			"PermissionsErrorResponse": {
@@ -1431,11 +1390,7 @@
 					}
 				},
 				"type": "object",
-				"required": [
-					"loc",
-					"msg",
-					"type"
-				],
+				"required": ["loc", "msg", "type"],
 				"title": "ValidationError"
 			}
 		}
