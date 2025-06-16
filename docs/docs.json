@@ -1,145 +1,146 @@
 {
-	"$schema": "https://mintlify.com/docs.json",
-	"theme": "maple",
-	"name": "Codegen",
-	"colors": {
-		"primary": "#a277ff",
-		"light": "#a277ff",
-		"dark": "#a277ff"
-	},
-	"favicon": "/favicon.svg",
-	"navigation": {
-		"tabs": [
-			{
-				"tab": "Documentation",
-				"groups": [
-					{
-						"group": "Overview",
-						"pages": [
-							"introduction/overview",
-							"introduction/api",
-							"introduction/prompting",
-							"introduction/community",
-							"introduction/about",
-							"introduction/faq"
-						]
-					},
-					{
-						"group": "Capabilities",
-						"pages": ["capabilities/capabilities", "capabilities/wake-up"]
-					},
-					{
-						"group": "Integrations",
-						"pages": [
-							"integrations/github",
-							"integrations/slack",
-							"integrations/linear",
-							"integrations/jira",
-							"integrations/notion",
-							"integrations/figma",
-							"integrations/circleci",
-							"integrations/web-search",
-							"integrations/postgres"
-						]
-					},
-					{
-						"group": "Sandboxes",
-						"pages": [
-							"sandboxes/overview",
-							"sandboxes/setup-commands",
-							"sandboxes/environment-variables",
-							"sandboxes/secrets",
-							"sandboxes/editor",
-							"sandboxes/web-preview"
-						]
-					},
-					{
-						"group": "Settings",
-						"pages": ["settings/repo-rules", "settings/model-configuration"]
-					}
-				]
-			},
-			{
-				"tab": "API Reference",
-				"groups": [
-					{
-						"group": "Endpoints",
-						"openapi": {
-							"source": "/api-reference/openapi3.json",
-							"directory": "api-reference"
-						}
-					},
-					{
-						"group": "Guides",
-						"pages": ["api-reference/agent-run-logs"]
-					}
-				]
-			},
-			{
-				"tab": "Blog",
-				"groups": [
-					{
-						"group": "Blog",
-						"pages": ["blog/posts", "blog/devin", "blog/act-via-code"]
-					}
-				]
-			},
-			{
-				"tab": "Changelog",
-				"groups": [
-					{
-						"group": "Changelog",
-						"pages": ["changelog/changelog"]
-					}
-				]
-			}
-		]
-	},
-	"logo": {
-		"light": "https://cdn.prod.website-files.com/67070304751b9b01bf6a161c/679bcf45bf55446746125835_Codegen_Logomark_Light.svg",
-		"dark": "https://cdn.prod.website-files.com/67070304751b9b01bf6a161c/679bcf45a3e32761c42b324b_Codegen_Logomark_Dark.svg"
-	},
-	"appearance": {
-		"default": "dark"
-	},
-	"background": {
-		"decoration": "gradient"
-	},
-	"navbar": {
-		"primary": {
-			"type": "button",
-			"label": "GitHub",
-			"href": "https://github.com/codegen-sh/codegen-sdk"
-		}
-	},
-	"seo": {
-		"metatags": {
-			"og:site_name": "Codegen",
-			"og:title": "Codegen - The SWE that Never Sleeps",
-			"og:description": "Code agents accessible via API, Slack, Linear, Github, and more.",
-			"og:url": "https://docs.codegen.com",
-			"og:locale": "en_US",
-			"og:logo": "https://i.imgur.com/f4OVOqI.png",
-			"article:publisher": "Codegen, Inc.",
-			"twitter:site": "@codegen"
-		},
-		"indexing": "navigable"
-	},
-	"footer": {
-		"socials": {
-			"x": "https://x.com/codegen",
-			"linkedin": "https://linkedin.com/company/codegen-dot-com"
-		}
-	},
-	"integrations": {
-		"posthog": {
-			"apiKey": "phc_GLxaINoQJnuyCyxDmTciQqzdKBYFVDkY7bRBO4bDdso"
-		}
-	},
-	"head": [
-		{
-			"tag": "script",
-			"content": "(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-T7G5S78D');"
-		}
-	]
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "maple",
+  "name": "Codegen",
+  "colors": {
+    "primary": "#a277ff",
+    "light": "#a277ff",
+    "dark": "#a277ff"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "introduction/overview",
+              "introduction/api",
+              "introduction/prompting",
+              "introduction/community",
+              "introduction/about",
+              "introduction/faq"
+            ]
+          },
+          {
+            "group": "Capabilities",
+            "pages": ["capabilities/capabilities", "capabilities/wake-up"]
+          },
+          {
+            "group": "Integrations",
+            "pages": [
+              "integrations/github",
+              "integrations/slack",
+              "integrations/linear",
+              "integrations/jira",
+              "integrations/notion",
+              "integrations/figma",
+              "integrations/circleci",
+              "integrations/web-search",
+              "integrations/postgres"
+            ]
+          },
+          {
+            "group": "Sandboxes",
+            "pages": [
+              "sandboxes/overview",
+              "sandboxes/setup-commands",
+              "sandboxes/image-snapshots",
+              "sandboxes/environment-variables",
+              "sandboxes/secrets",
+              "sandboxes/editor",
+              "sandboxes/web-preview"
+            ]
+          },
+          {
+            "group": "Settings",
+            "pages": ["settings/repo-rules", "settings/model-configuration"]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Endpoints",
+            "openapi": {
+              "source": "/api-reference/openapi3.json",
+              "directory": "api-reference"
+            }
+          },
+          {
+            "group": "Guides",
+            "pages": ["api-reference/agent-run-logs"]
+          }
+        ]
+      },
+      {
+        "tab": "Blog",
+        "groups": [
+          {
+            "group": "Blog",
+            "pages": ["blog/posts", "blog/devin", "blog/act-via-code"]
+          }
+        ]
+      },
+      {
+        "tab": "Changelog",
+        "groups": [
+          {
+            "group": "Changelog",
+            "pages": ["changelog/changelog"]
+          }
+        ]
+      }
+    ]
+  },
+  "logo": {
+    "light": "https://cdn.prod.website-files.com/67070304751b9b01bf6a161c/679bcf45bf55446746125835_Codegen_Logomark_Light.svg",
+    "dark": "https://cdn.prod.website-files.com/67070304751b9b01bf6a161c/679bcf45a3e32761c42b324b_Codegen_Logomark_Dark.svg"
+  },
+  "appearance": {
+    "default": "dark"
+  },
+  "background": {
+    "decoration": "gradient"
+  },
+  "navbar": {
+    "primary": {
+      "type": "button",
+      "label": "GitHub",
+      "href": "https://github.com/codegen-sh/codegen-sdk"
+    }
+  },
+  "seo": {
+    "metatags": {
+      "og:site_name": "Codegen",
+      "og:title": "Codegen - The SWE that Never Sleeps",
+      "og:description": "Code agents accessible via API, Slack, Linear, Github, and more.",
+      "og:url": "https://docs.codegen.com",
+      "og:locale": "en_US",
+      "og:logo": "https://i.imgur.com/f4OVOqI.png",
+      "article:publisher": "Codegen, Inc.",
+      "twitter:site": "@codegen"
+    },
+    "indexing": "navigable"
+  },
+  "footer": {
+    "socials": {
+      "x": "https://x.com/codegen",
+      "linkedin": "https://linkedin.com/company/codegen-dot-com"
+    }
+  },
+  "integrations": {
+    "posthog": {
+      "apiKey": "phc_GLxaINoQJnuyCyxDmTciQqzdKBYFVDkY7bRBO4bDdso"
+    }
+  },
+  "head": [
+    {
+      "tag": "script",
+      "content": "(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-T7G5S78D');"
+    }
+  ]
 }

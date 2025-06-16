@@ -1,0 +1,40 @@
+---
+title: "Image Snapshots"
+sidebarTitle: "Image Snapshots"
+icon: "camera"
+---
+
+Codegen automatically creates filesystem snapshots of your sandbox environment to enable faster initialization of new agent runs. These snapshots capture the state of your environment after setup commands have been executed.
+
+## How It Works
+
+After your [setup commands](/sandboxes/setup-commands) run successfully, Codegen takes a snapshot of the entire filesystem. This snapshot serves as a cached starting point for future agent interactions, eliminating the need to re-run setup commands each time.
+
+**Lazy Population**: Image caches are populated automatically and lazily. If no cache exists or the cache has expired, Codegen will create a new snapshot during the next agent run. This means the first agent run (or runs after cache expiration) may be slower as they need to execute setup commands and create the snapshot.
+
+## Cache TTL
+
+By default, image snapshots are cached for **24 hours**. After this period expires, Codegen will automatically create a fresh snapshot the next time an agent runs against your repository.
+
+## Managing Image Cache
+
+You can manage your repository's image cache settings by navigating to:
+
+```
+https://codegen.com/repos/{repoName}/image-cache
+```
+
+From this page, you can:
+
+- **Invalidate the current cache** - Force creation of a new snapshot on the next agent run
+- **Set a custom TTL** - Adjust how long snapshots are cached before expiring
+
+<Tip>
+  Invalidating the cache is useful when you've updated your setup commands or
+  need to ensure agents are working with the latest environment configuration.
+</Tip>
+
+<Note>
+  Image snapshots significantly reduce the time it takes to start new agent runs
+  by avoiding the need to repeatedly execute setup commands.
+</Note>{" "}
