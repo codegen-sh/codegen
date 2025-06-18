@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "maple",
-  "name": "Codegen",
+  "name": "Codegen Documentation",
   "colors": {
     "primary": "#a277ff",
     "light": "#a277ff",
@@ -115,9 +115,9 @@
   },
   "seo": {
     "metatags": {
-      "og:site_name": "Codegen",
-      "og:title": "Codegen - The SWE that Never Sleeps",
-      "og:description": "Code agents accessible via API, Slack, Linear, Github, and more.",
+      "og:site_name": "Codegen Documentation",
+      "og:title": "Codegen Documentation - 10x Your Engineering",
+      "og:description": "Complete documentation for Codegen, the AI-powered software engineering agent. Learn how to integrate with GitHub, Slack, Linear, and more.",
       "og:url": "https://docs.codegen.com",
       "og:locale": "en_US",
       "og:logo": "https://i.imgur.com/f4OVOqI.png",
