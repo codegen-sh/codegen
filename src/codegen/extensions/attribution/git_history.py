@@ -1,6 +1,6 @@
 import time
 from collections import defaultdict, deque
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 import pygit2
@@ -206,7 +206,7 @@ class GitAttributionTracker:
         start_time = time.time()
 
         print("Stashing any working directory changes...")
-        stash_msg = f"Codegen Attribution Stash @ {datetime.now().timestamp()}"
+        stash_msg = f"Codegen Attribution Stash @ {datetime.now(timezone.utc).timestamp()}"
         stash_id = None
         try:
             stash_id = self.repo.stash(self.repo.default_signature, stash_msg, include_untracked=True)
@@ -423,7 +423,7 @@ class GitAttributionTracker:
             if any(name in author for name in self.ai_authors):
                 for commit in commits:
                     # Convert timestamp to year-month
-                    dt = datetime.fromtimestamp(commit["timestamp"])
+                    dt = datetime.fromtimestamp(commit["timestamp"], timezone.utc)
                     month_key = f"{dt.year}-{dt.month:02d}"
                     monthly_counts[month_key] += 1
 
@@ -431,4 +431,4 @@ class GitAttributionTracker:
         timeline = sorted(monthly_counts.items())
 
         # Convert to datetime objects
-        return [(datetime.strptime(month, "%Y-%m"), count) for month, count in timeline]
+        return [(datetime.strptime(month, "%Y-%m").replace(tzinfo=timezone.utc), count) for month, count in timeline]

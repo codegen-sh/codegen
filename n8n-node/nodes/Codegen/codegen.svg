@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="60px" height="60px" viewBox="0 0 60 60" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Codegen Logo</title>
+    <g id="Logo" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <rect id="Background" fill="#2D3748" x="0" y="0" width="60" height="60" rx="8"></rect>
+        <g id="Code" transform="translate(10.000000, 15.000000)" fill="#FFFFFF">
+            <path d="M10,0 L0,10 L10,20 L13,17 L6,10 L13,3 L10,0 Z" id="Left-Bracket"></path>
+            <path d="M30,0 L40,10 L30,20 L27,17 L34,10 L27,3 L30,0 Z" id="Right-Bracket"></path>
+            <rect id="Center-Line" x="18" y="5" width="4" height="15" rx="2"></rect>
+        </g>
+    </g>
+</svg>

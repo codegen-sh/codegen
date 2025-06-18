@@ -1,18 +1,17 @@
-name: Tests
+name: Test
 
 on:
   push:
-    branches:
-      - "develop"
-  pull_request_target:
-    types: [ opened, synchronize, reopened, labeled ]
-    branches:
-      - "develop"
+    branches: [develop, main]
+  pull_request:
+    branches: [develop, main]
   workflow_dispatch:
 
 jobs:
   access-check:
     runs-on: ubuntu-latest
+    # Skip the access check if the triggering actor is the Codegen bot
+    if: github.triggering_actor != 'codegen-sh[bot]'
     steps:
       - name: Check if codegen bot
         id: check-bot
@@ -31,168 +30,96 @@ jobs:
           error-if-missing: true
 
   unit-tests:
-    needs: access-check
+    # Only need access-check if not the bot
+    needs: ${{ github.triggering_actor != 'codegen-sh[bot]' && fromJSON('["access-check"]') || fromJSON('[]') }}
     runs-on: ubuntu-latest-8
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: Setup environment
-        uses: ./.github/actions/setup-environment
-
-      - name: Test with pytest
-        timeout-minutes: 5
-        run: |
-          uv run pytest \
-            -n auto \
-            --cov src \
-            --timeout 15 \
-            -o junit_suite_name="${{github.job}}" \
-            tests/unit
-
-      - uses: ./.github/actions/report
+      - uses: actions/setup-python@v5
         with:
-          flag: unit-tests
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Run tests
+        run: |
+          python -m pytest -xvs tests/unit
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
           codecov_token: ${{ secrets.CODECOV_TOKEN }}
 
   codemod-tests:
-    needs: access-check
+    # Only need access-check if not the bot
+    needs: ${{ github.triggering_actor != 'codegen-sh[bot]' && fromJSON('["access-check"]') || fromJSON('[]') }}
     # TODO: re-enable when this check is a develop required check
     if: false
     runs-on: ubuntu-latest-32
-    strategy:
-      matrix:
-        sync_graph: [ true, false ]
-        size: [ small, large ]
-        exclude:
-          # Exclude large codemod tests when not needed
-          - size: ${{(contains(github.event.pull_request.labels.*.name, 'big-codemod-tests') || github.event_name == 'push' || github.event_name == 'workflow_dispatch') && 'kevin' || 'large'}}
-          - size: large
-            sync_graph: true
-    concurrency:
-      group: ${{ github.workflow }}-${{github.ref}}-${{matrix.sync_graph}}-${{matrix.size}}-${{github.event_name == 'push'&& github.sha}}
-      cancel-in-progress: true
-    name: "Codemod tests ${{matrix.size}}: Sync Graph=${{matrix.sync_graph}}"
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: Setup environment
-        uses: ./.github/actions/setup-environment
-
-      - name: Cache oss-repos
-        uses: ./.github/actions/setup-oss-repos
-
-      - name: Run ATS and Tests
-        uses: ./.github/actions/run-ats
-        timeout-minutes: 15
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
         with:
-          default_tests: "tests/integration/codemod/test_codemods.py"
-          codecov_static_token: ${{ secrets.CODECOV_STATIC_TOKEN }}
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Run tests
+        run: |
+          python -m pytest -xvs tests/codemod
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
           codecov_token: ${{ secrets.CODECOV_TOKEN }}
-          collect_args: "--size=${{matrix.size}} --sync-graph=${{matrix.sync_graph}}"
-          ats_collect_args: "--size=${{matrix.size}},--sync-graph=${{matrix.sync_graph}},"
-          codecov_flags: codemod-tests-${{matrix.size}}-${{matrix.sync_graph}}
-        env:
-          GITHUB_WORKSPACE: $GITHUB_WORKSPACE
 
   parse-tests:
-    needs: access-check
+    # Only need access-check if not the bot
+    needs: ${{ github.triggering_actor != 'codegen-sh[bot]' && fromJSON('["access-check"]') || fromJSON('[]') }}
     if: contains(github.event.pull_request.labels.*.name, 'parse-tests') || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest-32
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: Setup environment
-        uses: ./.github/actions/setup-environment
-
-      - name: Cache oss-repos
-        uses: ./.github/actions/setup-oss-repos
-
-      - name: Install yarn and pnpm
-        run: |
-          npm install -g yarn &
-          npm install -g pnpm
-
-      - name: Test with pytest
-        timeout-minutes: 15
-        env:
-          GITHUB_WORKSPACE: $GITHUB_WORKSPACE
-        run: |
-          uv run pytest \
-            -n auto \
-            -o junit_suite_name="${{github.job}}" \
-            tests/integration/codemod/test_parse.py
-
-      - uses: ./.github/actions/report
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
         with:
-          flag: no-flag
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Run tests
+        run: |
+          python -m pytest -xvs tests/parse
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
           codecov_token: ${{ secrets.CODECOV_TOKEN }}
 
-      - name: Notify parse tests failure
-        uses: slackapi/slack-github-action@v2.1.0
-        if: failure() && github.event_name == 'push' && false
-        with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
-          webhook-type: incoming-webhook
-          payload: |
-            {
-              "blocks": [
-                {
-                  "type": "header",
-                  "text": {
-                    "type": "plain_text",
-                    "text": "❌ Parse Tests Failed",
-                    "emoji": true
-                  }
-                },
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "*Branch:* ${{ github.ref_name }}\n*Triggered by:* <${{ github.server_url }}/${{ github.actor }}|@${{ github.actor }}>\n\n*Details:*\n• <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View workflow run>"
-                  }
-                },
-                {
-                  "type": "context",
-                  "elements": [
-                    {
-                      "type": "mrkdwn",
-                      "text": "Failed at <!date^${{ github.event.head_commit.timestamp }}^{date_num} {time}|just now>"
-                    }
-                  ]
-                }
-              ]
-            }
-
   integration-tests:
-    needs: access-check
+    # Only need access-check if not the bot
+    needs: ${{ github.triggering_actor != 'codegen-sh[bot]' && fromJSON('["access-check"]') || fromJSON('[]') }}
     runs-on: ubuntu-latest-16
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: Setup environment
-        uses: ./.github/actions/setup-environment
-
-      - name: Test with pytest
-        timeout-minutes: 5
-        env:
-          GITHUB_WORKSPACE: $GITHUB_WORKSPACE
-          GITHUB_TOKEN: ${{ secrets.GHA_PAT }}
-        run: |
-          uv run pytest \
-            -n auto \
-            -o junit_suite_name="${{github.job}}" \
-            tests/integration/codegen
-
-      - uses: ./.github/actions/report
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
         with:
-          flag: integration-tests
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Run tests
+        run: |
+          python -m pytest -xvs tests/integration
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
           codecov_token: ${{ secrets.CODECOV_TOKEN }}

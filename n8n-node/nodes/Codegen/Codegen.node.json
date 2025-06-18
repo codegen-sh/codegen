@@ -1,0 +1,18 @@
+{
+	"node": "n8n-nodes-base.codegen",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": ["Development", "AI"],
+	"resources": {
+		"credentialDocumentation": [
+			{
+				"url": "https://docs.codegen.com/introduction/api"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://docs.codegen.com/introduction/api"
+			}
+		]
+	}
+}
