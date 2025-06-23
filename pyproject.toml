@@ -121,7 +121,7 @@ types = [
   "types-requests>=2.32.0.20241016",
   "types-toml>=0.10.8.20240310",
 ]
-lsp = ["pygls>=2.0.0a2", "lsprotocol==2024.0.0b1", "attrs>=25.1.0"]
+lsp = ["pygls>=2.0.0a2", "lsprotocol==2025.0.0", "attrs>=25.1.0"]
 [tool.uv]
 cache-keys = [{ git = { commit = true, tags = true } }]
 dev-dependencies = [
