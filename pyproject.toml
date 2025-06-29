@@ -18,7 +18,6 @@ dependencies = [
   "pydantic-settings>=2.0.0",
   "PyGithub==2.6.1",
   "GitPython==3.1.44",
-  "pygit2>=1.16.0",
   "packaging>=24.2",
   "python-dotenv>=1.0.1",
   "giturlparse",
@@ -184,6 +183,9 @@ DEP004 = "pytest"
 PyGithub = ["github"]
 GitPython = ["git"]
 python-dotenv = ["dotenv"]
+pydantic-settings = ["pydantic_settings"]
+datamodel-code-generator = ["datamodel_code_generator"]
+sentry-sdk = ["sentry_sdk"]
 
 
 [tool.semantic_release]
