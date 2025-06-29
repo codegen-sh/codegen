@@ -76,6 +76,7 @@ def example_individual_components():
     # Organizations management
     print("\nUsing Organizations...")
     orgs_client = Organizations(token=token)
+    orgs = []
 
     try:
         # List with pagination
@@ -85,7 +86,8 @@ def example_individual_components():
 
         # Iterate through all organizations
         print("All organizations:")
-        for org in orgs_client.list_all():
+        orgs = list(orgs_client.list_all())
+        for org in orgs:
             print(f"- {org.name} (ID: {org.id})")
             print(f"  Settings: {org.settings}")
 
