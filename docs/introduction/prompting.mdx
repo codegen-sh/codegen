@@ -9,7 +9,7 @@ To get the best results from Codegen, treat it like a skilled teammate: provide 
 
 <Tip>
   Codegen is based on Anthropic's Claude 3.7. You can prompt it similarly to
-  ChatGPT or other LLM-based assistants
+  ChatGPT or other LLM-based assistants, but with access to powerful development tools.
 </Tip>
 
 ## The Core Principle: Specificity
@@ -25,12 +25,197 @@ If there are specific implementation details you want included, make sure to spe
 ## Elements of a Strong Prompt
 
 1.  **Scope:** What repository, branch, or files are involved? (e.g., `my-web-app` repo, `PR #42`, `src/services/user.ts`)
-2.  **Goal:** What is the high-level objective? (e.g., Refactor `UserService`, improve testability)
-3.  **Tasks:** What specific actions should the agent take? Use a numbered or bulleted list for clarity. (e.g., Extract logic to `UserRepository`, use dependency injection, update tests, update diagram)
-4.  **Context/Patterns:** Are there existing patterns, examples, or documentation to reference? (e.g., `ProductService`, `ProductRepository`)
-5.  **Success Criteria:** How will you know the task is done correctly? (e.g., Tests pass, 90%+ coverage, diagram updated)
+1. **Goal:** What is the high-level objective? (e.g., Refactor `UserService`, improve testability)
+1. **Tasks:** What specific actions should the agent take? Use a numbered or bulleted list for clarity. (e.g., Extract logic to `UserRepository`, use dependency injection, update tests, update diagram)
+1. **Context/Patterns:** Are there existing patterns, examples, or documentation to reference? (e.g., `ProductService`, `ProductRepository`)
+1. **Success Criteria:** How will you know the task is done correctly? (e.g., Tests pass, 90%+ coverage, diagram updated)
+
+## Platform-Specific Guidance
+
+### Slack Integration
+When prompting Codegen in Slack:
+- **Use threads** for complex, multi-step requests to keep context organized
+- **Tag specific repos** early in the conversation: "In the `frontend` repo..."
+- **Reference PR numbers** directly: "Review PR #123 and suggest improvements"
+- **Ask for status updates** on long-running tasks: "What's the progress on the refactoring?"
+
+Example Slack prompt:
+```
+@codegen In the `api-server` repo, can you:
+1. Add input validation to the `/users` endpoint
+1. Use the same validation pattern as `/products`
+1. Add tests covering edge cases
+1. Update the OpenAPI spec
+
+Let me know when you have a PR ready! 🚀
+```
+
+### Linear Integration
+When working with Linear issues:
+- **Reference issue numbers** for context: "This relates to CG-1234"
+- **Break down large tasks** into sub-issues when appropriate
+- **Specify acceptance criteria** clearly in the issue description
+- **Use @codegen** to assign implementation tasks directly
+
+Example Linear prompt:
+```
+@codegen Please implement the user authentication feature described in this issue.
+
+Requirements:
+- JWT-based auth with refresh tokens
+- Follow the security patterns in `auth/oauth.ts`
+- Add middleware for protected routes
+- Include comprehensive tests
+- Update the API documentation
+
+This should integrate with the existing user management system.
+```
+
+### GitHub Integration
+When requesting PR reviews or code changes:
+- **Link to specific files** and line numbers when possible
+- **Reference related issues** or previous PRs for context
+- **Specify review criteria**: security, performance, maintainability
+- **Request specific types of feedback**: "Focus on error handling"
+
+Example GitHub prompt:
+```
+@codegen Please review this PR focusing on:
+1. Security implications of the new auth flow
+1. Performance impact of the database queries
+1. Test coverage for edge cases
+
+Also check if the error handling follows our patterns in `utils/errors.ts`.
+```
+
+## Common Task Types
+
+### Code Review
+```
+Review PR #456 in the `backend` repo and check for:
+- SQL injection vulnerabilities
+- Proper error handling
+- Performance bottlenecks
+- Test coverage gaps
+- Documentation updates needed
+```
+
+### Bug Fixing
+```
+There's a memory leak in the `data-processor` service when handling large files.
+- Investigate the issue in `src/processors/file-handler.ts`
+- Look at similar fixes in `image-processor.ts`
+- Add monitoring to prevent future occurrences
+- Include regression tests
+```
+
+### Feature Development
+```
+Implement a real-time notification system:
+- Use WebSockets for live updates
+- Follow the event pattern in `events/user-events.ts`
+- Add rate limiting (max 10 notifications/minute)
+- Support both browser and mobile clients
+- Include end-to-end tests
+```
+
+### Refactoring
+```
+Refactor the payment processing module to improve testability:
+- Extract external API calls into separate services
+- Add dependency injection
+- Follow the repository pattern used in `user-service`
+- Maintain backward compatibility
+- Achieve 95%+ test coverage
+```
+
+## Advanced Techniques
+
+### Providing Context Effectively
+When working with large codebases:
+
+```
+In the `e-commerce` monorepo, I need to add a new payment method.
+Context:
+- Existing payment methods are in `src/payments/methods/`
+- The `PaymentProcessor` interface is in `src/payments/types.ts`
+- Configuration is handled in `config/payments.json`
+- Tests follow the pattern in `tests/payments/stripe.test.ts`
+
+Please implement Apple Pay support following these existing patterns.
+```
+
+### Iterative Prompting
+Build on previous work:
+
+```
+Following up on the authentication PR you created:
+- The security team wants 2FA support added
+- Use the same JWT structure but add a `requires_2fa` claim
+- Integrate with the existing `TwoFactorService`
+- Update the login flow to handle 2FA challenges
+```
+
+### Handling Complex Dependencies
+For interconnected changes:
+
+```
+I need to update the user model across multiple services:
+1. Add `preferences` field to User model in `user-service`
+1. Update the GraphQL schema in `api-gateway`
+1. Modify the frontend components in `web-app/src/components/user/`
+1. Add database migration scripts
+1. Update all related tests
+
+Please coordinate these changes and create PRs in the correct order.
+```
+
+## Troubleshooting Common Issues
+
+### "I don't have enough context"
+**Problem:** Codegen asks for more information
+**Solution:** Provide file paths, existing patterns, and specific requirements upfront
+
+### "The changes broke existing functionality"
+**Problem:** Modifications caused test failures
+**Solution:** Always specify which tests should continue passing and request regression testing
+
+### "The implementation doesn't match our patterns"
+**Problem:** Code doesn't follow team conventions
+**Solution:** Reference specific examples of preferred patterns in your codebase
+
+### "The task is too large"
+**Problem:** Request is overwhelming or unclear
+**Solution:** Break down into smaller, specific tasks with clear dependencies
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Be Specific" icon="target">
+    Include file paths, function names, and exact requirements rather than general descriptions.
+  </Card>
+  <Card title="Provide Examples" icon="code">
+    Reference existing code patterns, similar implementations, or desired outcomes.
+  </Card>
+  <Card title="Set Success Criteria" icon="check-circle">
+    Define what "done" looks like: passing tests, performance metrics, or specific functionality.
+  </Card>
+  <Card title="Consider Dependencies" icon="link">
+    Mention related systems, APIs, or components that might be affected by changes.
+  </Card>
+</CardGroup>
 
 <Note>
   Clear, detailed prompts empower Codegen agents to deliver accurate results
-  faster, significantly streamlining your workflow.
+  faster, significantly streamlining your workflow. Remember that Codegen has access
+  to your entire codebase and can understand complex relationships between files.
 </Note>
+
+## Getting Help
+
+If you're unsure how to structure a prompt for your specific use case:
+- Start with a simple request and iterate based on the results
+- Ask Codegen to suggest how to break down complex tasks
+- Reference the [capabilities documentation](/introduction/capabilities) to understand available tools
+- Check out real examples in our [use cases section](/use-cases)
+
