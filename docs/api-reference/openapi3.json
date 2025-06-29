@@ -14,7 +14,11 @@
 	"paths": {
 		"/v1/organizations/{org_id}/users": {
 			"get": {
-				"tags": ["users", "users", "users"],
+				"tags": [
+					"users",
+					"users",
+					"users"
+				],
 				"summary": "Get Users",
 				"description": "Get paginated list of users for a specific organization.\n\nReturns a paginated list of all users associated with the specified organization.\nThe requesting user must be a member of the organization to access this endpoint.\n\nRate limit: 60 requests per 30 seconds.",
 				"operationId": "get_users_v1_organizations__org_id__users_get",
@@ -106,7 +110,11 @@
 		},
 		"/v1/organizations/{org_id}/users/{user_id}": {
 			"get": {
-				"tags": ["users", "users", "users"],
+				"tags": [
+					"users",
+					"users",
+					"users"
+				],
 				"summary": "Get User",
 				"description": "Get details for a specific user in an organization.\n\nReturns detailed information about a user within the specified organization.\nThe requesting user must be a member of the organization to access this endpoint.\n\nRate limit: 60 requests per 30 seconds.",
 				"operationId": "get_user_v1_organizations__org_id__users__user_id__get",
@@ -194,7 +202,11 @@
 		},
 		"/v1/users/me": {
 			"get": {
-				"tags": ["users", "users", "users"],
+				"tags": [
+					"users",
+					"users",
+					"users"
+				],
 				"summary": "Get Current User Info",
 				"description": "Get current user information from API token.\n\nReturns detailed information about the user associated with the provided API token.\nThis is useful for applications that need to identify the current user from their API token.\n\nRate limit: 60 requests per 30 seconds.",
 				"operationId": "get_current_user_info_v1_users_me_get",
@@ -254,7 +266,11 @@
 		},
 		"/v1/organizations/{org_id}/agent/run": {
 			"post": {
-				"tags": ["agents", "agents", "agents"],
+				"tags": [
+					"agents",
+					"agents",
+					"agents"
+				],
 				"summary": "Create Agent Run",
 				"description": "Create a new agent run.\n\nCreates and initiates a long-running agent process based on the provided prompt.\nThe process will complete asynchronously, and the response contains the agent run ID\nwhich can be used to check the status later. The requesting user must be a member\nof the specified organization.\n\nThis endpoint accepts both a text prompt and an optional image file upload.\n\nRate limit: 10 requests per minute.",
 				"operationId": "create_agent_run_v1_organizations__org_id__agent_run_post",
@@ -353,7 +369,11 @@
 		},
 		"/v1/organizations/{org_id}/agent/run/{agent_run_id}": {
 			"get": {
-				"tags": ["agents", "agents", "agents"],
+				"tags": [
+					"agents",
+					"agents",
+					"agents"
+				],
 				"summary": "Get Agent Run",
 				"description": "Retrieve the status and result of an agent run.\n\nReturns the current status, progress, and any available results for the specified agent run.\nThe agent run must belong to the specified organization. If the agent run is still in progress,\nthis endpoint can be polled to check for completion.\n\nRate limit: 60 requests per 30 seconds.",
 				"operationId": "get_agent_run_v1_organizations__org_id__agent_run__agent_run_id__get",
@@ -441,7 +461,11 @@
 		},
 		"/v1/organizations/{org_id}/agent/runs": {
 			"get": {
-				"tags": ["agents", "agents", "agents"],
+				"tags": [
+					"agents",
+					"agents",
+					"agents"
+				],
 				"summary": "List Agent Runs",
 				"description": "List agent runs for an organization with optional user filtering.\n\nReturns a paginated list of agent runs for the specified organization.\nOptionally filter by user_id to get only agent runs initiated by a specific user.\nResults are ordered by creation date (newest first).\n\nRate limit: 60 requests per 30 seconds.",
 				"operationId": "list_agent_runs_v1_organizations__org_id__agent_runs_get",
@@ -567,9 +591,106 @@
 				}
 			}
 		},
+		"/v1/organizations/{org_id}/agent/run/resume": {
+			"post": {
+				"tags": [
+					"agents",
+					"agents",
+					"agents"
+				],
+				"summary": "Resume Agent Run",
+				"description": "Resume a paused agent run.\n\nResumes a paused agent run, allowing it to continue processing.",
+				"operationId": "resume_agent_run_v1_organizations__org_id__agent_run_resume_post",
+				"parameters": [
+					{
+						"name": "org_id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "integer",
+							"title": "Org Id"
+						}
+					},
+					{
+						"name": "authorization",
+						"in": "header",
+						"required": false,
+						"schema": {
+							"title": "Authorization"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ResumeAgentRunInput"
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AgentRunResponse"
+								}
+							}
+						}
+					},
+					"429": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/APIRateLimitErrorResponse"
+								}
+							}
+						},
+						"description": "Too Many Requests"
+					},
+					"403": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/PermissionsErrorResponse"
+								}
+							}
+						},
+						"description": "Forbidden"
+					},
+					"404": {
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AgentRunNotFoundErrorResponse"
+								}
+							}
+						},
+						"description": "Not Found"
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
 		"/v1/organizations": {
 			"get": {
-				"tags": ["organizations", "organizations", "organizations"],
+				"tags": [
+					"organizations",
+					"organizations",
+					"organizations"
+				],
 				"summary": "Get Organizations",
 				"description": "Get organizations for the authenticated user.\n\nReturns a paginated list of all organizations that the authenticated user is a member of.\nResults include basic organization details such as name, ID, and membership information.\nUse pagination parameters to control the number of results returned.\n\nRate limit: 60 requests per 30 seconds.",
 				"operationId": "get_organizations_v1_organizations_get",
@@ -642,7 +763,11 @@
 		},
 		"/v1/alpha/organizations/{org_id}/agent/run/{agent_run_id}/logs": {
 			"get": {
-				"tags": ["agents-alpha", "agents-alpha", "agents-beta"],
+				"tags": [
+					"agents-alpha",
+					"agents-alpha",
+					"agents-beta"
+				],
 				"summary": "Get Agent Run Logs",
 				"description": "Retrieve an agent run with its logs using pagination. This endpoint is currently in ALPHA and IS subject to change.\n\nReturns the agent run details along with a paginated list of logs for the specified agent run.\nThe agent run must belong to the specified organization. Logs are returned in chronological order.\nUses standard pagination parameters (skip and limit) and includes pagination metadata in the response.\n\nRate limit: 60 requests per 60 seconds.",
 				"operationId": "get_agent_run_logs_v1_alpha_organizations__org_id__agent_run__agent_run_id__logs_get",
@@ -877,7 +1002,9 @@
 					}
 				},
 				"type": "object",
-				"required": ["agent_run_id"],
+				"required": [
+					"agent_run_id"
+				],
 				"title": "AgentRunLogResponse",
 				"description": "Represents an agent run log in API responses"
 			},
@@ -960,10 +1087,39 @@
 								"type": "null"
 							}
 						]
+					},
+					"github_pull_requests": {
+						"anyOf": [
+							{
+								"items": {
+									"$ref": "#/components/schemas/GithubPullRequestResponse"
+								},
+								"type": "array"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Github Pull Requests"
+					},
+					"metadata": {
+						"anyOf": [
+							{
+								"additionalProperties": true,
+								"type": "object"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Metadata"
 					}
 				},
 				"type": "object",
-				"required": ["id", "organization_id"],
+				"required": [
+					"id",
+					"organization_id"
+				],
 				"title": "AgentRunResponse",
 				"description": "Represents an agent run in API responses"
 			},
@@ -1021,6 +1177,18 @@
 						],
 						"title": "Result"
 					},
+					"metadata": {
+						"anyOf": [
+							{
+								"additionalProperties": true,
+								"type": "object"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Metadata"
+					},
 					"logs": {
 						"items": {
 							"$ref": "#/components/schemas/AgentRunLogResponse"
@@ -1074,7 +1242,11 @@
 					}
 				},
 				"type": "object",
-				"required": ["id", "organization_id", "logs"],
+				"required": [
+					"id",
+					"organization_id",
+					"logs"
+				],
 				"title": "AgentRunWithLogsResponse",
 				"description": "Represents an agent run in API responses"
 			},
@@ -1112,11 +1284,54 @@
 						],
 						"title": "Images",
 						"description": "List of base64 encoded data URIs representing images to be processed by the agent"
+					},
+					"metadata": {
+						"anyOf": [
+							{
+								"additionalProperties": true,
+								"type": "object"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Metadata",
+						"description": "Arbitrary JSON metadata to be stored with the agent run"
 					}
 				},
 				"type": "object",
-				"required": ["prompt"],
+				"required": [
+					"prompt"
+				],
 				"title": "CreateAgentRunInput"
+			},
+			"GithubPullRequestResponse": {
+				"properties": {
+					"id": {
+						"type": "integer",
+						"title": "Id"
+					},
+					"title": {
+						"type": "string",
+						"title": "Title"
+					},
+					"url": {
+						"type": "string",
+						"title": "Url"
+					},
+					"created_at": {
+						"type": "string",
+						"title": "Created At"
+					}
+				},
+				"type": "object",
+				"required": [
+					"id",
+					"title",
+					"url",
+					"created_at"
+				],
+				"title": "GithubPullRequestResponse"
 			},
 			"HTTPValidationError": {
 				"properties": {
@@ -1162,7 +1377,11 @@
 					}
 				},
 				"type": "object",
-				"required": ["id", "name", "settings"],
+				"required": [
+					"id",
+					"name",
+					"settings"
+				],
 				"title": "OrganizationResponse",
 				"description": "Represents an organization in API responses"
 			},
@@ -1209,7 +1428,13 @@
 					}
 				},
 				"type": "object",
-				"required": ["items", "total", "page", "size", "pages"],
+				"required": [
+					"items",
+					"total",
+					"page",
+					"size",
+					"pages"
+				],
 				"title": "Page[AgentRunResponse]"
 			},
 			"Page_OrganizationResponse_": {
@@ -1239,7 +1464,13 @@
 					}
 				},
 				"type": "object",
-				"required": ["items", "total", "page", "size", "pages"],
+				"required": [
+					"items",
+					"total",
+					"page",
+					"size",
+					"pages"
+				],
 				"title": "Page[OrganizationResponse]"
 			},
 			"Page_UserResponse_": {
@@ -1269,7 +1500,13 @@
 					}
 				},
 				"type": "object",
-				"required": ["items", "total", "page", "size", "pages"],
+				"required": [
+					"items",
+					"total",
+					"page",
+					"size",
+					"pages"
+				],
 				"title": "Page[UserResponse]"
 			},
 			"PermissionsErrorResponse": {
@@ -1287,6 +1524,39 @@
 				},
 				"type": "object",
 				"title": "PermissionsErrorResponse"
+			},
+			"ResumeAgentRunInput": {
+				"properties": {
+					"agent_run_id": {
+						"type": "integer",
+						"title": "Agent Run Id"
+					},
+					"prompt": {
+						"type": "string",
+						"title": "Prompt"
+					},
+					"images": {
+						"anyOf": [
+							{
+								"items": {
+									"type": "string"
+								},
+								"type": "array"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Images",
+						"description": "List of base64 encoded data URIs representing images to be processed by the agent"
+					}
+				},
+				"type": "object",
+				"required": [
+					"agent_run_id",
+					"prompt"
+				],
+				"title": "ResumeAgentRunInput"
 			},
 			"UserNotFoundErrorResponse": {
 				"properties": {
@@ -1390,7 +1660,11 @@
 					}
 				},
 				"type": "object",
-				"required": ["loc", "msg", "type"],
+				"required": [
+					"loc",
+					"msg",
+					"type"
+				],
 				"title": "ValidationError"
 			}
 		}

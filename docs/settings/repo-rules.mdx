@@ -6,6 +6,10 @@ icon: "shield-check"
 
 Repository Rules in Codegen act as a persistent set of instructions or a "system prompt" for the AI agent whenever it operates on a specific repository. These rules guide the agent's behavior by enforcing coding standards and repository-specific conventions through automated reminders to the language model (LLM) during each task.
 
+Codegen supports two types of repository rules:
+1. **Manual Repository Rules** - configured through the web interface
+2. **Automatic Rule File Detection** - automatically discovered from your repository files
+
 <Frame caption="Update repo rules at codegen.com/repos">
   <img src="/images/repo-rules.png" />
 </Frame>
@@ -29,6 +33,69 @@ You can typically find and configure Repository Rules within the settings page f
 </Frame>
 
 In the text area provided (as shown in the image), you can specify any rules you want the agent to follow for this repository. Click "Save" to apply them.
+
+## Automatic Rule File Detection
+
+In addition to manual repository rules, Codegen automatically discovers and includes agent rule files from your repository when the agent starts working on it. This happens automatically whenever the `set_active_codebase` tool is used.
+
+### Supported Rule File Patterns
+
+Codegen automatically searches for the following types of rule files in your repository:
+
+- **`.cursorrules`** - Cursor AI editor rules
+- **`.clinerules`** - Cline AI assistant rules  
+- **`.windsurfrules`** - Windsurf AI editor rules
+- **`**/*.mdc`** - Markdown files with `.mdc` extension anywhere in the repository
+- **`.cursor/rules/**/*.mdc`** - Markdown files in the `.cursor/rules/` directory structure
+
+### How Automatic Detection Works
+
+1. **File Discovery**: When you switch to a repository, Codegen uses `ripgrep` to search for files matching the supported patterns
+2. **Content Extraction**: The content of discovered files is read and processed
+3. **Size Limitation**: All rule files combined are truncated to fit within 3,000 characters total to ensure optimal performance
+4. **Context Integration**: The rule content is automatically included in the agent's context alongside any manual repository rules
+
+### Example Rule Files
+
+Here are examples of how you might structure automatic rule files in your repository:
+
+**`.cursorrules` example:**
+```
+Use TypeScript for all new code
+Follow the existing code style in the repository
+Always add JSDoc comments for public functions
+Prefer functional components over class components in React
+```
+
+**`.cursor/rules/backend.mdc` example:**
+```markdown
+# Backend Development Rules
+
+## Database
+- Use Prisma for database operations
+- Always use transactions for multi-step operations
+- Include proper error handling for all database calls
+
+## API Design
+- Follow REST conventions
+- Use proper HTTP status codes
+- Include request/response validation
+```
+
+### Benefits of Automatic Rule Files
+
+- **Version Control**: Rule files are committed with your code, ensuring consistency across team members
+- **Repository-Specific**: Different repositories can have different rule files without manual configuration
+- **Developer-Friendly**: Developers can manage rules using familiar file-based workflows
+- **Editor Integration**: Many AI-powered editors already support these file formats
+
+<Tip>
+  Automatic rule files work alongside manual repository rules. Both types of rules are combined and provided to the agent for maximum context.
+</Tip>
+
+<Warning>
+  If your rule files exceed 3,000 characters combined, they will be automatically truncated. Consider keeping rule files concise or splitting them into multiple focused files.
+</Warning>
 
 ## Common Use Cases and Examples
 
@@ -57,7 +124,5 @@ Repository rules are flexible and can be used for various purposes:
 </Tip>
 
 <Note>
-  Repository Rules are applied *in addition* to any global prompting strategies
-  or agent capabilities. They provide a repository-specific layer of
-  instruction.
+  Both manual repository rules and automatic rule files are applied *in addition* to any global prompting strategies or agent capabilities. They provide a repository-specific layer of instruction that helps ensure consistent behavior across your codebase.
 </Note>{" "}

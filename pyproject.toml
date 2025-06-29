@@ -169,9 +169,6 @@ dev-dependencies = [
 exclude = ["codegen-examples"]
 
 
-
-
-
 [tool.coverage.run]
 branch = true
 concurrency = ["multiprocessing", "thread"]
