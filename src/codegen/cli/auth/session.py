@@ -82,7 +82,7 @@ class CodegenSession:
             rich.print(format_command("git remote add origin <your-repo-url>"))
 
         try:
-            if git_token is not None:
+            if git_token is not None and self.local_git.full_name is not None:
                 Github(login_or_token=git_token).get_repo(self.local_git.full_name)
         except BadCredentialsException:
             rich.print(format_command(f"\n[bold red]Error:[/bold red] Invalid GitHub token={git_token} for repo={self.local_git.full_name}"))
@@ -90,4 +90,4 @@ class CodegenSession:
             raise typer.Abort()
 
     def __str__(self) -> str:
-        return f"CodegenSession(user={self.config.repository.user_name}, repo={self.config.repository.repo_name})"
+        return f"CodegenSession(user={self.config.repository.user_name}, repo={self.config.repository.name})"

@@ -32,8 +32,8 @@ def login_routine(token: str | None = None) -> str:
         token = typer.prompt("Please enter your authentication token from the browser", hide_input=False)
 
     if not token:
-        msg = "Token must be provided via CODEGEN_USER_ACCESS_TOKEN environment variable or manual input"
-        raise typer.Exit(msg)
+        rich.print("[red]Error:[/red] Token must be provided via CODEGEN_USER_ACCESS_TOKEN environment variable or manual input")
+        raise typer.Exit(1)
 
     # Validate and store token
     try:
@@ -44,5 +44,5 @@ def login_routine(token: str | None = None) -> str:
         rich.print("To opt out, set [green]telemetry_enabled = false[/green] in [cyan]~/.config/codegen-sh/analytics.json[/cyan] ✨")
         return token
     except AuthError as e:
-        msg = f"Error: {e!s}"
-        raise typer.Exit(msg)
+        rich.print(f"[red]Error:[/red] {e!s}")
+        raise typer.Exit(1)

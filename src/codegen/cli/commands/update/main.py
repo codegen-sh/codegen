@@ -45,8 +45,8 @@ def update(
     --version: Update to a specific version of the codegen
     """
     if list_ and version:
-        msg = "Cannot specify both --list and --version"
-        raise typer.Exit(msg)
+        rich.print("[red]Error:[/red] Cannot specify both --list and --version")
+        raise typer.Exit(1)
 
     package_info = distribution(codegen.__package__)
     current_version = Version(package_info.version)

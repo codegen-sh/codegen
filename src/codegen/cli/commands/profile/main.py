@@ -24,7 +24,7 @@ def profile(session: CodegenSession):
     repo_config = session.config.repository
     rich.print(
         Panel(
-            f"[cyan]Name:[/cyan]  {repo_config.user_name}\n[cyan]Email:[/cyan] {repo_config.user_email}\n[cyan]Repo:[/cyan]  {repo_config.repo_name}",
+            f"[cyan]Name:[/cyan]  {repo_config.user_name}\n[cyan]Email:[/cyan] {repo_config.user_email}\n[cyan]Repo:[/cyan]  {repo_config.name}",
             title="🔑 [bold]Current Profile[/bold]",
             border_style="cyan",
             box=box.ROUNDED,

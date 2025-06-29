@@ -79,12 +79,8 @@ def improve_codemod(
     ctx: Context,
 ) -> str:
     """Improve the codemod."""
-    try:
-        client = RestAPI()
-        response = client.improve_codemod(codemod_source, task, concerns, context, language)
-        return response.codemod_source
-    except Exception as e:
-        return f"Error: {e}"
+    # TODO: Implement improve_codemod functionality
+    return f"Error: improve_codemod functionality not yet implemented"
 
 
 if __name__ == "__main__":

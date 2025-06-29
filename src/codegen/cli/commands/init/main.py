@@ -26,12 +26,12 @@ def init(
         raise typer.Exit(1)
     
     # Print a message if not in a git repo
-    path = Path.cwd() if path is None else Path(path)
-    repo_path = get_git_root_path(path)
+    current_path = Path.cwd() if path is None else Path(path)
+    repo_path = get_git_root_path(current_path)
     rich.print(f"Found git repository at: {repo_path}")
 
     if repo_path is None:
-        rich.print(f"\n[bold red]Error:[/bold red] Path={path} is not in a git repository")
+        rich.print(f"\n[bold red]Error:[/bold red] Path={current_path} is not in a git repository")
         rich.print("[white]Please run this command from within a git repository.[/white]")
         rich.print("\n[dim]To initialize a new git repository:[/dim]")
         rich.print(format_command("git init"))
