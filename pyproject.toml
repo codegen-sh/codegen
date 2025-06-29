@@ -146,7 +146,7 @@ dev-dependencies = [
   "austin-dist>=3.7.0",
   "uv>=0.4.25",
   "deptry>=0.22.0",
-  "cibuildwheel[uv]>=2.22.0",
+
   "sybil[pytest]>=9.0.0",
   "jsbeautifier<2.0.0,>=1.15.1",
   "inflection<1.0.0,>=0.5.1",
@@ -161,7 +161,7 @@ dev-dependencies = [
   "jupyterlab>=4.3.5",
   "modal>=0.73.25",
   "pytest-lsp>=1.0.0b1",
-  "cython>=3.0.11",
+
   "codegen-api-client>=1.0.0",
 ]
 
@@ -169,13 +169,11 @@ dev-dependencies = [
 exclude = ["codegen-examples"]
 
 
-[tool.cython-lint]
-max-line-length = 200
+
 
 
 [tool.coverage.run]
 branch = true
-plugins = ["Cython.Coverage"]
 concurrency = ["multiprocessing", "thread"]
 parallel = true
 sigterm = true
@@ -214,7 +212,7 @@ filterwarnings = """
     ignore::DeprecationWarning:botocore.*:
     ignore::DeprecationWarning:sqlalchemy.*:
     ignore::DeprecationWarning:posthog.*:"""
-log_cli = 1
+log_cli = true
 log_cli_level = "INFO"
 xfail_strict = true
 junit_duration_report = "call"
@@ -247,18 +245,7 @@ DEP004 = "pytest"
 [tool.deptry.package_module_name_map]
 python-levenshtein = ["Levenshtein"]
 PyGithub = ["github"]
-[tool.cibuildwheel]
-build-frontend = "build[uv]"
-skip = ["*i686*", "*musllinux*"]
-environment = { "HATCH_BUILD_HOOKS_ENABLE" = "true" }
-manylinux-x86_64-image = "quay.io/pypa/manylinux_2_34_x86_64"
-manylinux-aarch64-image = "quay.io/pypa/manylinux_2_34_aarch64"
-[tool.cibuildwheel.linux]
-before-all = "curl -sSf https://sh.rustup.rs | sh -s -- -y"
-environment = { "PATH" = "$HOME/.cargo/bin:$PATH" }
-[tool.cibuildwheel.macos]
-before-all = "curl -sSf https://sh.rustup.rs | sh -s -- -y"
-environment = { "PATH" = "$HOME/.cargo/bin:$PATH" }
+
 
 [tool.semantic_release]
 assets = []

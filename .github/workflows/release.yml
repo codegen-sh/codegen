@@ -26,22 +26,8 @@ permissions:
 
 jobs:
   build:
-    name: Build 3.${{ matrix.python }} ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [
-          ubuntu-latest,
-          ubuntu-22.04-arm, # https://github.com/actions/partner-runner-images/issues/37 https://github.com/orgs/community/discussions/148648#discussioncomment-12099554
-          macos-latest,
-          macos-14-large
-        ]
-        python: [
-          12,
-          13,
-        ]
-
+    name: Build Pure Python Wheel
+    runs-on: ubuntu-latest
     steps:
       - name: Github context
         env:
@@ -58,11 +44,10 @@ jobs:
         uses: astral-sh/setup-uv@v5.4
         id: setup-uv
         with:
-          enable-cache: false
+          enable-cache: true
           prune-cache: false
-          python-version: 3.${{ matrix.python }}
+          python-version: "3.12"  # Use single Python version for building
           version: '0.5.24'
-          cache-suffix: 3.${{ matrix.python }}
 
       - name: Fetch tags
         if: ${{ inputs.release-tag || startsWith(github.ref, 'refs/tags/') }}
@@ -70,16 +55,14 @@ jobs:
           git branch
           git fetch --depth=1 origin +refs/tags/*:refs/tags/*
 
-      # TODO: add cbuildwheel cache
       - name: Build wheel
-        uses: pypa/cibuildwheel@v2.23.3
-        env:
-          CIBW_BUILD: "*cp3${{ matrix.python }}*"
+        run: |
+          uv build --wheel --outdir dist/
 
       - uses: actions/upload-artifact@v4
         with:
-          name: wheels-${{ matrix.os }}-3.${{ matrix.python }}
-          path: ./wheelhouse/*.whl
+          name: wheels
+          path: ./dist/*.whl
 
   release:
     if: ${{ inputs.release-tag || startsWith(github.ref, 'refs/tags/') }}
