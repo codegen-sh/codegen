@@ -13,10 +13,6 @@ def requires_init(func):
     """Simple stub decorator that does nothing."""
     return func
 
-# Create a Typer app for the profile command
-profile_command = typer.Typer(help="Display information about the currently authenticated user.")
-
-@profile_command.command()
 @requires_auth
 @requires_init
 def profile(session: CodegenSession):

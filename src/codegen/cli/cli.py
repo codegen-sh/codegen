@@ -1,14 +1,8 @@
 import typer
 from rich.traceback import install
 
-# Removed reference to non-existent agent module
+# Import config command (still a Typer app)
 from codegen.cli.commands.config.main import config_command
-from codegen.cli.commands.init.main import init_command
-from codegen.cli.commands.login.main import login_command
-from codegen.cli.commands.logout.main import logout_command
-from codegen.cli.commands.profile.main import profile_command
-from codegen.cli.commands.style_debug.main import style_debug_command
-from codegen.cli.commands.update.main import update_command
 
 install(show_locals=True)
 
@@ -28,12 +22,12 @@ from codegen.cli.commands.style_debug.main import style_debug
 from codegen.cli.commands.update.main import update
 
 # Add individual commands to the main app
-main.command("init")(init)
-main.command("login")(login)
-main.command("logout")(logout)
-main.command("profile")(profile)
-main.command("style-debug")(style_debug)
-main.command("update")(update)
+main.command("init", help="Initialize or update the Codegen folder.")(init)
+main.command("login", help="Store authentication token.")(login)
+main.command("logout", help="Clear stored authentication token.")(logout)
+main.command("profile", help="Display information about the currently authenticated user.")(profile)
+main.command("style-debug", help="Debug command to visualize CLI styling (spinners, etc).")(style_debug)
+main.command("update", help="Update Codegen to the latest or specified version")(update)
 
 # Config is a group, so add it as a typer
 main.add_typer(config_command, name="config")

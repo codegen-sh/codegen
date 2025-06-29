@@ -9,10 +9,6 @@ from codegen.cli.auth.session import CodegenSession
 from codegen.cli.rich.codeblocks import format_command
 from codegen.shared.path import get_git_root_path
 
-# Create a Typer app for the init command
-init_command = typer.Typer(help="Initialize or update the Codegen folder.")
-
-@init_command.command()
 def init(
     path: Optional[str] = typer.Option(None, help="Path within a git repository. Defaults to the current directory."),
     token: Optional[str] = typer.Option(None, help="Access token for the git repository. Required for full functionality."),

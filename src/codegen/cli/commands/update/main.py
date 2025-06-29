@@ -31,10 +31,6 @@ def install_package(package: str, *args: str) -> None:
     subprocess.check_call([sys.executable, "-m", "pip", "install", package, *args])
 
 
-# Create a Typer app for the update command
-update_command = typer.Typer(help="Update Codegen to the latest or specified version")
-
-@update_command.command()
 def update(
     list_: bool = typer.Option(False, "--list", "-l", help="List all supported versions of the codegen"),
     version: Optional[str] = typer.Option(None, "--version", "-v", help="Update to a specific version of the codegen")
