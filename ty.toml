@@ -1,0 +1,5 @@
+# Ty type checker configuration
+# Based on the previous mypy.ini configuration
+
+# Basic configuration - ty is still in early development
+# so configuration options are limited

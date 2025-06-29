@@ -82,7 +82,7 @@ jobs:
         with:
           path: dist
           merge-multiple: true
-          pattern: wheels-*
+          pattern: wheels
 
       - name: Release PyPI
         uses: ./.github/actions/release-pypi
