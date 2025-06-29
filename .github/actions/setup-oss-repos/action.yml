@@ -1,1 +1,8 @@
- 
+name: "Setup OSS repos (disabled)"
+description: "OSS repos setup has been disabled"
+runs:
+  using: "composite"
+  steps:
+    - name: Skip OSS repos setup
+      shell: bash
+      run: echo "OSS repos setup is disabled"

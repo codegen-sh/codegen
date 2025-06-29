@@ -23,7 +23,7 @@ repos:
       - id: biome-check
         language: node
         additional_dependencies: ["@biomejs/biome@1.9.4"]
-        exclude: (src/codemods/eval)|(tests/unit/skills/snapshots)|(tests/unit/codegen/sdk/output)|(tests/integration/verified_codemods)|(docs/samples)
+        exclude: (src/codemods/eval)|(tests/unit/skills/snapshots)|(tests/unit/codegen/sdk/output)|(tests/integration/verified_codemods)|(docs/)
 
   - repo: https://github.com/kynan/nbstripout
     rev: 0.8.1

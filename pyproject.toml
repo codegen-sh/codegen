@@ -173,8 +173,8 @@ extend_exclude = [".*/eval/test_files/.*.py", ".*conftest.py"]
 pep621_dev_dependency_groups = ["types"]
 [tool.deptry.per_rule_ignores]
 DEP002 = [
-  "hatch-vcs",      # Used for version management during build
-  "hatchling",      # Used for building
+  "hatch-vcs", # Used for version management during build
+  "hatchling", # Used for building
 ]
 DEP003 = []
 DEP004 = "pytest"
