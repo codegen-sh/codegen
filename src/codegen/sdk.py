@@ -32,7 +32,7 @@ class CodegenSDK:
         ```
     """
 
-    def __init__(self, token: str, org_id: int | str | None = None, base_url: str = CODEGEN_BASE_API_URL):
+    def __init__(self, token: str | None, org_id: int | str | None = None, base_url: str = CODEGEN_BASE_API_URL):
         """Initialize the Codegen SDK.
 
         Args:

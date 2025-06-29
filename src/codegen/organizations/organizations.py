@@ -45,7 +45,7 @@ class Organization:
 class Organizations:
     """API client for managing organizations in Codegen."""
 
-    def __init__(self, token: str, base_url: str = CODEGEN_BASE_API_URL):
+    def __init__(self, token: str | None, base_url: str = CODEGEN_BASE_API_URL):
         """Initialize the Organizations client.
 
         Args:

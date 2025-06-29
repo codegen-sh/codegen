@@ -55,9 +55,11 @@ class APIError(CodegenError):
     pass
 
 
-def handle_api_error(status_code: int, message: str, response_data: dict[str, Any] | None = None) -> CodegenError:
+def handle_api_error(status_code: int | None, message: str, response_data: dict[str, Any] | None = None) -> CodegenError:
     """Convert HTTP status codes to appropriate exception types."""
-    if status_code == 401:
+    if status_code is None:
+        return APIError(message, status_code, response_data)
+    elif status_code == 401:
         return AuthenticationError(message, status_code, response_data)
     elif status_code == 403:
         return AuthorizationError(message, status_code, response_data)
@@ -67,7 +69,7 @@ def handle_api_error(status_code: int, message: str, response_data: dict[str, An
         return ValidationError(message, status_code, response_data)
     elif status_code == 429:
         return RateLimitError(message, status_code, response_data)
-    elif 500 <= status_code < 600:
+    elif status_code is not None and 500 <= status_code < 600:
         return ServerError(message, status_code, response_data)
     else:
         return APIError(message, status_code, response_data)

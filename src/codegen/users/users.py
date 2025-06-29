@@ -60,7 +60,7 @@ class User:
 class Users:
     """API client for managing users in Codegen."""
 
-    def __init__(self, token: str, org_id: int | str, base_url: str = CODEGEN_BASE_API_URL):
+    def __init__(self, token: str | None, org_id: int | str, base_url: str = CODEGEN_BASE_API_URL):
         """Initialize the Users client.
 
         Args:
