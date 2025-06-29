@@ -57,6 +57,7 @@ alembic_versions_backup
 /.nvmrc
 **/build/test-results/test/TEST*.xml
 src/codegen/sdk/__init__.py
+src/codegen/_version.py
 src/**/*.html
 .ccache/
 uv-*.tar.gz
