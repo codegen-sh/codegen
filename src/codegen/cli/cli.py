@@ -19,13 +19,23 @@ main = typer.Typer(
     rich_markup_mode="rich"
 )
 
-# Add commands to the main app
-main.add_typer(init_command, name="init")
-main.add_typer(logout_command, name="logout")
-main.add_typer(login_command, name="login")
-main.add_typer(profile_command, name="profile")
-main.add_typer(style_debug_command, name="style-debug")
-main.add_typer(update_command, name="update")
+# Import the actual command functions
+from codegen.cli.commands.init.main import init
+from codegen.cli.commands.login.main import login
+from codegen.cli.commands.logout.main import logout
+from codegen.cli.commands.profile.main import profile
+from codegen.cli.commands.style_debug.main import style_debug
+from codegen.cli.commands.update.main import update
+
+# Add individual commands to the main app
+main.command("init")(init)
+main.command("login")(login)
+main.command("logout")(logout)
+main.command("profile")(profile)
+main.command("style-debug")(style_debug)
+main.command("update")(update)
+
+# Config is a group, so add it as a typer
 main.add_typer(config_command, name="config")
 
 
