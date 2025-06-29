@@ -1,8 +1,0 @@
-{
-	"name": "hass",
-	"commit": "fef9c92eb76967332a780d24ce6a5d08e210bbe5",
-	"url": "https://github.com/home-assistant/core",
-	"language": "PYTHON",
-	"size": "large",
-	"priority": 2
-}

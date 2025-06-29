@@ -1,8 +1,0 @@
-{
-	"name": "mypy",
-	"commit": "9d56820a63d5b47b53ff0ab6e96ce0951c774ae5",
-	"url": "https://github.com/python/mypy",
-	"language": "PYTHON",
-	"size": "large",
-	"priority": 2
-}

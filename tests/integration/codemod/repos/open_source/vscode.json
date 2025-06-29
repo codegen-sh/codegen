@@ -1,8 +1,0 @@
-{
-	"name": "vscode",
-	"commit": "32a41e158d04c9777522dc567574f2a74b8f2bf9",
-	"url": "https://github.com/microsoft/vscode",
-	"language": "TYPESCRIPT",
-	"size": "large",
-	"priority": 2
-}

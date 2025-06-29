@@ -1,7 +1,0 @@
-{
-	"name": "airflow",
-	"commit": "9fbaca0ab0150d899caea172ea3d1085982edd4f",
-	"url": "https://github.com/apache/airflow",
-	"language": "PYTHON",
-	"size": "large"
-}
