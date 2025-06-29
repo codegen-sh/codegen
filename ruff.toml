@@ -2,7 +2,8 @@ line-length = 200
 exclude = [
   "src/codegen/shared/compilation/function_imports.py",
   'docs/**',
-  "src/codegen/sdk/__init__.py",
+  "src/codegen/__init__.py",  # Generated version file by hatch-vcs
+  "src/codegen/_version.py",   # Generated version file by hatch-vcs
 ]
 unsafe-fixes = true
 [lint]
