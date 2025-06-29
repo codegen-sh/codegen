@@ -1,4 +1,4 @@
-import rich_click as click
+import typer
 from rich.traceback import install
 
 # Removed reference to non-existent agent module
@@ -12,22 +12,21 @@ from codegen.cli.commands.update.main import update_command
 
 install(show_locals=True)
 
+# Create the main Typer app
+main = typer.Typer(
+    name="codegen",
+    help="Codegen CLI - Transform your code with AI.",
+    rich_markup_mode="rich"
+)
 
-@click.group(name="codegen")
-@click.version_option(prog_name="codegen", message="%(version)s")
-def main():
-    """Codegen CLI - Transform your code with AI."""
-    pass
-
-
-# Add commands to the main group
-main.add_command(init_command)
-main.add_command(logout_command)
-main.add_command(login_command)
-main.add_command(profile_command)
-main.add_command(style_debug_command)
-main.add_command(update_command)
-main.add_command(config_command)
+# Add commands to the main app
+main.add_typer(init_command, name="init")
+main.add_typer(logout_command, name="logout")
+main.add_typer(login_command, name="login")
+main.add_typer(profile_command, name="profile")
+main.add_typer(style_debug_command, name="style-debug")
+main.add_typer(update_command, name="update")
+main.add_typer(config_command, name="config")
 
 
 if __name__ == "__main__":

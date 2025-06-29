@@ -2,7 +2,7 @@
 import functools
 
 import rich
-import rich_click as click
+import typer
 from rich.panel import Panel
 
 
@@ -55,6 +55,6 @@ def handle_auth_error(f):
             return f(*args, **kwargs)
         except AuthError:
             rich.print(Panel("[red]Authentication Error:[/red] Please run 'codegen login' first.", title="Codegen Error", border_style="red"))
-            raise click.Abort()
+            raise typer.Abort()
 
     return wrapper

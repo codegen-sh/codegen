@@ -2,14 +2,15 @@
 
 import time
 
-import rich_click as click
+import typer
 
 from codegen.cli.rich.spinners import create_spinner
 
+# Create a Typer app for the style-debug command
+style_debug_command = typer.Typer(help="Debug command to visualize CLI styling (spinners, etc).")
 
-@click.command(name="style-debug")
-@click.option("--text", default="Loading...", help="Text to show in the spinner")
-def style_debug_command(text: str):
+@style_debug_command.command()
+def style_debug(text: str = typer.Option("Loading...", help="Text to show in the spinner")):
     """Debug command to visualize CLI styling (spinners, etc)."""
     try:
         with create_spinner(text) as status:

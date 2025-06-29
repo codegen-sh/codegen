@@ -1,8 +1,8 @@
 import functools
 from collections.abc import Callable
 
-import click
 import rich
+import typer
 
 from codegen.cli.auth.login import login_routine
 from codegen.cli.auth.session import CodegenSession
@@ -21,7 +21,7 @@ def requires_auth(f: Callable) -> Callable:
         # Check for valid session
         if session is None:
             pretty_print_error("There is currently no active session.\nPlease run 'codegen init' to initialize the project.")
-            raise click.Abort()
+            raise typer.Abort()
 
         if (token := get_current_token()) is None:
             rich.print("[yellow]Not authenticated. Let's get you logged in first![/yellow]\n")
