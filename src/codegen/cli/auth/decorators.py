@@ -41,6 +41,6 @@ def requires_auth(f: Callable) -> Callable:
     sig = inspect.signature(f)
     new_params = [param for name, param in sig.parameters.items() if name != 'session']
     new_sig = sig.replace(parameters=new_params)
-    wrapper.__signature__ = new_sig
+    wrapper.__signature__ = new_sig  # type: ignore[attr-defined]
 
     return wrapper
