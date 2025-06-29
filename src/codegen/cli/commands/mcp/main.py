@@ -26,20 +26,20 @@ console = Console()
 )
 def mcp_command(host: str, port: int | None, transport: str):
     """Start the Codegen MCP server.
-    
+
     The MCP server exposes Codegen API endpoints as MCP tools,
     allowing MCP clients to interact with the Codegen platform.
     """
     console.print("🚀 Starting Codegen MCP server...", style="bold green")
-    
+
     if transport == "stdio":
         console.print("📡 Using stdio transport", style="dim")
     else:
         console.print(f"📡 Using HTTP transport on {host}:{port}", style="dim")
-    
+
     # Import here to avoid circular imports and ensure dependencies are available
     from codegen.cli.mcp.server import run_server
-    
+
     try:
         run_server(transport=transport, host=host, port=port)
     except KeyboardInterrupt:

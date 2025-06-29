@@ -45,10 +45,7 @@ def get_local_frame(exc_type: type[BaseException], exc_value: BaseException, exc
 
 def get_local_frame_context(frame: FrameType):
     local_vars = {k: v for k, v in frame.f_locals.items() if not k.startswith("__")}
-    if "print" in local_vars:
-        del local_vars["print"]
-    if "codebase" in local_vars:
-        del local_vars["codebase"]
-    if "pr_options" in local_vars:
-        del local_vars["pr_options"]
+    local_vars.pop("print", None)
+    local_vars.pop("codebase", None)
+    local_vars.pop("pr_options", None)
     return local_vars
