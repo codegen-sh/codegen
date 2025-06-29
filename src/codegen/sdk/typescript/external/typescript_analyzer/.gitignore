@@ -1,4 +1,0 @@
-# Typescript Analyzer Specific GitIgnores
-node_modules
-dist
-package-lock.json
