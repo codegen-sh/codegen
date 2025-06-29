@@ -98,7 +98,10 @@ class Users:
             )
             return [User(user) for user in response.items]
         except ApiException as e:
-            error = handle_api_error(e.status, str(e), getattr(e, "body", None))
+            status_code = getattr(e, "status", None)
+            if not isinstance(status_code, int):
+                status_code = 500  # Default to server error if status is not available
+            error = handle_api_error(status_code, str(e), getattr(e, "body", None))
             raise error from e
 
     def list_all(self, page_size: int = 50) -> Iterator[User]:
@@ -145,7 +148,10 @@ class Users:
             response = self.users_api.get_user_v1_organizations_org_id_users_user_id_get(org_id=self.org_id, user_id=str(user_id), authorization=f"Bearer {self.token}")
             return User(response)
         except ApiException as e:
-            error = handle_api_error(e.status, str(e), getattr(e, "body", None))
+            status_code = getattr(e, "status", None)
+            if not isinstance(status_code, int):
+                status_code = 500  # Default to server error if status is not available
+            error = handle_api_error(status_code, str(e), getattr(e, "body", None))
             raise error from e
 
     def get_page(self, page: int = 1, page_size: int = 50) -> dict[str, Any]:
@@ -174,7 +180,10 @@ class Users:
 
             return {"items": [User(user) for user in response.items], "total": response.total, "page": response.page, "size": response.size, "pages": response.pages}
         except ApiException as e:
-            error = handle_api_error(e.status, str(e), getattr(e, "body", None))
+            status_code = getattr(e, "status", None)
+            if not isinstance(status_code, int):
+                status_code = 500  # Default to server error if status is not available
+            error = handle_api_error(status_code, str(e), getattr(e, "body", None))
             raise error from e
 
     def find_by_github_username(self, github_username: str) -> User | None:

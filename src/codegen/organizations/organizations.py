@@ -80,7 +80,10 @@ class Organizations:
             )
             return [Organization(org) for org in response.items]
         except ApiException as e:
-            error = handle_api_error(e.status, str(e), getattr(e, "body", None))
+            status_code = getattr(e, "status", None)
+            if not isinstance(status_code, int):
+                status_code = 500  # Default to server error if status is not available
+            error = handle_api_error(status_code, str(e), getattr(e, "body", None))
             raise error from e
 
     def list_all(self, page_size: int = 50) -> Iterator[Organization]:
@@ -137,5 +140,8 @@ class Organizations:
 
             return {"items": [Organization(org) for org in response.items], "total": response.total, "page": response.page, "size": response.size, "pages": response.pages}
         except ApiException as e:
-            error = handle_api_error(e.status, str(e), getattr(e, "body", None))
+            status_code = getattr(e, "status", None)
+            if not isinstance(status_code, int):
+                status_code = 500  # Default to server error if status is not available
+            error = handle_api_error(status_code, str(e), getattr(e, "body", None))
             raise error from e

@@ -48,7 +48,10 @@ class AgentTask:
             self.status = job_dict.get("status")
             self.result = job_dict.get("result")
         except ApiException as e:
-            error = handle_api_error(e.status, str(e), getattr(e, "body", None))
+            status_code = getattr(e, "status", None)
+            if not isinstance(status_code, int):
+                status_code = 500  # Default to server error if status is not available
+            error = handle_api_error(status_code, str(e), getattr(e, "body", None))
             raise error from e
 
     def is_completed(self) -> bool:
@@ -116,7 +119,10 @@ class Agent:
             self.current_job = job
             return job
         except ApiException as e:
-            error = handle_api_error(e.status, str(e), getattr(e, "body", None))
+            status_code = getattr(e, "status", None)
+            if not isinstance(status_code, int):
+                status_code = 500  # Default to server error if status is not available
+            error = handle_api_error(status_code, str(e), getattr(e, "body", None))
             raise error from e
 
     def get_status(self) -> dict[str, Any] | None:
@@ -150,5 +156,8 @@ class Agent:
             response = self.agents_api.get_agent_run_v1_organizations_org_id_agent_run_agent_run_id_get(org_id=int(self.org_id), agent_run_id=int(task_id), authorization=f"Bearer {self.token}")
             return AgentTask(response, self.api_client, self.org_id)
         except ApiException as e:
-            error = handle_api_error(e.status, str(e), getattr(e, "body", None))
+            status_code = getattr(e, "status", None)
+            if not isinstance(status_code, int):
+                status_code = 500  # Default to server error if status is not available
+            error = handle_api_error(status_code, str(e), getattr(e, "body", None))
             raise error from e
