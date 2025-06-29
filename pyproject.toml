@@ -63,6 +63,7 @@ dependencies = [
   "numpy>=2.2.2",
   "mcp[cli]",
   "neo4j",
+  "markdown>=3.4.0",
   "modal>=0.73.45",
   "slack-sdk",
   "lox>=0.12.0",
