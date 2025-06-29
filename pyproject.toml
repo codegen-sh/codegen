@@ -6,72 +6,12 @@ readme = "README.md"
 # renovate: datasource=python-version depName=python
 requires-python = ">=3.12, <3.14"
 dependencies = [
-  "openai==1.78.1",
-  "tiktoken<1.0.0,>=0.5.1",
-  "tabulate>=0.9.0,<1.0.0",
-  "codeowners<1.0.0,>=0.6.0",
-  "dataclasses-json<1.0.0,>=0.6.4",
-  "dicttoxml<2.0.0,>=1.7.16",
-  "xmltodict<1.0.0,>=0.13.0",
-  "astor<1.0.0,>=0.8.1",
-  "tree-sitter>=0.23.1",
-  "tree-sitter-python>=0.23.4",
-  "tree-sitter-typescript>=0.23.2",
-  "tree-sitter-javascript>=0.23.1",
-  "python-levenshtein<1.0.0,>=0.25.1",
-  "networkx>=3.4.1",
-  "wrapt<2.0.0,>=1.16.0",
-  "pyright<2.0.0,>=1.1.372",
-  "watchfiles<1.1.0,>=1.0.0",
-  "rich<14.0.0,>=13.7.1",
-  "pydantic<3.0.0,>=2.9.2",
-  "pydantic-settings>=2.0.0",
-  "docstring-parser<1.0,>=0.16",
-  "plotly>=5.24.0,<7.0.0",
-  "humanize<5.0.0,>=4.10.0",
-  "pytest-snapshot>=0.9.0",
-  "pyjson5==1.6.9",
-  "mini-racer>=0.12.4",
-  "rustworkx>=0.15.1",
-  "typing-extensions>=4.12.2",
-  "termcolor>=2.4.0",
-  "sentry-sdk==2.29.1",
-  "click>=8.1.7",
-  "requests>=2.32.3",
-  "lazy-object-proxy>=0.0.0",
-  "pydantic-core>=2.23.4",
-  "hatch-vcs>=0.4.0",
-  "hatchling>=1.25.0",
-  "pyinstrument>=5.0.0",
-  "pip>=24.3.1",                       # This is needed for some NPM/YARN/PNPM post-install scripts to work!
-  "rich-click>=1.8.5",
-  "python-dotenv>=1.0.1",
-  "giturlparse",
-  "pygit2>=1.16.0",
-  "unidiff>=0.7.5",
-  "datamodel-code-generator>=0.26.5",
-  "PyGithub==2.6.1",
-  "GitPython==3.1.44",
-  "psutil>=5.8.0",
-  "fastapi[standard]<1.0.0,>=0.115.2",
-  "starlette<1.0.0,>=0.16.0",
-  "tqdm>=4.67.1",
-  "tomlkit>=0.13.2",
-  "python-semantic-release",
-  "uvicorn[standard]>=0.30.0",
-  "packaging>=24.2",
-  "numpy>=2.2.2",
-  "mcp[cli]",
-  "neo4j",
-  "modal>=0.73.45",
-  "slack-sdk",
-  "lox>=0.12.0",
-  "httpx>=0.28.1",
-  "docker>=6.1.3",
-  "urllib3>=2.0.0",
-  "datasets",
-  "colorlog>=6.9.0",
   "codegen-api-client",
+  "click>=8.1.7",        # For CLI
+  "rich-click>=1.8.5",   # For CLI with rich formatting
+  "rich>=13.7.1",        # For rich traceback and formatting
+  "hatch-vcs>=0.4.0",    # For version management
+  "hatchling>=1.25.0",   # For building
 ]
 
 # renovate: datasource=python-version depName=python
@@ -115,12 +55,7 @@ codegen = "codegen.cli.cli:main"
 
 [project.optional-dependencies]
 pink = ["codegen-sdk-pink>=0.1.0"]
-types = [
-  "types-networkx>=3.2.1.20240918",
-  "types-tabulate>=0.9.0.20240106",
-  "types-requests>=2.32.0.20241016",
-  "types-toml>=0.10.8.20240310",
-]
+types = []
 lsp = ["pygls>=2.0.0a2", "lsprotocol==2024.0.0b1", "attrs>=25.1.0"]
 [tool.uv]
 cache-keys = [{ git = { commit = true, tags = true } }]
@@ -227,21 +162,14 @@ extend_exclude = [".*/eval/test_files/.*.py", ".*conftest.py"]
 pep621_dev_dependency_groups = ["types"]
 [tool.deptry.per_rule_ignores]
 DEP002 = [
-  "pyright",
-  "mini-racer",
-  "hatch-vcs",
-  "pyinstrument",
-  "pip",
-  "python-levenshtein",
-  "pytest-snapshot",
-  "langgraph-prebuilt",
+  "hatch-vcs",      # Used for version management during build
+  "hatchling",      # Used for building
+  "click",          # Used for CLI
+  "rich-click",     # Used for CLI with rich formatting
+  "rich",           # Used for rich traceback and formatting
 ]
-DEP003 = "sqlalchemy"
+DEP003 = []
 DEP004 = "pytest"
-
-[tool.deptry.package_module_name_map]
-python-levenshtein = ["Levenshtein"]
-PyGithub = ["github"]
 
 
 [tool.semantic_release]

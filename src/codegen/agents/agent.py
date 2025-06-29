@@ -61,7 +61,7 @@ class Agent:
         self.agents_api = AgentsApi(self.api_client)
 
         # Current job
-        self.current_job = None
+        self.current_job: AgentTask | None = None
 
     def run(self, prompt: str) -> AgentTask:
         """Run an agent with the given prompt.
