@@ -1,7 +1,6 @@
 import subprocess
 import sys
 from importlib.metadata import distribution
-from typing import Optional
 
 import requests
 import rich
@@ -33,7 +32,7 @@ def install_package(package: str, *args: str) -> None:
 
 def update(
     list_: bool = typer.Option(False, "--list", "-l", help="List all supported versions of the codegen"),
-    version: Optional[str] = typer.Option(None, "--version", "-v", help="Update to a specific version of the codegen")
+    version: str | None = typer.Option(None, "--version", "-v", help="Update to a specific version of the codegen"),
 ):
     """Update Codegen to the latest or specified version
 

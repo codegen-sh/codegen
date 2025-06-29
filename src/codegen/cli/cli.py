@@ -1,9 +1,10 @@
 import typer
 from rich.traceback import install
 
+from codegen import __version__
+
 # Import config command (still a Typer app)
 from codegen.cli.commands.config.main import config_command
-from codegen import __version__
 
 install(show_locals=True)
 
@@ -14,12 +15,9 @@ def version_callback(value: bool):
         print(__version__)
         raise typer.Exit()
 
+
 # Create the main Typer app
-main = typer.Typer(
-    name="codegen",
-    help="Codegen CLI - Transform your code with AI.",
-    rich_markup_mode="rich"
-)
+main = typer.Typer(name="codegen", help="Codegen CLI - Transform your code with AI.", rich_markup_mode="rich")
 
 # Import the actual command functions
 from codegen.cli.commands.init.main import init
@@ -42,9 +40,7 @@ main.add_typer(config_command, name="config")
 
 
 @main.callback()
-def main_callback(
-    version: bool = typer.Option(False, "--version", callback=version_callback, is_eager=True, help="Show version and exit")
-):
+def main_callback(version: bool = typer.Option(False, "--version", callback=version_callback, is_eager=True, help="Show version and exit")):
     """Codegen CLI - Transform your code with AI."""
     pass
 
