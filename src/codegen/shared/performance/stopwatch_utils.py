@@ -44,7 +44,7 @@ def stopwatch_with_sentry(name: str):
 def subprocess_with_stopwatch(command, command_desc: str | None = None, *args, **kwargs) -> subprocess.CompletedProcess[str]:
     start_time = time.time()
     # Ensure text=True to get string output instead of bytes
-    kwargs.setdefault('text', True)
+    kwargs.setdefault("text", True)
     result = subprocess.run(command, *args, **kwargs)
     end_time = time.time()
     logger.info(f"Command '{command_desc or command}' took {end_time - start_time} seconds to execute.")
