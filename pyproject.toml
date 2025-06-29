@@ -204,5 +204,3 @@ tag_format = "v{version}"
 match = "develop"
 prerelease_token = "rc"
 prerelease = false
-
-
