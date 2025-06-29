@@ -5,9 +5,7 @@ import rich
 import rich_click as click
 
 from codegen.cli.auth.session import CodegenSession
-from codegen.cli.commands.init.render import get_success_message
 from codegen.cli.rich.codeblocks import format_command
-from codegen.cli.workspace.initialize_workspace import initialize_codegen
 from codegen.shared.path import get_git_root_path
 
 
@@ -37,11 +35,14 @@ def init_command(path: str | None = None, token: str | None = None, language: st
         session.config.save()
 
     action = "Updating" if session.existing else "Initializing"
-    codegen_dir, docs_dir, examples_dir = initialize_codegen(status=action, session=session, fetch_docs=fetch_docs)
+
+    # Create the codegen directory
+    codegen_dir = session.codegen_dir
+    codegen_dir.mkdir(parents=True, exist_ok=True)
 
     # Print success message
     rich.print(f"✅ {action} complete\n")
-    rich.print(get_success_message(codegen_dir, docs_dir, examples_dir))
+    rich.print(f"Codegen workspace initialized at: [bold]{codegen_dir}[/bold]")
 
     # Print next steps
     rich.print("\n[bold]What's next?[/bold]\n")

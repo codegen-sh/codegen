@@ -5,7 +5,13 @@ from rich.panel import Panel
 
 from codegen.cli.auth.decorators import requires_auth
 from codegen.cli.auth.session import CodegenSession
-from codegen.cli.workspace.decorators import requires_init
+
+# from codegen.cli.workspace.decorators import requires_init  # Removed to simplify CLI
+
+
+def requires_init(func):
+    """Simple stub decorator that does nothing."""
+    return func
 
 
 @click.command(name="profile")

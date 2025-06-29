@@ -40,7 +40,13 @@ from codegen.cli.api.schemas import (
     RunOnPRResponse,
 )
 from codegen.cli.auth.session import CodegenSession
-from codegen.cli.codemod.convert import convert_to_ui
+
+
+def convert_to_ui(data):
+    """Simple stub for convert_to_ui function."""
+    return data
+
+
 from codegen.cli.env.global_env import global_env
 from codegen.cli.errors import InvalidTokenError, ServerError
 from codegen.cli.utils.codemods import Codemod
