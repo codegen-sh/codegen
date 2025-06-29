@@ -1,7 +1,0 @@
-{
-	"name": "posthog",
-	"url": "https://github.com/PostHog/posthog.git",
-	"commit": "9f0b1efae0c7b060e9700bd03d60b9d4b4153d40",
-	"language": "PYTHON",
-	"size": "large"
-}

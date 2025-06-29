@@ -5,7 +5,6 @@ import rich
 from github import BadCredentialsException
 from github.MainClass import Github
 
-from codegen.cli.git.repo import get_git_repo
 from codegen.cli.rich.codeblocks import format_command
 from codegen.configs.constants import CODEGEN_DIR_NAME, ENV_FILENAME
 from codegen.configs.session_manager import session_manager
@@ -23,8 +22,15 @@ class CodegenSession:
     existing: bool
 
     def __init__(self, repo_path: Path, git_token: str | None = None) -> None:
-        if not repo_path.exists() or get_git_repo(repo_path) is None:
-            rich.print(f"\n[bold red]Error:[/bold red] Path to git repo does not exist at {self.repo_path}")
+        if not repo_path.exists():
+            rich.print(f"\n[bold red]Error:[/bold red] Path to git repo does not exist at {repo_path}")
+            raise click.Abort()
+
+        # Check if it's a valid git repository
+        try:
+            LocalGitRepo(repo_path=repo_path)
+        except Exception:
+            rich.print(f"\n[bold red]Error:[/bold red] Path {repo_path} is not a valid git repository")
             raise click.Abort()
 
         self.repo_path = repo_path

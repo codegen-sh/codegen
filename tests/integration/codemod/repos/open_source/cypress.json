@@ -1,8 +1,0 @@
-{
-	"name": "cypress",
-	"commit": "babee8b15b0b41ba52bcff5d0e6cf47411324011",
-	"url": "https://github.com/cypress-io/cypress-realworld-app",
-	"language": "TYPESCRIPT",
-	"size": "small",
-	"extra_repo": false
-}

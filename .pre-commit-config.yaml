@@ -1,7 +1,6 @@
 default_language_version:
   python: python3.13
 repos:
-
   - repo: https://github.com/ComPWA/taplo-pre-commit
     rev: v0.9.3
     hooks:
@@ -24,12 +23,7 @@ repos:
       - id: biome-check
         language: node
         additional_dependencies: ["@biomejs/biome@1.9.4"]
-        exclude: (src/codemods/eval)|(tests/unit/skills/snapshots)|(tests/unit/codegen/sdk/output)|(tests/integration/verified_codemods)|(docs/samples)
-  - repo: https://github.com/MarcoGorelli/cython-lint
-    rev: v0.16.6
-    hooks:
-      - id: cython-lint
-      - id: double-quote-cython-strings
+        exclude: (src/codemods/eval)|(tests/unit/skills/snapshots)|(tests/unit/codegen/sdk/output)|(tests/integration/verified_codemods)|(docs/)
 
   - repo: https://github.com/kynan/nbstripout
     rev: 0.8.1
@@ -88,13 +82,13 @@ repos:
         args: ["--frozen", "--all-packages", "--all-extras"]
 
   - repo: https://github.com/hukkin/mdformat
-    rev: 0.7.22  # Use the ref you want to point at
+    rev: 0.7.22 # Use the ref you want to point at
     hooks:
-    - id: mdformat
-      language: python
-      # Optionally add plugins
-      additional_dependencies:
-      - mdformat-gfm
-      - mdformat-ruff
-      - mdformat-config
-      - mdformat-pyproject
+      - id: mdformat
+        language: python
+        # Optionally add plugins
+        additional_dependencies:
+          - mdformat-gfm
+          - mdformat-ruff
+          - mdformat-config
+          - mdformat-pyproject

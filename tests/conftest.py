@@ -2,8 +2,6 @@ import os
 
 import pytest
 
-from tests.shared.codemod.models import Size
-
 
 def find_dirs_to_ignore(start_dir, prefix):
     dirs_to_ignore = []
@@ -16,14 +14,6 @@ def find_dirs_to_ignore(start_dir, prefix):
 
 
 def pytest_addoption(parser) -> None:
-    parser.addoption(
-        "--size",
-        action="append",
-        type=Size,
-        default=["small"],
-        choices=map(str.lower, Size.__members__.keys()),
-        help="What size test cases to run",
-    )
     parser.addoption(
         "--profile",
         action="store",

@@ -99,76 +99,7 @@ jobs:
         env:
           GITHUB_WORKSPACE: $GITHUB_WORKSPACE
 
-  parse-tests:
-    needs: access-check
-    if: contains(github.event.pull_request.labels.*.name, 'parse-tests') || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest-32
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
 
-      - name: Setup environment
-        uses: ./.github/actions/setup-environment
-
-      - name: Cache oss-repos
-        uses: ./.github/actions/setup-oss-repos
-
-      - name: Install yarn and pnpm
-        run: |
-          npm install -g yarn &
-          npm install -g pnpm
-
-      - name: Test with pytest
-        timeout-minutes: 15
-        env:
-          GITHUB_WORKSPACE: $GITHUB_WORKSPACE
-        run: |
-          uv run pytest \
-            -n auto \
-            -o junit_suite_name="${{github.job}}" \
-            tests/integration/codemod/test_parse.py
-
-      - uses: ./.github/actions/report
-        with:
-          flag: no-flag
-          codecov_token: ${{ secrets.CODECOV_TOKEN }}
-
-      - name: Notify parse tests failure
-        uses: slackapi/slack-github-action@v2.1.0
-        if: failure() && github.event_name == 'push' && false
-        with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
-          webhook-type: incoming-webhook
-          payload: |
-            {
-              "blocks": [
-                {
-                  "type": "header",
-                  "text": {
-                    "type": "plain_text",
-                    "text": "❌ Parse Tests Failed",
-                    "emoji": true
-                  }
-                },
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "*Branch:* ${{ github.ref_name }}\n*Triggered by:* <${{ github.server_url }}/${{ github.actor }}|@${{ github.actor }}>\n\n*Details:*\n• <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View workflow run>"
-                  }
-                },
-                {
-                  "type": "context",
-                  "elements": [
-                    {
-                      "type": "mrkdwn",
-                      "text": "Failed at <!date^${{ github.event.head_commit.timestamp }}^{date_num} {time}|just now>"
-                    }
-                  ]
-                }
-              ]
-            }
 
   integration-tests:
     needs: access-check

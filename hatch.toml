@@ -1,9 +1,10 @@
 [build.hooks.vcs]
 dependencies = ["hatch-vcs>=0.4.0"]
-version-file = "src/codegen/sdk/__init__.py"
+version-file = "src/codegen/_version.py"
 
 [metadata]
 allow-direct-references = true
+
 [envs.hatch-build]
 installer = "uv"
 
@@ -21,61 +22,6 @@ matrix.tool.scripts = [
 [version]
 source = "vcs"
 
-[build.targets.wheel.hooks.cython]
-dependencies = [
-  "hatch-cython @ git+https://github.com/codegen-sh/hatch-cython.git",
-  "cython>=3.0.11",
-  "tree-sitter",
-  "networkx",
-]
-
-[build.targets.wheel.hooks.cython.options]
-src = "codegen/sdk"
-compile_args = [
-  "-O3",
-  { platforms = [
-    "darwin",
-  ], arch = "arm64", arg = "-mcpu=apple-m1" },
-]
-env = [
-  { env = "CC", arg = "cc", platforms = [
-    "linux",
-  ] },
-  { env = "CC", arg = "clang", platforms = [
-    "darwin",
-  ] },
-]
-cythonize_kwargs = { annotate = true, nthreads = 16, exclude_failures = false, cache = true }
-compiled_sdist = true
-compile_py = false
-compile_parallel = true
-
-[build.targets.wheel.hooks.cython.options.directives]
-boundscheck = false
-nonecheck = false
-language_level = 3
-binding = true
-linetrace = true
-embedsignature = true
-profile = true
-c_string_encoding = "default"
-c_string_type = "unicode"
-
-[build.targets.wheel.hooks.cython.options.files]
-exclude = [
-  "**/__init__.py",
-  "**/code_generation",
-  "**/skills",
-  "**/codebase/factory",
-  "**/guides",
-  "**/testing",
-  "**/codebase_graph_utils.py",
-  "**/codegen_examples",
-]
-
-[build.targets.wheel]
-macos-max-compat = false
-
 [build]
 packages = ["src/codegen"]
 
@@ -89,9 +35,5 @@ Issues = "https://github.com/codegen-sh/codegen-sdk/issues"
 Documentation = "https://docs.codegen.com"
 Playground = "https://www.codegen.sh/"
 
-[build.targets.wheel.hooks.custom]
-enable-by-default = false
-path = "src/codegen/gsbuild/build.py"
-require-runtime-dependencies = true
 [envs.default]
 installer = "uv"

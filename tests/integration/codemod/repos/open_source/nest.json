@@ -1,8 +1,0 @@
-{
-	"name": "nest",
-	"commit": "233a89ab3d84d814bb795f738be15216f5b30ed9",
-	"url": "https://github.com/nestjs/nest",
-	"language": "TYPESCRIPT",
-	"size": "small",
-	"priority": 2
-}

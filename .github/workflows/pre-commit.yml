@@ -37,8 +37,9 @@ jobs:
       - run: uv run --frozen pre-commit run --show-diff-on-failure --color=always --all-files --source ${{ github.event.pull_request.base.sha || github.event.before }} --origin ${{ github.event.pull_request.head.sha || github.event.after }}
         shell: bash
 
-      - uses: stefanzweifel/git-auto-commit-action@v5
-        if: ${{ always() && env.REPO_SCOPED_TOKEN && github.event_name == 'pull_request' }}
-        with:
-          commit_message: "Automated pre-commit update"
-          push_options: "--no-verify"
+      # Temporarily disabled to prevent infinite loop with version updates
+      # - uses: stefanzweifel/git-auto-commit-action@v5
+      #   if: ${{ always() && env.REPO_SCOPED_TOKEN && github.event_name == 'pull_request' }}
+      #   with:
+      #     commit_message: "Automated pre-commit update"
+      #     push_options: "--no-verify"
