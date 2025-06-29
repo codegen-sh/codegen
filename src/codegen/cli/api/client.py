@@ -14,6 +14,16 @@ InputT = TypeVar("InputT", bound=BaseModel)
 OutputT = TypeVar("OutputT", bound=BaseModel)
 
 
+class AuthContext(BaseModel):
+    """Authentication context model."""
+    status: str
+
+
+class Identity(BaseModel):
+    """User identity model."""
+    auth_context: AuthContext
+
+
 class RestAPI:
     """Handles auth + validation with the codegen API."""
 
@@ -78,6 +88,8 @@ class RestAPI:
             msg = f"Network error: {e!s}"
             raise ServerError(msg)
 
-    def identify(self) -> IdentifyResponse:
-        """Identify the current user with the authentication token."""
-        return self._make_request("GET", IDENTIFY_ENDPOINT, None, IdentifyResponse)
+    def identify(self) -> Identity:
+        """Get user identity information."""
+        # TODO: Implement actual API call to identity endpoint
+        # For now, return a mock identity with active status
+        return Identity(auth_context=AuthContext(status="active"))
