@@ -1,5 +1,5 @@
 import rich
-import rich_click as click
+import typer
 from rich import box
 from rich.panel import Panel
 
@@ -13,16 +13,14 @@ def requires_init(func):
     """Simple stub decorator that does nothing."""
     return func
 
-
-@click.command(name="profile")
 @requires_auth
 @requires_init
-def profile_command(session: CodegenSession):
+def profile(session: CodegenSession):
     """Display information about the currently authenticated user."""
     repo_config = session.config.repository
     rich.print(
         Panel(
-            f"[cyan]Name:[/cyan]  {repo_config.user_name}\n[cyan]Email:[/cyan] {repo_config.user_email}\n[cyan]Repo:[/cyan]  {repo_config.repo_name}",
+            f"[cyan]Name:[/cyan]  {repo_config.user_name}\n[cyan]Email:[/cyan] {repo_config.user_email}\n[cyan]Repo:[/cyan]  {repo_config.name}",
             title="🔑 [bold]Current Profile[/bold]",
             border_style="cyan",
             box=box.ROUNDED,

@@ -15,11 +15,13 @@ class Codemod:
 
     def get_url(self) -> str:
         """Get the URL for this codemod."""
+        if self.config is None:
+            return ""
         return generate_webapp_url(path=f"codemod/{self.config.codemod_id}")
 
     def relative_path(self) -> str:
         """Get the relative path to this codemod."""
-        return self.path.relative_to(Path.cwd())
+        return str(self.path.relative_to(Path.cwd()))
 
     def get_current_source(self) -> str:
         """Get the current source code for this codemod."""

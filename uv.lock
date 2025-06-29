@@ -420,7 +420,6 @@ wheels = [
 name = "codegen"
 source = { editable = "." }
 dependencies = [
-    { name = "click" },
     { name = "codegen-api-client" },
     { name = "codeowners" },
     { name = "colorlog" },
@@ -440,8 +439,8 @@ dependencies = [
     { name = "python-dotenv" },
     { name = "requests" },
     { name = "rich" },
-    { name = "rich-click" },
     { name = "sentry-sdk" },
+    { name = "typer" },
     { name = "unidiff" },
 ]
 
@@ -483,7 +482,6 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "click", specifier = ">=8.1.7" },
     { name = "codegen-api-client" },
     { name = "codeowners", specifier = ">=0.6.0" },
     { name = "colorlog", specifier = ">=6.9.0" },
@@ -503,8 +501,8 @@ requires-dist = [
     { name = "python-dotenv", specifier = ">=1.0.1" },
     { name = "requests", specifier = ">=2.32.3" },
     { name = "rich", specifier = ">=13.7.1" },
-    { name = "rich-click", specifier = ">=1.8.5" },
     { name = "sentry-sdk", specifier = "==2.29.1" },
+    { name = "typer", specifier = ">=0.12.5" },
     { name = "unidiff", specifier = ">=0.7.5" },
 ]
 provides-extras = ["types"]

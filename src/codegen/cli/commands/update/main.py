@@ -1,10 +1,11 @@
 import subprocess
 import sys
 from importlib.metadata import distribution
+from typing import Optional
 
 import requests
 import rich
-import rich_click as click
+import typer
 from packaging.version import Version
 
 import codegen
@@ -30,24 +31,18 @@ def install_package(package: str, *args: str) -> None:
     subprocess.check_call([sys.executable, "-m", "pip", "install", package, *args])
 
 
-@click.command(name="update")
-@click.option(
-    "--list",
-    "-l",
-    "list_",
-    is_flag=True,
-    help="List all supported versions of the codegen",
-)
-@click.option("--version", "-v", type=str, help="Update to a specific version of the codegen")
-def update_command(list_: bool = False, version: str | None = None):
+def update(
+    list_: bool = typer.Option(False, "--list", "-l", help="List all supported versions of the codegen"),
+    version: Optional[str] = typer.Option(None, "--version", "-v", help="Update to a specific version of the codegen")
+):
     """Update Codegen to the latest or specified version
 
     --list: List all supported versions of the codegen
     --version: Update to a specific version of the codegen
     """
     if list_ and version:
-        msg = "Cannot specify both --list and --version"
-        raise click.ClickException(msg)
+        rich.print("[red]Error:[/red] Cannot specify both --list and --version")
+        raise typer.Exit(1)
 
     package_info = distribution(codegen.__package__)
     current_version = Version(package_info.version)

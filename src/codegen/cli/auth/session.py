@@ -1,7 +1,7 @@
 from pathlib import Path
 
-import click
 import rich
+import typer
 from github import BadCredentialsException
 from github.MainClass import Github
 
@@ -24,14 +24,14 @@ class CodegenSession:
     def __init__(self, repo_path: Path, git_token: str | None = None) -> None:
         if not repo_path.exists():
             rich.print(f"\n[bold red]Error:[/bold red] Path to git repo does not exist at {repo_path}")
-            raise click.Abort()
+            raise typer.Abort()
 
         # Check if it's a valid git repository
         try:
             LocalGitRepo(repo_path=repo_path)
         except Exception:
             rich.print(f"\n[bold red]Error:[/bold red] Path {repo_path} is not a valid git repository")
-            raise click.Abort()
+            raise typer.Abort()
 
         self.repo_path = repo_path
         self.local_git = LocalGitRepo(repo_path=repo_path)
@@ -82,12 +82,12 @@ class CodegenSession:
             rich.print(format_command("git remote add origin <your-repo-url>"))
 
         try:
-            if git_token is not None:
+            if git_token is not None and self.local_git.full_name is not None:
                 Github(login_or_token=git_token).get_repo(self.local_git.full_name)
         except BadCredentialsException:
             rich.print(format_command(f"\n[bold red]Error:[/bold red] Invalid GitHub token={git_token} for repo={self.local_git.full_name}"))
             rich.print("[white]Please provide a valid GitHub token for this repository.[/white]")
-            raise click.Abort()
+            raise typer.Abort()
 
     def __str__(self) -> str:
-        return f"CodegenSession(user={self.config.repository.user_name}, repo={self.config.repository.repo_name})"
+        return f"CodegenSession(user={self.config.repository.user_name}, repo={self.config.repository.name})"

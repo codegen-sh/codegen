@@ -1,22 +1,19 @@
 import logging
 
 import rich
-import rich_click as click
+import typer
 from rich.table import Table
 
 from codegen.configs.constants import ENV_FILENAME, GLOBAL_ENV_FILE
 from codegen.configs.user_config import UserConfig
 from codegen.shared.path import get_git_root_path
 
-
-@click.group(name="config")
-def config_command():
-    """Manage codegen configuration."""
-    pass
+# Create a Typer app for the config command
+config_command = typer.Typer(help="Manage codegen configuration.")
 
 
 @config_command.command(name="list")
-def list_command():
+def list_config():
     """List current configuration values."""
 
     def flatten_dict(data: dict, prefix: str = "") -> dict:
@@ -80,8 +77,7 @@ def list_command():
 
 
 @config_command.command(name="get")
-@click.argument("key")
-def get_command(key: str):
+def get_config(key: str = typer.Argument(..., help="Configuration key to get")):
     """Get a configuration value."""
     config = _get_user_config()
     if not config.has_key(key):
@@ -94,9 +90,10 @@ def get_command(key: str):
 
 
 @config_command.command(name="set")
-@click.argument("key")
-@click.argument("value")
-def set_command(key: str, value: str):
+def set_config(
+    key: str = typer.Argument(..., help="Configuration key to set"),
+    value: str = typer.Argument(..., help="Configuration value to set")
+):
     """Set a configuration value and write to .env"""
     config = _get_user_config()
     if not config.has_key(key):
