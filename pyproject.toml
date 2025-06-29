@@ -7,11 +7,30 @@ readme = "README.md"
 requires-python = ">=3.12, <3.14"
 dependencies = [
   "codegen-api-client",
-  "click>=8.1.7",        # For CLI
-  "rich-click>=1.8.5",   # For CLI with rich formatting
-  "rich>=13.7.1",        # For rich traceback and formatting
-  "hatch-vcs>=0.4.0",    # For version management
-  "hatchling>=1.25.0",   # For building
+  "click>=8.1.7",
+  "rich-click>=1.8.5",
+  "rich>=13.7.1",
+  "hatch-vcs>=0.4.0",
+  "hatchling>=1.25.0",
+  # CLI and git functionality dependencies
+  "requests>=2.32.3",
+  "pydantic>=2.9.2",
+  "pydantic-settings>=2.0.0",
+  "PyGithub==2.6.1",
+  "GitPython==3.1.44",
+  "pygit2>=1.16.0",
+  "packaging>=24.2",
+  "python-dotenv>=1.0.1",
+  "giturlparse",
+  "codeowners>=0.6.0",
+  "unidiff>=0.7.5",
+  "datamodel-code-generator>=0.26.5",
+  "mcp[cli]",
+  # Utility dependencies
+  "colorlog>=6.9.0",
+  "psutil>=5.8.0",
+  "sentry-sdk==2.29.1",
+  "humanize>=4.10.0",
 ]
 
 # renovate: datasource=python-version depName=python
@@ -54,14 +73,11 @@ keywords = [
 codegen = "codegen.cli.cli:main"
 
 [project.optional-dependencies]
-pink = ["codegen-sdk-pink>=0.1.0"]
 types = []
-lsp = ["pygls>=2.0.0a2", "lsprotocol==2024.0.0b1", "attrs>=25.1.0"]
 [tool.uv]
 cache-keys = [{ git = { commit = true, tags = true } }]
 dev-dependencies = [
   "coverage<8.0.0,>=7.6.1",
-  #    "scalene>=1.5.45",
   "filelock<4.0.0,>=3.15.4",
   "pytest>=8.3.3",
   "pytest-cov>=6.1.0,<6.1.1",
@@ -71,17 +87,14 @@ dev-dependencies = [
   "pytest-xdist>=3.6.1,<4.0.0",
   "pytest-mock<4.0.0,>=3.14.0",
   "pytest-timeout>=2.3.1",
-  "braintrust>=0.0.160",
   "ruff-lsp<1.0.0,>=0.0.55",
   "austin-python>=1.7.1",
   "autoflake>=2.3.1",
-  #    "nuitka>=2.4.8",
   "typer>=0.12.5",
   "pre-commit-uv>=4.1.4",
   "austin-dist>=3.7.0",
   "uv>=0.4.25",
   "deptry>=0.22.0",
-
   "sybil[pytest]>=9.0.0",
   "jsbeautifier<2.0.0,>=1.15.1",
   "inflection<1.0.0,>=0.5.1",
@@ -96,7 +109,6 @@ dev-dependencies = [
   "jupyterlab>=4.3.5",
   "modal>=0.73.25",
   "pytest-lsp>=1.0.0b1",
-
   "codegen-api-client>=1.0.0",
 ]
 
@@ -164,12 +176,14 @@ pep621_dev_dependency_groups = ["types"]
 DEP002 = [
   "hatch-vcs",      # Used for version management during build
   "hatchling",      # Used for building
-  "click",          # Used for CLI
-  "rich-click",     # Used for CLI with rich formatting
-  "rich",           # Used for rich traceback and formatting
 ]
 DEP003 = []
 DEP004 = "pytest"
+
+[tool.deptry.package_module_name_map]
+PyGithub = ["github"]
+GitPython = ["git"]
+python-dotenv = ["dotenv"]
 
 
 [tool.semantic_release]
