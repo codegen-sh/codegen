@@ -1,7 +1,7 @@
 import webbrowser
 
 import rich
-import rich_click as click
+import typer
 
 from codegen.cli.api.webapp_routes import USER_SECRETS_ROUTE
 from codegen.cli.auth.token_manager import TokenManager
@@ -19,7 +19,7 @@ def login_routine(token: str | None = None) -> str:
         str: The authenticated token
 
     Raises:
-        click.ClickException: If login fails
+        typer.Exit: If login fails
 
     """
     # Try environment variable first
@@ -29,11 +29,11 @@ def login_routine(token: str | None = None) -> str:
     if not token:
         rich.print(f"Opening {USER_SECRETS_ROUTE} to get your authentication token...")
         webbrowser.open_new(USER_SECRETS_ROUTE)
-        token = click.prompt("Please enter your authentication token from the browser", hide_input=False)
+        token = typer.prompt("Please enter your authentication token from the browser", hide_input=False)
 
     if not token:
-        msg = "Token must be provided via CODEGEN_USER_ACCESS_TOKEN environment variable or manual input"
-        raise click.ClickException(msg)
+        rich.print("[red]Error:[/red] Token must be provided via CODEGEN_USER_ACCESS_TOKEN environment variable or manual input")
+        raise typer.Exit(1)
 
     # Validate and store token
     try:
@@ -44,5 +44,5 @@ def login_routine(token: str | None = None) -> str:
         rich.print("To opt out, set [green]telemetry_enabled = false[/green] in [cyan]~/.config/codegen-sh/analytics.json[/cyan] ✨")
         return token
     except AuthError as e:
-        msg = f"Error: {e!s}"
-        raise click.ClickException(msg)
+        rich.print(f"[red]Error:[/red] {e!s}")
+        raise typer.Exit(1)

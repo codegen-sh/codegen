@@ -5,6 +5,8 @@ import requests
 from pydantic import BaseModel
 from rich import print as rprint
 
+from codegen.cli.api.endpoints import IDENTIFY_ENDPOINT
+from codegen.cli.api.schemas import IdentifyResponse
 from codegen.cli.env.global_env import global_env
 from codegen.cli.errors import InvalidTokenError, ServerError
 
@@ -75,3 +77,7 @@ class RestAPI:
         except requests.RequestException as e:
             msg = f"Network error: {e!s}"
             raise ServerError(msg)
+
+    def identify(self) -> IdentifyResponse:
+        """Identify the current user with the authentication token."""
+        return self._make_request("GET", IDENTIFY_ENDPOINT, None, IdentifyResponse)

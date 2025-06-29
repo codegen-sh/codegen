@@ -86,6 +86,7 @@ class DecoratedFunction:
 class CodegenFunctionVisitor(ast.NodeVisitor):
     def __init__(self):
         self.functions: list[DecoratedFunction] = []
+        self.file_content: str = ""
 
     def get_function_name(self, node: ast.Call) -> str:
         keywords = {k.arg: k.value for k in node.keywords}
@@ -104,7 +105,11 @@ class CodegenFunctionVisitor(ast.NodeVisitor):
     def get_language(self, node: ast.Call) -> ProgrammingLanguage | None:
         keywords = {k.arg: k.value for k in node.keywords}
         if "language" in keywords:
-            return ProgrammingLanguage(keywords["language"].attr)
+            lang_node = keywords["language"]
+            if hasattr(lang_node, 'attr'):
+                return ProgrammingLanguage(lang_node.attr)
+            else:
+                return ProgrammingLanguage(ast.literal_eval(lang_node))
         if len(node.args) > 2:
             return ast.literal_eval(node.args[2])
         return None
@@ -259,6 +264,8 @@ def _extract_arguments_type_schema(func: DecoratedFunction) -> dict | None:
     """Extracts the arguments type schema from a DecoratedFunction object."""
     try:
         spec = importlib.util.spec_from_file_location("module", func.filepath)
+        if spec is None or spec.loader is None:
+            return None
         module = importlib.util.module_from_spec(spec)
 
         fn_arguments_param_type = None
