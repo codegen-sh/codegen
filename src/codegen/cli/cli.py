@@ -6,6 +6,7 @@ from codegen.cli.commands.config.main import config_command
 from codegen.cli.commands.init.main import init_command
 from codegen.cli.commands.login.main import login_command
 from codegen.cli.commands.logout.main import logout_command
+from codegen.cli.commands.mcp.main import mcp_command
 from codegen.cli.commands.profile.main import profile_command
 from codegen.cli.commands.style_debug.main import style_debug_command
 from codegen.cli.commands.update.main import update_command
@@ -24,6 +25,7 @@ def main():
 main.add_command(init_command)
 main.add_command(logout_command)
 main.add_command(login_command)
+main.add_command(mcp_command)
 main.add_command(profile_command)
 main.add_command(style_debug_command)
 main.add_command(update_command)
