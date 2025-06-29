@@ -2549,20 +2549,6 @@ wheels = [
 ]
 
 [[package]]
-name = "rich-click"
-version = "1.8.8"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "click" },
-    { name = "rich" },
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/a6/7a/4b78c5997f2a799a8c5c07f3b2145bbcda40115c4d35c76fbadd418a3c89/rich_click-1.8.8.tar.gz", hash = "sha256:547c618dea916620af05d4a6456da797fbde904c97901f44d2f32f89d85d6c84", size = 39066, upload-time = "2025-03-09T23:20:31.174Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/fa/69/963f0bf44a654f6465bdb66fb5a91051b0d7af9f742b5bd7202607165036/rich_click-1.8.8-py3-none-any.whl", hash = "sha256:205aabd5a98e64ab2c105dee9e368be27480ba004c7dfa2accd0ed44f9f1550e", size = 35747, upload-time = "2025-03-09T23:20:29.831Z" },
-]
-
-[[package]]
 name = "rpds-py"
 version = "0.25.0"
 source = { registry = "https://pypi.org/simple" }
