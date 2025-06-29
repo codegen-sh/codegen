@@ -5,8 +5,6 @@ import requests
 from pydantic import BaseModel
 from rich import print as rprint
 
-from codegen.cli.api.endpoints import IDENTIFY_ENDPOINT
-from codegen.cli.api.schemas import IdentifyResponse
 from codegen.cli.env.global_env import global_env
 from codegen.cli.errors import InvalidTokenError, ServerError
 
@@ -16,11 +14,13 @@ OutputT = TypeVar("OutputT", bound=BaseModel)
 
 class AuthContext(BaseModel):
     """Authentication context model."""
+
     status: str
 
 
 class Identity(BaseModel):
     """User identity model."""
+
     auth_context: AuthContext
 
 

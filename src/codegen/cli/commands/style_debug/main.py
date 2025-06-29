@@ -6,6 +6,7 @@ import typer
 
 from codegen.cli.rich.spinners import create_spinner
 
+
 def style_debug(text: str = typer.Option("Loading...", help="Text to show in the spinner")):
     """Debug command to visualize CLI styling (spinners, etc)."""
     try:

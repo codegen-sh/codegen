@@ -1,5 +1,4 @@
 import rich
-import typer
 from rich import box
 from rich.panel import Panel
 
@@ -12,6 +11,7 @@ from codegen.cli.auth.session import CodegenSession
 def requires_init(func):
     """Simple stub decorator that does nothing."""
     return func
+
 
 @requires_auth
 @requires_init

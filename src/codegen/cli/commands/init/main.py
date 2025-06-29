@@ -1,4 +1,3 @@
-import sys
 from pathlib import Path
 from typing import Optional
 
@@ -9,18 +8,19 @@ from codegen.cli.auth.session import CodegenSession
 from codegen.cli.rich.codeblocks import format_command
 from codegen.shared.path import get_git_root_path
 
+
 def init(
     path: Optional[str] = typer.Option(None, help="Path within a git repository. Defaults to the current directory."),
     token: Optional[str] = typer.Option(None, help="Access token for the git repository. Required for full functionality."),
     language: Optional[str] = typer.Option(None, help="Override automatic language detection (python or typescript)"),
-    fetch_docs: bool = typer.Option(False, "--fetch-docs", help="Fetch docs and examples (requires auth)")
+    fetch_docs: bool = typer.Option(False, "--fetch-docs", help="Fetch docs and examples (requires auth)"),
 ):
     """Initialize or update the Codegen folder."""
     # Validate language option
     if language and language.lower() not in ["python", "typescript"]:
         rich.print(f"[bold red]Error:[/bold red] Invalid language '{language}'. Must be 'python' or 'typescript'.")
         raise typer.Exit(1)
-    
+
     # Print a message if not in a git repo
     path_obj = Path.cwd() if path is None else Path(path)
     repo_path = get_git_root_path(path_obj)

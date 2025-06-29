@@ -33,7 +33,7 @@ def install_package(package: str, *args: str) -> None:
 
 def update(
     list_: bool = typer.Option(False, "--list", "-l", help="List all supported versions of the codegen"),
-    version: Optional[str] = typer.Option(None, "--version", "-v", help="Update to a specific version of the codegen")
+    version: Optional[str] = typer.Option(None, "--version", "-v", help="Update to a specific version of the codegen"),
 ):
     """Update Codegen to the latest or specified version
 
@@ -44,7 +44,8 @@ def update(
         rich.print("[red]Error:[/red] Cannot specify both --list and --version")
         raise typer.Exit(1)
 
-    package_info = distribution(codegen.__package__)
+    package_name = codegen.__package__ or "codegen"
+    package_info = distribution(package_name)
     current_version = Version(package_info.version)
 
     if list_:

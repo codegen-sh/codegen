@@ -1,7 +1,7 @@
 import rich
-import typer
 
 from codegen.cli.auth.token_manager import TokenManager
+
 
 def logout():
     """Clear stored authentication token."""
