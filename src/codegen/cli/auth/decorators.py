@@ -1,4 +1,5 @@
 import functools
+import inspect
 from collections.abc import Callable
 
 import rich
@@ -35,5 +36,11 @@ def requires_auth(f: Callable) -> Callable:
                 login_routine()
 
         return f(*args, session=session, **kwargs)
+
+    # Remove the session parameter from the wrapper's signature so Typer doesn't see it
+    sig = inspect.signature(f)
+    new_params = [param for name, param in sig.parameters.items() if name != 'session']
+    new_sig = sig.replace(parameters=new_params)
+    wrapper.__signature__ = new_sig
 
     return wrapper
