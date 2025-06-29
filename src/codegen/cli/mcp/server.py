@@ -1,6 +1,6 @@
-from typing import Annotated, Any, Optional, Union
-import os
 import json
+import os
+from typing import Annotated, Any, Optional
 
 from fastmcp import Context, FastMCP
 
@@ -12,6 +12,7 @@ try:
     from codegen.cli.api.client import RestAPI  # type: ignore
     from codegen.sdk.core.codebase import Codebase  # type: ignore
     from codegen.shared.enums.programming_language import ProgrammingLanguage  # type: ignore
+
     LEGACY_IMPORTS_AVAILABLE = True
 except ImportError:
     LEGACY_IMPORTS_AVAILABLE = False
@@ -161,9 +162,7 @@ def create_agent_run(
         _, agents_api, _, _ = get_api_client()
 
         # Create the input object
-        agent_input = CreateAgentRunInput(
-            prompt=prompt
-        )
+        agent_input = CreateAgentRunInput(prompt=prompt)
         # Make the API call
         response = agents_api.create_agent_run_v1_organizations_org_id_agent_run_post(org_id=org_id, create_agent_run_input=agent_input)
 

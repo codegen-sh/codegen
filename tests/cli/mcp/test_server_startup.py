@@ -40,8 +40,9 @@ class TestMCPServerStartup:
                 '{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test-client", "version": "1.0.0"}}}\n'
             )
 
-            process.stdin.write(init_message)
-            process.stdin.flush()
+            if process.stdin:
+                process.stdin.write(init_message)
+                process.stdin.flush()
 
             # Give it a moment to process
             time.sleep(1)

@@ -22,7 +22,7 @@ class TestMCPSimpleIntegration:
             assert UsersApi is not None
 
         except ImportError as e:
-            pytest.fail(f"API client imports not available: {e}")
+            raise AssertionError(f"API client imports not available: {e}") from e
 
     def test_mcp_command_registration(self):
         """Test that the MCP command is registered in the CLI."""
@@ -31,7 +31,7 @@ class TestMCPSimpleIntegration:
         # Check that the mcp command is registered in typer
         # For typer, we can check if the command exists by looking at registered commands
         # This is a basic test to ensure the command is importable and the CLI structure is correct
-        assert hasattr(main, 'registered_commands') or hasattr(main, 'commands') or callable(main)
+        assert hasattr(main, "registered_commands") or hasattr(main, "commands") or callable(main)
 
     def test_mcp_command_function_exists(self):
         """Test that the MCP command function exists."""
@@ -58,7 +58,7 @@ class TestMCPSimpleIntegration:
 
             assert callable(mcp)
         except ImportError as e:
-            pytest.fail(f"MCP command module not importable: {e}")
+            raise AssertionError(f"MCP command module not importable: {e}") from e
 
     def test_environment_variable_handling_basic(self):
         """Test basic environment variable handling."""

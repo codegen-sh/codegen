@@ -90,10 +90,7 @@ def get_config(key: str = typer.Argument(..., help="Configuration key to get")):
 
 
 @config_command.command(name="set")
-def set_config(
-    key: str = typer.Argument(..., help="Configuration key to set"),
-    value: str = typer.Argument(..., help="Configuration value to set")
-):
+def set_config(key: str = typer.Argument(..., help="Configuration key to set"), value: str = typer.Argument(..., help="Configuration value to set")):
     """Set a configuration value and write to .env"""
     config = _get_user_config()
     if not config.has_key(key):

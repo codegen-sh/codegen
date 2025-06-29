@@ -1,7 +1,8 @@
 """MCP server command for the Codegen CLI."""
 
-import typer
 from typing import Optional
+
+import typer
 from rich.console import Console
 
 console = Console()
