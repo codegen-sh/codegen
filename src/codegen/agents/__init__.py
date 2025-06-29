@@ -2,4 +2,9 @@
 
 from codegen.agents.agent import Agent
 
-__all__ = ["Agent"]
+# Import SDK components for backward compatibility and convenience
+from codegen.sdk import CodegenSDK
+from codegen.organizations import Organizations
+from codegen.users import Users
+
+__all__ = ["Agent", "CodegenSDK", "Organizations", "Users"]
