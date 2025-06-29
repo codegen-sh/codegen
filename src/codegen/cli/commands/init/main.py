@@ -1,21 +1,26 @@
 import sys
 from pathlib import Path
+from typing import Optional
 
 import rich
-import rich_click as click
+import typer
 
 from codegen.cli.auth.session import CodegenSession
 from codegen.cli.rich.codeblocks import format_command
 from codegen.shared.path import get_git_root_path
 
-
-@click.command(name="init")
-@click.option("--path", type=str, help="Path within a git repository. Defaults to the current directory.")
-@click.option("--token", type=str, help="Access token for the git repository. Required for full functionality.")
-@click.option("--language", type=click.Choice(["python", "typescript"], case_sensitive=False), help="Override automatic language detection")
-@click.option("--fetch-docs", is_flag=True, help="Fetch docs and examples (requires auth)")
-def init_command(path: str | None = None, token: str | None = None, language: str | None = None, fetch_docs: bool = False):
+def init(
+    path: Optional[str] = typer.Option(None, help="Path within a git repository. Defaults to the current directory."),
+    token: Optional[str] = typer.Option(None, help="Access token for the git repository. Required for full functionality."),
+    language: Optional[str] = typer.Option(None, help="Override automatic language detection (python or typescript)"),
+    fetch_docs: bool = typer.Option(False, "--fetch-docs", help="Fetch docs and examples (requires auth)")
+):
     """Initialize or update the Codegen folder."""
+    # Validate language option
+    if language and language.lower() not in ["python", "typescript"]:
+        rich.print(f"[bold red]Error:[/bold red] Invalid language '{language}'. Must be 'python' or 'typescript'.")
+        raise typer.Exit(1)
+    
     # Print a message if not in a git repo
     path_obj = Path.cwd() if path is None else Path(path)
     repo_path = get_git_root_path(path_obj)
@@ -27,7 +32,7 @@ def init_command(path: str | None = None, token: str | None = None, language: st
         rich.print("\n[dim]To initialize a new git repository:[/dim]")
         rich.print(format_command("git init"))
         rich.print(format_command("codegen init"))
-        sys.exit(1)
+        raise typer.Exit(1)
 
     # At this point, repo_path is guaranteed to be not None
     assert repo_path is not None

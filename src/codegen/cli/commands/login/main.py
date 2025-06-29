@@ -1,16 +1,15 @@
-import rich_click as click
+from typing import Optional
+import typer
+import rich
 
 from codegen.cli.auth.login import login_routine
 from codegen.cli.auth.token_manager import get_current_token
 
-
-@click.command(name="login")
-@click.option("--token", required=False, help="API token for authentication")
-def login_command(token: str):
+def login(token: Optional[str] = typer.Option(None, help="API token for authentication")):
     """Store authentication token."""
     # Check if already authenticated
     if get_current_token():
-        msg = "Already authenticated. Use 'codegen logout' to clear the token."
-        raise click.ClickException(msg)
+        rich.print("[yellow]Warning:[/yellow] Already authenticated. Use 'codegen logout' to clear the token.")
+        raise typer.Exit(1)
 
     login_routine(token)
