@@ -1,6 +1,5 @@
 [build.hooks.vcs]
 dependencies = ["hatch-vcs>=0.4.0"]
-version-file = "src/codegen/__init__.py"
 
 [metadata]
 allow-direct-references = true
