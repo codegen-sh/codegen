@@ -2,7 +2,6 @@ from typing import Annotated, Any
 
 from mcp.server.fastmcp import Context, FastMCP
 
-from codegen.cli.api.client import RestAPI
 from codegen.cli.mcp.agent.docs_expert import create_sdk_expert_agent
 from codegen.cli.mcp.resources.system_prompt import SYSTEM_PROMPT
 from codegen.cli.mcp.resources.system_setup_instructions import SETUP_INSTRUCTIONS
@@ -80,7 +79,7 @@ def improve_codemod(
 ) -> str:
     """Improve the codemod."""
     # TODO: Implement improve_codemod functionality
-    return f"Error: improve_codemod functionality not yet implemented"
+    return "Error: improve_codemod functionality not yet implemented"
 
 
 if __name__ == "__main__":

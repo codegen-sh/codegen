@@ -1,5 +1,5 @@
 import time
-from datetime import datetime
+from datetime import UTC, datetime
 
 from github.Branch import Branch
 from github.CheckRun import CheckRun
@@ -98,7 +98,7 @@ class GitRepoClient:
             return last_modified_date
         else:
             print("Directory has not been modified or does not exist.")
-            return datetime.min
+            return datetime.min.replace(tzinfo=UTC)
 
     ####################################################################################################################
     # COMMENTS

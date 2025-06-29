@@ -106,7 +106,7 @@ class CodegenFunctionVisitor(ast.NodeVisitor):
         keywords = {k.arg: k.value for k in node.keywords}
         if "language" in keywords:
             lang_node = keywords["language"]
-            if hasattr(lang_node, 'attr'):
+            if hasattr(lang_node, "attr"):
                 return ProgrammingLanguage(lang_node.attr)
             else:
                 return ProgrammingLanguage(ast.literal_eval(lang_node))
