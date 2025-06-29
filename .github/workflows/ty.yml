@@ -1,4 +1,4 @@
-name: Mypy Checks
+name: Ty Type Checks
 
 on:
   pull_request:
@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  mypy:
+  ty:
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -38,11 +38,8 @@ jobs:
           done
           echo "python_files=${python_files[*]}" >> $GITHUB_ENV
 
-      - name: Add MyPy annotator
-        uses: pr-annotators/mypy-pr-annotator@v1.0.0
-
-      - name: Run mypy
+      - name: Run ty
         if: ${{ env.python_files != '' }}
         run: |
-          echo "Running mypy on changed files: ${{ env.python_files }}"
-          uv run mypy --no-pretty --show-absolute-path ${{ env.python_files }}
+          echo "Running ty on changed files: ${{ env.python_files }}"
+          uv run ty check --output-format concise --python-version 3.12 --exclude "**/tests/**" --exclude "**/codegen_tests/**" ${{ env.python_files }}
