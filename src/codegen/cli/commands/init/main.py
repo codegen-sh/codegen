@@ -17,18 +17,20 @@ from codegen.shared.path import get_git_root_path
 def init_command(path: str | None = None, token: str | None = None, language: str | None = None, fetch_docs: bool = False):
     """Initialize or update the Codegen folder."""
     # Print a message if not in a git repo
-    path = Path.cwd() if path is None else Path(path)
-    repo_path = get_git_root_path(path)
+    path_obj = Path.cwd() if path is None else Path(path)
+    repo_path = get_git_root_path(path_obj)
     rich.print(f"Found git repository at: {repo_path}")
 
     if repo_path is None:
-        rich.print(f"\n[bold red]Error:[/bold red] Path={path} is not in a git repository")
+        rich.print(f"\n[bold red]Error:[/bold red] Path={path_obj} is not in a git repository")
         rich.print("[white]Please run this command from within a git repository.[/white]")
         rich.print("\n[dim]To initialize a new git repository:[/dim]")
         rich.print(format_command("git init"))
         rich.print(format_command("codegen init"))
         sys.exit(1)
 
+    # At this point, repo_path is guaranteed to be not None
+    assert repo_path is not None
     session = CodegenSession(repo_path=repo_path, git_token=token)
     if language:
         session.config.repository.language = language.upper()

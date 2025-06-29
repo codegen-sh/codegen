@@ -45,7 +45,7 @@ class AgentTask:
 class Agent:
     """API client for interacting with Codegen AI agents."""
 
-    def __init__(self, token: str, org_id: int | None = None, base_url: str | None = CODEGEN_BASE_API_URL):
+    def __init__(self, token: str | None, org_id: int | None = None, base_url: str | None = CODEGEN_BASE_API_URL):
         """Initialize a new Agent client.
 
         Args:
