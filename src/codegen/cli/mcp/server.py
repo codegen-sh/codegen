@@ -157,11 +157,6 @@ def create_agent_run(
     branch_name: Annotated[str | None, "Branch name (optional)"] = None,
     ctx: Context | None = None,
 ) -> str:
-<<<<<<< HEAD
-    """Improve the codemod."""
-    # TODO: Implement improve_codemod functionality
-    return "Error: improve_codemod functionality not yet implemented"
-=======
     """Create a new agent run in the specified organization."""
     try:
         _, agents_api, _, _ = get_api_client()
@@ -305,7 +300,6 @@ def run_server(transport: str = "stdio", host: str = "localhost", port: int | No
     else:
         msg = f"Unsupported transport: {transport}"
         raise ValueError(msg)
->>>>>>> 53af51f (Implement MCP Server functionality for Codegen CLI (#1153))
 
 
 if __name__ == "__main__":

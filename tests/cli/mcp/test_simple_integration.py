@@ -2,8 +2,6 @@
 
 from unittest.mock import patch
 
-import pytest
-
 
 class TestMCPSimpleIntegration:
     """Simple integration tests that avoid FastMCP import issues."""
@@ -22,7 +20,8 @@ class TestMCPSimpleIntegration:
             assert UsersApi is not None
 
         except ImportError as e:
-            raise AssertionError(f"API client imports not available: {e}") from e
+            msg = f"API client imports not available: {e}"
+            raise AssertionError(msg) from e
 
     def test_mcp_command_registration(self):
         """Test that the MCP command is registered in the CLI."""
@@ -58,7 +57,8 @@ class TestMCPSimpleIntegration:
 
             assert callable(mcp)
         except ImportError as e:
-            raise AssertionError(f"MCP command module not importable: {e}") from e
+            msg = f"MCP command module not importable: {e}"
+            raise AssertionError(msg) from e
 
     def test_environment_variable_handling_basic(self):
         """Test basic environment variable handling."""

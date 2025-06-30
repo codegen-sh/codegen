@@ -1,6 +1,5 @@
 """MCP server command for the Codegen CLI."""
 
-
 import typer
 from rich.console import Console
 
