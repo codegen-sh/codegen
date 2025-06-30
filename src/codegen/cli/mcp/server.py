@@ -1,25 +1,8 @@
 import json
 import os
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any
 
 from fastmcp import Context, FastMCP
-
-from codegen.cli.mcp.resources.system_prompt import SYSTEM_PROMPT
-from codegen.cli.mcp.resources.system_setup_instructions import SETUP_INSTRUCTIONS
-
-# Optional imports for existing functionality
-try:
-    from codegen.cli.api.client import RestAPI  # type: ignore
-    from codegen.sdk.core.codebase import Codebase  # type: ignore
-    from codegen.shared.enums.programming_language import ProgrammingLanguage  # type: ignore
-
-    LEGACY_IMPORTS_AVAILABLE = True
-except ImportError:
-    LEGACY_IMPORTS_AVAILABLE = False
-    # Define placeholder types for type checking
-    RestAPI = None  # type: ignore
-    Codebase = None  # type: ignore
-    ProgrammingLanguage = None  # type: ignore
 
 # Import API client components
 try:
@@ -34,7 +17,7 @@ except ImportError:
 # Initialize FastMCP server
 mcp = FastMCP(
     "codegen-mcp",
-    instructions="MCP server for the Codegen platform. Use the tools and resources to interact with Codegen APIs, setup codegen in your environment, and create/improve Codegen Codemods.",
+    instructions="MCP server for the Codegen platform. Use the tools and resources to interact with Codegen APIs and manage your development workflow.",
 )
 
 # Global API client instances
@@ -76,74 +59,17 @@ def get_api_client():
 # ----- RESOURCES -----
 
 
-@mcp.resource("system://agent_prompt", description="Provides all the information the agent needs to know about Codegen SDK", mime_type="text/plain")
-def get_docs() -> str:
-    """Get the sdk doc url."""
-    return SYSTEM_PROMPT
-
-
-@mcp.resource("system://setup_instructions", description="Provides all the instructions to setup the environment for the agent", mime_type="text/plain")
-def get_setup_instructions() -> str:
-    """Get the setup instructions."""
-    return SETUP_INSTRUCTIONS
-
-
 @mcp.resource("system://manifest", mime_type="application/json")
 def get_service_config() -> dict[str, Any]:
     """Get the service config."""
     return {
         "name": "mcp-codegen",
         "version": "0.1.0",
-        "description": "The MCP server for assisting with creating/writing/improving codegen codemods.",
+        "description": "The MCP server for the Codegen platform API integration.",
     }
 
 
 # ----- TOOLS -----
-
-
-# Legacy SDK tool (only available if imports are available)
-if LEGACY_IMPORTS_AVAILABLE:
-
-    @mcp.tool()
-    def ask_codegen_sdk(query: Annotated[str, "Ask a question to an expert agent for details about any aspect of the codegen sdk core set of classes and utilities"]):
-        """Ask questions about the Codegen SDK (requires legacy imports)."""
-        return "This tool requires additional dependencies that are not currently available."
-
-
-@mcp.tool()
-def generate_codemod(
-    title: Annotated[str, "The title of the codemod (hyphenated)"],
-    task: Annotated[str, "The task to which the codemod should implement to solve"],
-    codebase_path: Annotated[str, "The absolute path to the codebase directory"],
-    ctx: Context,
-) -> str:
-    """Generate a codemod for the given task and codebase."""
-    return f'''
-    Use the codegen cli to generate a codemod. If you need to intall the cli the command to do so is `uv tool install codegen`. Once installed, run the following command to generate the codemod:
-
-    codegen create {title} -d "{task}"
-    '''
-
-
-# Legacy improve codemod tool (only available if imports are available)
-if LEGACY_IMPORTS_AVAILABLE:
-
-    @mcp.tool()
-    def improve_codemod(
-        codemod_source: Annotated[str, "The source code of the codemod to improve"],
-        task: Annotated[str, "The task to which the codemod should implement to solve"],
-        concerns: Annotated[list[str], "A list of issues that were discovered with the current codemod that need to be considered in the next iteration"],
-        context: Annotated[dict[str, Any], "Additional context for the codemod this can be a list of files that are related, additional information about the task, etc."],
-        language: Annotated[ProgrammingLanguage, "The language of the codebase, i.e ALL CAPS PYTHON or TYPESCRIPT "],
-        ctx: Context,
-    ) -> str:
-        """Improve the codemod."""
-        try:
-            # Note: RestAPI client needs proper initialization and the improve_codemod method
-            # This is a placeholder implementation
-            return f"Codemod improvement not yet implemented. Task: {task}, Concerns: {concerns}"
-        except Exception as e:
-            return f"Error: {e}"
 
 
 # ----- CODEGEN API TOOLS -----
@@ -153,9 +79,9 @@ if LEGACY_IMPORTS_AVAILABLE:
 def create_agent_run(
     org_id: Annotated[int, "Organization ID"],
     prompt: Annotated[str, "The prompt/task for the agent to execute"],
-    repo_name: Annotated[Optional[str], "Repository name (optional)"] = None,
-    branch_name: Annotated[Optional[str], "Branch name (optional)"] = None,
-    ctx: Optional[Context] = None,
+    repo_name: Annotated[str | None, "Repository name (optional)"] = None,
+    branch_name: Annotated[str | None, "Branch name (optional)"] = None,
+    ctx: Context | None = None,
 ) -> str:
     """Create a new agent run in the specified organization."""
     try:
@@ -186,7 +112,7 @@ def create_agent_run(
 def get_agent_run(
     org_id: Annotated[int, "Organization ID"],
     agent_run_id: Annotated[int, "Agent run ID"],
-    ctx: Optional[Context] = None,
+    ctx: Context | None = None,
 ) -> str:
     """Get details of a specific agent run."""
     try:
@@ -216,7 +142,7 @@ def get_agent_run(
 def get_organizations(
     page: Annotated[int, "Page number (default: 1)"] = 1,
     limit: Annotated[int, "Number of organizations per page (default: 10)"] = 10,
-    ctx: Optional[Context] = None,
+    ctx: Context | None = None,
 ) -> str:
     """Get list of organizations the user has access to."""
     try:
@@ -240,7 +166,7 @@ def get_users(
     org_id: Annotated[int, "Organization ID"],
     page: Annotated[int, "Page number (default: 1)"] = 1,
     limit: Annotated[int, "Number of users per page (default: 10)"] = 10,
-    ctx: Optional[Context] = None,
+    ctx: Context | None = None,
 ) -> str:
     """Get list of users in an organization."""
     try:
@@ -263,7 +189,7 @@ def get_users(
 def get_user(
     org_id: Annotated[int, "Organization ID"],
     user_id: Annotated[int, "User ID"],
-    ctx: Optional[Context] = None,
+    ctx: Context | None = None,
 ) -> str:
     """Get details of a specific user in an organization."""
     try:
@@ -289,10 +215,12 @@ def get_user(
 def run_server(transport: str = "stdio", host: str = "localhost", port: int | None = None):
     """Run the MCP server with the specified transport."""
     if transport == "stdio":
+        print("🚀 MCP server running on stdio transport")
         mcp.run(transport="stdio")
     elif transport == "http":
         if port is None:
             port = 8000
+        print(f"🚀 MCP server running on http://{host}:{port}")
         # Note: FastMCP may not support HTTP transport directly
         # This is a placeholder for future HTTP transport support
         print(f"HTTP transport not yet implemented. Would run on {host}:{port}")

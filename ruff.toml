@@ -49,7 +49,6 @@ exclude = [
   "*.ipynb",
 ] # disable just linting for notebooks (allow for formatting)
 [lint.per-file-ignores]
-"src/codegen/cli/mcp/resources/system_prompt.py" = ["E501"]
 [lint.pydocstyle]
 convention = "google"
 [lint.pyflakes]

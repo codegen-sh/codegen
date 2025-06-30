@@ -49,4 +49,4 @@ def subprocess_with_stopwatch(command, command_desc: str | None = None, *args, *
     end_time = time.time()
     logger.info(f"Command '{command_desc or command}' took {end_time - start_time} seconds to execute.")
     # Cast to the correct type since we set text=True
-    return cast(subprocess.CompletedProcess[str], result)
+    return cast("subprocess.CompletedProcess[str]", result)
