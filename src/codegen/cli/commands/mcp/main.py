@@ -19,6 +19,8 @@ def mcp(
     if transport == "stdio":
         console.print("📡 Using stdio transport", style="dim")
     else:
+        if port is None:
+            port = 8000
         console.print(f"📡 Using HTTP transport on {host}:{port}", style="dim")
 
     # Validate transport

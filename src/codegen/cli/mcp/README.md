@@ -1,6 +1,6 @@
 # Codegen MCP server
 
-A MCP server implementation that provides tools and resources for using and working with the Codegen CLI and SDK, enabling AI agents to iterate quickly on writing codemods with the codegen sdk.
+A MCP server implementation that provides tools and resources for interacting with the Codegen platform APIs, enabling AI agents to manage development workflows and access Codegen services.
 
 ### Dependencies
 
