@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any
 
 from fastmcp import Context, FastMCP
 
@@ -153,9 +153,9 @@ if LEGACY_IMPORTS_AVAILABLE:
 def create_agent_run(
     org_id: Annotated[int, "Organization ID"],
     prompt: Annotated[str, "The prompt/task for the agent to execute"],
-    repo_name: Annotated[Optional[str], "Repository name (optional)"] = None,
-    branch_name: Annotated[Optional[str], "Branch name (optional)"] = None,
-    ctx: Optional[Context] = None,
+    repo_name: Annotated[str | None, "Repository name (optional)"] = None,
+    branch_name: Annotated[str | None, "Branch name (optional)"] = None,
+    ctx: Context | None = None,
 ) -> str:
 <<<<<<< HEAD
     """Improve the codemod."""
@@ -191,7 +191,7 @@ def create_agent_run(
 def get_agent_run(
     org_id: Annotated[int, "Organization ID"],
     agent_run_id: Annotated[int, "Agent run ID"],
-    ctx: Optional[Context] = None,
+    ctx: Context | None = None,
 ) -> str:
     """Get details of a specific agent run."""
     try:
@@ -221,7 +221,7 @@ def get_agent_run(
 def get_organizations(
     page: Annotated[int, "Page number (default: 1)"] = 1,
     limit: Annotated[int, "Number of organizations per page (default: 10)"] = 10,
-    ctx: Optional[Context] = None,
+    ctx: Context | None = None,
 ) -> str:
     """Get list of organizations the user has access to."""
     try:
@@ -245,7 +245,7 @@ def get_users(
     org_id: Annotated[int, "Organization ID"],
     page: Annotated[int, "Page number (default: 1)"] = 1,
     limit: Annotated[int, "Number of users per page (default: 10)"] = 10,
-    ctx: Optional[Context] = None,
+    ctx: Context | None = None,
 ) -> str:
     """Get list of users in an organization."""
     try:
@@ -268,7 +268,7 @@ def get_users(
 def get_user(
     org_id: Annotated[int, "Organization ID"],
     user_id: Annotated[int, "User ID"],
-    ctx: Optional[Context] = None,
+    ctx: Context | None = None,
 ) -> str:
     """Get details of a specific user in an organization."""
     try:
