@@ -261,6 +261,7 @@ class TestMCPConfiguration:
 
         # Check that the FastMCP server was created with correct configuration
         assert mcp.name == "codegen-mcp"
+        assert mcp.instructions is not None
         assert "MCP server for the Codegen platform" in mcp.instructions
 
         # Check that tools and resources are registered
@@ -272,7 +273,7 @@ class TestMCPConfiguration:
         from codegen.cli.mcp.server import mcp
 
         instructions = mcp.instructions
-
+        assert instructions is not None
         # Should contain key information about the server's purpose
         assert "MCP server" in instructions
         assert "Codegen" in instructions
@@ -310,8 +311,7 @@ class TestMCPConfiguration:
 
     def test_conditional_tool_registration(self):
         """Test conditional tool registration based on available imports."""
-        from codegen.cli.mcp.server import LEGACY_IMPORTS_AVAILABLE, mcp
-
+        from codegen.cli.mcp.server import mcp, LEGACY_IMPORTS_AVAILABLE  # type: ignore[attr-defined]
         tool_names = list(mcp._tool_manager._tools.keys())
 
         if LEGACY_IMPORTS_AVAILABLE:

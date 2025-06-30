@@ -110,7 +110,13 @@ class TestMCPTools:
         generate_codemod_tool = tools["generate_codemod"]
 
         # Test the tool function
-        result = generate_codemod_tool.fn(title="test-codemod", task="Add logging to all functions", codebase_path="/path/to/codebase", ctx=None)
+        result = generate_codemod_tool.fn(  # type: ignore[attr-defined]
+            title="test-codemod",
+            task="Add logging to all functions",
+            codebase_path="/path/to/codebase",
+            ctx=None
+        )
+        
 
         assert "codegen create test-codemod" in result
         assert "Add logging to all functions" in result
@@ -141,7 +147,14 @@ class TestMCPTools:
         create_agent_run_tool = tools["create_agent_run"]
 
         # Test the tool function
-        result = create_agent_run_tool.fn(org_id=1, prompt="Test prompt", repo_name="test-repo", branch_name="test-branch", ctx=None)
+        result = create_agent_run_tool.fn(  # type: ignore[attr-defined]
+            org_id=1,
+            prompt="Test prompt",
+            repo_name="test-repo",
+            branch_name="test-branch",
+            ctx=None
+        )
+        
 
         # Parse the JSON response
         response_data = json.loads(result)
@@ -167,7 +180,12 @@ class TestMCPTools:
         create_agent_run_tool = tools["create_agent_run"]
 
         # Test the tool function
-        result = create_agent_run_tool.fn(org_id=1, prompt="Test prompt", ctx=None)
+        result = create_agent_run_tool.fn(  # type: ignore[attr-defined]
+            org_id=1,
+            prompt="Test prompt",
+            ctx=None
+        )
+        
 
         assert "Error creating agent run" in result
         assert "API connection failed" in result
@@ -201,7 +219,12 @@ class TestMCPTools:
         get_agent_run_tool = tools["get_agent_run"]
 
         # Test the tool function
-        result = get_agent_run_tool.fn(org_id=1, agent_run_id=123, ctx=None)
+        result = get_agent_run_tool.fn(  # type: ignore[attr-defined]
+            org_id=1,
+            agent_run_id=123,
+            ctx=None
+        )
+        
 
         # Parse the JSON response
         response_data = json.loads(result)
@@ -249,7 +272,9 @@ class TestMCPTools:
         get_organizations_tool = tools["get_organizations"]
 
         # Test the tool function
-        result = get_organizations_tool.fn(page=1, limit=10, ctx=None)
+        result = get_organizations_tool.fn(  # type: ignore[attr-defined]
+            page=1, limit=10, ctx=None)
+        
 
         # Parse the JSON response
         response_data = json.loads(result)
@@ -298,7 +323,9 @@ class TestMCPTools:
         get_users_tool = tools["get_users"]
 
         # Test the tool function
-        result = get_users_tool.fn(org_id=1, page=1, limit=10, ctx=None)
+        result = get_users_tool.fn(  # type: ignore[attr-defined]
+            org_id=1, page=1, limit=10, ctx=None)
+        
 
         # Parse the JSON response
         response_data = json.loads(result)
@@ -335,7 +362,9 @@ class TestMCPTools:
         get_user_tool = tools["get_user"]
 
         # Test the tool function
-        result = get_user_tool.fn(org_id=1, user_id=1, ctx=None)
+        result = get_user_tool.fn(  # type: ignore[attr-defined]
+            org_id=1, user_id=1, ctx=None)
+        
 
         # Parse the JSON response
         response_data = json.loads(result)

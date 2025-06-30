@@ -107,7 +107,12 @@ class TestMCPErrorHandling:
         create_agent_run_tool = tools["create_agent_run"]
 
         # Test the tool function with API error
-        result = create_agent_run_tool.fn(org_id=1, prompt="Test prompt", ctx=None)
+        result = create_agent_run_tool.fn(  # type: ignore[attr-defined]
+            org_id=1,
+            prompt="Test prompt",
+            ctx=None
+        )
+        
 
         assert "Error creating agent run" in result
         assert "Network error" in result
@@ -128,7 +133,12 @@ class TestMCPErrorHandling:
         get_agent_run_tool = tools["get_agent_run"]
 
         # Test the tool function with API error
-        result = get_agent_run_tool.fn(org_id=1, agent_run_id=123, ctx=None)
+        result = get_agent_run_tool.fn(  # type: ignore[attr-defined]
+            org_id=1,
+            agent_run_id=123,
+            ctx=None
+        )
+        
 
         assert "Error getting agent run" in result
         assert "API timeout" in result
@@ -149,7 +159,9 @@ class TestMCPErrorHandling:
         get_organizations_tool = tools["get_organizations"]
 
         # Test the tool function with API error
-        result = get_organizations_tool.fn(page=1, limit=10, ctx=None)
+        result = get_organizations_tool.fn(  # type: ignore[attr-defined]
+            page=1, limit=10, ctx=None)
+        
 
         assert "Error getting organizations" in result
         assert "Authentication failed" in result
@@ -170,7 +182,9 @@ class TestMCPErrorHandling:
         get_users_tool = tools["get_users"]
 
         # Test the tool function with API error
-        result = get_users_tool.fn(org_id=1, page=1, limit=10, ctx=None)
+        result = get_users_tool.fn(  # type: ignore[attr-defined]
+            org_id=1, page=1, limit=10, ctx=None)
+        
 
         assert "Error getting users" in result
         assert "Permission denied" in result
@@ -191,7 +205,9 @@ class TestMCPErrorHandling:
         get_user_tool = tools["get_user"]
 
         # Test the tool function with API error
-        result = get_user_tool.fn(org_id=1, user_id=999, ctx=None)
+        result = get_user_tool.fn(  # type: ignore[attr-defined]
+            org_id=1, user_id=999, ctx=None)
+        
 
         assert "Error getting user" in result
         assert "User not found" in result
@@ -263,11 +279,14 @@ class TestMCPErrorHandling:
         tools = mcp._tool_manager._tools
         assert "create_agent_run" in tools
         create_agent_run_tool = tools["create_agent_run"]
-
-        tool = tools[0]
-
+        
+        
+        tool = list(tools.values())[0]
+        
         # Test that the tool handles initialization errors gracefully
-        result = tool.fn(org_id=1, prompt="test", ctx=None)
+        result = tool.fn(  # type: ignore[attr-defined]
+            org_id=1, prompt="test", ctx=None)
+        
 
         assert "Error creating agent run" in result
         assert "Failed to initialize API client" in result
@@ -282,7 +301,8 @@ class TestMCPErrorHandling:
             assert isinstance(SYSTEM_PROMPT, str)
             assert isinstance(SETUP_INSTRUCTIONS, str)
         except ImportError as e:
-            pytest.fail(f"Resource imports should not fail: {e}")
+            pytest.fail(  # type: ignore[misc]
+                f"Resource imports should not fail: {e}")
 
     def test_server_module_import_error_handling(self):
         """Test server module import error handling."""
@@ -293,7 +313,8 @@ class TestMCPErrorHandling:
             assert hasattr(codegen.cli.mcp.server, "run_server")
             assert hasattr(codegen.cli.mcp.server, "mcp")
         except ImportError as e:
-            pytest.fail(f"Server module import should not fail: {e}")
+            pytest.fail(  # type: ignore[misc]
+                f"Server module import should not fail: {e}")
 
     def test_mcp_command_import_error_handling(self):
         """Test MCP command import error handling."""
@@ -303,7 +324,8 @@ class TestMCPErrorHandling:
 
             assert callable(mcp)
         except ImportError as e:
-            pytest.fail(f"MCP command import should not fail: {e}")
+            pytest.fail(  # type: ignore[misc]
+                f"MCP command import should not fail: {e}")
 
     @patch("codegen.cli.mcp.server.get_api_client")
     def test_api_response_parsing_error(self, mock_get_api_client):
@@ -332,7 +354,12 @@ class TestMCPErrorHandling:
         create_agent_run_tool = tools["create_agent_run"]
 
         # Test the tool function with malformed response
-        result = create_agent_run_tool.fn(org_id=1, prompt="Test prompt", ctx=None)
+        result = create_agent_run_tool.fn(  # type: ignore[attr-defined]
+            org_id=1,
+            prompt="Test prompt",
+            ctx=None
+        )
+        
 
         # Should handle None values gracefully
         assert isinstance(result, str)
@@ -343,4 +370,5 @@ class TestMCPErrorHandling:
             parsed = json.loads(result)
             assert isinstance(parsed, dict)
         except json.JSONDecodeError:
-            pytest.fail("Tool should return valid JSON even with malformed API response")
+            pytest.fail(  # type: ignore[misc]
+                "Tool should return valid JSON even with malformed API response")

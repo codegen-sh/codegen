@@ -20,7 +20,9 @@ class TestMCPResources:
         agent_prompt_resource = resources["system://agent_prompt"]
 
         # Test the resource function
-        result = agent_prompt_resource.fn()
+        result = agent_prompt_resource.fn(  # type: ignore[attr-defined]
+            )
+        
 
         # Should return a string with system prompt content
         assert isinstance(result, str)
@@ -39,7 +41,9 @@ class TestMCPResources:
         setup_instructions_resource = resources["system://setup_instructions"]
 
         # Test the resource function
-        result = setup_instructions_resource.fn()
+        result = setup_instructions_resource.fn(  # type: ignore[attr-defined]
+            )
+        
 
         # Should return a string with setup instructions
         assert isinstance(result, str)
@@ -58,7 +62,9 @@ class TestMCPResources:
         manifest_resource = resources["system://manifest"]
 
         # Test the resource function
-        result = manifest_resource.fn()
+        result = manifest_resource.fn(  # type: ignore[attr-defined]
+            )
+        
 
         # Should return a dictionary with manifest information
         assert isinstance(result, dict)
@@ -111,10 +117,12 @@ class TestMCPResources:
 
             # Try calling the function
             try:
-                result = resource.fn()
+                result = resource.fn(  # type: ignore[attr-defined]
+            )
                 assert result is not None, f"Resource {uri} returned None"
             except Exception as e:
-                pytest.fail(f"Resource {uri} raised exception: {e}")
+                pytest.fail(  # type: ignore[misc]
+                f"Resource {uri} raised exception: {e}")
 
     def test_resource_content_consistency(self):
         """Test that resource content is consistent across calls."""
@@ -123,8 +131,11 @@ class TestMCPResources:
         resources = mcp._resource_manager._resources
         for uri, resource in resources.items():
             # Call the resource function multiple times
-            result1 = resource.fn()
-            result2 = resource.fn()
+            result1 = resource.fn(  # type: ignore[attr-defined]
+            )
+            result2 = resource.fn(  # type: ignore[attr-defined]
+            )
+            
 
             # Results should be identical (resources should be deterministic)
             assert result1 == result2, f"Resource {uri} returned different results on multiple calls"
@@ -172,16 +183,19 @@ class TestMCPResources:
         resources = mcp._resource_manager._resources
         for uri, resource in resources.items():
             try:
-                result = resource.fn()
+                result = resource.fn(  # type: ignore[attr-defined]
+            )
                 # Basic validation that result is not empty
                 if isinstance(result, str):
                     assert len(result) > 0
                 elif isinstance(result, dict):
                     assert len(result) > 0
                 else:
-                    pytest.fail(f"Resource {uri} returned unexpected type: {type(result)}")
+                    pytest.fail(  # type: ignore[misc]
+                f"Resource {uri} returned unexpected type: {type(result)}")
             except Exception as e:
-                pytest.fail(f"Resource {uri} should not raise exceptions, but raised: {e}")
+                pytest.fail(  # type: ignore[misc]
+                f"Resource {uri} should not raise exceptions, but raised: {e}")
 
     def test_json_serializable_manifest(self):
         """Test that the manifest resource returns JSON-serializable data."""
@@ -192,7 +206,9 @@ class TestMCPResources:
         assert "system://manifest" in manifest_resources
 
         manifest_resource = manifest_resources["system://manifest"]
-        result = manifest_resource.fn()
+        result = manifest_resource.fn(  # type: ignore[attr-defined]
+            )
+        
 
         # Should be JSON serializable
         try:
@@ -201,4 +217,5 @@ class TestMCPResources:
             parsed = json.loads(json_str)
             assert parsed == result
         except (TypeError, ValueError) as e:
-            pytest.fail(f"Manifest resource result is not JSON serializable: {e}")
+            pytest.fail(  # type: ignore[misc]
+                f"Manifest resource result is not JSON serializable: {e}")
