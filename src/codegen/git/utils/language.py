@@ -46,13 +46,20 @@ def _determine_language_by_file_count(folder_path: str) -> ProgrammingLanguage:
         ProgrammingLanguage: The dominant programming language, or OTHER if no matching files found
         or if less than MIN_LANGUAGE_RATIO of files match the dominant language
     """
-    from codegen.sdk.python import PyFile
-    from codegen.sdk.typescript.file import TSFile
-
-    EXTENSIONS = {
-        ProgrammingLanguage.PYTHON: PyFile.get_extensions(),
-        ProgrammingLanguage.TYPESCRIPT: TSFile.get_extensions(),
-    }
+    try:
+        from codegen.sdk.python import PyFile
+        from codegen.sdk.typescript.file import TSFile
+        
+        EXTENSIONS = {
+            ProgrammingLanguage.PYTHON: PyFile.get_extensions(),
+            ProgrammingLanguage.TYPESCRIPT: TSFile.get_extensions(),
+        }
+    except ImportError:
+        # Fallback to hardcoded extensions if SDK modules are not available
+        EXTENSIONS = {
+            ProgrammingLanguage.PYTHON: [".py", ".pyx", ".pyi"],
+            ProgrammingLanguage.TYPESCRIPT: [".ts", ".tsx", ".js", ".jsx"],
+        }
 
     folder = Path(folder_path)
     if not folder.exists() or not folder.is_dir():

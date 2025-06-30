@@ -73,7 +73,7 @@ class TestAgentErrorHandling:
         """Test that Agent initialization requires a token parameter."""
         # This should raise a TypeError because token is a required parameter
         with pytest.raises(TypeError, match="missing 1 required positional argument: 'token'"):
-            Agent()  # Missing required token parameter
+            Agent()  # Missing required token parameter  # type: ignore[call-arg]
 
     def test_agent_init_with_none_token(self):
         """Test Agent initialization with None token."""

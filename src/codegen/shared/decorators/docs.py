@@ -2,14 +2,14 @@ import bisect
 import inspect
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TypeVar
+from typing import Any, TypeVar
 
 
 @dataclass
 class DocumentedObject:
     name: str
     module: str
-    object: any
+    object: Any
 
     def __lt__(self, other):
         return self.module < other.module
