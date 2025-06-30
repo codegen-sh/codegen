@@ -31,11 +31,13 @@ class RepoConfig(BaseModel):
     @classmethod
     def from_envs(cls) -> "RepoConfig":
         default_repo_config = RepositoryConfig()
+        path = default_repo_config.path or os.getcwd()
+        language = default_repo_config.language or "python"
         return RepoConfig(
             name=default_repo_config.name,
             full_name=default_repo_config.full_name,
-            base_dir=os.path.dirname(default_repo_config.path),
-            language=ProgrammingLanguage(default_repo_config.language.upper()),
+            base_dir=os.path.dirname(path),
+            language=ProgrammingLanguage(language.upper()),
         )
 
     @classmethod

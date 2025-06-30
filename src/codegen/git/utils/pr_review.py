@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
-from github import Repository
 from github.PullRequest import PullRequest
+from github.Repository import Repository
 from unidiff import PatchSet
 
 from codegen.git.models.pull_request_context import PullRequestContext
@@ -97,7 +97,7 @@ class CodegenPR:
     _op: RepoOperator
 
     # =====[ Computed ]=====
-    _modified_file_ranges: dict[str, list[tuple[int, int]]] = None
+    _modified_file_ranges: dict[str, list[tuple[int, int]]] | None = None
 
     def __init__(self, op: RepoOperator, codebase: "Codebase", pr: PullRequest):
         self._op = op
