@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Optional
 
 import rich
 import typer
@@ -10,9 +9,9 @@ from codegen.shared.path import get_git_root_path
 
 
 def init(
-    path: Optional[str] = typer.Option(None, help="Path within a git repository. Defaults to the current directory."),
-    token: Optional[str] = typer.Option(None, help="Access token for the git repository. Required for full functionality."),
-    language: Optional[str] = typer.Option(None, help="Override automatic language detection (python or typescript)"),
+    path: str | None = typer.Option(None, help="Path within a git repository. Defaults to the current directory."),
+    token: str | None = typer.Option(None, help="Access token for the git repository. Required for full functionality."),
+    language: str | None = typer.Option(None, help="Override automatic language detection (python or typescript)"),
     fetch_docs: bool = typer.Option(False, "--fetch-docs", help="Fetch docs and examples (requires auth)"),
 ):
     """Initialize or update the Codegen folder."""

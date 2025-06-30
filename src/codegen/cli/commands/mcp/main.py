@@ -1,6 +1,5 @@
 """MCP server command for the Codegen CLI."""
 
-from typing import Optional
 
 import typer
 from rich.console import Console
@@ -10,7 +9,7 @@ console = Console()
 
 def mcp(
     host: str = typer.Option("localhost", help="Host to bind the MCP server to"),
-    port: Optional[int] = typer.Option(None, help="Port to bind the MCP server to (default: stdio transport)"),
+    port: int | None = typer.Option(None, help="Port to bind the MCP server to (default: stdio transport)"),
     transport: str = typer.Option("stdio", help="Transport protocol to use (stdio or http)"),
 ):
     """Start the Codegen MCP server."""
