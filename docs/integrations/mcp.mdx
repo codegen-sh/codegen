@@ -1,0 +1,451 @@
+---
+title: "Model Context Protocol (MCP)"
+description: "Integrate Codegen with AI editors like Cursor using the Model Context Protocol"
+---
+
+# Model Context Protocol (MCP)
+
+The Model Context Protocol (MCP) is an open standard that enables AI applications to securely connect to external data sources and tools. Codegen provides an MCP server that allows AI editors like Cursor to access Codegen's powerful codemod generation and API capabilities directly within your development workflow.
+
+## What is MCP?
+
+MCP acts as a bridge between AI assistants and external tools, allowing them to:
+- Access external data sources and APIs
+- Execute tools and commands safely
+- Provide rich context to improve AI responses
+- Maintain security through standardized protocols
+
+With Codegen's MCP integration, your AI editor can:
+- Generate codemods using the Codegen CLI
+- Create and manage agent runs
+- Access organization and user information
+- Get expert guidance on Codegen best practices
+- Streamline your code transformation workflows
+
+## Prerequisites
+
+Before setting up the MCP server, ensure you have:
+
+1. **Codegen CLI installed**: Install via pip or your preferred package manager
+   ```bash
+   pip install codegen
+   ```
+
+2. **Authentication**: Set up your Codegen API credentials
+   ```bash
+   # Set your API key as an environment variable
+   export CODEGEN_API_KEY="your-api-key-here"
+
+   # Or initialize a Codegen project
+   codegen init
+   ```
+
+3. **AI Editor with MCP support**: Currently supported editors include:
+   - [Cursor](https://cursor.com) (recommended)
+   - [Claude Desktop](https://claude.ai/desktop)
+   - [Cline](https://github.com/cline/cline) (VS Code extension)
+
+## Quick Start
+
+### 1. Start the MCP Server
+
+The easiest way to start the Codegen MCP server is using the built-in CLI command:
+
+```bash
+codegen mcp
+```
+
+This starts the server with default settings (stdio transport). The server will display:
+
+```
+🚀 Starting Codegen MCP server...
+📡 Using stdio transport
+```
+
+For additional options:
+
+```bash
+# Start with HTTP transport on a specific port
+codegen mcp --transport http --port 8080
+
+# Start with custom host
+codegen mcp --host 0.0.0.0 --port 3000
+
+# View all available options
+codegen mcp --help
+```
+
+**Note**: HTTP transport is currently not fully implemented and will fall back to stdio transport.
+
+### 2. Configure Your AI Editor
+
+The configuration depends on your AI editor. See the sections below for specific setup instructions.
+
+## Cursor Configuration
+
+Cursor provides the most seamless MCP integration experience. Follow these steps:
+
+### Method 1: Using Cursor Settings (Recommended)
+
+1. **Open Cursor Settings**
+   - Press `Cmd/Ctrl + ,` to open settings
+   - Navigate to **Features** → **Model Context Protocol**
+
+2. **Add New MCP Server**
+   - Click "Add Server"
+   - Fill in the following details:
+
+   ```
+   Name: Codegen
+   Command: codegen mcp
+   ```
+
+3. **Save and Restart**
+   - Click "Save"
+   - Restart Cursor to activate the MCP server
+
+### Method 2: Manual Configuration File
+
+If you prefer manual configuration, you can edit Cursor's MCP configuration file directly:
+
+1. **Locate the configuration file**:
+   - **macOS**: `~/Library/Application Support/Cursor/User/globalStorage/mcp.json`
+   - **Windows**: `%APPDATA%\Cursor\User\globalStorage\mcp.json`
+   - **Linux**: `~/.config/Cursor/User/globalStorage/mcp.json`
+
+2. **Add the Codegen MCP server**:
+   ```json
+   {
+     "mcpServers": {
+       "codegen": {
+         "command": "codegen",
+         "args": ["mcp"],
+         "env": {
+           "CODEGEN_API_KEY": "your-api-key-here"
+         }
+       }
+     }
+   }
+   ```
+
+3. **Restart Cursor** to load the new configuration.
+
+### Verification
+
+To verify the MCP server is working in Cursor:
+
+1. Open a new chat in Cursor
+2. Look for "Available Tools" in the chat interface
+3. You should see Codegen MCP tools listed, such as:
+   - `generate_codemod`
+   - `create_agent_run`
+   - `get_organizations`
+   - `get_users`
+
+## Alternative Editors
+
+### Claude Desktop
+
+For Claude Desktop, add this configuration to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "codegen": {
+      "command": "codegen",
+      "args": ["mcp"],
+      "env": {
+        "CODEGEN_API_KEY": "your-api-key-here"
+      }
+    }
+  }
+}
+```
+
+**Configuration file locations**:
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+
+### Cline (VS Code Extension)
+
+For the Cline VS Code extension, add this to your MCP settings:
+
+```json
+{
+  "mcpServers": {
+    "codegen": {
+      "command": "codegen",
+      "args": ["mcp"],
+      "env": {
+        "CODEGEN_API_KEY": "your-api-key-here"
+      }
+    }
+  }
+}
+```
+
+## Available Tools
+
+Once configured, the Codegen MCP server provides these tools to your AI editor:
+
+### `generate_codemod`
+Generate a new codemod for a specific task and codebase.
+
+**Parameters**:
+- `title`: The title of the codemod (hyphenated format)
+- `task`: Description of what the codemod should accomplish
+- `codebase_path`: Absolute path to your codebase directory
+
+**Example usage in chat**:
+```
+Generate a codemod called "add-logging" that adds console.log statements to all functions in my React components at /path/to/my/project
+```
+
+**What it does**: Provides instructions to use the Codegen CLI to create a codemod with the specified title and task description.
+
+### `create_agent_run`
+Create a new agent run in your Codegen organization.
+
+**Parameters**:
+- `org_id`: Your organization ID
+- `prompt`: The task/prompt for the agent to execute
+- `repo_name`: Repository name (optional)
+- `branch_name`: Branch name (optional)
+
+**Example usage in chat**:
+```
+Create an agent run in organization 123 with the prompt "Fix all TypeScript errors in the src directory"
+```
+
+### `get_agent_run`
+Get details of a specific agent run.
+
+**Parameters**:
+- `org_id`: Organization ID
+- `agent_run_id`: Agent run ID
+
+**Example usage in chat**:
+```
+Get the status of agent run 456 in organization 123
+```
+
+### `get_organizations`
+Get list of organizations you have access to.
+
+**Parameters**:
+- `page`: Page number (default: 1)
+- `limit`: Number of organizations per page (default: 10)
+
+**Example usage in chat**:
+```
+Show me all the organizations I have access to
+```
+
+### `get_users`
+Get list of users in an organization.
+
+**Parameters**:
+- `org_id`: Organization ID
+- `page`: Page number (default: 1)
+- `limit`: Number of users per page (default: 10)
+
+**Example usage in chat**:
+```
+List all users in organization 123
+```
+
+### `get_user`
+Get details of a specific user in an organization.
+
+**Parameters**:
+- `org_id`: Organization ID
+- `user_id`: User ID
+
+**Example usage in chat**:
+```
+Get details for user 789 in organization 123
+```
+
+## Authentication
+
+The MCP server uses API key authentication. You can provide your API key in several ways:
+
+### Environment Variable (Recommended)
+```bash
+export CODEGEN_API_KEY="your-api-key-here"
+```
+
+### MCP Configuration
+Include the API key in your MCP server configuration:
+
+```json
+{
+  "mcpServers": {
+    "codegen": {
+      "command": "codegen",
+      "args": ["mcp"],
+      "env": {
+        "CODEGEN_API_KEY": "your-api-key-here"
+      }
+    }
+  }
+}
+```
+
+### Getting Your API Key
+
+1. Visit the [Codegen dashboard](https://app.codegen.com)
+2. Navigate to your account settings
+3. Generate or copy your API key
+4. Set it as an environment variable or in your MCP configuration
+
+## Troubleshooting
+
+### Common Issues
+
+**MCP Server Not Starting**
+- Verify Codegen is properly installed: `codegen --version`
+- Check that the `codegen mcp` command works: `codegen mcp --help`
+- Ensure your API key is set correctly
+
+**Tools Not Appearing in Editor**
+- Restart your AI editor after configuration changes
+- Check the MCP server configuration syntax
+- Verify the `codegen` command is in your system PATH
+- Look for error messages in the editor's developer console
+
+**Authentication Errors**
+- Verify your API key is correct and not expired
+- Check that the `CODEGEN_API_KEY` environment variable is set
+- Ensure you have the necessary permissions in your organization
+
+**Permission Errors**
+- Ensure the `codegen` command is executable
+- Check file permissions on configuration files
+- Try running the editor with appropriate permissions
+
+**Path Resolution Issues**
+- Use absolute paths in configuration when possible
+- Verify the `codegen` command location: `which codegen`
+- Consider using the full path to the codegen executable
+
+### Advanced Configuration
+
+**Custom Server Path**
+If you need to specify a custom path to the Codegen installation:
+
+```json
+{
+  "mcpServers": {
+    "codegen": {
+      "command": "/path/to/your/codegen",
+      "args": ["mcp"]
+    }
+  }
+}
+```
+
+**Environment Variables**
+You can set additional environment variables for the MCP server:
+
+```json
+{
+  "mcpServers": {
+    "codegen": {
+      "command": "codegen",
+      "args": ["mcp"],
+      "env": {
+        "CODEGEN_API_KEY": "your-api-key-here",
+        "CODEGEN_API_BASE_URL": "https://api.codegen.com"
+      }
+    }
+  }
+}
+```
+
+**HTTP Transport (Future)**
+For remote or multi-user setups, HTTP transport will be available:
+
+```bash
+# Start server with HTTP transport (when implemented)
+codegen mcp --transport http --port 8080
+```
+
+## Best Practices
+
+1. **Secure Your API Key**: Never commit API keys to version control. Use environment variables or secure configuration management.
+
+2. **Use Descriptive Codemod Names**: Use clear, hyphenated names for generated codemods
+   ```
+   Good: "add-error-handling", "migrate-to-hooks"
+   Avoid: "fix", "update", "change"
+   ```
+
+3. **Provide Clear Task Descriptions**: Be specific about what you want the codemod to accomplish
+   ```
+   Good: "Add try-catch blocks around all async function calls in React components"
+   Avoid: "Add error handling"
+   ```
+
+4. **Test Generated Codemods**: Always review and test generated codemods before applying them to production code
+
+5. **Use Version Control**: Commit your code before running codemods to easily revert if needed
+
+6. **Monitor Agent Runs**: Use the `get_agent_run` tool to monitor the progress and results of your agent runs
+
+## Examples
+
+### Example 1: Generate a React Hook Migration Codemod
+
+In your AI editor chat:
+```
+Use the generate_codemod tool to create a codemod called "migrate-class-to-hooks" that converts React class components to functional components with hooks. The codebase is located at /Users/myname/projects/my-react-app
+```
+
+### Example 2: Create an Agent Run
+
+```
+Create an agent run in my organization to fix all TypeScript errors in the src directory of my project
+```
+
+### Example 3: Monitor Agent Progress
+
+```
+Check the status of agent run 123 in organization 456 to see if it's completed
+```
+
+### Example 4: List Team Members
+
+```
+Show me all users in organization 789 so I can see who's on my team
+```
+
+## Resources
+
+The MCP server also provides these resources for additional context:
+
+- **`system://agent_prompt`**: Information about the Codegen SDK and platform
+- **`system://setup_instructions`**: Environment setup instructions
+- **`system://manifest`**: Server metadata and version information
+
+## Support
+
+If you encounter issues with the MCP integration:
+
+1. **Check the documentation**: Review this guide and the [official MCP documentation](https://modelcontextprotocol.io/)
+2. **Test the CLI**: Ensure `codegen mcp` works independently
+3. **Check logs**: Look for error messages in your editor's developer console
+4. **Community support**: Join our [Discord community](https://discord.gg/codegen) for help
+5. **Report bugs**: Create an issue on our [GitHub repository](https://github.com/codegen-sh/codegen)
+
+## What's Next?
+
+With Codegen MCP integration set up, you can:
+
+- Generate codemods directly from your AI editor
+- Create and manage agent runs without leaving your IDE
+- Access your organization's resources and team information
+- Streamline your code transformation workflows
+- Integrate Codegen into your existing development process
+
+Explore our [API documentation](/introduction/api) to learn more about Codegen's capabilities, or check out our [examples repository](https://github.com/codegen-sh/codegen-examples) for inspiration.
