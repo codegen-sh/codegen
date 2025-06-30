@@ -25,6 +25,7 @@ main = typer.Typer(
 from codegen.cli.commands.init.main import init
 from codegen.cli.commands.login.main import login
 from codegen.cli.commands.logout.main import logout
+from codegen.cli.commands.mcp.main import mcp
 from codegen.cli.commands.profile.main import profile
 from codegen.cli.commands.style_debug.main import style_debug
 from codegen.cli.commands.update.main import update
@@ -33,6 +34,7 @@ from codegen.cli.commands.update.main import update
 main.command("init", help="Initialize or update the Codegen folder.")(init)
 main.command("login", help="Store authentication token.")(login)
 main.command("logout", help="Clear stored authentication token.")(logout)
+main.command("mcp", help="Start the Codegen MCP server for AI editor integration.")(mcp)
 main.command("profile", help="Display information about the currently authenticated user.")(profile)
 main.command("style-debug", help="Debug command to visualize CLI styling (spinners, etc).")(style_debug)
 main.command("update", help="Update Codegen to the latest or specified version")(update)
