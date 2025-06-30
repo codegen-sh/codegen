@@ -27,8 +27,8 @@ def mcp(
         env["CODEGEN_MCP_VERBOSE"] = "1"
     if port:
         env["CODEGEN_MCP_PORT"] = str(port)
-    if transport:
-        env["CODEGEN_MCP_TRANSPORT"] = transport
+    # Always set transport since it has a default value
+    env["CODEGEN_MCP_TRANSPORT"] = transport
     
     try:
         rich.print(f"[green]Starting Codegen MCP server...[/green]")
@@ -52,4 +52,3 @@ def mcp(
     except Exception as e:
         rich.print(f"[red]Error starting MCP server:[/red] {e}")
         raise typer.Exit(1)
-
