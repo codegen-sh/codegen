@@ -8439,10 +8439,10 @@ The most efficient way to edit informative docstrings is to use [codebase.ai](/a
 
 ```python python
 # Import datetime for timestamp
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Get current timestamp
-timestamp = datetime.now().strftime("%B %d, %Y")
+timestamp = datetime.now(timezone.utc).strftime("%B %d, %Y")
 
 print("📚 Generating and Updating Function Documentation")
 
