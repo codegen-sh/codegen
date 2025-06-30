@@ -23,6 +23,7 @@ def test_cli_help_works():
     assert "Commands" in result.stdout
     assert "init" in result.stdout
     assert "login" in result.stdout
+    assert "mcp" in result.stdout
     assert "profile" in result.stdout
 
 
@@ -44,7 +45,7 @@ def test_cli_version_works():
 
 def test_cli_command_help():
     """Test that individual commands can show help."""
-    commands = ["init", "login", "logout", "profile", "config", "update"]
+    commands = ["init", "login", "logout", "mcp", "profile", "config", "update"]
 
     for command in commands:
         result = subprocess.run(
