@@ -5,9 +5,58 @@ iconType: "solid"
 description: "Unifying the fragmented sandbox ecosystem with a provider-agnostic interface"
 ---
 
-<Frame caption="Grainchain provides a unified interface across sandbox providers, just like Langchain does for LLMs">
-  <img src="/images/grainchain-architecture.png" />
-</Frame>
+```mermaid
+graph TB
+    subgraph "Application Layer"
+        App[Your Application]
+    end
+    
+    subgraph "Grainchain Core"
+        API[Unified API]
+        Config[Configuration Manager]
+        Session[Session Manager]
+    end
+    
+    subgraph "Provider Adapters"
+        E2B[E2B Adapter]
+        Modal[Modal Adapter]
+        Daytona[Daytona Adapter]
+        Morph[Morph Adapter]
+        Local[Local Adapter]
+    end
+    
+    subgraph "Sandbox Providers"
+        E2BProvider[E2B Sandboxes]
+        ModalProvider[Modal Sandboxes]
+        DaytonaProvider[Daytona Workspaces]
+        MorphProvider[Morph VMs]
+        LocalProvider[Local Environment]
+    end
+    
+    App --> API
+    API --> Config
+    API --> Session
+    
+    Config --> E2B
+    Config --> Modal
+    Config --> Daytona
+    Config --> Morph
+    Config --> Local
+    
+    E2B --> E2BProvider
+    Modal --> ModalProvider
+    Daytona --> DaytonaProvider
+    Morph --> MorphProvider
+    Local --> LocalProvider
+    
+    style App fill:#e1f5fe
+    style API fill:#f3e5f5
+    style E2BProvider fill:#fff3e0
+    style ModalProvider fill:#fff3e0
+    style DaytonaProvider fill:#fff3e0
+    style MorphProvider fill:#fff3e0
+    style LocalProvider fill:#fff3e0
+```
 
 The sandbox ecosystem is exploding. E2B, Modal, Daytona, Morph, and countless other providers are revolutionizing how we execute code in isolated environments. But this innovation comes with a cost: **fragmentation**.
 
@@ -264,4 +313,3 @@ The future of sandbox computing is unified, open, and developer-first.
 *Built with ❤️ by the [Codegen](https://codegen.com) team*
 
 *Get started with Grainchain today: [https://github.com/codegen-sh/grainchain](https://github.com/codegen-sh/grainchain)*
-
