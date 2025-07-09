@@ -22,7 +22,21 @@
 
 <br />
 
-The Codegen SDK provides a programmatic interface to code agents provided by [Codegen](https://codegen.com).
+The Codegen SDK provides both AI-powered code agents and a comprehensive programmatic interface for codebase manipulation. Whether you need an AI agent to handle complex software engineering tasks or want to build custom code transformation tools, Codegen has you covered.
+
+## Overview
+
+Codegen serves three primary use cases:
+
+**🤖 AI Code Agents** - Deploy intelligent agents that integrate with GitHub, Slack, and Linear to review PRs, implement features, fix bugs, and manage issues automatically.
+
+**🔧 Codebase SDK** - Build custom tools for code analysis, refactoring, and transformation across Python, TypeScript, JavaScript, and React codebases with automatic import and dependency management.
+
+**📊 SWE-Bench Evaluation** - Benchmark and evaluate code generation models against real-world software engineering tasks with automated evaluation pipelines.
+
+### AI Agent API
+
+Deploy intelligent agents for automated software engineering tasks:
 
 ```python
 from codegen.agents.agent import Agent
@@ -51,26 +65,79 @@ if task.status == "completed":
     print(task.result)  # Result often contains code, summaries, or links
 ```
 
-## Installation and Usage
+### Codebase SDK
 
-Install the SDK using pip or uv:
+Programmatically analyze and transform your codebase:
 
-```bash
-pip install codegen
-# or
-uv pip install codegen
+```python
+from codegen.sdk.codebase import Codebase
+
+# Load a codebase for analysis and transformation
+codebase = Codebase.from_repo("path/to/your/repo")
+
+# Analyze code structure
+for function in codebase.functions:
+    print(f"Function: {function.name}")
+    print(f"File: {function.file.path}")
+    print(f"Usages: {len(function.usages)}")
+
+# Find and modify specific patterns
+for file in codebase.files:
+    if file.path.endswith('.py'):
+        # Analyze imports, dependencies, and symbols
+        for import_stmt in file.imports:
+            print(f"Import: {import_stmt}")
 ```
 
-Get started at [codegen.com](https://codegen.com) and get your API token at [codegen.com/developer](https://codegen.com/developer).
+## Installation
 
-You can interact with your AI engineer via API, or chat with it in Slack, Linear, Github, or on our website.
+**Requirements:** Python 3.12 - 3.13
+
+Install the SDK using uv (recommended) or pip:
+
+```bash
+# Recommended: using uv
+uv pip install codegen
+
+# Alternative: using pip
+pip install codegen
+```
+
+For development setup, see our [Contributing Guide](CONTRIBUTING.md).
+
+## Getting Started
+
+**For AI Agents:** Get started at [codegen.com](https://codegen.com) and get your API token at [codegen.com/developer](https://codegen.com/developer). You can interact with your AI engineer via API, or chat with it in Slack, Linear, GitHub, or on our website.
+
+**For SDK Development:** Check out our comprehensive documentation and tutorials to start building with the Codebase SDK.
+
+## Features
+
+- **🤖 AI Code Agents** - Intelligent agents for automated software engineering
+- **🔧 Multi-Language Support** - Python, TypeScript, JavaScript, and React
+- **📊 Code Analysis** - Dependency graphs, symbol resolution, and usage tracking  
+- **🔄 Code Transformation** - Safe, large-scale refactoring and modernization
+- **🔗 Integrations** - GitHub, Slack, Linear, and MCP (Model Context Protocol)
+- **📈 SWE-Bench Evaluation** - Benchmark code generation models
+- **🛠️ Developer Tools** - CLI, Jupyter notebooks, and IDE extensions
 
 ## Resources
 
-- [Docs](https://docs.codegen.com)
-- [Getting Started](https://docs.codegen.com/introduction/getting-started)
-- [Contributing](CONTRIBUTING.md)
-- [Contact Us](https://codegen.com/contact)
+### Documentation
+- [Documentation](https://docs.codegen.com) - Complete guides and API reference
+- [Graph-sitter Getting Started](https://docs.codegen.com/graph-sitter/getting-started) - SDK tutorials and examples
+- [API Reference](https://docs.codegen.com/api-reference/index) - Detailed API documentation
+
+### Integrations
+- [GitHub Integration](https://docs.codegen.com/integrations/github) - Automated PR reviews and issue management
+- [Slack Integration](https://docs.codegen.com/integrations/slack) - Chat-based code assistance
+- [Linear Integration](https://docs.codegen.com/integrations/linear) - Issue tracking integration
+- [MCP Servers](https://docs.codegen.com/integrations/mcp) - Model Context Protocol support
+
+### Community & Support
+- [Slack Community](https://community.codegen.com) - Join our developer community
+- [Contributing Guide](CONTRIBUTING.md) - How to contribute to the project
+- [Contact Us](https://codegen.com/contact) - Get in touch with our team
 
 ## Contributing
 
