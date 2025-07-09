@@ -1,0 +1,195 @@
+---
+title: "Sentry Integration"
+sidebarTitle: "Sentry"
+icon: "sentry"
+---
+
+import { COMMUNITY_SLACK_URL } from "/snippets/links.mdx";
+
+Integrate Codegen with your Sentry workspace to allow agents to analyze errors, manage issues, and provide intelligent debugging assistance.
+
+{/* TODO: Add Sentry integration screenshot */}
+<img src="/images/codegen-thumbnail.png" className="rounded-lg" />
+
+<Note>
+  The Sentry integration is currently in <b>beta</b>. Please reach out in the <a href={COMMUNITY_SLACK_URL}>community</a> to have it enabled for your Codegen account.
+</Note>
+
+## Overview
+
+The Sentry integration enables Codegen agents to:
+- **Analyze Production Errors:** Get detailed insights into errors and exceptions happening in your applications
+- **Root Cause Analysis:** Use AI-powered analysis to understand why errors are occurring
+- **Issue Management:** Update issue status, assign issues, and add comments
+- **Project Management:** Create and manage Sentry projects and teams
+- **Release Tracking:** Monitor releases and their associated issues
+
+## Step-by-Step Setup Guide
+
+Follow these steps to successfully connect Codegen to your Sentry workspace:
+
+### 1. Enable Sentry Integration for Your Organization
+
+The Sentry integration uses the Model Context Protocol (MCP) to provide secure access to your Sentry data. Contact the Codegen team to enable this feature for your organization.
+
+### 2. Connect Your Sentry Account
+
+- Go to [Codegen's Sentry Integration page](https://codegen.com/integrations/sentry).
+- Click **Connect Sentry Workspace** and complete the OAuth flow.
+- Grant the necessary permissions for Codegen to access your Sentry data.
+
+<Warning>
+  Make sure you have the appropriate permissions in your Sentry organization to authorize third-party applications.
+</Warning>
+
+### 3. Configure Permissions
+
+The Sentry integration requires the following OAuth scopes:
+- `org:read` - Read organization information
+- `project:write` - Create and manage projects
+- `team:write` - Create and manage teams
+- `event:write` - Access error events and issues
+
+### 4. Start Using Codegen with Sentry
+
+Once connected, you can:
+- Ask Codegen to analyze specific Sentry issues by providing issue URLs
+- Request error analysis and debugging suggestions
+- Have Codegen manage issue status and assignments
+- Get insights into error patterns and trends
+
+## Capabilities
+
+The Sentry integration provides comprehensive access to your Sentry workspace:
+
+### Error Analysis & Debugging
+- **Issue Details:** Fetch comprehensive information about specific errors and exceptions
+- **Stacktrace Analysis:** Get detailed stacktraces and error context
+- **Root Cause Analysis:** AI-powered analysis to identify the underlying causes of issues
+- **Error Patterns:** Identify recurring issues and patterns across your applications
+
+### Issue Management
+- **Status Updates:** Change issue status (resolved, ignored, unresolved)
+- **Assignment:** Assign issues to team members or teams
+- **Comments:** Add comments and updates to issues
+- **Bulk Operations:** Manage multiple issues efficiently
+
+### Project & Team Management
+- **Project Creation:** Create new Sentry projects for your applications
+- **Team Management:** Create and manage teams within your organization
+- **DSN Management:** Create and manage Data Source Names (DSNs) for your projects
+
+### Monitoring & Insights
+- **Release Tracking:** Monitor releases and their associated issues
+- **Error Trends:** Analyze error frequency and patterns over time
+- **Performance Insights:** Get insights into application performance issues
+
+## How Agents Use Sentry
+
+Agents leverage the Sentry integration to provide intelligent debugging assistance:
+
+### Error Investigation
+```
+Human: "Can you analyze this Sentry issue: https://my-org.sentry.io/issues/PROJECT-123"
+
+Agent: I'll analyze that Sentry issue for you. Let me fetch the details and provide insights...
+```
+
+### Proactive Issue Management
+- **Automatic Triage:** Agents can automatically categorize and prioritize issues
+- **Status Updates:** Keep issue status current based on code changes and fixes
+- **Team Notifications:** Notify relevant team members about critical issues
+
+### Code-Error Correlation
+- **Link PRs to Issues:** Connect GitHub pull requests to related Sentry issues
+- **Fix Validation:** Verify that code changes resolve reported issues
+- **Regression Detection:** Identify when new code introduces previously resolved issues
+
+## Technical Implementation
+
+The Sentry integration is built using:
+
+### Model Context Protocol (MCP)
+- **Secure Communication:** Uses MCP for secure, standardized communication with Sentry
+- **Real-time Access:** Direct connection to Sentry's API through MCP server
+- **OAuth Authentication:** Secure token-based authentication with automatic refresh
+
+### Backend Architecture
+- **Token Management:** Automatic OAuth token refresh and management
+- **Feature Flags:** Organization-level feature flag control
+- **Error Handling:** Robust error handling and timeout management
+
+### Available Tools
+When the integration is enabled, agents have access to Sentry-specific tools:
+- `sentry_whoami` - Get current user information
+- `sentry_find_organizations` - List accessible organizations
+- `sentry_find_projects` - List projects in an organization
+- `sentry_find_issues` - Search for issues with advanced filtering
+- `sentry_get_issue_details` - Get comprehensive issue information
+- `sentry_update_issue` - Update issue status and assignments
+- `sentry_analyze_issue_with_seer` - AI-powered root cause analysis
+
+## Best Practices
+
+### For Development Teams
+1. **Consistent Naming:** Use clear, descriptive names for projects and teams
+2. **Regular Monitoring:** Set up agents to regularly check for new critical issues
+3. **Integration Workflow:** Incorporate Sentry analysis into your PR review process
+
+### For Issue Management
+1. **Automated Triage:** Let agents handle initial issue categorization
+2. **Status Tracking:** Keep issue status updated as fixes are deployed
+3. **Documentation:** Use agent-generated analysis to document complex issues
+
+### Security Considerations
+1. **Token Security:** OAuth tokens are securely managed and automatically refreshed
+2. **Scope Limitation:** Only request necessary permissions for your use case
+3. **Access Control:** Use Sentry's built-in access controls to limit data exposure
+
+## Troubleshooting
+
+### Common Issues
+
+**Integration Not Available**
+- Ensure the Sentry MCP integration is enabled for your organization
+- Contact support if you don't see the integration option
+
+**Authentication Errors**
+- Check that your OAuth token hasn't expired
+- Verify you have the necessary permissions in your Sentry organization
+- Try disconnecting and reconnecting the integration
+
+**Timeout Issues**
+- The integration has built-in timeout handling for API calls
+- Large organizations may experience longer response times
+
+### Getting Help
+
+If you encounter issues with the Sentry integration:
+1. Check the [troubleshooting guide](/troubleshooting)
+2. Join our <a href={COMMUNITY_SLACK_URL}>community Slack</a> for support
+3. Contact the Codegen team for organization-specific issues
+
+## Example Usage
+
+Here are some common ways to use the Sentry integration:
+
+### Analyzing a Specific Issue
+```
+@codegen Can you analyze this Sentry issue and suggest a fix?
+https://my-org.sentry.io/issues/PROJECT-123
+```
+
+### Bulk Issue Management
+```
+@codegen Please review all unresolved issues in the backend project 
+and prioritize them by frequency and impact
+```
+
+### Release Monitoring
+```
+@codegen Check if the latest release introduced any new errors 
+and create GitHub issues for any critical problems
+```
+
+The Sentry integration makes error monitoring and debugging more efficient by providing AI-powered analysis and automated issue management capabilities.
