@@ -73,7 +73,7 @@
 					},
 					{
 						"group": "Guides",
-						"pages": ["api-reference/agent-run-logs"]
+						"pages": ["api-reference/agent-run-logs", "api-reference/github-actions"]
 					}
 				]
 			},

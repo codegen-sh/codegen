@@ -1,0 +1,451 @@
+---
+title: "GitHub Actions Integration"
+sidebarTitle: "GitHub Actions"
+icon: "github"
+---
+
+Integrate Codegen with GitHub Actions to automate code reviews, issue triage, and other development workflows. This guide shows you how to use the Codegen Python SDK within GitHub Actions workflows.
+
+<Note>
+  This approach is necessary because GitHub webhooks don't fire for bot users, preventing direct `@codegen` mentions in automated workflows. Using GitHub Actions with the Codegen API provides a reliable alternative.
+</Note>
+
+## Prerequisites
+
+Before setting up GitHub Actions with Codegen, ensure you have:
+
+- A GitHub repository with Actions enabled
+- A Codegen account with API access
+- Your organization ID and API token from [codegen.com/developer](https://codegen.com/developer)
+- The Codegen GitHub App installed on your repository
+
+## Basic Setup
+
+### 1. Store Your Credentials
+
+Add your Codegen credentials as GitHub repository secrets:
+
+1. Go to your repository → Settings → Secrets and variables → Actions
+2. Add the following secrets:
+   - `CODEGEN_ORG_ID`: Your organization ID from codegen.com/developer
+   - `CODEGEN_API_TOKEN`: Your API token from codegen.com/developer
+
+### 2. Create a GitHub Actions Workflow
+
+Create `.github/workflows/codegen-review.yml` in your repository:
+
+```yaml
+name: Codegen PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches: [main, develop]
+
+jobs:
+  codegen-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Codegen SDK
+        run: |
+          pip install codegen
+
+      - name: Run Codegen Review
+        env:
+          CODEGEN_ORG_ID: ${{ secrets.CODEGEN_ORG_ID }}
+          CODEGEN_API_TOKEN: ${{ secrets.CODEGEN_API_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python .github/scripts/codegen_review.py
+```
+
+### 3. Create the Review Script
+
+Create `.github/scripts/codegen_review.py`:
+
+```python
+import os
+import sys
+from codegen.agents.agent import Agent
+
+def main():
+    # Get environment variables
+    org_id = os.getenv('CODEGEN_ORG_ID')
+    api_token = os.getenv('CODEGEN_API_TOKEN')
+    github_token = os.getenv('GITHUB_TOKEN')
+    
+    if not all([org_id, api_token]):
+        print("Error: Missing required environment variables")
+        sys.exit(1)
+    
+    # Get PR information from GitHub context
+    pr_number = os.getenv('GITHUB_EVENT_PATH')
+    repo_name = os.getenv('GITHUB_REPOSITORY')
+    
+    # Initialize Codegen agent
+    agent = Agent(
+        org_id=org_id,
+        token=api_token
+    )
+    
+    # Create review prompt
+    prompt = f"""
+    Please review PR #{pr_number} in repository {repo_name}.
+    
+    Focus on:
+    - Code quality and best practices
+    - Potential bugs or security issues
+    - Performance considerations
+    - Documentation and testing
+    
+    Provide specific, actionable feedback with line-by-line comments where appropriate.
+    """
+    
+    try:
+        # Run the agent
+        task = agent.run(prompt=prompt)
+        
+        # Wait for completion (with timeout)
+        max_attempts = 30  # 5 minutes with 10-second intervals
+        attempt = 0
+        
+        while attempt < max_attempts:
+            task.refresh()
+            print(f"Task status: {task.status}")
+            
+            if task.status == "completed":
+                print("✅ Review completed successfully!")
+                if hasattr(task, 'result') and task.result:
+                    print(f"Result: {task.result}")
+                break
+            elif task.status == "failed":
+                print("❌ Review failed")
+                sys.exit(1)
+            
+            attempt += 1
+            time.sleep(10)
+        
+        if attempt >= max_attempts:
+            print("⏰ Review timed out")
+            sys.exit(1)
+            
+    except Exception as e:
+        print(f"Error running Codegen review: {e}")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
+```
+
+## Advanced Configuration
+
+### Conditional Reviews
+
+Only run reviews for specific conditions:
+
+```yaml
+name: Conditional Codegen Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  check-conditions:
+    runs-on: ubuntu-latest
+    outputs:
+      should-review: ${{ steps.check.outputs.should-review }}
+    steps:
+      - name: Check if review needed
+        id: check
+        run: |
+          # Skip if PR is from dependabot
+          if [[ "${{ github.actor }}" == "dependabot[bot]" ]]; then
+            echo "should-review=false" >> $GITHUB_OUTPUT
+          # Skip if PR is a draft
+          elif [[ "${{ github.event.pull_request.draft }}" == "true" ]]; then
+            echo "should-review=false" >> $GITHUB_OUTPUT
+          # Skip if PR has "skip-review" label
+          elif [[ "${{ contains(github.event.pull_request.labels.*.name, 'skip-review') }}" == "true" ]]; then
+            echo "should-review=false" >> $GITHUB_OUTPUT
+          else
+            echo "should-review=true" >> $GITHUB_OUTPUT
+          fi
+
+  codegen-review:
+    needs: check-conditions
+    if: needs.check-conditions.outputs.should-review == 'true'
+    runs-on: ubuntu-latest
+    # ... rest of the job
+```
+
+### Custom Review Types
+
+Create different review workflows for different scenarios:
+
+```python
+# .github/scripts/codegen_security_review.py
+def security_review():
+    prompt = f"""
+    Perform a security-focused review of PR #{pr_number} in {repo_name}.
+    
+    Look specifically for:
+    - SQL injection vulnerabilities
+    - XSS vulnerabilities
+    - Authentication/authorization issues
+    - Sensitive data exposure
+    - Insecure dependencies
+    
+    Provide detailed security recommendations.
+    """
+    # ... rest of implementation
+
+# .github/scripts/codegen_performance_review.py
+def performance_review():
+    prompt = f"""
+    Analyze PR #{pr_number} in {repo_name} for performance implications.
+    
+    Focus on:
+    - Database query efficiency
+    - Memory usage patterns
+    - CPU-intensive operations
+    - Caching opportunities
+    - Scalability concerns
+    
+    Suggest specific optimizations.
+    """
+    # ... rest of implementation
+```
+
+### Error Handling and Retries
+
+Implement robust error handling:
+
+```python
+import time
+import logging
+from typing import Optional
+
+def run_with_retry(agent: Agent, prompt: str, max_retries: int = 3) -> Optional[str]:
+    """Run agent with retry logic and proper error handling."""
+    
+    for attempt in range(max_retries):
+        try:
+            task = agent.run(prompt=prompt)
+            
+            # Wait for completion with exponential backoff
+            max_wait_time = 300  # 5 minutes
+            check_interval = 10
+            total_wait = 0
+            
+            while total_wait < max_wait_time:
+                task.refresh()
+                logging.info(f"Attempt {attempt + 1}: Task status: {task.status}")
+                
+                if task.status == "completed":
+                    return task.result if hasattr(task, 'result') else "Review completed"
+                elif task.status == "failed":
+                    raise Exception(f"Task failed: {getattr(task, 'error', 'Unknown error')}")
+                
+                time.sleep(check_interval)
+                total_wait += check_interval
+            
+            raise Exception("Task timed out")
+            
+        except Exception as e:
+            logging.error(f"Attempt {attempt + 1} failed: {e}")
+            if attempt == max_retries - 1:
+                raise
+            time.sleep(2 ** attempt)  # Exponential backoff
+    
+    return None
+```
+
+## Environment-Specific Workflows
+
+### Development Environment
+
+```yaml
+# .github/workflows/codegen-dev-review.yml
+name: Codegen Dev Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches: [develop, feature/*]
+
+jobs:
+  dev-review:
+    runs-on: ubuntu-latest
+    steps:
+      # ... setup steps
+      - name: Run Development Review
+        env:
+          CODEGEN_ORG_ID: ${{ secrets.CODEGEN_ORG_ID }}
+          CODEGEN_API_TOKEN: ${{ secrets.CODEGEN_API_TOKEN }}
+          REVIEW_TYPE: "development"
+        run: |
+          python .github/scripts/codegen_review.py --type development
+```
+
+### Production Environment
+
+```yaml
+# .github/workflows/codegen-prod-review.yml
+name: Codegen Production Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches: [main, master]
+
+jobs:
+  prod-review:
+    runs-on: ubuntu-latest
+    steps:
+      # ... setup steps
+      - name: Run Production Review
+        env:
+          CODEGEN_ORG_ID: ${{ secrets.CODEGEN_ORG_ID }}
+          CODEGEN_API_TOKEN: ${{ secrets.CODEGEN_API_TOKEN }}
+          REVIEW_TYPE: "production"
+        run: |
+          python .github/scripts/codegen_review.py --type production --strict
+```
+
+## Best Practices
+
+### Security
+
+- **Never commit API tokens**: Always use GitHub Secrets
+- **Use least privilege**: Create dedicated API tokens with minimal required permissions
+- **Rotate tokens regularly**: Update API tokens periodically
+- **Monitor usage**: Track API usage to detect anomalies
+
+### Performance
+
+- **Set appropriate timeouts**: Don't let workflows run indefinitely
+- **Use caching**: Cache Python dependencies to speed up workflow execution
+- **Parallel execution**: Run multiple review types in parallel when possible
+- **Rate limiting**: Respect API rate limits to avoid throttling
+
+### Reliability
+
+- **Implement retries**: Handle transient failures gracefully
+- **Add logging**: Include detailed logging for debugging
+- **Fail gracefully**: Don't block PRs if reviews fail
+- **Monitor workflows**: Set up alerts for workflow failures
+
+## Troubleshooting
+
+### Common Issues
+
+**Issue**: "No repos found in the organization"
+```
+Solution: Verify your organization ID is correct and the repository 
+is accessible to your Codegen organization.
+```
+
+**Issue**: "Authentication failed"
+```
+Solution: Check that your API token is valid and properly set in 
+GitHub Secrets. Tokens may expire and need renewal.
+```
+
+**Issue**: "Task timeout"
+```
+Solution: Increase the timeout duration or break large PRs into 
+smaller chunks. Complex reviews may take longer to complete.
+```
+
+**Issue**: "Workflow not triggering"
+```
+Solution: Check the workflow triggers and ensure the PR meets 
+the specified conditions (branch names, PR types, etc.).
+```
+
+### Debugging
+
+Enable debug logging in your workflow:
+
+```yaml
+- name: Run Codegen Review
+  env:
+    CODEGEN_DEBUG: "true"
+    CODEGEN_LOG_LEVEL: "DEBUG"
+  run: |
+    python .github/scripts/codegen_review.py
+```
+
+Add debug output to your Python script:
+
+```python
+import logging
+
+logging.basicConfig(
+    level=logging.DEBUG if os.getenv('CODEGEN_DEBUG') else logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+
+logger = logging.getLogger(__name__)
+```
+
+## Examples
+
+### Complete Working Example
+
+Here's a complete, production-ready workflow:
+
+<Card title="View Complete Example" icon="github" href="https://github.com/codegen-sh/codegen-examples/tree/main/github-actions">
+  See a full working example with all files and configurations in our examples repository.
+</Card>
+
+### Integration with Existing CI/CD
+
+Integrate Codegen reviews with your existing CI/CD pipeline:
+
+```yaml
+name: CI/CD with Codegen
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run tests
+        run: npm test
+
+  codegen-review:
+    needs: tests  # Only run review if tests pass
+    if: success()
+    runs-on: ubuntu-latest
+    steps:
+      # ... Codegen review steps
+
+  deploy:
+    needs: [tests, codegen-review]
+    if: success() && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy
+        run: npm run deploy
+```
+
+## Next Steps
+
+- Explore the [Codegen API Reference](/api-reference) for advanced usage
+- Check out [example workflows](https://github.com/codegen-sh/codegen-examples) in our examples repository
+- Join our [Slack community](https://community.codegen.com) for support and best practices
+- Consider [enterprise features](https://codegen.com/enterprise) for advanced workflow management
+
