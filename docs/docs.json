@@ -82,7 +82,7 @@
 				"groups": [
 					{
 						"group": "Blog",
-						"pages": ["blog/posts", "blog/devin", "blog/act-via-code"]
+						"pages": ["blog/posts", "blog/grainchain-langchain-for-sandboxes", "blog/devin", "blog/act-via-code"]
 					}
 				]
 			},

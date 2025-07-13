@@ -1,0 +1,315 @@
+---
+title: "Grainchain: Langchain for Sandboxes"
+icon: "wheat-awn"
+iconType: "solid"
+description: "Unifying the fragmented sandbox ecosystem with a provider-agnostic interface"
+---
+
+```mermaid
+graph TB
+    subgraph "Application Layer"
+        App[Your Application]
+    end
+    
+    subgraph "Grainchain Core"
+        API[Unified API]
+        Config[Configuration Manager]
+        Session[Session Manager]
+    end
+    
+    subgraph "Provider Adapters"
+        E2B[E2B Adapter]
+        Modal[Modal Adapter]
+        Daytona[Daytona Adapter]
+        Morph[Morph Adapter]
+        Local[Local Adapter]
+    end
+    
+    subgraph "Sandbox Providers"
+        E2BProvider[E2B Sandboxes]
+        ModalProvider[Modal Sandboxes]
+        DaytonaProvider[Daytona Workspaces]
+        MorphProvider[Morph VMs]
+        LocalProvider[Local Environment]
+    end
+    
+    App --> API
+    API --> Config
+    API --> Session
+    
+    Config --> E2B
+    Config --> Modal
+    Config --> Daytona
+    Config --> Morph
+    Config --> Local
+    
+    E2B --> E2BProvider
+    Modal --> ModalProvider
+    Daytona --> DaytonaProvider
+    Morph --> MorphProvider
+    Local --> LocalProvider
+    
+    style App fill:#e1f5fe
+    style API fill:#f3e5f5
+    style E2BProvider fill:#fff3e0
+    style ModalProvider fill:#fff3e0
+    style DaytonaProvider fill:#fff3e0
+    style MorphProvider fill:#fff3e0
+    style LocalProvider fill:#fff3e0
+```
+
+The sandbox ecosystem is exploding. E2B, Modal, Daytona, Morph, and countless other providers are revolutionizing how we execute code in isolated environments. But this innovation comes with a cost: **fragmentation**.
+
+Today, developers face an impossible choice: commit to a single sandbox provider and accept vendor lock-in, or spend countless hours learning multiple APIs, managing different configurations, and maintaining separate codebases for each provider.
+
+**We built Grainchain to solve this problem.**
+
+## The Inspiration
+
+The idea came from a simple tweet by [@mathemagician](https://twitter.com/mathemagician/status/1795149337284866500):
+
+> *"There should be a 'langchain for sandboxes'"*
+
+That statement captured a fundamental truth. Just as [Langchain](https://github.com/langchain-ai/langchain) revolutionized how developers work with Large Language Models by providing a unified interface across OpenAI, Anthropic, Google, and others, **the sandbox ecosystem needs the same unification**.
+
+## The Problem with Sandbox Fragmentation
+
+The rapid growth of sandbox providers represents incredible innovation, but it creates several critical challenges:
+
+### Vendor Lock-in
+Applications become tightly coupled to specific sandbox providers. Switching from E2B to Modal or Daytona requires rewriting significant portions of your codebase.
+
+### Learning Curve
+Each provider has its own API, configuration format, and operational patterns. Developers must learn multiple systems instead of focusing on their core application logic.
+
+### Migration Complexity
+Moving between providers isn't just about changing a few configuration values—it often requires architectural changes and extensive testing.
+
+### Testing Challenges
+Testing across multiple providers becomes cumbersome when each requires different setup, authentication, and operational procedures.
+
+## Enter Grainchain
+
+Grainchain provides a clean, consistent API for interacting with various sandbox providers. Write your code once, and run it across multiple sandbox environments seamlessly.
+
+### Unified API
+
+```python
+import asyncio
+from grainchain import Sandbox
+
+async def main():
+    # This code works with ANY provider
+    async with Sandbox() as sandbox:
+        # Execute code
+        result = await sandbox.execute("echo 'Hello, Grainchain!'")
+        print(result.stdout)  # "Hello, Grainchain!"
+
+        # Upload and run a Python script
+        await sandbox.upload_file("script.py", "print('Hello from Python!')")
+        result = await sandbox.execute("python script.py")
+        print(result.stdout)  # "Hello from Python!"
+
+asyncio.run(main())
+```
+
+### Provider Flexibility
+
+Switch between providers with a single configuration change:
+
+```python
+# Use E2B
+async with Sandbox(provider="e2b") as sandbox:
+    result = await sandbox.execute("pip install numpy")
+
+# Use Modal
+async with Sandbox(provider="modal") as sandbox:
+    result = await sandbox.execute("echo 'Using Modal'")
+
+# Use Daytona
+async with Sandbox(provider="daytona") as sandbox:
+    result = await sandbox.execute("echo 'Using Daytona'")
+
+# Use Morph
+async with Sandbox(provider="morph") as sandbox:
+    result = await sandbox.execute("echo 'Using Morph'")
+```
+
+## Core Principles
+
+### 1. Provider Agnostic by Design
+Your code should work seamlessly across E2B, Modal, Daytona, Morph, or any future provider that emerges.
+
+### 2. Simplicity Over Complexity
+A unified API shouldn't mean a complicated API. We believe in clean, intuitive interfaces that make the complex simple.
+
+### 3. Performance Without Compromise
+Abstraction should not mean overhead. Grainchain adds minimal latency while maximizing developer productivity.
+
+### 4. Open by Default
+Our code is open source. Our development is transparent. Our community drives our roadmap.
+
+### 5. Future-Proof Architecture
+We build for the sandbox ecosystem of tomorrow, not just today. New providers integrate seamlessly.
+
+## Real-World Impact
+
+Since launching Grainchain, we've seen remarkable adoption:
+
+- **Eliminated vendor lock-in** for hundreds of developers
+- **Reduced integration time** from days to minutes
+- **Enabled rapid prototyping** across multiple sandbox providers
+- **Fostered innovation** by removing infrastructure concerns
+
+## Advanced Features
+
+### Performance Benchmarking
+
+Grainchain includes built-in benchmarking to help you choose the right provider for your workload:
+
+```bash
+# Test individual providers
+grainchain benchmark --provider local
+grainchain benchmark --provider e2b
+grainchain benchmark --provider daytona
+grainchain benchmark --provider morph
+
+# Generate comprehensive reports
+./scripts/benchmark_all.sh
+```
+
+Current performance baseline:
+
+| Provider    | Total Time | Basic Echo | Python Test | File Ops | Performance      |
+| ----------- | ---------- | ---------- | ----------- | -------- | ---------------- |
+| **Local**   | 0.036s     | 0.007s     | 0.021s      | 0.008s   | ⚡ Fastest       |
+| **E2B**     | 0.599s     | 0.331s     | 0.111s      | 0.156s   | 🚀 Balanced      |
+| **Daytona** | 1.012s     | 0.305s     | 0.156s      | 0.551s   | 🛡️ Comprehensive |
+| **Morph**   | 0.250s     | 0.005s     | 0.010s      | 0.005s   | 🚀 Instant Snapshots |
+
+### Provider Health Checking
+
+Before using Grainchain, check which sandbox providers are available:
+
+```bash
+# Check all providers
+grainchain providers
+
+# Show detailed setup instructions
+grainchain providers --verbose
+
+# Check specific provider
+grainchain providers --check e2b
+```
+
+### Advanced Configuration
+
+```python
+from grainchain import Sandbox, SandboxConfig
+
+config = SandboxConfig(
+    timeout=300,
+    memory_limit="2GB",
+    cpu_limit=2.0,
+    environment_vars={"API_KEY": "secret"},
+    working_directory="/workspace"
+)
+
+async with Sandbox(provider="e2b", config=config) as sandbox:
+    result = await sandbox.execute("echo $API_KEY")
+```
+
+## The Technology Stack
+
+Grainchain is built with modern Python best practices:
+
+- **Async-first architecture** for maximum performance
+- **Type-safe interfaces** for reliable development
+- **Comprehensive testing** across all supported providers
+- **Rich configuration system** for complex deployments
+- **Built-in benchmarking** for performance optimization
+
+## Supported Providers
+
+| Provider    | Status       | Features                                         |
+| ----------- | ------------ | ------------------------------------------------ |
+| **E2B**     | ✅ Supported | Code interpreter, custom images, file operations |
+| **Daytona** | ✅ Supported | Development environments, workspace management   |
+| **Morph**   | ✅ Supported | Custom base images, instant snapshots, <250ms startup |
+| **Local**   | ✅ Supported | Local development and testing                    |
+| **Docker**  | 🚧 Planned   | Local Docker containers                          |
+
+## The Future of Sandbox Computing
+
+We're building toward a future where:
+
+### Phase 2: Ecosystem 🚧
+- Docker provider support
+- Advanced features (GPU support, custom images, networking)
+- Performance optimizations and monitoring
+
+### Phase 3: Intelligence 🔮
+- Intelligent provider selection based on workload
+- Cost optimization across providers
+- Auto-scaling and resource management
+
+### Phase 4: Community 🌍
+- Plugin ecosystem for custom providers
+- Multi-language SDKs (JavaScript, Go, Rust)
+- Enterprise features and support
+
+## Why This Matters for Code Agents
+
+The future of software development is increasingly driven by AI agents that need reliable, fast access to sandbox environments. Whether it's:
+
+- **Code agents** executing and testing code changes
+- **Data science workflows** running analysis pipelines
+- **CI/CD systems** building and testing applications
+- **Development environments** providing isolated workspaces
+
+All of these use cases benefit from provider-agnostic sandbox access. Grainchain enables AI systems to focus on their core logic rather than infrastructure concerns.
+
+## Getting Started
+
+```bash
+# Basic installation
+pip install grainchain
+
+# With specific provider support
+pip install grainchain[e2b]
+pip install grainchain[daytona]
+pip install grainchain[morph]
+
+# With all providers
+pip install grainchain[all]
+```
+
+## Join the Movement
+
+Grainchain is more than a library—it's a movement toward a better, more unified sandbox ecosystem.
+
+**Contribute:**
+- GitHub: [https://github.com/codegen-sh/grainchain](https://github.com/codegen-sh/grainchain)
+- Issues: Share your ideas and feedback
+- PRs: Help us build the future
+
+**Connect:**
+- Follow our progress on [Twitter](https://twitter.com/codegen_sh)
+- Join discussions in our community channels
+- Share your Grainchain success stories
+
+## The Bottom Line
+
+**Sandbox providers should compete on performance, features, and price—not on API lock-in.**
+
+Grainchain makes this possible. We're building the abstraction layer that lets innovation flourish while keeping developers free.
+
+The future of sandbox computing is unified, open, and developer-first.
+
+**Welcome to Grainchain. Welcome to the future.**
+
+---
+
+*Built with ❤️ by the [Codegen](https://codegen.com) team*
+
+*Get started with Grainchain today: [https://github.com/codegen-sh/grainchain](https://github.com/codegen-sh/grainchain)*
