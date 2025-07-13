@@ -47,6 +47,32 @@ Under the `Settings` > `Feature` > `MCP Servers` section, click "Add New MCP Ser
 - **Command**: `codegen`
 - **Arguments**: `["mcp"]`
 
+### For Cursor
+
+To configure the Codegen MCP server in Cursor:
+
+1. Open Cursor Settings (Cmd/Ctrl + ,)
+2. Navigate to `Features` > `Model Context Protocol`
+3. Click "Add Server" and configure:
+   - **Server Name**: `codegen-mcp`
+   - **Command**: `codegen`
+   - **Arguments**: `["mcp"]`
+   - **Working Directory**: `<path to your project>` (optional)
+
+Alternatively, you can add the configuration directly to your Cursor settings file:
+
+```json
+{
+  "mcp.servers": {
+    "codegen": {
+      "command": "codegen",
+      "args": ["mcp"],
+      "cwd": "<path to your project>"
+    }
+  }
+}
+```
+
 ## Usage
 
 ### Starting the Server
