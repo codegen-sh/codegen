@@ -77,24 +77,6 @@
 					}
 				]
 			},
-			{
-				"tab": "Blog",
-				"groups": [
-					{
-						"group": "Blog",
-						"pages": ["blog/posts", "blog/devin", "blog/act-via-code"]
-					}
-				]
-			},
-			{
-				"tab": "Changelog",
-				"groups": [
-					{
-						"group": "Changelog",
-						"pages": ["changelog/changelog"]
-					}
-				]
-			}
 		]
 	},
 	"logo": {
