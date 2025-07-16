@@ -1,0 +1,144 @@
+---
+title: "Interrupts"
+description: "How Codegen handles real-time interrupts from Slack and Linear while working"
+---
+
+## Overview
+
+Codegen supports **real-time interrupts** that allow users to send additional messages or clarifications while the agent is actively working on a task. This feature enables dynamic, conversational interactions where users can provide feedback, corrections, or additional context without waiting for the agent to complete its current work.
+
+## How Interrupts Work
+
+When Codegen is actively processing a request, users can send follow-up messages through supported channels (Slack, Linear) that will be immediately delivered to the running agent as "interrupt messages."
+
+### Key Features
+
+- **Real-time delivery**: Messages are delivered immediately to the active agent
+- **Context preservation**: The agent maintains full context of the original task
+- **Immediate acknowledgment**: Codegen typically responds quickly to acknowledge the interrupt
+- **Seamless integration**: The agent incorporates new information into its current workflow
+
+## Supported Channels
+
+### Slack Interrupts
+
+In Slack, you can send interrupt messages by:
+
+1. **Replying in the thread** where Codegen is working
+2. **Mentioning @codegen** with additional context
+3. **Sending follow-up messages** in the same channel
+
+<Warning>
+**Important**: You **must** mention `@codegen` in your interrupt messages for Codegen to respond in Slack channels, unless you're in a direct message (DM) with Codegen where it will respond automatically.
+</Warning>
+
+**Example:**
+```
+User: @codegen can you fix the login bug?
+Codegen: I'll fix the login bug! 🔧 [starts working]
+User: Actually, make sure to also handle the password reset flow
+Codegen: Got it! I'll include the password reset flow in my fix 👍
+```
+
+### Linear Interrupts
+
+In Linear, interrupts work through:
+
+1. **Adding comments** to the issue Codegen is working on
+2. **Updating the issue description** with additional requirements
+3. **Changing issue priority or labels** (triggers re-evaluation)
+
+<Info>
+**Note**: Codegen will respond automatically to your comments in Linear unless another user is tagged in the same comment.
+</Info>
+
+**Example:**
+```
+Issue: Fix authentication system
+Codegen: Working on the authentication fix...
+[User adds comment]: "Please also add 2FA support"
+Codegen: I see you've added 2FA requirements - incorporating that now!
+```
+
+
+
+## Best Practices
+
+### For Users
+
+<Tip>
+**Send interrupts early**: If you realize you need to add context or change requirements, send the message immediately rather than waiting for completion.
+</Tip>
+
+- **Be specific**: Clearly state what you want to add or change
+- **Provide context**: Explain how the new information relates to the original request
+- **Use @mentions in Slack**: Always mention @codegen in Slack channels (not needed in DMs)
+- **No mentions needed in Linear**: Codegen responds automatically unless other users are tagged
+
+### Common Use Cases
+
+1. **Adding requirements**: "Also make sure to add error handling"
+2. **Providing clarification**: "By 'users' I meant admin users specifically"
+3. **Changing scope**: "Actually, let's focus on the mobile version first"
+4. **Sharing additional context**: "Here's the error log I forgot to include"
+5. **Course correction**: "That approach won't work, try using the new API instead"
+
+## Limitations
+
+- **Processing order**: Interrupts are processed in the order they're received
+- **Context switching**: Very frequent interrupts may slow down overall progress
+- **Channel-specific**: Interrupts only work within the same channel/issue where work started
+
+## Troubleshooting
+
+### Interrupt Not Acknowledged
+
+If your interrupt isn't acknowledged:
+
+1. **Check the channel**: Ensure you're messaging in the same thread/issue
+2. **Wait briefly**: The agent may be in the middle of a long operation
+3. **Use @mentions in Slack**: Make sure you mentioned @codegen (required in channels, not DMs)
+4. **Check for other tags in Linear**: If you tagged other users, Codegen won't respond automatically
+5. **Check agent status**: The agent may have completed or encountered an error
+
+### Message Not Incorporated
+
+If your interrupt seems ignored:
+
+1. **Be more explicit**: Clearly state what you want changed
+2. **Reference the original task**: Connect your interrupt to the current work
+3. **Follow up**: Send a clarifying message if needed
+
+## Examples
+
+### Slack Thread Example
+
+```
+User: @codegen create a user registration form
+Codegen: I'll create a user registration form! 📝 [working...]
+
+User: Make sure it includes email verification
+Codegen: Got it! Adding email verification to the registration form 📧
+
+User: And add password strength requirements
+Codegen: Perfect! I'll include password strength validation as well 🔒
+```
+
+### Linear Issue Example
+
+```
+Linear Issue: "Implement search functionality"
+Codegen: Working on search functionality...
+
+[User adds comment]: "Please include filters for date and category"
+Codegen: I see you've added filter requirements - implementing date and category filters now!
+
+[User adds comment]: "Also add sorting options"
+Codegen: Adding sorting options to the search as well! 📊
+```
+
+## Related Features
+
+- [Wake-up Triggers](/capabilities/wake-up) - How to initially trigger Codegen
+- [Slack Integration](/integrations/slack) - Complete Slack setup and usage
+- [Linear Integration](/integrations/linear) - Complete Linear setup and usage
