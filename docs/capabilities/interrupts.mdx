@@ -28,6 +28,10 @@ In Slack, you can send interrupt messages by:
 2. **Mentioning @codegen** with additional context
 3. **Sending follow-up messages** in the same channel
 
+<Warning>
+**Important**: You **must** mention `@codegen` in your interrupt messages for Codegen to respond in Slack channels, unless you're in a direct message (DM) with Codegen where it will respond automatically.
+</Warning>
+
 **Example:**
 ```
 User: @codegen can you fix the login bug?
@@ -44,6 +48,10 @@ In Linear, interrupts work through:
 2. **Updating the issue description** with additional requirements
 3. **Changing issue priority or labels** (triggers re-evaluation)
 
+<Info>
+**Note**: Codegen will respond automatically to your comments in Linear unless another user is tagged in the same comment.
+</Info>
+
 **Example:**
 ```
 Issue: Fix authentication system
@@ -52,46 +60,7 @@ Codegen: Working on the authentication fix...
 Codegen: I see you've added 2FA requirements - incorporating that now!
 ```
 
-## Technical Implementation
 
-### Interrupt Flow
-
-1. **Message Detection**: When a user sends a message in an active agent context
-2. **Interrupt Storage**: The message is stored in the agent's `interrupt_messages` queue
-3. **Agent Notification**: The running agent checks for new interrupts between operations
-4. **Message Processing**: Interrupts are processed as `[INTERRUPT]` prefixed messages
-5. **Response Integration**: The agent incorporates the new information into its workflow
-
-### Message Format
-
-Interrupt messages are structured as:
-
-```json
-{
-  "content": {
-    "message": "User's interrupt message",
-    "file_messages": [] // Optional file attachments
-  },
-  "actor": {
-    "name": "User Name",
-    "email": "user@example.com",
-    "avatar_url": "https://..."
-  },
-  "source": {
-    "url": "https://linear.app/issue/...",
-    "display_name": "Issue Title"
-  }
-}
-```
-
-### Agent Processing
-
-When an interrupt is received, the agent:
-
-1. **Acknowledges** the interrupt with a quick response
-2. **Evaluates** how the new information affects the current task
-3. **Adjusts** its approach or adds new requirements
-4. **Continues** working with the updated context
 
 ## Best Practices
 
@@ -103,7 +72,8 @@ When an interrupt is received, the agent:
 
 - **Be specific**: Clearly state what you want to add or change
 - **Provide context**: Explain how the new information relates to the original request
-- **Use @mentions**: In Slack, use @codegen to ensure the message is properly routed
+- **Use @mentions in Slack**: Always mention @codegen in Slack channels (not needed in DMs)
+- **No mentions needed in Linear**: Codegen responds automatically unless other users are tagged
 
 ### Common Use Cases
 
@@ -127,8 +97,9 @@ If your interrupt isn't acknowledged:
 
 1. **Check the channel**: Ensure you're messaging in the same thread/issue
 2. **Wait briefly**: The agent may be in the middle of a long operation
-3. **Use @mentions**: In Slack, explicitly mention @codegen
-4. **Check agent status**: The agent may have completed or encountered an error
+3. **Use @mentions in Slack**: Make sure you mentioned @codegen (required in channels, not DMs)
+4. **Check for other tags in Linear**: If you tagged other users, Codegen won't respond automatically
+5. **Check agent status**: The agent may have completed or encountered an error
 
 ### Message Not Incorporated
 
@@ -171,4 +142,3 @@ Codegen: Adding sorting options to the search as well! 📊
 - [Wake-up Triggers](/capabilities/wake-up) - How to initially trigger Codegen
 - [Slack Integration](/integrations/slack) - Complete Slack setup and usage
 - [Linear Integration](/integrations/linear) - Complete Linear setup and usage
-
