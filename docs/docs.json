@@ -76,7 +76,7 @@
 						"pages": ["api-reference/agent-run-logs", "api-reference/github-actions"]
 					}
 				]
-			},
+			}
 		]
 	},
 	"logo": {
