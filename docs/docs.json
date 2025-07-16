@@ -26,7 +26,7 @@
 					},
 					{
 						"group": "Capabilities",
-						"pages": ["capabilities/capabilities", "capabilities/wake-up"]
+						"pages": ["capabilities/capabilities", "capabilities/wake-up", "capabilities/interrupts"]
 					},
 					{
 						"group": "Integrations",
