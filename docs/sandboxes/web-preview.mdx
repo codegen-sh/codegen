@@ -23,7 +23,7 @@ A "View Web Preview" button appears on the agent trace page once the server star
 
 You configure Web Preview commands in a manner similar to Setup Commands, likely within the same repository settings area (e.g., `https://codegen.com/{your_org}/{repo_name}/settings/web-preview`).
 
-You'll provide the command(s) necessary to start your development server. Ensure that your server is configured to listen on an appropriate host (often `0.0.0.0`) and a predictable port that Codegen can then expose.
+You'll provide the command(s) necessary to start your development server. Ensure that your server is configured to listen on an appropriate host (often `127.0.0.1`) and a predictable port that Codegen can then expose.
 
 <Warning>
   The web server started for Web Preview **MUST** listen on port 3000. Codegen
@@ -42,12 +42,12 @@ npm run dev
 
 ```bash
 # For a Python/Django project
-python manage.py runserver 0.0.0.0:8000
+python manage.py runserver 127.0.0.1:3000
 ```
 
 ```bash
 # For a Ruby on Rails project
-bundle exec rails server -b 0.0.0.0
+bundle exec rails server -b 127.0.0.1 -p 3000
 ```
 
 <Tip>
