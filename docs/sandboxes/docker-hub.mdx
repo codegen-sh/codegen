@@ -1,0 +1,62 @@
+---
+title: "Docker Hub Repository"
+sidebarTitle: "Docker Hub"
+icon: "docker"
+---
+
+Codegen provides a public Docker repository hosting our sandbox image, making it easy for developers to access and use the same environment that powers Codegen agents.
+
+## Repository Access
+
+The Codegen sandbox image is publicly available on Docker Hub:
+
+**Repository URL:** [https://hub.docker.com/r/caroljung/codegen-sandbox](https://hub.docker.com/r/caroljung/codegen-sandbox)
+
+This repository contains the same Docker image that Codegen agents use in their sandbox environments, providing you with:
+
+- A comprehensive development environment
+- Pre-installed tools and dependencies
+- Consistent runtime environment across different platforms
+
+## Using the Docker Image
+
+You can pull and run the Codegen sandbox image locally using standard Docker commands:
+
+```bash
+# Pull the latest image
+docker pull caroljung/codegen-sandbox:latest
+
+# Run an interactive container
+docker run -it caroljung/codegen-sandbox:latest /bin/bash
+```
+
+## What's Included
+
+The sandbox image includes the same tools and environment that Codegen agents use:
+
+- **Development Tools:** Git, build tools, compilers, and package managers
+- **Runtime Environments:** Python, Node.js, and other language runtimes
+- **System Utilities:** Common Unix tools and utilities for development workflows
+- **Package Managers:** npm, pip, yarn, and other dependency management tools
+
+For a complete list of included tools and packages, see the [Base Image](/sandboxes/base-image) documentation.
+
+## Use Cases
+
+The public Docker repository enables several use cases:
+
+- **Local Development:** Test your code in the same environment Codegen agents use
+- **CI/CD Integration:** Use the sandbox image in your continuous integration pipelines
+- **Debugging:** Reproduce issues that occur in Codegen sandbox environments
+- **Custom Workflows:** Build upon the Codegen sandbox for your own automation needs
+
+## Repository Maintenance
+
+The Docker Hub repository is maintained by the Codegen team and updated regularly to ensure:
+
+- Security patches are applied promptly
+- Development tools remain current
+- Compatibility with Codegen agent workflows is maintained
+
+For questions about the Docker repository or to report issues, please contact our support team.
+
