@@ -15,7 +15,7 @@ dependencies = [
   "requests>=2.32.3",
   "pydantic>=2.9.2",
   "pydantic-settings>=2.0.0",
-  "PyGithub==2.6.1",
+  "PyGithub==2.7.0",
   "GitPython==3.1.44",
   "packaging>=24.2",
   "python-dotenv>=1.0.1",
