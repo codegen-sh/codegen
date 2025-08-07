@@ -14,6 +14,40 @@ When an agent is assigned a task on a repository with defined rules, those rules
 
 For example, if you have a rule like "Always use tabs for indentation," the agent will be reminded of this preference before it starts writing or modifying code in that repository.
 
+## Automatic Rule File Detection
+
+In addition to manual repository rules, Codegen automatically discovers and includes agent rule files from your repository when the agent starts working on it. This discovery happens whenever the `set_active_codebase` tool initializes work on a repo.
+
+### Supported Rule File Patterns
+
+Codegen searches for the following patterns:
+
+- **`.cursorrules`** (Cursor)
+- **`.clinerules`** (Cline)
+- **`.windsurfrules`** (Windsurf)
+- **`**/*.mdc`** (any `.mdc` file in the repo)
+- **`.cursor/rules/**/*.mdc`** (files under `.cursor/rules/`)
+- **`CLAUDE.md`**, **`AGENTS.md`**, **`AGENT.md`** (top-level agent instruction docs)
+
+### How it works
+
+1. Discovery via `ripgrep`
+2. Content is read and encoded to preserve formatting during transport, then decoded
+3. A global size budget of **25,000 characters** is enforced across all discovered files
+4. The resulting content is combined with your manual Repository Rules and provided to the agent
+
+### Visibility in the UI
+
+Discovered rule files are rendered in AgentTrace under the `SetActiveCodebase` tool card as "Repository Rules (Filesystem)". Expand entries to preview content and open the source on GitHub.
+
+<Tip>
+  Automatic rule files are merged with manual Repository Rules to give the agent repository-specific context.
+</Tip>
+
+<Warning>
+  If discovered rule files exceed the global 25,000 character budget, content will be truncated. Keep files concise or split by area of concern.
+</Warning>
+
 ## Accessing and Configuring Repository Rules
 
 You can typically find and configure Repository Rules within the settings page for each specific repository in the Codegen web UI.
