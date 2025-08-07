@@ -47,12 +47,14 @@ Codegen automatically searches for the following types of rule files in your rep
 - **`.windsurfrules`** - Windsurf AI editor rules
 - **`**/*.mdc`** - Markdown files with `.mdc` extension anywhere in the repository
 - **`.cursor/rules/**/*.mdc`** - Markdown files in the `.cursor/rules/` directory structure
+- **`CLAUDE.md`**, **`AGENTS.md`**, **`AGENT.md`** - top-level docs commonly used to instruct AI agents
 
 ### How Automatic Detection Works
 
 1. **File Discovery**: When you switch to a repository, Codegen uses `ripgrep` to search for files matching the supported patterns
 2. **Content Extraction**: The content of discovered files is read and processed
-3. **Size Limitation**: All rule files combined are truncated to fit within 3,000 characters total to ensure optimal performance
+- **New**: The content is encoded to preserve formatting during transport, then decoded before being presented to the agent
+3. **Size Limitation (25k global budget)**: All rule files combined are truncated to fit within a 25,000 character global budget to ensure optimal performance
 4. **Context Integration**: The rule content is automatically included in the agent's context alongside any manual repository rules
 
 ### Example Rule Files
@@ -82,6 +84,10 @@ Prefer functional components over class components in React
 - Include request/response validation
 ```
 
+### Visibility in UI
+
+When rules are discovered, they are displayed in the AgentTrace under the `SetActiveCodebase` tool card as "Repository Rules (Filesystem)". You can expand each entry to preview the content and open the source file on GitHub.
+
 ### Benefits of Automatic Rule Files
 
 - **Version Control**: Rule files are committed with your code, ensuring consistency across team members
@@ -94,7 +100,7 @@ Prefer functional components over class components in React
 </Tip>
 
 <Warning>
-  If your rule files exceed 3,000 characters combined, they will be automatically truncated. Consider keeping rule files concise or splitting them into multiple focused files.
+  If your rule files exceed the global 25,000 character budget, they will be truncated per-file and/or at the aggregate level. Keep rule files concise or split them into focused files.
 </Warning>
 
 ## Common Use Cases and Examples
