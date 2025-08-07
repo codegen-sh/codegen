@@ -1,0 +1,74 @@
+---
+title: "Rules Overview"
+sidebarTitle: "Rule Types & Precedence"
+icon: "layers"
+---
+
+Codegen supports three levels of rules that guide how the agent behaves. These rules are merged for every run and can override one another based on a clear precedence order.
+
+## The three rule types
+
+### 1) User Rules (Personal Prompts)
+- Where: Managed by each user at https://codegen.com/personal/prompts
+- Scope: Apply to runs initiated by that user, across all organizations and repositories they work on
+- Purpose: Personal preferences, style, and reminders (e.g., preferred commit style, tone for PR descriptions)
+
+### 2) Organization Rules
+- Where: Organization settings at https://codegen.com/settings/organization-rules
+- Scope: Apply to every repo and run in the organization
+- Purpose: Governance, security, and team-wide standards (e.g., no force-push, testing/coverage requirements)
+
+### 3) Repository Rules
+- Where: Repo settings at your repo page (e.g., https://codegen.com/repos/cloud/repo-rules)
+- Scope: Apply only to that repository
+- Purpose: Project- or repo-specific conventions and constraints (e.g., language choices, directory layout, commit prefixes)
+
+<Tip>
+  In addition to manual Repository Rules, Codegen auto-discovers rule files in the repo (e.g., `.cursorrules`, `.clinerules`, `.windsurfrules`, `**/*.mdc`, `.cursor/rules/**/*.mdc`, `CLAUDE.md`, `AGENTS.md`, `AGENT.md`). These are included with a global 25,000-character budget and are visible in AgentTrace under the SetActiveCodebase tool as "Repository Rules (Filesystem)".
+</Tip>
+
+## Precedence (who wins on conflict?)
+When rules conflict, the more specific layer wins.
+
+1. Repository Rules (most specific)
+2. Organization Rules
+3. User Rules (least specific)
+
+This means:
+- Repo Rules can override Org Rules and User Rules
+- Org Rules can override User Rules
+- User Rules provide defaults and personal preferences, but will not override Org/Repo mandates
+
+<Note>
+  This precedence ensures company-wide standards remain enforceable (Org Rules), while still allowing repositories to refine their own specific conventions (Repo Rules). User Rules help maintain personal productivity and consistency without breaking org or repo policies.
+</Note>
+
+## Examples
+
+- Example A: Commit messages
+  - User Rules: "Use short, descriptive commit subjects."
+  - Org Rules: "Follow Conventional Commits."
+  - Repo Rules: "Prefix commits with the service name (e.g., api:)."
+  - Result: The agent uses Conventional Commits with the repo-required prefix; the user’s personal preferences apply where they don’t conflict.
+
+- Example B: Force pushing
+  - User Rules: none
+  - Org Rules: "Never use git push --force."
+  - Repo Rules: none
+  - Result: The agent will not force push, even if asked in a user prompt.
+
+- Example C: Language choice
+  - User Rules: "Prefer TypeScript."
+  - Org Rules: none
+  - Repo Rules: "Write backend in Python (FastAPI)."
+  - Result: For this repo, the agent writes backend code in Python per repo policy; the user preference applies elsewhere.
+
+## Where to configure
+- User Rules: https://codegen.com/personal/prompts
+- Organization Rules: https://codegen.com/settings/organization-rules
+- Repository Rules: Your repo page, e.g., https://codegen.com/repos/cloud/repo-rules
+
+## Related docs
+- [Organization Rules](/settings/organization-rules)
+- [Repository Rules](/settings/repo-rules)
+
