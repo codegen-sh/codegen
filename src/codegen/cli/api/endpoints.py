@@ -13,4 +13,5 @@ CODEGEN_SYSTEM_PROMPT_URL = "https://gist.githubusercontent.com/jayhack/15681a2c
 IMPROVE_ENDPOINT = f"https://{MODAL_PREFIX}--cli-improve.modal.run"
 
 # API ENDPOINT
-API_ENDPOINT = "https://codegen-sh-develop-jay--rest-api.modal.run/"
+# API_ENDPOINT = "https://codegen-sh-develop-jay--rest-api.modal.run/"
+API_ENDPOINT = "https://codegen-sh-staging--rest-api.modal.run/"
