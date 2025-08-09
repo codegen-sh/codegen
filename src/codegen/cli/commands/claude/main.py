@@ -1,0 +1,249 @@
+"""Claude Code command with OpenTelemetry monitoring."""
+
+import os
+import signal
+import subprocess
+import sys
+
+import typer
+from rich.console import Console
+from rich.panel import Panel
+
+console = Console()
+
+
+def claude(
+    org_id: int = typer.Option(11, help="Organization ID for telemetry endpoint"),
+    export_interval: int = typer.Option(60, help="Export interval in seconds (default: 60)"),
+    log_prompts: bool = typer.Option(False, help="Log user prompt content (security consideration)"),
+    console_output: bool = typer.Option(False, help="Output telemetry to console for debugging"),
+    normal_mode: bool = typer.Option(False, help="Run Claude Code without telemetry (normal mode)"),
+    debug_mode: bool = typer.Option(False, help="Show detailed debug information and run with verbose output"),
+    debug_otel: bool = typer.Option(False, help="Show real-time OpenTelemetry events and where they're being sent"),
+):
+    """Run Claude Code with OpenTelemetry monitoring and logging.
+
+    This uses Claude Code's built-in OpenTelemetry support to monitor:
+    - API requests and responses
+    - Token usage and costs
+    - Tool usage and decisions
+    - Session metrics
+    - User interactions
+    """
+    if normal_mode:
+        console.print("🚀 Running Claude Code in normal mode (no telemetry)...", style="blue")
+        try:
+            subprocess.run(["claude"], check=True)
+        except subprocess.CalledProcessError as e:
+            console.print(f"❌ Error running Claude Code: {e}", style="red")
+            raise typer.Exit(1)
+        except FileNotFoundError:
+            console.print("❌ Claude Code not found. Please install Claude Code first.", style="red")
+            console.print("💡 Visit: https://claude.ai/download", style="dim")
+            raise typer.Exit(1)
+        return
+
+    console.print("🔍 Starting Claude Code with remote telemetry monitoring...", style="bold blue")
+    console.print(f"📊 Sending telemetry to organization {org_id}", style="dim")
+
+    # Set up environment variables for Claude Code OpenTelemetry
+    env = os.environ.copy()
+
+    # Enable telemetry (required)
+    env["CLAUDE_CODE_ENABLE_TELEMETRY"] = "1"
+
+    # Enable all telemetry features that might be disabled by default
+    env["OTEL_METRICS_INCLUDE_SESSION_ID"] = "true"
+    env["OTEL_METRICS_INCLUDE_ACCOUNT_UUID"] = "true"
+    env["OTEL_METRICS_INCLUDE_VERSION"] = "true"
+
+    # Configure OTLP exporters to send to your remote endpoint
+    exporters = ["otlp"]
+    if console_output or debug_otel:
+        exporters.append("console")
+
+    env["OTEL_METRICS_EXPORTER"] = ",".join(exporters)
+    env["OTEL_LOGS_EXPORTER"] = ",".join(exporters)
+
+    # Configure OTLP endpoint to your remote API
+    from codegen.cli.api.endpoints import API_ENDPOINT
+    from codegen.cli.auth.token_manager import get_current_token
+
+    # Set OTLP endpoint to your telemetry API
+    # Note: Claude Code will automatically append /v1/metrics and /v1/logs to this base URL
+    otlp_endpoint = f"{API_ENDPOINT.rstrip('/')}/v1/organizations/{org_id}/telemetry"
+    env["OTEL_EXPORTER_OTLP_ENDPOINT"] = otlp_endpoint
+    env["OTEL_EXPORTER_OTLP_PROTOCOL"] = "http/json"
+
+    # Add authentication using your current token
+    token = get_current_token()
+    if token:
+        env["OTEL_EXPORTER_OTLP_HEADERS"] = f"Authorization=Bearer {token}"
+        console.print("🔐 Using stored authentication token", style="dim")
+    else:
+        console.print("⚠️  No authentication token found. Telemetry may fail.", style="yellow")
+        console.print("💡 Run 'codegen login' first", style="dim")
+
+    # Set export intervals (in milliseconds)
+    env["OTEL_METRIC_EXPORT_INTERVAL"] = str(export_interval * 1000)
+    env["OTEL_LOGS_EXPORT_INTERVAL"] = str(export_interval * 1000)
+
+    # Enable verbose OTLP debugging if requested
+    if debug_otel:
+        env["OTEL_LOG_LEVEL"] = "DEBUG"
+        env["OTEL_EXPORTER_OTLP_DEBUG"] = "true"
+        env["OTEL_PYTHON_LOG_CORRELATION"] = "true"
+        # Make export interval shorter for debugging (5 seconds)
+        env["OTEL_METRIC_EXPORT_INTERVAL"] = "5000"
+        env["OTEL_LOGS_EXPORT_INTERVAL"] = "5000"
+
+    # Log user prompts if requested (security consideration)
+    # Also enable for debug_otel mode to help with troubleshooting
+    if log_prompts or debug_otel:
+        env["OTEL_LOG_USER_PROMPTS"] = "1"
+        if debug_otel and not log_prompts:
+            console.print("🐛 User prompt content logging ENABLED for debugging", style="yellow")
+        else:
+            console.print("⚠️  User prompt content logging is ENABLED", style="yellow")
+    else:
+        env["OTEL_LOG_USER_PROMPTS"] = "0"  # Explicitly disable
+        console.print("🔒 User prompt content is redacted (only length tracked)", style="dim")
+
+    # Add resource attributes for identification
+    resource_attrs = [
+        "service.name=claude-code",
+        "service.version=monitored",
+        "deployment.environment=development",
+        f"organization.id={org_id}",
+        f"user.id={token}" if token else "user.id=unauthenticated",
+    ]
+    env["OTEL_RESOURCE_ATTRIBUTES"] = ",".join(resource_attrs)
+
+    # Optional: Reduce cardinality for better performance
+    # env["OTEL_METRICS_INCLUDE_SESSION_ID"] = "false"
+
+    # Test if Claude Code is accessible first
+    console.print("🔍 Testing Claude Code accessibility...", style="blue")
+    try:
+        test_result = subprocess.run(["claude", "--version"], capture_output=True, text=True, timeout=10)
+        if test_result.returncode == 0:
+            console.print(f"✅ Claude Code found: {test_result.stdout.strip()}", style="green")
+        else:
+            console.print(f"⚠️  Claude Code test failed with code {test_result.returncode}", style="yellow")
+            if test_result.stderr:
+                console.print(f"Error: {test_result.stderr.strip()}", style="red")
+    except subprocess.TimeoutExpired:
+        console.print("⚠️  Claude Code version check timed out", style="yellow")
+    except Exception as e:
+        console.print(f"⚠️  Claude Code test error: {e}", style="yellow")
+
+    console.print("🚀 Launching Claude Code with OpenTelemetry...", style="blue")
+
+    # Debug output for telemetry configuration
+    if debug_mode or console_output or debug_otel:
+        console.print(f"[dim]Debug: OTLP Endpoint: {otlp_endpoint}[/dim]")
+        console.print(f"[dim]Debug: Metrics URL: {otlp_endpoint}/v1/metrics[/dim]")
+        console.print(f"[dim]Debug: Logs URL: {otlp_endpoint}/v1/logs[/dim]")
+        console.print(f"[dim]Debug: Organization ID: {org_id}[/dim]")
+        console.print(f"[dim]Debug: Resource Attributes: {','.join(resource_attrs)}[/dim]")
+
+        if debug_otel:
+            console.print("[yellow]🐛 OTLP Debug Mode: Real-time telemetry events will be shown[/yellow]")
+            console.print("[dim]Export interval: 5 seconds (faster for debugging)[/dim]")
+            console.print("[dim]User prompts: enabled for debugging[/dim]")
+            console.print("[dim]Console export: enabled to see local events[/dim]")
+
+        # Show key environment variables being set
+        console.print("[dim]Debug: Key environment variables:[/dim]")
+        otel_vars = {k: v for k, v in env.items() if k.startswith("OTEL_") or k.startswith("CLAUDE_CODE_")}
+        for key, value in otel_vars.items():
+            if "HEADERS" in key and token:
+                # Mask the token for security
+                console.print(f"[dim]  {key}=Authorization=Bearer ***[/dim]")
+            else:
+                console.print(f"[dim]  {key}={value}[/dim]")
+
+    # Create a panel with telemetry information
+    telemetry_info = Panel(
+        f"""[bold cyan]Claude Code with Remote OpenTelemetry Monitoring Active[/bold cyan]
+
+🔍 [yellow]Monitoring all Claude Code interactions via built-in telemetry[/yellow]
+🌐 Remote Endpoint: [dim]{otlp_endpoint}[/dim]
+🎯 Organization ID: [dim]{org_id}[/dim]
+⏱️  Export Interval: [dim]{export_interval} seconds[/dim]
+📝 Prompt Logging: [dim]{"Enabled" if log_prompts else "Disabled (content redacted)"}[/dim]
+🔐 Authentication: [dim]{"Token configured" if token else "No token - may fail"}[/dim]
+🐛 OTLP Debug: [dim]{"Enabled - real-time events visible" if debug_otel else "Disabled"}[/dim]
+
+[bold]📊 Metrics being sent:[/bold]
+• [green]claude_code.session.count[/green] - Session tracking
+• [green]claude_code.token.usage[/green] - Token consumption by type/model
+• [green]claude_code.cost.usage[/green] - Estimated cost in USD
+• [green]claude_code.lines_of_code.count[/green] - Code additions/deletions
+• [green]claude_code.tool_decision.count[/green] - Tool accept/reject decisions
+• [green]claude_code.active_time.count[/green] - Active usage time
+
+[bold]📋 Events being sent:[/bold]
+• [green]claude_code.user_prompt[/green] - User interactions with length
+• [green]claude_code.tool_result[/green] - Tool executions with duration
+• [green]claude_code.api_request[/green] - API calls with tokens/cost/model
+• [green]claude_code.api_error[/green] - API failures with error details
+• [green]claude_code.tool_decision[/green] - Tool permission decisions
+
+[red]Press Ctrl+C to stop monitoring and exit[/red]
+
+💡 [dim]Telemetry data is being sent to your remote API in the background.
+Claude Code will run normally - you can interact with it as usual.[/dim]""",
+        border_style="blue",
+        padding=(1, 2),
+    )
+    console.print(telemetry_info)
+
+    try:
+        # Launch Claude Code with telemetry enabled
+        if console_output or debug_mode or debug_otel:
+            # Run Claude Code with visible output - telemetry will appear in console
+            if debug_otel:
+                console.print("🐛 Running Claude Code with OTLP debug output - you'll see real-time telemetry events...\n", style="yellow")
+                console.print("📡 Look for HTTP requests to your telemetry API endpoints\n", style="dim")
+                console.print("💡 Try asking Claude Code a question or making a file edit to generate events\n", style="dim")
+            else:
+                console.print("📺 Running Claude Code with visible output for debugging...\n", style="dim")
+            process = subprocess.Popen(["claude"], env=env)
+        else:
+            # Run Claude Code in interactive mode but capture output for error handling
+            console.print("🎯 Running Claude Code in interactive mode with remote telemetry...\n", style="dim")
+            console.print("💡 Claude Code will start normally - telemetry data is being sent to your API\n", style="dim")
+            # Don't capture stdout/stderr - let Claude Code run normally
+            process = subprocess.Popen(["claude"], env=env)
+
+        # Handle Ctrl+C gracefully
+        def signal_handler(signum, frame):
+            console.print("\n🛑 Stopping Claude Code and telemetry collection...", style="yellow")
+            process.terminate()
+            sys.exit(0)
+
+        signal.signal(signal.SIGINT, signal_handler)
+
+        # Wait for Claude Code to finish
+        returncode = process.wait()
+
+        if returncode != 0:
+            console.print(f"❌ Claude Code exited with error code {returncode}", style="red")
+        else:
+            console.print("✅ Claude Code finished successfully", style="green")
+
+    except FileNotFoundError:
+        console.print("❌ Claude Code not found. Please install Claude Code first.", style="red")
+        console.print("💡 Visit: https://claude.ai/download", style="dim")
+        raise typer.Exit(1)
+    except KeyboardInterrupt:
+        console.print("\n🛑 Interrupted by user", style="yellow")
+    except Exception as e:
+        console.print(f"❌ Error running Claude Code: {e}", style="red")
+        raise typer.Exit(1)
+    finally:
+        console.print(f"📊 Telemetry data was sent to: {otlp_endpoint}/v1/{{metrics|logs}}", style="dim")
+        console.print(f"🎯 Organization ID: {org_id}", style="dim")
+        console.print("💡 Check your backend logs to see the processed telemetry data", style="dim")
+        console.print("📖 Claude Code docs: https://docs.anthropic.com/en/docs/claude-code/monitoring-usage", style="dim")

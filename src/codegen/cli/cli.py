@@ -3,10 +3,11 @@ from rich.traceback import install
 
 from codegen import __version__
 
+# Import the actual command functions
+from codegen.cli.commands.claude.main import claude
+
 # Import config command (still a Typer app)
 from codegen.cli.commands.config.main import config_command
-
-# Import the actual command functions
 from codegen.cli.commands.init.main import init
 from codegen.cli.commands.integrations.main import integrations_app
 from codegen.cli.commands.login.main import login
@@ -31,6 +32,7 @@ def version_callback(value: bool):
 main = typer.Typer(name="codegen", help="Codegen CLI - Transform your code with AI.", rich_markup_mode="rich")
 
 # Add individual commands to the main app
+main.command("claude", help="Run Claude Code with OpenTelemetry monitoring and logging.")(claude)
 main.command("init", help="Initialize or update the Codegen folder.")(init)
 main.command("login", help="Store authentication token.")(login)
 main.command("logout", help="Clear stored authentication token.")(logout)
