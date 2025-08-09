@@ -20,6 +20,8 @@ def claude(
     normal_mode: bool = typer.Option(False, help="Run Claude Code without telemetry (normal mode)"),
     debug_mode: bool = typer.Option(False, help="Show detailed debug information and run with verbose output"),
     debug_otel: bool = typer.Option(False, help="Show real-time OpenTelemetry events and where they're being sent"),
+    debug_otel_actions_only: bool = typer.Option(False, help="Show only action-related OTLP events (tool usage, API calls) - cleaner than --debug-otel"),
+    verbose_telemetry: bool = typer.Option(False, help="Enable detailed telemetry event logging in backend (default: disabled for cleaner logs)"),
 ):
     """Run Claude Code with OpenTelemetry monitoring and logging.
 
@@ -59,11 +61,19 @@ def claude(
 
     # Configure OTLP exporters to send to your remote endpoint
     exporters = ["otlp"]
-    if console_output or debug_otel:
-        exporters.append("console")
+    console_exporters = []
 
-    env["OTEL_METRICS_EXPORTER"] = ",".join(exporters)
-    env["OTEL_LOGS_EXPORTER"] = ",".join(exporters)
+    if console_output or debug_otel or debug_otel_actions_only:
+        console_exporters.append("console")
+
+    # For actions-only mode, disable metrics console output to reduce noise
+    if debug_otel_actions_only:
+        env["OTEL_METRICS_EXPORTER"] = "otlp"  # Only send metrics to remote, not console
+        env["OTEL_LOGS_EXPORTER"] = ",".join(["otlp", *console_exporters])  # Logs to both
+        console.print("🔇 Metrics console output disabled to reduce noise", style="dim")
+    else:
+        env["OTEL_METRICS_EXPORTER"] = ",".join(exporters)
+        env["OTEL_LOGS_EXPORTER"] = ",".join(exporters)
 
     # Configure OTLP endpoint to your remote API
     from codegen.cli.api.endpoints import API_ENDPOINT
@@ -77,19 +87,30 @@ def claude(
 
     # Add authentication using your current token
     token = get_current_token()
+    headers = []
     if token:
-        env["OTEL_EXPORTER_OTLP_HEADERS"] = f"Authorization=Bearer {token}"
+        headers.append(f"Authorization=Bearer {token}")
         console.print("🔐 Using stored authentication token", style="dim")
     else:
         console.print("⚠️  No authentication token found. Telemetry may fail.", style="yellow")
         console.print("💡 Run 'codegen login' first", style="dim")
+
+    # Add verbose telemetry flag
+    if verbose_telemetry:
+        headers.append("X-Verbose-Telemetry=true")
+        console.print("🔍 Enabled verbose telemetry logging", style="dim")
+    else:
+        console.print("🔇 Disabled verbose telemetry logging (use --verbose-telemetry to enable)", style="dim")
+
+    if headers:
+        env["OTEL_EXPORTER_OTLP_HEADERS"] = ",".join(headers)
 
     # Set export intervals (in milliseconds)
     env["OTEL_METRIC_EXPORT_INTERVAL"] = str(export_interval * 1000)
     env["OTEL_LOGS_EXPORT_INTERVAL"] = str(export_interval * 1000)
 
     # Enable verbose OTLP debugging if requested
-    if debug_otel:
+    if debug_otel or debug_otel_actions_only:
         env["OTEL_LOG_LEVEL"] = "DEBUG"
         env["OTEL_EXPORTER_OTLP_DEBUG"] = "true"
         env["OTEL_PYTHON_LOG_CORRELATION"] = "true"
@@ -97,11 +118,15 @@ def claude(
         env["OTEL_METRIC_EXPORT_INTERVAL"] = "5000"
         env["OTEL_LOGS_EXPORT_INTERVAL"] = "5000"
 
+        # Additional info for actions-only mode
+        if debug_otel_actions_only:
+            console.print("🎯 OTLP Debug: Actions-only mode enabled (metrics output filtered)", style="yellow")
+
     # Log user prompts if requested (security consideration)
-    # Also enable for debug_otel mode to help with troubleshooting
-    if log_prompts or debug_otel:
+    # Also enable for debug_otel modes to help with troubleshooting
+    if log_prompts or debug_otel or debug_otel_actions_only:
         env["OTEL_LOG_USER_PROMPTS"] = "1"
-        if debug_otel and not log_prompts:
+        if (debug_otel or debug_otel_actions_only) and not log_prompts:
             console.print("🐛 User prompt content logging ENABLED for debugging", style="yellow")
         else:
             console.print("⚠️  User prompt content logging is ENABLED", style="yellow")
