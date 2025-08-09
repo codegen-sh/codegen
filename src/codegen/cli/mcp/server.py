@@ -86,14 +86,26 @@ def register_dynamic_tools(available_tools: list):
     """Register all available tools from the API as individual MCP tools."""
     import inspect
 
-    for tool_info in available_tools:
-        tool_name = tool_info.get("name", "unknown_tool")
-        tool_description = tool_info.get("description", "No description available")
-        tool_parameters = tool_info.get("parameters", {})
+    for i, tool_info in enumerate(available_tools):
+        # Skip None or invalid tool entries
+        if not tool_info or not isinstance(tool_info, dict):
+            print(f"⚠️ Skipping invalid tool entry at index {i}: {tool_info}")
+            continue
 
-        # Parse the parameter schema
-        properties = tool_parameters.get("properties", {})
-        required = tool_parameters.get("required", [])
+        try:
+            tool_name = tool_info.get("name", "unknown_tool")
+            tool_description = tool_info.get("description", "No description available").replace("'", '"').replace('"', '\\"')
+            tool_parameters = tool_info.get("parameters", {})
+
+            # Parse the parameter schema
+            if tool_parameters is None:
+                tool_parameters = {}
+            properties = tool_parameters.get("properties", {})
+            required = tool_parameters.get("required", [])
+        except Exception as e:
+            print(f"❌ Error processing tool at index {i}: {e}")
+            print(f"Tool data: {tool_info}")
+            continue
 
         def make_tool_function(name: str, description: str, props: dict, req: list):
             # Create function dynamically with proper parameters
@@ -109,7 +121,7 @@ def register_dynamic_tools(available_tools: list):
                 # Add other parameters from schema
                 for param_name, param_info in props.items():
                     param_type = param_info.get("type", "string")
-                    param_desc = param_info.get("description", f"Parameter {param_name}").replace("'", '"')
+                    param_desc = param_info.get("description", f"Parameter {param_name}").replace("'", '"').replace('"', '\\"')
                     is_required = param_name in req
 
                     # Special handling for tool_call_id - always make it optional
@@ -208,8 +220,16 @@ def tool_function({params_str}) -> str:
 
                 # Execute the function code to create the function
                 namespace = {"Annotated": Annotated, "json": json, "execute_tool_via_api": execute_tool_via_api, "inspect": inspect}
-                exec(func_code, namespace)
-                func = namespace["tool_function"]
+                try:
+                    exec(func_code, namespace)
+                    func = namespace["tool_function"]
+                except SyntaxError as e:
+                    print(f"❌ Syntax error in tool {name}:")
+                    print(f"Error: {e}")
+                    print("Generated code:")
+                    for i, line in enumerate(func_code.split("\n"), 1):
+                        print(f"{i:3}: {line}")
+                    raise
 
                 # Set metadata
                 func.__name__ = name.replace("-", "_")
