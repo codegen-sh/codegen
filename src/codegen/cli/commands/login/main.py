@@ -1,4 +1,3 @@
-
 import rich
 import typer
 

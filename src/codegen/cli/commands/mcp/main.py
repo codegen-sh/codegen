@@ -1,6 +1,5 @@
 """MCP server command for the Codegen CLI."""
 
-
 import typer
 from rich.console import Console
 
@@ -24,7 +23,10 @@ def mcp(
 
     # Validate transport
     if transport not in ["stdio", "http"]:
-        console.print(f"❌ Invalid transport: {transport}. Must be 'stdio' or 'http'", style="bold red")
+        console.print(
+            f"❌ Invalid transport: {transport}. Must be 'stdio' or 'http'",
+            style="bold red",
+        )
         raise typer.Exit(1)
 
     # Import here to avoid circular imports and ensure dependencies are available
