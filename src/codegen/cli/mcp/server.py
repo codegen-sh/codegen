@@ -2,6 +2,7 @@ import json
 import os
 from typing import Annotated, Any
 
+import requests
 from fastmcp import Context, FastMCP
 
 # Import API client components
@@ -13,6 +14,10 @@ try:
     API_CLIENT_AVAILABLE = True
 except ImportError:
     API_CLIENT_AVAILABLE = False
+
+# Import our own API utilities
+from codegen.cli.api.endpoints import API_ENDPOINT
+from codegen.cli.auth.token_manager import get_current_token
 
 # Initialize FastMCP server
 mcp = FastMCP(
@@ -56,6 +61,173 @@ def get_api_client():
     return _api_client, _agents_api, _organizations_api, _users_api
 
 
+def execute_tool_via_api(tool_name: str, arguments: dict):
+    """Execute a tool via the Codegen API."""
+    try:
+        token = get_current_token()
+        if not token:
+            return {"error": "Not authenticated. Please run 'codegen login' first."}
+
+        headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+        url = f"{API_ENDPOINT.rstrip('/')}/v1/organizations/11/tools/execute"
+
+        payload = {"tool_name": tool_name, "arguments": arguments}
+
+        response = requests.post(url, json=payload, headers=headers)
+        response.raise_for_status()
+
+        return response.json()
+
+    except Exception as e:
+        return {"error": f"Error executing tool {tool_name}: {e}"}
+
+
+def register_dynamic_tools(available_tools: list):
+    """Register all available tools from the API as individual MCP tools."""
+    import inspect
+
+    for tool_info in available_tools:
+        tool_name = tool_info.get("name", "unknown_tool")
+        tool_description = tool_info.get("description", "No description available")
+        tool_parameters = tool_info.get("parameters", {})
+
+        # Parse the parameter schema
+        properties = tool_parameters.get("properties", {})
+        required = tool_parameters.get("required", [])
+
+        def make_tool_function(name: str, description: str, props: dict, req: list):
+            # Create function dynamically with proper parameters
+            def create_dynamic_function():
+                # Build parameter list for the function
+                param_list = []
+                param_annotations = {}
+
+                # Collect required and optional parameters separately
+                required_params = []
+                optional_params = []
+
+                # Add other parameters from schema
+                for param_name, param_info in props.items():
+                    param_type = param_info.get("type", "string")
+                    param_desc = param_info.get("description", f"Parameter {param_name}").replace("'", '"')
+                    is_required = param_name in req
+
+                    # Special handling for tool_call_id - always make it optional
+                    if param_name == "tool_call_id":
+                        optional_params.append("tool_call_id: Annotated[str, 'Unique identifier for this tool call'] = 'mcp_call'")
+                        continue
+
+                    # Convert JSON schema types to Python types
+                    if param_type == "string":
+                        py_type = "str"
+                    elif param_type == "integer":
+                        py_type = "int"
+                    elif param_type == "number":
+                        py_type = "float"
+                    elif param_type == "boolean":
+                        py_type = "bool"
+                    elif param_type == "array":
+                        items_type = param_info.get("items", {}).get("type", "string")
+                        if items_type == "string":
+                            py_type = "list[str]"
+                        else:
+                            py_type = "list"
+                    else:
+                        py_type = "str"  # Default fallback
+
+                    # Handle optional parameters (anyOf with null)
+                    if "anyOf" in param_info:
+                        py_type = f"{py_type} | None"
+                        if not is_required:
+                            default_val = param_info.get("default", "None")
+                            if isinstance(default_val, str) and default_val != "None":
+                                default_val = f'"{default_val}"'
+                            optional_params.append(f"{param_name}: Annotated[{py_type}, '{param_desc}'] = {default_val}")
+                        else:
+                            required_params.append(f"{param_name}: Annotated[{py_type}, '{param_desc}']")
+                    elif is_required:
+                        required_params.append(f"{param_name}: Annotated[{py_type}, '{param_desc}']")
+                    else:
+                        # Optional parameter with default
+                        default_val = param_info.get("default", "None")
+                        if isinstance(default_val, str) and default_val not in ["None", "null"]:
+                            default_val = f'"{default_val}"'
+                        elif isinstance(default_val, bool):
+                            default_val = str(default_val)
+                        elif default_val is None or default_val == "null":
+                            default_val = "None"
+                        optional_params.append(f"{param_name}: Annotated[{py_type}, '{param_desc}'] = {default_val}")
+
+                # Only add tool_call_id if it wasn't already in the schema
+                tool_call_id_found = any("tool_call_id" in param for param in optional_params)
+                if not tool_call_id_found:
+                    optional_params.append("tool_call_id: Annotated[str, 'Unique identifier for this tool call'] = 'mcp_call'")
+
+                # Combine required params first, then optional params
+                param_list = required_params + optional_params
+
+                # Create the function code
+                params_str = ", ".join(param_list)
+
+                # Create a list of parameter names for the function
+                param_names = []
+                for param in param_list:
+                    # Extract parameter name from the type annotation
+                    param_name = param.split(":")[0].strip()
+                    param_names.append(param_name)
+
+                param_names_str = repr(param_names)
+
+                func_code = f"""
+def tool_function({params_str}) -> str:
+    '''Dynamically created tool function: {description}'''
+    # Collect all parameters by name to avoid circular references
+    param_names = {param_names_str}
+    arguments = {{}}
+
+    # Get the current frame's local variables
+    import inspect
+    frame = inspect.currentframe()
+    try:
+        locals_dict = frame.f_locals
+        for param_name in param_names:
+            if param_name in locals_dict:
+                value = locals_dict[param_name]
+                # Handle None values and ensure JSON serializable
+                if value is not None:
+                    arguments[param_name] = value
+    finally:
+        del frame
+
+    # Execute the tool via API
+    result = execute_tool_via_api('{name}', arguments)
+
+    # Return formatted result
+    return json.dumps(result, indent=2)
+"""
+
+                # Execute the function code to create the function
+                namespace = {"Annotated": Annotated, "json": json, "execute_tool_via_api": execute_tool_via_api, "inspect": inspect}
+                exec(func_code, namespace)
+                func = namespace["tool_function"]
+
+                # Set metadata
+                func.__name__ = name.replace("-", "_")
+                func.__doc__ = description
+
+                return func
+
+            return create_dynamic_function()
+
+        # Create the tool function
+        tool_func = make_tool_function(tool_name, tool_description, properties, required)
+
+        # Register with FastMCP using the decorator
+        decorated_func = mcp.tool()(tool_func)
+
+        print(f"✅ Registered dynamic tool: {tool_name}")
+
+
 # ----- RESOURCES -----
 
 
@@ -69,10 +241,7 @@ def get_service_config() -> dict[str, Any]:
     }
 
 
-# ----- TOOLS -----
-
-
-# ----- CODEGEN API TOOLS -----
+# ----- STATIC CODEGEN API TOOLS -----
 
 
 @mcp.tool()
@@ -212,8 +381,14 @@ def get_user(
         return f"Error getting user: {e}"
 
 
-def run_server(transport: str = "stdio", host: str = "localhost", port: int | None = None):
+def run_server(transport: str = "stdio", host: str = "localhost", port: int | None = None, available_tools: list | None = None):
     """Run the MCP server with the specified transport."""
+    # Register dynamic tools if provided
+    if available_tools:
+        print("🔧 Registering dynamic tools from API...")
+        register_dynamic_tools(available_tools)
+        print(f"✅ Registered {len(available_tools)} dynamic tools")
+
     if transport == "stdio":
         print("🚀 MCP server running on stdio transport")
         mcp.run(transport="stdio")
