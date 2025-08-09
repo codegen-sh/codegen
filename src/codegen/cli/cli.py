@@ -8,7 +8,7 @@ from codegen.cli.commands.config.main import config_command
 
 # Import the actual command functions
 from codegen.cli.commands.init.main import init
-from codegen.cli.commands.integrations.main import integrations
+from codegen.cli.commands.integrations.main import integrations_app
 from codegen.cli.commands.login.main import login
 from codegen.cli.commands.logout.main import logout
 from codegen.cli.commands.mcp.main import mcp
@@ -32,7 +32,6 @@ main = typer.Typer(name="codegen", help="Codegen CLI - Transform your code with 
 
 # Add individual commands to the main app
 main.command("init", help="Initialize or update the Codegen folder.")(init)
-main.command("integrations", help="List organization integrations.")(integrations)
 main.command("login", help="Store authentication token.")(login)
 main.command("logout", help="Clear stored authentication token.")(logout)
 main.command("mcp", help="Start the Codegen MCP server.")(mcp)
@@ -41,8 +40,9 @@ main.command("style-debug", help="Debug command to visualize CLI styling (spinne
 main.command("tools", help="List available tools from the Codegen API.")(tools)
 main.command("update", help="Update Codegen to the latest or specified version")(update)
 
-# Config is a group, so add it as a typer
+# Add Typer apps as sub-applications
 main.add_typer(config_command, name="config")
+main.add_typer(integrations_app, name="integrations")
 
 
 @main.callback()

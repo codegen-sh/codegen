@@ -1,5 +1,7 @@
 """Integrations command for the Codegen CLI."""
 
+import webbrowser
+
 import requests
 import typer
 from rich.console import Console
@@ -7,11 +9,16 @@ from rich.table import Table
 
 from codegen.cli.api.endpoints import API_ENDPOINT
 from codegen.cli.auth.token_manager import get_current_token
+from codegen.cli.utils.url import generate_webapp_url
 
 console = Console()
 
+# Create the integrations app
+integrations_app = typer.Typer(help="Manage Codegen integrations")
 
-def integrations():
+
+@integrations_app.command("list")
+def list_integrations():
     """List organization integrations from the Codegen API."""
     console.print("🔌 Fetching organization integrations...", style="bold blue")
 
@@ -100,3 +107,30 @@ def integrations():
     except Exception as e:
         console.print(f"[red]Unexpected error:[/red] {e}", style="bold red")
         raise typer.Exit(1)
+
+
+@integrations_app.command("add")
+def add_integration():
+    """Open the Codegen integrations page in your browser to add new integrations."""
+    console.print("🌐 Opening Codegen integrations page...", style="bold blue")
+
+    # Generate the web URL using the environment-aware utility
+    web_url = generate_webapp_url("integrations")
+
+    try:
+        webbrowser.open(web_url)
+        console.print(f"✅ Opened [link]{web_url}[/link] in your browser", style="green")
+        console.print("💡 You can add new integrations from the web interface", style="dim")
+    except Exception as e:
+        console.print(f"❌ Failed to open browser: {e}", style="red")
+        console.print(f"🔗 Please manually visit: {web_url}", style="yellow")
+
+
+# Default callback for the integrations app
+@integrations_app.callback(invoke_without_command=True)
+def integrations_callback(ctx: typer.Context):
+    """Manage Codegen integrations."""
+    if ctx.invoked_subcommand is None:
+        # If no subcommand is provided, show help
+        print(ctx.get_help())
+        raise typer.Exit()
