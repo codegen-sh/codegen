@@ -143,17 +143,18 @@ Shows ALL OpenTelemetry events in console, including:
 
 **Use when**: Deep debugging telemetry issues
 
-### `--debug-otel-actions-only` (Clean Debug)
+### `--debug-otel-actions-only` (Clean Mode - No Console Telemetry)
 
-Shows ONLY action-related events:
+Disables console telemetry output entirely for a clean Claude Code experience:
 
-- Tool executions (`claude_code.tool_result`)
-- User prompts (`claude_code.user_prompt`)
-- API calls (`claude_code.api_request`)
+- **No raw JSON output** cluttering the terminal
+- **Telemetry still captured** and sent to backend for processing
+- **Clean interactive experience** with Claude Code
+- **Backend processing** of all telemetry events continues normally
 
-Filters out noisy metrics like timers and counters.
+**Use when**: You want to use Claude Code without telemetry noise but still capture data remotely
 
-**Use when**: Monitoring agent actions without noise
+**Note**: This mode prioritizes user experience over real-time telemetry visibility. Use `--debug-otel` if you need to see telemetry events in real-time.
 
 ### `--verbose-telemetry` (Backend Debug)
 

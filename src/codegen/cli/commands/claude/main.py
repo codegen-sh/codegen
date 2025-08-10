@@ -7,7 +7,6 @@ import sys
 
 import typer
 from rich.console import Console
-from rich.panel import Panel
 
 console = Console()
 
@@ -106,17 +105,15 @@ def claude(
         env["OTEL_EXPORTER_OTLP_HEADERS"] = ",".join(headers)
 
     # Set export intervals (in milliseconds)
-    env["OTEL_METRIC_EXPORT_INTERVAL"] = str(export_interval * 1000)
-    env["OTEL_LOGS_EXPORT_INTERVAL"] = str(export_interval * 1000)
+    # Use shorter intervals for faster telemetry delivery
+    env["OTEL_METRIC_EXPORT_INTERVAL"] = "5000"  # 5 seconds
+    env["OTEL_LOGS_EXPORT_INTERVAL"] = "5000"  # 5 seconds
 
     # Enable verbose OTLP debugging if requested
     if debug_otel or debug_otel_actions_only:
         env["OTEL_LOG_LEVEL"] = "DEBUG"
         env["OTEL_EXPORTER_OTLP_DEBUG"] = "true"
         env["OTEL_PYTHON_LOG_CORRELATION"] = "true"
-        # Make export interval shorter for debugging (5 seconds)
-        env["OTEL_METRIC_EXPORT_INTERVAL"] = "5000"
-        env["OTEL_LOGS_EXPORT_INTERVAL"] = "5000"
 
         # Additional info for actions-only mode
         if debug_otel_actions_only:
@@ -189,40 +186,15 @@ def claude(
                 console.print(f"[dim]  {key}={value}[/dim]")
 
     # Create a panel with telemetry information
-    telemetry_info = Panel(
-        f"""[bold cyan]Claude Code with Remote OpenTelemetry Monitoring Active[/bold cyan]
-
-🔍 [yellow]Monitoring all Claude Code interactions via built-in telemetry[/yellow]
-🌐 Remote Endpoint: [dim]{otlp_endpoint}[/dim]
-🎯 Organization ID: [dim]{org_id}[/dim]
-⏱️  Export Interval: [dim]{export_interval} seconds[/dim]
-📝 Prompt Logging: [dim]{"Enabled" if log_prompts else "Disabled (content redacted)"}[/dim]
-🔐 Authentication: [dim]{"Token configured" if token else "No token - may fail"}[/dim]
-🐛 OTLP Debug: [dim]{"Enabled - real-time events visible" if debug_otel else "Disabled"}[/dim]
-
-[bold]📊 Metrics being sent:[/bold]
-• [green]claude_code.session.count[/green] - Session tracking
-• [green]claude_code.token.usage[/green] - Token consumption by type/model
-• [green]claude_code.cost.usage[/green] - Estimated cost in USD
-• [green]claude_code.lines_of_code.count[/green] - Code additions/deletions
-• [green]claude_code.tool_decision.count[/green] - Tool accept/reject decisions
-• [green]claude_code.active_time.count[/green] - Active usage time
-
-[bold]📋 Events being sent:[/bold]
-• [green]claude_code.user_prompt[/green] - User interactions with length
-• [green]claude_code.tool_result[/green] - Tool executions with duration
-• [green]claude_code.api_request[/green] - API calls with tokens/cost/model
-• [green]claude_code.api_error[/green] - API failures with error details
-• [green]claude_code.tool_decision[/green] - Tool permission decisions
-
-[red]Press Ctrl+C to stop monitoring and exit[/red]
-
-💡 [dim]Telemetry data is being sent to your remote API in the background.
-Claude Code will run normally - you can interact with it as usual.[/dim]""",
-        border_style="blue",
-        padding=(1, 2),
-    )
-    console.print(telemetry_info)
+    # Show minimal output unless in verbose mode
+    if console_output or debug_mode or debug_otel:
+        # Show detailed info only in debug modes
+        console.print(f"🌐 Telemetry endpoint: {otlp_endpoint}/v1/{{metrics|logs}}", style="dim")
+        console.print(f"🎯 Organization ID: {org_id}", style="dim")
+        console.print(f"⏱️  Export interval: {export_interval} seconds", style="dim")
+    else:
+        # Minimal output - just show where to view the session
+        console.print("🔵 View your Claude Code session at: codegen.com/traces", style="blue")
 
     try:
         # Launch Claude Code with telemetry enabled
