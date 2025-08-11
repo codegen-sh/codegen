@@ -1,6 +1,7 @@
 ---
 title: "MCP Server"
 description: "Connect AI agents to Codegen using the Model Context Protocol (MCP) server"
+icon: "server"
 ---
 
 The Codegen MCP server enables AI agents to interact with the Codegen platform through the Model Context Protocol (MCP). This integration allows AI agents to access Codegen APIs, manage agent runs, and interact with your development workflow.
@@ -8,6 +9,7 @@ The Codegen MCP server enables AI agents to interact with the Codegen platform t
 ## Overview
 
 The MCP server provides:
+
 - **API Integration**: Direct access to Codegen platform APIs
 - **Agent Management**: Create and monitor agent runs
 - **Organization Management**: Access organization and user information
@@ -125,11 +127,13 @@ The MCP server provides the following tools for AI agents:
 The MCP server supports two transport methods:
 
 ### stdio (Default)
+
 - Best for most AI agents and IDE integrations
 - Direct communication through standard input/output
 - No network configuration required
 
 ### HTTP
+
 - Useful for web-based integrations
 - Requires specifying host and port
 - Currently falls back to stdio (HTTP support coming soon)
@@ -149,16 +153,19 @@ export CODEGEN_API_KEY="your-api-key-here"
 ### Common Issues
 
 **Server won't start**
+
 - Ensure the Codegen CLI is properly installed
 - Check that your API key is set correctly
 - Verify network connectivity to the Codegen API
 
 **Authentication errors**
+
 - Verify your API key is valid and not expired
 - Check that the API key has the necessary permissions
 - Ensure the `CODEGEN_API_KEY` environment variable is set
 
 **Connection issues**
+
 - For stdio transport, ensure your AI agent supports MCP
 - For HTTP transport, check firewall settings and port availability
 - Verify the host and port configuration
