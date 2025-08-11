@@ -19,13 +19,17 @@ When you define Organization Rules, they are automatically applied to every agen
 
 ## Rule Hierarchy
 
-Organization Rules work in conjunction with Repository Rules to provide flexible rule management:
+Organization Rules work in conjunction with User Rules and Repository Rules to provide flexible rule management:
 
-1. **Organization Rules** are applied first as the baseline for all repositories
-2. **Repository Rules** can override or extend Organization Rules for specific repositories
-3. If both are defined, Repository Rules take precedence for conflicting instructions
+1. **Repository Rules** (most specific) take precedence over Organization and User Rules for that repository
+2. **Organization Rules** apply across the org and override User Rules
+3. **User Rules** (personal prompts) apply by default, unless overridden by Org or Repo rules
 
-This hierarchy allows you to set organization-wide defaults while still maintaining repository-specific customizations when needed.
+This hierarchy allows you to set organization-wide defaults while still maintaining repository-specific customizations when needed, while preserving user preferences where they don't conflict.
+
+<Note>
+For a complete overview of rule types and examples, see [Rule Types & Precedence](/settings/rules-overview).
+</Note>
 
 ## Setting Up Organization Rules
 
@@ -115,4 +119,3 @@ If the agent isn't following your rules as expected:
 - **[Model Configuration](/settings/model-configuration)**: Configure which AI model the agent uses
 
 Organization Rules provide a powerful way to maintain consistency across your entire organization while still allowing flexibility for individual repositories. Use them to establish your organization's coding culture and ensure all agent interactions align with your standards.
-
