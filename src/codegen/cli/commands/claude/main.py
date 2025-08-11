@@ -4,9 +4,13 @@ import os
 import signal
 import subprocess
 import sys
+import threading
+import time
 
 import typer
 from rich.console import Console
+
+from .hooks import cleanup_claude_hook, ensure_claude_hook, get_codegen_url, wait_for_session_id
 
 console = Console()
 
@@ -46,6 +50,10 @@ def claude(
 
     console.print("🔍 Starting Claude Code with remote telemetry monitoring...", style="bold blue")
     console.print(f"📊 Sending telemetry to organization {org_id}", style="dim")
+
+    # Set up Claude hook for session tracking
+    if not ensure_claude_hook():
+        console.print("⚠️  Failed to set up session tracking hook", style="yellow")
 
     # Set up environment variables for Claude Code OpenTelemetry
     env = os.environ.copy()
@@ -193,8 +201,8 @@ def claude(
         console.print(f"🎯 Organization ID: {org_id}", style="dim")
         console.print(f"⏱️  Export interval: {export_interval} seconds", style="dim")
     else:
-        # Minimal output - just show where to view the session
-        console.print("🔵 View your Claude Code session at: codegen.com/traces", style="blue")
+        # Minimal output - we'll update with session ID once we have it
+        console.print("🔵 Starting Claude Code session...", style="blue")
 
     try:
         # Launch Claude Code with telemetry enabled
@@ -214,10 +222,29 @@ def claude(
             # Don't capture stdout/stderr - let Claude Code run normally
             process = subprocess.Popen(["claude"], env=env)
 
+        # Start monitoring for session ID in a background thread
+        session_id = None
+        session_url_printed = False
+
+        def monitor_session():
+            nonlocal session_id, session_url_printed
+            # Give Claude a moment to start up
+            time.sleep(2.0)
+            session_id = wait_for_session_id(timeout=30.0)  # Wait up to 30 seconds
+            if session_id and not session_url_printed:
+                url = get_codegen_url(session_id)
+                console.print(f"\n🔵 Codegen URL: {url}\n", style="bold blue")
+                session_url_printed = True
+
+        # Start session monitoring in background
+        session_thread = threading.Thread(target=monitor_session, daemon=True)
+        session_thread.start()
+
         # Handle Ctrl+C gracefully
         def signal_handler(signum, frame):
             console.print("\n🛑 Stopping Claude Code and telemetry collection...", style="yellow")
             process.terminate()
+            cleanup_claude_hook()  # Clean up our hook
             sys.exit(0)
 
         signal.signal(signal.SIGINT, signal_handler)
@@ -240,6 +267,13 @@ def claude(
         console.print(f"❌ Error running Claude Code: {e}", style="red")
         raise typer.Exit(1)
     finally:
+        # Clean up hook
+        cleanup_claude_hook()
+
+        if session_id:
+            url = get_codegen_url(session_id)
+            console.print(f"\n🔵 Session URL: {url}", style="bold blue")
+
         console.print(f"📊 Telemetry data was sent to: {otlp_endpoint}/v1/{{metrics|logs}}", style="dim")
         console.print(f"🎯 Organization ID: {org_id}", style="dim")
         console.print("💡 Check your backend logs to see the processed telemetry data", style="dim")
