@@ -1,6 +1,8 @@
 ---
 title: "Interrupts"
 description: "How Codegen handles real-time interrupts from Slack and Linear while working"
+icon: "bolt"
+iconType: "solid"
 ---
 
 ## Overview
@@ -29,10 +31,13 @@ In Slack, you can send interrupt messages by:
 3. **Sending follow-up messages** in the same channel
 
 <Warning>
-**Important**: You **must** mention `@codegen` in your interrupt messages for Codegen to respond in Slack channels, unless you're in a direct message (DM) with Codegen where it will respond automatically.
+  **Important**: You **must** mention `@codegen` in your interrupt messages for
+  Codegen to respond in Slack channels, unless you're in a direct message (DM)
+  with Codegen where it will respond automatically.
 </Warning>
 
 **Example:**
+
 ```
 User: @codegen can you fix the login bug?
 Codegen: I'll fix the login bug! 🔧 [starts working]
@@ -49,10 +54,12 @@ In Linear, interrupts work through:
 3. **Changing issue priority or labels** (triggers re-evaluation)
 
 <Info>
-**Note**: Codegen will respond automatically to your comments in Linear unless another user is tagged in the same comment.
+  **Note**: Codegen will respond automatically to your comments in Linear unless
+  another user is tagged in the same comment.
 </Info>
 
 **Example:**
+
 ```
 Issue: Fix authentication system
 Codegen: Working on the authentication fix...
@@ -60,14 +67,13 @@ Codegen: Working on the authentication fix...
 Codegen: I see you've added 2FA requirements - incorporating that now!
 ```
 
-
-
 ## Best Practices
 
 ### For Users
 
 <Tip>
-**Send interrupts early**: If you realize you need to add context or change requirements, send the message immediately rather than waiting for completion.
+  **Send interrupts early**: If you realize you need to add context or change
+  requirements, send the message immediately rather than waiting for completion.
 </Tip>
 
 - **Be specific**: Clearly state what you want to add or change
