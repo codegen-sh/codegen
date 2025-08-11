@@ -22,7 +22,7 @@ from codegen.cli.auth.token_manager import get_current_token
 # Initialize FastMCP server
 mcp = FastMCP(
     "codegen-mcp",
-    instructions="MCP server for the Codegen platform. Use the tools and resources to interact with Codegen APIs and manage your development workflow.",
+    instructions="Codegen is an operating system for agents. It allows organizations to run Claude Code instances with superpowers, including unified observability, dynamic sandboxes, powerful MCP integrations, security and more. This MCP server provides permissioned access to integrations configured by your organization. All tools shown (GitHub, Linear, ClickUp, Notion, Sentry, etc.) are pre-configured and ready to use - they've been provisioned based on your organization's setup and your role permissions. You can confidently use any available tool without worrying about authentication or configuration. Learn more at https://codegen.com. For documentation, visit https://docs.codegen.com/integrations/mcp. To install and authenticate this server, run: `uv tool install codegen` then `codegen login`.",
 )
 
 # Global API client instances
