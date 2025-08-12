@@ -1,3 +1,5 @@
+import os
+
 from codegen.cli.api.modal import MODAL_PREFIX
 
 RUN_ENDPOINT = f"https://{MODAL_PREFIX}--cli-run.modal.run"
@@ -12,6 +14,8 @@ PR_LOOKUP_ENDPOINT = f"https://{MODAL_PREFIX}--cli-pr-lookup.modal.run"
 CODEGEN_SYSTEM_PROMPT_URL = "https://gist.githubusercontent.com/jayhack/15681a2ceaccd726f19e6fdb3a44738b/raw/17c08054e3931b3b7fdf424458269c9e607541e8/codegen-system-prompt.txt"
 IMPROVE_ENDPOINT = f"https://{MODAL_PREFIX}--cli-improve.modal.run"
 
+
+
 # API ENDPOINT
-API_ENDPOINT = "https://codegen-sh-develop-jay--rest-api.modal.run/"
-# API_ENDPOINT = "https://codegen-sh-staging--rest-api.modal.run/"
+# Prefer explicit override via CODEGEN_API_BASE_URL; fallback to Modal-derived URL for current ENV
+API_ENDPOINT = os.environ.get("CODEGEN_API_BASE_URL", f"https://{MODAL_PREFIX}--rest-api.modal.run/")

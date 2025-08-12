@@ -30,8 +30,10 @@ def get_api_client():
         # Configure the API client
         configuration = Configuration()
 
-        # Set base URL from environment or use default
-        base_url = os.getenv("CODEGEN_API_BASE_URL", "https://api.codegen.com")
+        # Set base URL from environment or use the CLI endpoint for consistency
+        # Prefer explicit env override; else match API_ENDPOINT used by CLI commands
+        from codegen.cli.api.endpoints import API_ENDPOINT
+        base_url = os.getenv("CODEGEN_API_BASE_URL", API_ENDPOINT.rstrip("/"))
         configuration.host = base_url
 
         # Set authentication

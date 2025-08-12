@@ -11,12 +11,13 @@ import typer
 from rich.console import Console
 
 from .hooks import cleanup_claude_hook, ensure_claude_hook, get_codegen_url, wait_for_session_id
+from codegen.cli.utils.org import resolve_org_id
 
 console = Console()
 
 
 def claude(
-    org_id: int = typer.Option(11, help="Organization ID for telemetry endpoint"),
+    org_id: int | None = typer.Option(None, help="Organization ID for telemetry endpoint (defaults to CODEGEN_ORG_ID/REPOSITORY_ORG_ID or auto-detect)"),
     export_interval: int = typer.Option(60, help="Export interval in seconds (default: 60)"),
     log_prompts: bool = typer.Option(False, help="Log user prompt content (security consideration)"),
     console_output: bool = typer.Option(False, help="Output telemetry to console for debugging"),
@@ -49,7 +50,11 @@ def claude(
         return
 
     console.print("🔍 Starting Claude Code with remote telemetry monitoring...", style="bold blue")
-    console.print(f"📊 Sending telemetry to organization {org_id}", style="dim")
+    resolved_org_id = resolve_org_id(org_id)
+    if resolved_org_id is None:
+        console.print("[red]Error:[/red] Organization ID not provided. Pass --org-id, set CODEGEN_ORG_ID, or REPOSITORY_ORG_ID.")
+        raise typer.Exit(1)
+    console.print(f"📊 Sending telemetry to organization {resolved_org_id}", style="dim")
 
     # Set up Claude hook for session tracking
     if not ensure_claude_hook():
@@ -88,7 +93,7 @@ def claude(
 
     # Set OTLP endpoint to your telemetry API
     # Note: Claude Code will automatically append /v1/metrics and /v1/logs to this base URL
-    otlp_endpoint = f"{API_ENDPOINT.rstrip('/')}/v1/organizations/{org_id}/telemetry"
+    otlp_endpoint = f"{API_ENDPOINT.rstrip('/')}/v1/organizations/{resolved_org_id}/telemetry"
     env["OTEL_EXPORTER_OTLP_ENDPOINT"] = otlp_endpoint
     env["OTEL_EXPORTER_OTLP_PROTOCOL"] = "http/json"
 
@@ -113,9 +118,12 @@ def claude(
         env["OTEL_EXPORTER_OTLP_HEADERS"] = ",".join(headers)
 
     # Set export intervals (in milliseconds)
-    # Use shorter intervals for faster telemetry delivery
-    env["OTEL_METRIC_EXPORT_INTERVAL"] = "5000"  # 5 seconds
-    env["OTEL_LOGS_EXPORT_INTERVAL"] = "5000"  # 5 seconds
+    try:
+        interval_ms = max(1, int(export_interval)) * 1000
+    except Exception:
+        interval_ms = 60000
+    env["OTEL_METRIC_EXPORT_INTERVAL"] = str(interval_ms)
+    env["OTEL_LOGS_EXPORT_INTERVAL"] = str(interval_ms)
 
     # Enable verbose OTLP debugging if requested
     if debug_otel or debug_otel_actions_only:
@@ -144,7 +152,7 @@ def claude(
         "service.name=claude-code",
         "service.version=monitored",
         "deployment.environment=development",
-        f"organization.id={org_id}",
+        f"organization.id={resolved_org_id}",
         f"user.id={token}" if token else "user.id=unauthenticated",
     ]
     env["OTEL_RESOURCE_ATTRIBUTES"] = ",".join(resource_attrs)
@@ -174,7 +182,7 @@ def claude(
         console.print(f"[dim]Debug: OTLP Endpoint: {otlp_endpoint}[/dim]")
         console.print(f"[dim]Debug: Metrics URL: {otlp_endpoint}/v1/metrics[/dim]")
         console.print(f"[dim]Debug: Logs URL: {otlp_endpoint}/v1/logs[/dim]")
-        console.print(f"[dim]Debug: Organization ID: {org_id}[/dim]")
+        console.print(f"[dim]Debug: Organization ID: {resolved_org_id}[/dim]")
         console.print(f"[dim]Debug: Resource Attributes: {','.join(resource_attrs)}[/dim]")
 
         if debug_otel:
@@ -198,7 +206,7 @@ def claude(
     if console_output or debug_mode or debug_otel:
         # Show detailed info only in debug modes
         console.print(f"🌐 Telemetry endpoint: {otlp_endpoint}/v1/{{metrics|logs}}", style="dim")
-        console.print(f"🎯 Organization ID: {org_id}", style="dim")
+        console.print(f"🎯 Organization ID: {resolved_org_id}", style="dim")
         console.print(f"⏱️  Export interval: {export_interval} seconds", style="dim")
     else:
         # Minimal output - we'll update with session ID once we have it
@@ -275,6 +283,6 @@ def claude(
             console.print(f"\n🔵 Session URL: {url}", style="bold blue")
 
         console.print(f"📊 Telemetry data was sent to: {otlp_endpoint}/v1/{{metrics|logs}}", style="dim")
-        console.print(f"🎯 Organization ID: {org_id}", style="dim")
+        console.print(f"🎯 Organization ID: {resolved_org_id}", style="dim")
         console.print("💡 Check your backend logs to see the processed telemetry data", style="dim")
         console.print("📖 Claude Code docs: https://docs.anthropic.com/en/docs/claude-code/monitoring-usage", style="dim")

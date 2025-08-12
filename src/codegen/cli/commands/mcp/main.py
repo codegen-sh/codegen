@@ -8,11 +8,12 @@ from rich.console import Console
 
 from codegen.cli.api.endpoints import API_ENDPOINT
 from codegen.cli.auth.token_manager import get_current_token
+from codegen.cli.utils.org import resolve_org_id
 
 console = Console()
 
 
-def fetch_tools_for_mcp() -> list[dict[str, Any]]:
+def fetch_tools_for_mcp(org_id: int | None) -> list[dict[str, Any]]:
     """Fetch available tools from the API for MCP server generation."""
     try:
         token = get_current_token()
@@ -20,9 +21,15 @@ def fetch_tools_for_mcp() -> list[dict[str, Any]]:
             console.print("[red]Error:[/red] Not authenticated. Please run 'codegen login' first.")
             raise typer.Exit(1)
 
+        # Resolve org id
+        resolved_org_id = resolve_org_id(org_id)
+        if resolved_org_id is None:
+            console.print("[red]Error:[/red] Organization ID not provided. Pass --org-id, set CODEGEN_ORG_ID, or REPOSITORY_ORG_ID.")
+            raise typer.Exit(1)
+
         console.print("🔧 Fetching available tools from API...", style="dim")
         headers = {"Authorization": f"Bearer {token}"}
-        url = f"{API_ENDPOINT.rstrip('/')}/v1/organizations/11/tools"
+        url = f"{API_ENDPOINT.rstrip('/')}/v1/organizations/{resolved_org_id}/tools"
         response = requests.get(url, headers=headers)
         response.raise_for_status()
 
@@ -48,6 +55,7 @@ def mcp(
     host: str = typer.Option("localhost", help="Host to bind the MCP server to"),
     port: int | None = typer.Option(None, help="Port to bind the MCP server to (default: stdio transport)"),
     transport: str = typer.Option("stdio", help="Transport protocol to use (stdio or http)"),
+    org_id: int | None = typer.Option(None, help="Organization ID (defaults to CODEGEN_ORG_ID/REPOSITORY_ORG_ID or auto-detect)"),
 ):
     """Start the Codegen MCP server."""
     console.print("🚀 Starting Codegen MCP server...", style="bold green")
@@ -68,7 +76,7 @@ def mcp(
         raise typer.Exit(1)
 
     # Fetch tools from API before starting server
-    tools = fetch_tools_for_mcp()
+    tools = fetch_tools_for_mcp(org_id)
 
     # Import here to avoid circular imports and ensure dependencies are available
     from codegen.cli.mcp.server import run_server

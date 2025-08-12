@@ -9,7 +9,7 @@ def get_modal_workspace():
         case Environment.STAGING:
             return "codegen-sh-staging"
         case Environment.DEVELOP:
-            return "codegen-sh-develop-jay"
+            return "codegen-sh-develop"
         case _:
             msg = f"Invalid environment: {global_env.ENV}"
             raise ValueError(msg)

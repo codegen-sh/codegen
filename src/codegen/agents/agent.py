@@ -8,6 +8,7 @@ from codegen_api_client.models.agent_run_response import AgentRunResponse
 from codegen_api_client.models.create_agent_run_input import CreateAgentRunInput
 
 from codegen.agents.constants import CODEGEN_BASE_API_URL
+from codegen.cli.utils.org import resolve_org_id
 
 
 class AgentTask:
@@ -53,7 +54,11 @@ class Agent:
             org_id: Optional organization ID. If not provided, default org will be used.
         """
         self.token = token
-        self.org_id = org_id or int(os.environ.get("CODEGEN_ORG_ID", "1"))  # Default to org ID 1 if not specified
+        resolved_org = resolve_org_id(org_id)
+        if resolved_org is None:
+            # Keep previous behavior only as last resort to avoid exceptions in legacy paths
+            resolved_org = int(os.environ.get("CODEGEN_ORG_ID", "1"))
+        self.org_id = resolved_org
 
         # Configure API client
         config = Configuration(host=base_url, access_token=token)

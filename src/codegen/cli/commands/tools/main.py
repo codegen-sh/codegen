@@ -7,11 +7,12 @@ from rich.table import Table
 
 from codegen.cli.api.endpoints import API_ENDPOINT
 from codegen.cli.auth.token_manager import get_current_token
+from codegen.cli.utils.org import resolve_org_id
 
 console = Console()
 
 
-def tools():
+def tools(org_id: int | None = typer.Option(None, help="Organization ID (defaults to CODEGEN_ORG_ID/REPOSITORY_ORG_ID or auto-detect)")):
     """List available tools from the Codegen API."""
     console.print("🔧 Fetching available tools...", style="bold blue")
 
@@ -22,9 +23,15 @@ def tools():
         raise typer.Exit(1)
 
     try:
+        # Resolve org id
+        resolved_org_id = resolve_org_id(org_id)
+        if resolved_org_id is None:
+            console.print("[red]Error:[/red] Organization ID not provided. Pass --org-id, set CODEGEN_ORG_ID, or REPOSITORY_ORG_ID.")
+            raise typer.Exit(1)
+
         # Make API request to list tools
         headers = {"Authorization": f"Bearer {token}"}
-        url = f"{API_ENDPOINT.rstrip('/')}/v1/organizations/11/tools"
+        url = f"{API_ENDPOINT.rstrip('/')}/v1/organizations/{resolved_org_id}/tools"
         response = requests.get(url, headers=headers)
         response.raise_for_status()
 
