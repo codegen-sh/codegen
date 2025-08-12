@@ -7,43 +7,58 @@ name = "codegen"
 dynamic = ["version"]
 description = "Codegen CLI - Transform your code with AI."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12, <3.14"
 dependencies = [
   "codegen-api-client",
   "typer>=0.16.0",
   "rich>=13.7.1",
   "hatch-vcs>=0.4.0",
   "hatchling>=1.25.0",
-  # CLI and git functionality dependencies
-  "requests>=2.32.3",
-  "pydantic>=2.9.2",
-  "pydantic-settings>=2.0.0",
-  "PyGithub==2.6.1",
-  "GitPython==3.1.44",
-  "packaging>=24.2",
-  "python-dotenv>=1.0.1",
-  "giturlparse",
-  "codeowners>=0.6.0",
-  "unidiff>=0.7.5",
-  "datamodel-code-generator>=0.26.5",
-  "fastmcp>=2.9.0",
-  # Utility dependencies
-  "colorlog>=6.9.0",
-  "psutil>=5.8.0",
-  "sentry-sdk==2.29.1",
   "humanize>=4.10.0",
+  "packaging>=24.2",
+  "psutil>=5.8.0",
+  "pydantic>=2.9.2",
+  "python-dotenv>=1.0.1",
+  "requests>=2.31.0",
+  "typing-extensions>=4.12.2",
+  "urllib3>=2.2.2",
 ]
 
-# renovate: datasource=python-version depName=python
-license = { text = "Apache-2.0" }
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.2.2",
+  "pytest-cov>=5.0.0",
+  "pytest-xdist>=3.6.1",
+  "pytest-sugar>=1.0.0",
+  "pytest-mock>=3.14.0",
+  "pytest-timeout>=2.3.1",
+  "pytest-rerunfailures>=14.0",
+  "pytest-randomly>=3.15.0",
+  "pytest-freezegun>=0.4.2",
+  "pytest-httpserver>=1.0.10",
+  "pytest-html>=4.1.1",
+  "pytest-metadata>=3.1.1",
+  "pytest-clarity>=1.0.1",
+  "pytest-benchmark>=4.0.0",
+  "pytest-profiling>=1.7.0",
+  "pytest-repeat>=0.9.3",
+  "pytest-ordering>=0.6",
+  "pytest-lazy-fixture>=0.6.3",
+  "pytest-cases>=3.8.1",
+  "pytest-check>=2.3.1",
+  "pytest-subtests>=0.11.0",
+  "pytest-testmon>=2.1.0",
+  "pytest-testinfra>=10.1.0",
+  "pytest-testinfra>=10.1.0",
+  "pytest-testinfra>=10.1.0",
+  "pytest-testinfra>=10.1.0",
+  "pytest-testinfra>=10.1.0",
+]
+
 classifiers = [
   "Development Status :: 4 - Beta",
 
-  "Environment :: Console",
-  "Environment :: MacOS X",
-
   "Intended Audience :: Developers",
-  "Intended Audience :: Information Technology",
 
   "License :: OSI Approved",
   "License :: OSI Approved :: Apache Software License",
@@ -72,21 +87,35 @@ Source = "https://github.com/codegen-sh/codegen"
 [project.scripts]
 codegen = "codegen.cli.cli:main"
 
-[project.optional-dependencies]
-types = []
-[tool.uv]
-cache-keys = [{ git = { commit = true, tags = true } }]
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "/.github",
+  "/docs",
+  "/.gitignore",
+  "/.pre-commit-config.yaml",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/codegen"]
+
+[project.optional-dependencies.dev-dependencies]
 dev-dependencies = [
-  "coverage<8.0.0,>=7.6.1",
-  "filelock<4.0.0,>=3.15.4",
-  "pytest>=8.3.3",
-  "pytest-cov>=6.1.0,<6.1.1",
-  "ruff>=0.6.8",
-  "ty>=0.0.1a10",
-  "pre-commit>=4.0.1",
-  "pytest-xdist>=3.6.1,<4.0.0",
-  "pytest-mock<4.0.0,>=3.14.0",
+  "pytest>=8.2.2",
+  "pytest-cov>=5.0.0",
+  "pytest-xdist>=3.6.1",
+  "pytest-sugar>=1.0.0",
+  "pytest-mock>=3.14.0",
   "pytest-timeout>=2.3.1",
+  "pytest-rerunfailures>=14.0",
+  "pytest-randomly>=3.15.0",
+  "pytest-freezegun>=0.4.2",
+  "pytest-httpserver>=1.0.10",
+  "pytest-html>=4.1.1",
+  "pytest-metadata>=3.1.1",
+  "pytest-clarity>=1.0.1",
   "ruff-lsp<1.0.0,>=0.0.55",
   "austin-python>=1.7.1",
   "autoflake>=2.3.1",
@@ -102,9 +131,6 @@ dev-dependencies = [
 [tool.hatch.version]
 source = "vcs"
 raw-options = { version_scheme = "calver-by-date" }
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/codegen"]
 
 [tool.hatch.build.hooks.vcs]
 version-file = "src/codegen/_version.py"
