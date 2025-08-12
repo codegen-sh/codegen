@@ -21,7 +21,7 @@ def get_compilation_error_context(filename: str, line_number: int, window_size: 
     return lines
 
 
-def safe_compile_function_string(custom_scope: dict, func_name: str, func_str: str) -> Callable:
+def safe_compile_function_string(custom_scope: dict, func_name: str, func_str: str) -> Callable | None:
     # =====[ Add function string to linecache ]=====
     # (This is necessary for the traceback to work correctly)
     linecache.cache["<string>"] = (len(func_str), None, func_str.splitlines(True), "<string>")
@@ -40,11 +40,12 @@ def safe_compile_function_string(custom_scope: dict, func_name: str, func_str: s
     except SyntaxError as e:
         error_class = e.__class__.__name__
         detail = e.args[0]
-        line_number = e.lineno
+        line_number = e.lineno or 1
         context_lines = get_compilation_error_context("<string>", line_number)
         context_str = "\n".join(f"{'>' if i == line_number else ' '} {i}: {line}" for i, line in context_lines)
         error_line = linecache.getline("<string>", line_number).strip()
-        caret_line = " " * (e.offset - 1) + "^" * (len(error_line) - e.offset + 1)
+        offset = e.offset or 1
+        caret_line = " " * (offset - 1) + "^" * (len(error_line) - offset + 1)
         error_message = f"{error_class} at line {line_number}: {detail}\n    {error_line}\n    {caret_line}\n{context_str}"
         raise InvalidUserCodeException(error_message) from e
 
@@ -53,7 +54,7 @@ def safe_compile_function_string(custom_scope: dict, func_name: str, func_str: s
         error_class = e.__class__.__name__
         detail = str(e)
         _, _, tb = sys.exc_info()
-        line_number = traceback.extract_tb(tb)[-1].lineno
+        line_number = traceback.extract_tb(tb)[-1].lineno or 1
         context_lines = get_compilation_error_context("<string>", line_number)
         context_str = "\n".join(f"{'>' if i == line_number else ' '} {i}: {line}" for i, line in context_lines)
         error_line = linecache.getline("<string>", line_number).strip()

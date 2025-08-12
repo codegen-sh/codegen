@@ -566,7 +566,7 @@ class RepoOperator:
                 if os.path.isfile(file_path):
                     os.remove(file_path)
 
-    def get_file(self, path: str) -> str:
+    def get_file(self, path: str) -> str | None:
         """Returns the contents of a file"""
         file_path = self.abspath(path)
         try:
@@ -754,7 +754,7 @@ class RepoOperator:
         """Returns the data associated with a PR"""
         return self.remote_git_repo.get_pr_data(pr_number)
 
-    def create_pr_comment(self, pr_number: int, body: str) -> IssueComment:
+    def create_pr_comment(self, pr_number: int, body: str) -> IssueComment | None:
         """Create a general comment on a pull request.
 
         Args:
@@ -765,6 +765,7 @@ class RepoOperator:
         if pr:
             comment = self.remote_git_repo.create_issue_comment(pr, body)
             return comment
+        return None
 
     def create_pr_review_comment(
         self,

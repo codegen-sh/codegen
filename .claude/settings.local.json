@@ -1,11 +1,14 @@
 {
-  "permissions": {
-    "allow": [
-      "Bash(source:*)",
-      "Bash(ty)",
-      "Bash(ty check:*)"
-    ],
-    "deny": [],
-    "ask": []
-  }
+	"permissions": {
+		"allow": [
+			"Bash(source:*)",
+			"Bash(ty)",
+			"Bash(ty check:*)",
+			"Bash(pre-commit run:*)",
+			"Bash(python3:*)",
+			"Bash(rg:*)"
+		],
+		"deny": [],
+		"ask": []
+	}
 }

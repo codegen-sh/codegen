@@ -8,6 +8,7 @@ from codegen.shared.compilation.codeblock_validation import check_for_dangerous_
 from codegen.shared.compilation.exception_utils import get_local_frame, get_offset_traceback
 from codegen.shared.compilation.function_compilation import safe_compile_function_string
 from codegen.shared.compilation.function_construction import create_function_str_from_codeblock, get_imports_string
+from codegen.shared.exceptions.compilation import InvalidUserCodeException
 from codegen.shared.exceptions.control_flow import StopCodemodException
 from codegen.shared.logging.get_logger import get_logger
 
@@ -45,6 +46,9 @@ def create_execute_function_from_codeblock(codeblock: str, custom_scope: dict | 
     func_str = create_function_str_from_codeblock(codeblock, func_name)
     # =====[ Compile the function string into a function  ]=====
     func = safe_compile_function_string(custom_scope=custom_scope, func_name=func_name, func_str=func_str)
+    if func is None:
+        msg = f"Failed to compile function {func_name}"
+        raise InvalidUserCodeException(msg)
 
     # =====[ Compute line offset of func_str  ]=====
     # This is to generate the a traceback with the correct line window
@@ -79,7 +83,10 @@ def create_execute_function_from_codeblock(codeblock: str, custom_scope: dict | 
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 frame = get_local_frame(exc_type, exc_value, exc_traceback)
                 # TODO: handle frame is None
-                line_num = frame.f_lineno
+                if frame is None:
+                    line_num = 1  # Default to first line if frame is None
+                else:
+                    line_num = frame.f_lineno
 
                 # =====[ Get context lines ]=====
                 context_start = max(0, line_num - 3)

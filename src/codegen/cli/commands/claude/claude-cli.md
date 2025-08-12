@@ -116,9 +116,9 @@ Claude Code automatically sends two types of telemetry:
 #### Data Transformation Pipeline
 
 1. **Raw OTLP Parsing** (`telemetry.py`) - Handles camelCase/snake_case variations
-2. **Type Validation** (`claude_types.py`) - Pydantic models for safe parsing
-3. **Session Management** (`claude_session_utils.py`) - Maps sessions to AgentRuns
-4. **Database Storage** - Creates AgentRun and AgentRunLog entries
+1. **Type Validation** (`claude_types.py`) - Pydantic models for safe parsing
+1. **Session Management** (`claude_session_utils.py`) - Maps sessions to AgentRuns
+1. **Database Storage** - Creates AgentRun and AgentRunLog entries
 
 #### Key Database Models
 
@@ -172,9 +172,9 @@ One of the key features is extracting tool parameters from Claude Code events:
 ### Flow
 
 1. Claude Code sends `tool_result` event with `tool_parameters` as JSON string
-2. `ClaudeCodeEventAttributes.tool_parameters_json` property parses it
-3. `claude_session_utils.py` stores parsed JSON in `AgentRunLog.tool_input`
-4. Frontend components receive structured tool input data
+1. `ClaudeCodeEventAttributes.tool_parameters_json` property parses it
+1. `claude_session_utils.py` stores parsed JSON in `AgentRunLog.tool_input`
+1. Frontend components receive structured tool input data
 
 ### Example
 
@@ -291,23 +291,23 @@ Frontend components use flexible Zod schemas (`z.any()`) to handle varying tool 
 ### Adding New Tool Renderers
 
 1. Create new component in `ClaudeCode/tool/configs/`
-2. Use flexible schema: `z.any()` or `z.union([...])`
-3. Add defensive parsing with optional chaining
-4. Include debug sections for troubleshooting
+1. Use flexible schema: `z.any()` or `z.union([...])`
+1. Add defensive parsing with optional chaining
+1. Include debug sections for troubleshooting
 
 ### Adding New Event Types
 
 1. Update `ClaudeCodeEventAttributes` in `claude_types.py`
-2. Add new `is_*` property to `ClaudeCodeEvent`
-3. Handle in `log_claude_event_as_agent_run_log()`
-4. Update frontend if needed
+1. Add new `is_*` property to `ClaudeCodeEvent`
+1. Handle in `log_claude_event_as_agent_run_log()`
+1. Update frontend if needed
 
 ### Debugging New Issues
 
 1. Start with `--debug-otel-actions-only` for clean action view
-2. Use `--verbose-telemetry` for backend detail
-3. Check raw OTLP data with `--debug-otel` if needed
-4. Verify database entries in AgentRun/AgentRunLog tables
+1. Use `--verbose-telemetry` for backend detail
+1. Check raw OTLP data with `--debug-otel` if needed
+1. Verify database entries in AgentRun/AgentRunLog tables
 
 ## Future Improvements
 
@@ -330,9 +330,9 @@ Frontend components use flexible Zod schemas (`z.any()`) to handle varying tool 
 
 - [Claude Code OpenTelemetry Docs](https://docs.anthropic.com/en/docs/claude-code/monitoring-usage)
 - [OpenTelemetry Protocol Specification](https://opentelemetry.io/docs/specs/otlp/)
-- [Typer CLI Framework](https://typer.tiangolo.com/) [[memory:5707685]]
+- [Typer CLI Framework](https://typer.tiangolo.com/) \[[memory:5707685]\]
 - [AgentRun Database Schema](../../../cloud/codegen-backend/app/db/models/agent/agent_run.py)
 
----
+______________________________________________________________________
 
 _This documentation is maintained alongside the code. Update when making significant changes to the telemetry integration._

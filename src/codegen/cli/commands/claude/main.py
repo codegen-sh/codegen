@@ -205,6 +205,10 @@ def claude(
         console.print("🔵 Starting Claude Code session...", style="blue")
 
     try:
+        # Initialize session tracking variables
+        session_id = None
+        session_url_printed = False
+
         # Launch Claude Code with telemetry enabled
         if console_output or debug_mode or debug_otel:
             # Run Claude Code with visible output - telemetry will appear in console
@@ -221,10 +225,6 @@ def claude(
             console.print("💡 Claude Code will start normally - telemetry data is being sent to your API\n", style="dim")
             # Don't capture stdout/stderr - let Claude Code run normally
             process = subprocess.Popen(["claude"], env=env)
-
-        # Start monitoring for session ID in a background thread
-        session_id = None
-        session_url_printed = False
 
         def monitor_session():
             nonlocal session_id, session_url_printed

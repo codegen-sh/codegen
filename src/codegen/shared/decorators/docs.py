@@ -1,15 +1,14 @@
 import bisect
 import inspect
-from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TypeVar
+from typing import Any, TypeVar
 
 
 @dataclass
 class DocumentedObject:
     name: str
     module: str
-    object: any
+    object: Any
 
     def __lt__(self, other):
         return self.module < other.module
@@ -57,13 +56,13 @@ def ts_apidoc(obj):
 no_apidoc_objects: list[DocumentedObject] = []
 no_apidoc_signatures: set[str] = set()
 
-T = TypeVar("T", bound=Callable)
+T = TypeVar("T")
 
 
 def noapidoc(obj: T) -> T:
     """Decorator for things that are hidden from the API documentation for AI-agent prompts."""
-    obj._apidoc = False
-    obj._api_doc_lang = None
+    setattr(obj, "_apidoc", False)
+    setattr(obj, "_api_doc_lang", None)
     if doc_obj := get_documented_object(obj):
         bisect.insort(no_apidoc_objects, doc_obj)
         no_apidoc_signatures.add(doc_obj.signature())
@@ -76,8 +75,8 @@ py_no_apidoc_signatures: set[str] = set()
 
 def py_noapidoc(obj: T) -> T:
     """Decorator for things that are hidden from the Python API documentation for AI-agent prompts."""
-    obj._py_apidoc = False
-    obj._api_doc_lang = "python"
+    setattr(obj, "_py_apidoc", False)
+    setattr(obj, "_api_doc_lang", "python")
     if doc_obj := get_documented_object(obj):
         bisect.insort(py_no_apidoc_objects, doc_obj)
         py_no_apidoc_signatures.add(doc_obj.signature())

@@ -6,10 +6,8 @@ from codegen.cli.auth.token_manager import get_current_token
 
 
 def login(token: str | None = typer.Option(None, help="API token for authentication")):
-    """Store authentication token."""
-    # Check if already authenticated
-    if get_current_token():
-        rich.print("[yellow]Warning:[/yellow] Already authenticated. Use 'codegen logout' to clear the token.")
-        raise typer.Exit(1)
-
+    """Log in and replace any existing token."""
+    existing = get_current_token()
+    if existing:
+        rich.print("[yellow]Warning:[/yellow] You are currently authenticated. This will replace the existing token.")
     login_routine(token)
