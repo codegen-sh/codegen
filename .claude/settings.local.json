@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(source:*)",
+      "Bash(ty)",
+      "Bash(ty check:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
