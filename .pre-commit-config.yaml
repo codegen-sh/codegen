@@ -92,3 +92,12 @@ repos:
           - mdformat-ruff
           - mdformat-config
           - mdformat-pyproject
+
+  - repo: local
+    hooks:
+      - id: ty-typechecker
+        name: ty typechecker
+        entry: bash -c 'source .venv/bin/activate && ty check'
+        language: system
+        pass_filenames: false
+        always_run: true
