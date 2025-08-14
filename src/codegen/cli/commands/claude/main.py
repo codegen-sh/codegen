@@ -75,25 +75,13 @@ def claude(
     try:
         # Launch Claude Code with our session ID
         console.print(f"🚀 Launching Claude Code with session ID: {session_id[:8]}...", style="blue")
+
+        url = get_codegen_url(session_id)
+        console.print(f"\n🔵 Codegen URL: {url}\n", style="bold blue")
+
+
         process = subprocess.Popen(["claude", "--session-id", session_id])
 
-        # Start monitoring to verify session is created and show URL
-        session_url_printed = False
-
-        def monitor_session():
-            nonlocal session_url_printed
-            # Give Claude a moment to start up
-            time.sleep(2.0)
-            # Since we passed --session-id, Claude should use our exact session ID
-            # Just wait a bit and show the URL
-            if not session_url_printed:
-                url = get_codegen_url(session_id)
-                console.print(f"\n🔵 Codegen URL: {url}\n", style="bold blue")
-                session_url_printed = True
-
-        # Start session monitoring in background
-        session_thread = threading.Thread(target=monitor_session, daemon=True)
-        session_thread.start()
 
         # Start log watcher for the session
         console.print("📋 Starting log watcher...", style="blue")
