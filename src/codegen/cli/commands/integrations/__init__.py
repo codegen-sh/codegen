@@ -1,0 +1,1 @@
+"""Integrations command module."""

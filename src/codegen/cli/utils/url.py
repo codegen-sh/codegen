@@ -6,7 +6,7 @@ from codegen.cli.env.global_env import global_env
 
 class DomainRegistry(Enum):
     STAGING = "chadcode.sh"
-    PRODUCTION = "codegen.sh"
+    PRODUCTION = "codegen.com"
     LOCAL = "localhost:3000"
 
 
