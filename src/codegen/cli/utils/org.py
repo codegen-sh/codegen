@@ -7,7 +7,7 @@ import requests
 
 from codegen.cli.api.endpoints import API_ENDPOINT
 from codegen.cli.auth.token_manager import get_current_token
-
+from codegen.cli.commands.claude.quiet_console import console
 
 def resolve_org_id(explicit_org_id: Optional[int] = None) -> Optional[int]:
     """Resolve the organization id from CLI input or environment.
@@ -33,10 +33,10 @@ def resolve_org_id(explicit_org_id: Optional[int] = None) -> Optional[int]:
                 pass
 
         # Attempt auto-detection via API: if user belongs to organizations, use the first
-        # Attempt auto-detection via API: if user belongs to organizations, use the first
         try:
             token = get_current_token()
             if not token:
+                print("No token found")
                 return None
             headers = {"Authorization": f"Bearer {token}"}
             url = f"{API_ENDPOINT.rstrip('/')}/v1/organizations"
@@ -44,7 +44,6 @@ def resolve_org_id(explicit_org_id: Optional[int] = None) -> Optional[int]:
             resp.raise_for_status()
             data = resp.json()
             items = data.get("items") or []
-
             if isinstance(items, list) and len(items) >= 1:
                 org = items[0]
                 org_id = org.get("id")
@@ -54,7 +53,8 @@ def resolve_org_id(explicit_org_id: Optional[int] = None) -> Optional[int]:
                     return None
             # None returned
             return None
-        except Exception:
+        except Exception as e:
+            console.print(f"Exception: {e}")
             return None
 
     try:
