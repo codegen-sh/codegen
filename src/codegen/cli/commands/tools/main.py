@@ -7,6 +7,7 @@ from rich.table import Table
 
 from codegen.cli.api.endpoints import API_ENDPOINT
 from codegen.cli.auth.token_manager import get_current_token
+from codegen.cli.rich.spinners import create_spinner
 from codegen.cli.utils.org import resolve_org_id
 
 console = Console()
@@ -14,8 +15,6 @@ console = Console()
 
 def tools(org_id: int | None = typer.Option(None, help="Organization ID (defaults to CODEGEN_ORG_ID/REPOSITORY_ORG_ID or auto-detect)")):
     """List available tools from the Codegen API."""
-    console.print("🔧 Fetching available tools...", style="bold blue")
-
     # Get the current token
     token = get_current_token()
     if not token:
@@ -29,13 +28,18 @@ def tools(org_id: int | None = typer.Option(None, help="Organization ID (default
             console.print("[red]Error:[/red] Organization ID not provided. Pass --org-id, set CODEGEN_ORG_ID, or REPOSITORY_ORG_ID.")
             raise typer.Exit(1)
 
-        # Make API request to list tools
-        headers = {"Authorization": f"Bearer {token}"}
-        url = f"{API_ENDPOINT.rstrip('/')}/v1/organizations/{resolved_org_id}/tools"
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
+        # Make API request to list tools with spinner
+        spinner = create_spinner("Fetching available tools...")
+        spinner.start()
 
-        response_data = response.json()
+        try:
+            headers = {"Authorization": f"Bearer {token}"}
+            url = f"{API_ENDPOINT.rstrip('/')}/v1/organizations/{resolved_org_id}/tools"
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+            response_data = response.json()
+        finally:
+            spinner.stop()
 
         # Extract tools from the response structure
         if isinstance(response_data, dict) and "tools" in response_data:
