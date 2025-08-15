@@ -33,13 +33,28 @@ def list_agents(org_id: int | None = typer.Option(None, help="Organization ID (d
             raise typer.Exit(1)
 
         # Make API request to list agent runs with spinner
-        spinner = create_spinner("Fetching agent runs...")
+        spinner = create_spinner("Fetching your recent API agent runs...")
         spinner.start()
 
         try:
             headers = {"Authorization": f"Bearer {token}"}
+            # Filter to only API source type and current user's agent runs
+            params = {
+                "source_type": "API",
+                # We'll get the user_id from the /users/me endpoint
+            }
+
+            # First get the current user ID
+            user_response = requests.get(f"{API_ENDPOINT.rstrip('/')}/v1/users/me", headers=headers)
+            user_response.raise_for_status()
+            user_data = user_response.json()
+            user_id = user_data.get("id")
+
+            if user_id:
+                params["user_id"] = user_id
+
             url = f"{API_ENDPOINT.rstrip('/')}/v1/organizations/{resolved_org_id}/agent/runs"
-            response = requests.get(url, headers=headers)
+            response = requests.get(url, headers=headers, params=params)
             response.raise_for_status()
             response_data = response.json()
         finally:
@@ -52,21 +67,20 @@ def list_agents(org_id: int | None = typer.Option(None, help="Organization ID (d
         page_size = response_data.get("page_size", 10)
 
         if not agent_runs:
-            console.print("[yellow]No agent runs found.[/yellow]")
+            console.print("[yellow]No API agent runs found for your user.[/yellow]")
             return
 
         # Create a table to display agent runs
         table = Table(
-            title=f"Agent Runs (Page {page}, Total: {total})",
+            title=f"Your Recent API Agent Runs (Page {page}, Total: {total})",
             border_style="blue",
             show_header=True,
             title_justify="center",
         )
-        table.add_column("ID", style="cyan", no_wrap=True)
-        table.add_column("Status", style="white", justify="center")
-        table.add_column("Source", style="magenta")
         table.add_column("Created", style="dim")
-        table.add_column("Result", style="green")
+        table.add_column("Status", style="white", justify="center")
+        table.add_column("Summary", style="green")
+        table.add_column("Link", style="blue")
 
         # Add agent runs to table
         for agent_run in agent_runs:
@@ -74,20 +88,37 @@ def list_agents(org_id: int | None = typer.Option(None, help="Organization ID (d
             status = agent_run.get("status", "Unknown")
             source_type = agent_run.get("source_type", "Unknown")
             created_at = agent_run.get("created_at", "Unknown")
-            result = agent_run.get("result", "")
 
-            # Status with emoji
-            status_display = status
+            # Extract summary from task_timeline_json, similar to frontend
+            timeline = agent_run.get("task_timeline_json")
+            summary = None
+            if timeline and isinstance(timeline, dict) and "summary" in timeline:
+                if isinstance(timeline["summary"], str):
+                    summary = timeline["summary"]
+
+            # Fall back to goal_prompt if no summary
+            if not summary:
+                summary = agent_run.get("goal_prompt", "")
+
+            # Status with colored circles
             if status == "COMPLETE":
-                status_display = "✅ Complete"
+                status_display = "[green]●[/green] Complete"
+            elif status == "ACTIVE":
+                status_display = "[dim]●[/dim] Active"
             elif status == "RUNNING":
-                status_display = "🏃 Running"
+                status_display = "[dim]●[/dim] Running"
+            elif status == "CANCELLED":
+                status_display = "[yellow]●[/yellow] Cancelled"
+            elif status == "ERROR":
+                status_display = "[red]●[/red] Error"
             elif status == "FAILED":
-                status_display = "❌ Failed"
+                status_display = "[red]●[/red] Failed"
             elif status == "STOPPED":
-                status_display = "⏹️ Stopped"
+                status_display = "[yellow]●[/yellow] Stopped"
             elif status == "PENDING":
-                status_display = "⏳ Pending"
+                status_display = "[dim]●[/dim] Pending"
+            else:
+                status_display = "[dim]●[/dim] " + status
 
             # Format created date (just show date and time, not full timestamp)
             if created_at and created_at != "Unknown":
@@ -102,13 +133,20 @@ def list_agents(org_id: int | None = typer.Option(None, help="Organization ID (d
             else:
                 created_display = created_at
 
-            # Truncate result if too long
-            result_display = result[:50] + "..." if result and len(result) > 50 else result or "No result"
+            # Truncate summary if too long
+            summary_display = summary[:50] + "..." if summary and len(summary) > 50 else summary or "No summary"
 
-            table.add_row(run_id, status_display, source_type, created_display, result_display)
+            # Create web link for the agent run
+            web_url = agent_run.get("web_url")
+            if not web_url:
+                # Construct URL if not provided
+                web_url = f"https://codegen.com/traces/{run_id}"
+            link_display = web_url
+
+            table.add_row(created_display, status_display, summary_display, link_display)
 
         console.print(table)
-        console.print(f"\n[green]Showing {len(agent_runs)} of {total} agent runs[/green]")
+        console.print(f"\n[green]Showing {len(agent_runs)} of {total} API agent runs[/green]")
 
     except requests.RequestException as e:
         console.print(f"[red]Error fetching agent runs:[/red] {e}", style="bold red")
