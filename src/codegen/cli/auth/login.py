@@ -37,9 +37,10 @@ def login_routine(token: str | None = None) -> str:
 
     # Validate and store token
     try:
+        rich.print("[blue]Validating token and fetching account info...[/blue]")
         token_manager = TokenManager()
         token_manager.authenticate_token(token)
-        rich.print(f"[green]✓ Stored token to:[/green] {token_manager.token_file}")
+        rich.print(f"[green]✓ Stored token and profile to:[/green] {token_manager.token_file}")
         return token
     except AuthError as e:
         rich.print(f"[red]Error:[/red] {e!s}")
