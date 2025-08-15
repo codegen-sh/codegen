@@ -38,7 +38,8 @@
               "integrations/figma",
               "integrations/circleci",
               "integrations/web-search",
-              "integrations/postgres"
+              "integrations/postgres",
+              "integrations/mcp"
             ]
           },
           {
