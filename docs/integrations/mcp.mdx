@@ -25,7 +25,9 @@ uv tool install codegen
 
 ## Configuration
 
-### For Cline (VS Code Extension)
+### Local MCP Server
+
+#### For Cline (VS Code Extension)
 
 Add this to your `cline_mcp_settings.json` file:
 
@@ -41,7 +43,7 @@ Add this to your `cline_mcp_settings.json` file:
 }
 ```
 
-### For Claude Desktop
+#### For Claude Desktop
 
 Under the `Settings` > `Feature` > `MCP Servers` section, click "Add New MCP Server" and add the following:
 
@@ -49,7 +51,7 @@ Under the `Settings` > `Feature` > `MCP Servers` section, click "Add New MCP Ser
 - **Command**: `codegen`
 - **Arguments**: `["mcp"]`
 
-### For Cursor
+#### For Cursor
 
 To configure the Codegen MCP server in Cursor:
 
@@ -74,6 +76,61 @@ Alternatively, you can add the configuration directly to your Cursor settings fi
   }
 }
 ```
+
+### Remote MCP Server
+
+Codegen provides a hosted MCP server that you can connect to directly without running a local server. This is useful for cloud-based environments or when you prefer not to run a local server.
+
+#### For Claude Code
+
+To configure the remote Codegen MCP server in Claude Code:
+
+```bash
+claude mcp add --transport http codegen-tools https://mcp.codegen.com/mcp/ --header "Authorization: Bearer <auth token>"
+```
+
+Replace `<auth token>` with your Codegen API key.
+
+#### For Cursor/Windsurf/VSCode Forks
+
+Add the following configuration to your settings:
+
+```json
+{
+  "mcp.servers": {
+    "codegen-remote": {
+      "transport": "http",
+      "url": "https://mcp.codegen.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer <auth token>"
+      }
+    }
+  }
+}
+```
+
+Replace `<auth token>` with your Codegen API key.
+
+#### For VSCode with MCP Extension
+
+If you're using VSCode with an MCP extension, add this to your settings.json:
+
+```json
+{
+  "mcp.servers": [
+    {
+      "name": "codegen-remote",
+      "transport": "http",
+      "url": "https://mcp.codegen.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer <auth token>"
+      }
+    }
+  ]
+}
+```
+
+Replace `<auth token>` with your Codegen API key.
 
 ## Usage
 
@@ -131,12 +188,15 @@ The MCP server supports two transport methods:
 - Best for most AI agents and IDE integrations
 - Direct communication through standard input/output
 - No network configuration required
+- Ideal for local development environments
 
 ### HTTP
 
-- Useful for web-based integrations
-- Requires specifying host and port
-- Currently falls back to stdio (HTTP support coming soon)
+- Useful for web-based integrations and remote connections
+- Available as both a local server (by specifying host and port) and a hosted service
+- Remote HTTP endpoint: `https://mcp.codegen.com/mcp/`
+- Requires authentication via Bearer token in the Authorization header
+- Enables cloud-based environments to connect to Codegen services
 
 ## Authentication
 
