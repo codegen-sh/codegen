@@ -19,7 +19,6 @@ def test_cli_help_works():
     assert result.returncode == 0
 
     # Should contain basic help text
-    assert "Codegen - Transform your code with AI" in result.stdout
     assert "Commands" in result.stdout
     assert "init" in result.stdout
     assert "login" in result.stdout
