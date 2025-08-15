@@ -9,6 +9,7 @@ dependencies = [
   "codegen-api-client",
   "typer>=0.12.5",
   "rich>=13.7.1",
+  "textual>=0.91.0",
   "hatch-vcs>=0.4.0",
   "hatchling>=1.25.0",
   # CLI and git functionality dependencies
