@@ -96,16 +96,8 @@ class CodegenTUI(App):
                 status = agent_run.get("status", "Unknown")
                 created_at = agent_run.get("created_at", "Unknown")
 
-                # Extract summary from task_timeline_json, similar to frontend
-                timeline = agent_run.get("task_timeline_json")
-                summary = None
-                if timeline and isinstance(timeline, dict) and "summary" in timeline:
-                    if isinstance(timeline["summary"], str):
-                        summary = timeline["summary"]
-
-                # Fall back to goal_prompt if no summary
-                if not summary:
-                    summary = agent_run.get("goal_prompt", "")
+                # Use summary from API response (backend now handles extraction)
+                summary = agent_run.get("summary", "") or "No summary"
 
                 # Status with colored circles
                 if status == "COMPLETE":
