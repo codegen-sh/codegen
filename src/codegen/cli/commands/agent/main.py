@@ -1,13 +1,16 @@
 """Agent command for creating remote agent runs."""
 
+import json
+
 import requests
 import typer
 from rich import box
 from rich.console import Console
 from rich.panel import Panel
+from rich.syntax import Syntax
 
 from codegen.cli.api.endpoints import API_ENDPOINT
-from codegen.cli.auth.token_manager import get_current_token
+from codegen.cli.auth.token_manager import get_current_org_name, get_current_token
 from codegen.cli.rich.spinners import create_spinner
 from codegen.cli.utils.org import resolve_org_id
 
@@ -141,19 +144,91 @@ def agent_callback(ctx: typer.Context):
         raise typer.Exit()
 
 
-# For backward compatibility, also allow `codegen agent --prompt "..."`
+# For backward compatibility, also allow `codegen agent --prompt "..."` and `codegen agent --id X --json`
 def agent(
-    prompt: str = typer.Option(None, "--prompt", "-p", help="The prompt to send to the agent"),
+    prompt: str | None = typer.Option(None, "--prompt", "-p", help="The prompt to send to the agent"),
+    agent_id: int | None = typer.Option(None, "--id", help="Agent run ID to fetch"),
+    as_json: bool = typer.Option(False, "--json", help="Output raw JSON response"),
     org_id: int | None = typer.Option(None, help="Organization ID (defaults to CODEGEN_ORG_ID/REPOSITORY_ORG_ID or auto-detect)"),
     model: str | None = typer.Option(None, help="Model to use for this agent run (optional)"),
     repo_id: int | None = typer.Option(None, help="Repository ID to use for this agent run (optional)"),
 ):
-    """Create a new agent run with the given prompt."""
+    """Create a new agent run with the given prompt, or fetch an existing agent run by ID."""
     if prompt:
         # If prompt is provided, create the agent run
         create(prompt=prompt, org_id=org_id, model=model, repo_id=repo_id)
+    elif agent_id:
+        # If agent ID is provided, fetch the agent run
+        get(agent_id=agent_id, as_json=as_json, org_id=org_id)
     else:
-        # If no prompt, show help
-        console.print("[red]Error:[/red] --prompt is required")
-        console.print("Usage: [cyan]codegen agent --prompt 'Your prompt here'[/cyan]")
+        # If neither prompt nor agent_id, show help
+        console.print("[red]Error:[/red] Either --prompt or --id is required")
+        console.print("Usage:")
+        console.print("  [cyan]codegen agent --prompt 'Your prompt here'[/cyan]      # Create agent run")
+        console.print("  [cyan]codegen agent --id 123 --json[/cyan]                   # Fetch agent run as JSON")
+        raise typer.Exit(1)
+
+
+@agent_app.command()
+def get(
+    agent_id: int = typer.Option(..., "--id", help="Agent run ID to fetch"),
+    as_json: bool = typer.Option(False, "--json", help="Output raw JSON response"),
+    org_id: int | None = typer.Option(None, help="Organization ID (defaults to CODEGEN_ORG_ID/REPOSITORY_ORG_ID or auto-detect)"),
+):
+    """Fetch and display details for a specific agent run."""
+    # Get the current token
+    token = get_current_token()
+    if not token:
+        console.print("[red]Error:[/red] Not authenticated. Please run 'codegen login' first.")
+        raise typer.Exit(1)
+
+    try:
+        # Resolve org id (fast, uses stored data)
+        resolved_org_id = resolve_org_id(org_id)
+        if resolved_org_id is None:
+            console.print("[red]Error:[/red] Organization ID not provided. Pass --org-id, set CODEGEN_ORG_ID, or REPOSITORY_ORG_ID.")
+            raise typer.Exit(1)
+
+        spinner = create_spinner(f"Fetching agent run {agent_id}...")
+        spinner.start()
+
+        try:
+            headers = {"Authorization": f"Bearer {token}"}
+            # Fixed: Use /agent/run/{id} not /agent/runs/{id}
+            url = f"{API_ENDPOINT.rstrip('/')}/v1/organizations/{resolved_org_id}/agent/run/{agent_id}"
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+            agent_data = response.json()
+        finally:
+            spinner.stop()
+
+        # Output the data
+        if as_json:
+            # Pretty print JSON with syntax highlighting
+            formatted_json = json.dumps(agent_data, indent=2, sort_keys=True)
+            syntax = Syntax(formatted_json, "json", theme="monokai", line_numbers=False)
+            console.print(syntax)
+        else:
+            # Display formatted information (fallback for future enhancement)
+            formatted_json = json.dumps(agent_data, indent=2, sort_keys=True)
+            syntax = Syntax(formatted_json, "json", theme="monokai", line_numbers=False)
+            console.print(syntax)
+
+    except requests.HTTPError as e:
+        # Get organization name for better error messages
+        org_name = get_current_org_name()
+        org_display = f"{org_name} ({resolved_org_id})" if org_name else f"organization {resolved_org_id}"
+
+        if e.response.status_code == 404:
+            console.print(f"[red]Error:[/red] Agent run {agent_id} not found in {org_display}.")
+        elif e.response.status_code == 403:
+            console.print(f"[red]Error:[/red] Access denied to agent run {agent_id} in {org_display}. Check your permissions.")
+        else:
+            console.print(f"[red]Error:[/red] HTTP {e.response.status_code}: {e}")
+        raise typer.Exit(1)
+    except requests.RequestException as e:
+        console.print(f"[red]Error fetching agent run:[/red] {e}")
+        raise typer.Exit(1)
+    except Exception as e:
+        console.print(f"[red]Unexpected error:[/red] {e}")
         raise typer.Exit(1)
