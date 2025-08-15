@@ -26,18 +26,19 @@ def list_agents(org_id: int | None = typer.Option(None, help="Organization ID (d
         raise typer.Exit(1)
 
     try:
-        # Resolve org id
+        # Resolve org id (now fast, uses stored data)
         resolved_org_id = resolve_org_id(org_id)
         if resolved_org_id is None:
             console.print("[red]Error:[/red] Organization ID not provided. Pass --org-id, set CODEGEN_ORG_ID, or REPOSITORY_ORG_ID.")
             raise typer.Exit(1)
 
-        # Make API request to list agent runs with spinner
+        # Start spinner for API calls only
         spinner = create_spinner("Fetching your recent API agent runs...")
         spinner.start()
 
         try:
             headers = {"Authorization": f"Bearer {token}"}
+
             # Filter to only API source type and current user's agent runs
             params = {
                 "source_type": "API",
