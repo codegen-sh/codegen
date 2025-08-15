@@ -18,18 +18,17 @@ Footer {
     color: $text;
 }
 
-TabbedContent {
-    margin: 1;
-}
-
-TabPane {
-    padding: 1;
-}
-
-.tab-title {
+.title {
     text-style: bold;
-    margin-bottom: 1;
+    margin: 1;
     color: $primary;
+    text-align: center;
+}
+
+.help {
+    margin-bottom: 1;
+    color: $text-muted;
+    text-align: center;
 }
 
 .warning-message {
@@ -41,18 +40,8 @@ TabPane {
     text-style: bold;
 }
 
-.info-label {
-    width: 20;
-    text-style: bold;
-    color: $primary;
-}
-
-.info-value {
-    color: $text;
-}
-
 DataTable {
-    height: 100%;
+    height: 1fr;
     margin-top: 1;
 }
 
@@ -80,13 +69,6 @@ DataTable > .datatable--cursor {
     align: center middle;
 }
 
-Horizontal {
-    height: auto;
-    margin-bottom: 1;
-}
-
-Placeholder {
+Vertical {
     height: 100%;
-    background: $surface;
-    border: solid $primary;
 }
