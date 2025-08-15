@@ -1,7 +1,7 @@
 from pathlib import Path
 
 # Base directories
-CONFIG_DIR = Path("~/.config/codegen-sh").expanduser()
+CONFIG_DIR = Path("~/.codegen").expanduser()
 CODEGEN_DIR = Path(".codegen")
 PROMPTS_DIR = CODEGEN_DIR / "prompts"
 

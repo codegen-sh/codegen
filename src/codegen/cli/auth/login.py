@@ -40,8 +40,6 @@ def login_routine(token: str | None = None) -> str:
         token_manager = TokenManager()
         token_manager.authenticate_token(token)
         rich.print(f"[green]✓ Stored token to:[/green] {token_manager.token_file}")
-        rich.print("[cyan]📊 Hey![/cyan] We collect anonymous usage data to improve your experience 🔒")
-        rich.print("To opt out, set [green]telemetry_enabled = false[/green] in [cyan]~/.config/codegen-sh/analytics.json[/cyan] ✨")
         return token
     except AuthError as e:
         rich.print(f"[red]Error:[/red] {e!s}")

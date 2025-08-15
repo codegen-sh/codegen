@@ -9,7 +9,6 @@ def login(token: str | None = typer.Option(None, help="API token for authenticat
     """Store authentication token."""
     # Check if already authenticated
     if get_current_token():
-        rich.print("[yellow]Warning:[/yellow] Already authenticated. Use 'codegen logout' to clear the token.")
-        raise typer.Exit(1)
+        rich.print("[yellow]Info:[/yellow] You already have a token stored. Proceeding with re-authentication...")
 
     login_routine(token)

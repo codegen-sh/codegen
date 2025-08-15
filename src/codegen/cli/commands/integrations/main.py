@@ -9,8 +9,9 @@ from rich.table import Table
 
 from codegen.cli.api.endpoints import API_ENDPOINT
 from codegen.cli.auth.token_manager import get_current_token
-from codegen.cli.utils.url import generate_webapp_url
+from codegen.cli.rich.spinners import create_spinner
 from codegen.cli.utils.org import resolve_org_id
+from codegen.cli.utils.url import generate_webapp_url
 
 console = Console()
 
@@ -21,8 +22,6 @@ integrations_app = typer.Typer(help="Manage Codegen integrations")
 @integrations_app.command("list")
 def list_integrations(org_id: int | None = typer.Option(None, help="Organization ID (defaults to CODEGEN_ORG_ID/REPOSITORY_ORG_ID or auto-detect)")):
     """List organization integrations from the Codegen API."""
-    console.print("🔌 Fetching organization integrations...", style="bold blue")
-
     # Get the current token
     token = get_current_token()
     if not token:
@@ -36,13 +35,18 @@ def list_integrations(org_id: int | None = typer.Option(None, help="Organization
             console.print("[red]Error:[/red] Organization ID not provided. Pass --org-id, set CODEGEN_ORG_ID, or REPOSITORY_ORG_ID.")
             raise typer.Exit(1)
 
-        # Make API request to list integrations
-        headers = {"Authorization": f"Bearer {token}"}
-        url = f"{API_ENDPOINT.rstrip('/')}/v1/organizations/{resolved_org_id}/integrations"
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
+        # Make API request to list integrations with spinner
+        spinner = create_spinner("Fetching organization integrations...")
+        spinner.start()
 
-        response_data = response.json()
+        try:
+            headers = {"Authorization": f"Bearer {token}"}
+            url = f"{API_ENDPOINT.rstrip('/')}/v1/organizations/{resolved_org_id}/integrations"
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+            response_data = response.json()
+        finally:
+            spinner.stop()
 
         # Extract integrations from the response structure
         integrations_data = response_data.get("integrations", [])
@@ -138,6 +142,5 @@ def add_integration():
 def integrations_callback(ctx: typer.Context):
     """Manage Codegen integrations."""
     if ctx.invoked_subcommand is None:
-        # If no subcommand is provided, show help
-        print(ctx.get_help())
-        raise typer.Exit()
+        # If no subcommand is provided, run list by default
+        list_integrations(org_id=None)
