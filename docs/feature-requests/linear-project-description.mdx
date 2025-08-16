@@ -1,0 +1,55 @@
+---
+title: "Linear Project Description Parameter"
+sidebarTitle: "Linear Project Description"
+icon: "file-lines"
+---
+
+# Linear Project Description Parameter
+
+## Overview
+
+This document outlines a feature request to enhance the `linear_create_project` tool by adding support for project descriptions.
+
+## Current Functionality
+
+Currently, the `linear_create_project` tool supports the following parameters:
+
+- `name` (required): Name of the project
+- `team_ids` (required): List of team IDs to assign the project to
+- `lead_id` (optional): Optional user ID of the project lead
+- `icon` (optional): Optional emoji icon for the project
+
+However, there is no parameter for adding a description when creating a project, which limits the tool's functionality.
+
+## Proposed Enhancement
+
+Add an optional `description` parameter to the `linear_create_project` tool to allow setting a project description during creation.
+
+### Implementation Details
+
+The enhanced `linear_create_project` tool should support:
+
+```python
+linear_create_project(
+    name: str,                # Required: Name of the project
+    team_ids: List[str],      # Required: List of team IDs to assign the project to
+    lead_id: Optional[str],   # Optional: User ID of the project lead
+    icon: Optional[str],      # Optional: Emoji icon for the project
+    description: Optional[str] # New: Optional description for the project
+)
+```
+
+### Benefits
+
+1. **Improved User Experience**: Users can create fully-documented projects in a single operation
+2. **Reduced Friction**: Eliminates the need for separate steps to add descriptions after project creation
+3. **Feature Parity**: Brings the tool in line with Linear's native project creation capabilities
+
+## User Feedback
+
+This enhancement was requested by users who reported being unable to add descriptions to projects when creating them through Codegen.
+
+## Status
+
+This feature request is currently pending implementation.
+
