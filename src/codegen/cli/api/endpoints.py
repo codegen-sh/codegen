@@ -11,7 +11,7 @@ DEPLOY_ENDPOINT = f"https://{MODAL_PREFIX}--cli-deploy.modal.run"
 LOOKUP_ENDPOINT = f"https://{MODAL_PREFIX}--cli-lookup.modal.run"
 RUN_ON_PR_ENDPOINT = f"https://{MODAL_PREFIX}--cli-run-on-pull-request.modal.run"
 PR_LOOKUP_ENDPOINT = f"https://{MODAL_PREFIX}--cli-pr-lookup.modal.run"
-CODEGEN_SYSTEM_PROMPT_URL = "https://gist.githubusercontent.com/jayhack/15681a2ceaccd726f19e6fdb3a44738b/raw/17c08054e3931b3b7fdf424458269c9e607541e8/codegen-system-prompt.txt"
+CODEGEN_SYSTEM_PROMPT_URL = "https://raw.githubusercontent.com/codegen-sh/codegen-sdk/develop/src/codegen/sdk/system-prompt.txt"
 IMPROVE_ENDPOINT = f"https://{MODAL_PREFIX}--cli-improve.modal.run"
 MCP_SERVER_ENDPOINT = f"https://{MODAL_PREFIX}--codegen-mcp-server.modal.run/mcp"
 
