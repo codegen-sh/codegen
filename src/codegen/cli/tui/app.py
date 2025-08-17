@@ -28,6 +28,26 @@ class MinimalTUI:
         # Set up signal handler for Ctrl+C
         signal.signal(signal.SIGINT, self._signal_handler)
 
+    def _get_webapp_domain(self) -> str:
+        """Get the webapp domain based on environment."""
+        # Simple environment detection - can be expanded later
+        import os
+
+        env = os.getenv("ENV", "staging").lower()
+
+        if env == "production":
+            return "codegen.com"
+        elif env == "local":
+            return "localhost:3000"
+        else:  # staging or default
+            return "chadcode.sh"
+
+    def _generate_agent_url(self, agent_id: str) -> str:
+        """Generate the complete agent URL."""
+        domain = self._get_webapp_domain()
+        protocol = "http" if "localhost" in domain else "https"
+        return f"{protocol}://{domain}/x/{agent_id}"
+
     def _signal_handler(self, signum, frame):
         """Handle Ctrl+C gracefully without clearing screen."""
         self.running = False
@@ -116,22 +136,18 @@ class MinimalTUI:
             status = self._format_status(agent_run.get("status", "Unknown"))
             created = self._format_date(agent_run.get("created_at", "Unknown"))
             summary = agent_run.get("summary", "No summary") or "No summary"
-            agent_id = agent_run.get("id", "unknown")
-            url = f"https://codegen.com/x/{agent_id}"
-            # Make URL clickable in terminal
-            clickable_url = f"\033]8;;{url}\033\\codegen.com/x/{agent_id}\033]8;;\033\\"
 
-            # Truncate summary to fit with URL
-            if len(summary) > 35:
-                summary = summary[:32] + "..."
+            # No need to truncate summary as much since we removed the URL column
+            if len(summary) > 60:
+                summary = summary[:57] + "..."
 
             # Color coding: indigo blue for selected, darker gray for others
             if i == self.selected_index and not self.show_action_menu:
                 # Dark blue (similar to text-indigo-700) for selected row
-                line = f"\033[34m{prefix}{created:<10} {status:<12} {summary:<38} {clickable_url}\033[0m"
+                line = f"\033[34m{prefix}{created:<10} {status:<12} {summary}\033[0m"
             else:
                 # Darker gray for non-selected rows
-                line = f"\033[90m{prefix}{created:<10} {status:<12} {summary:<38} {clickable_url}\033[0m"
+                line = f"\033[90m{prefix}{created:<10} {status:<12} {summary}\033[0m"
 
             print(line)
 
@@ -141,7 +157,11 @@ class MinimalTUI:
 
     def _display_inline_action_menu(self, agent_run: dict):
         """Display action menu inline below the selected row."""
-        options = ["pull locally", "open in web"]
+        agent_id = agent_run.get("id", "unknown")
+        web_url = self._generate_agent_url(agent_id)
+        # Extract just the domain/path part without protocol for display
+        display_url = web_url.replace("https://", "").replace("http://", "")
+        options = ["pull locally", f"open in web ({display_url})"]
 
         for i, option in enumerate(options):
             if i == self.action_menu_selection:
@@ -224,24 +244,22 @@ class MinimalTUI:
 
         agent_run = self.agent_runs[self.selected_index]
         agent_id = agent_run.get("id", "unknown")
-        url = f"https://codegen.com/x/{agent_id}"
-        options = ["pull", "open in web"]
+        url = self._generate_agent_url(agent_id)
 
-        if 0 <= self.action_menu_selection < len(options):
-            action = options[self.action_menu_selection]
-            if action == "pull":
-                # Placeholder for pull functionality
-                print(f"\n🔄 Pull functionality not yet implemented for agent {agent_id}")
-                input("Press Enter to continue...")
-            elif action == "open in web":
-                try:
-                    import webbrowser
+        if self.action_menu_selection == 0:
+            # Pull locally option
+            print(f"\n🔄 Pull locally functionality not yet implemented for agent {agent_id}")
+            input("Press Enter to continue...")
+        elif self.action_menu_selection == 1:
+            # Open in web option
+            try:
+                import webbrowser
 
-                    webbrowser.open(url)
-                    print(f"\n🌐 Opened {url} in your default browser")
-                except Exception as e:
-                    print(f"\n❌ Failed to open browser: {e}")
-                input("Press Enter to continue...")
+                webbrowser.open(url)
+                print(f"\n🌐 Opened {url} in your default browser")
+            except Exception as e:
+                print(f"\n❌ Failed to open browser: {e}")
+            input("Press Enter to continue...")
 
     def _open_agent_details(self):
         """Toggle the inline action menu."""

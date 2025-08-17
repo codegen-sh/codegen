@@ -12,13 +12,12 @@ class DomainRegistry(Enum):
 
 def get_domain() -> str:
     """Get the appropriate domain based on the current environment."""
-    match global_env.ENV:
-        case Environment.PRODUCTION:
-            return DomainRegistry.PRODUCTION.value
-        case Environment.STAGING:
-            return DomainRegistry.STAGING.value
-        case _:
-            return DomainRegistry.LOCAL.value
+    if global_env.ENV == Environment.PRODUCTION:
+        return DomainRegistry.PRODUCTION.value
+    elif global_env.ENV == Environment.STAGING:
+        return DomainRegistry.STAGING.value
+    else:
+        return DomainRegistry.LOCAL.value
 
 
 def generate_webapp_url(path: str = "", params: dict | None = None, protocol: str = "https") -> str:
