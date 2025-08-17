@@ -1,0 +1,185 @@
+/* Codegen Custom Theme - Indigo, Black, White, Teal */
+
+/* 
+Color Palette:
+- Indigo: #4f46e5 (primary), #6366f1 (light), #3730a3 (dark)
+- Black/Charcoal: #000000, #1a1a1a  
+- White: #ffffff, #f8fafc
+- Teal: #14b8a6 (accent), #2dd4bf (light), #0f766e (dark)
+- Grays: #111827, #1f2937, #374151, #4b5563, #9ca3af, #d1d5db, #e5e7eb, #f3f4f6
+*/
+
+/* Main app background */
+Screen {
+    background: #1a1a1a;
+}
+
+/* Header and Footer - Primary Indigo */
+Header {
+    dock: top;
+    height: 3;
+    background: #4f46e5;
+    color: #ffffff;
+}
+
+Footer {
+    dock: bottom;
+    height: 3;
+    background: #4f46e5;
+    color: #ffffff;
+}
+
+/* Title styling - Light Indigo with bold text */
+.title {
+    text-style: bold;
+    margin: 1;
+    color: #6366f1;
+    text-align: center;
+}
+
+/* Help text - Muted gray */
+.help {
+    margin-bottom: 1;
+    color: #9ca3af;
+    text-align: center;
+}
+
+/* Warning messages - Black background with white text and teal border */
+.warning-message {
+    text-align: center;
+    margin: 2;
+    padding: 2;
+    background: #000000;
+    color: #ffffff;
+    text-style: bold;
+    border: solid #14b8a6;
+}
+
+/* DataTable styling */
+DataTable {
+    height: 1fr;
+    margin-top: 1;
+    background: #111827;
+}
+
+DataTable > .datatable--header {
+    text-style: bold;
+    background: #4f46e5;
+    color: #ffffff;
+}
+
+DataTable > .datatable--odd-row {
+    background: #1f2937;
+    color: #ffffff;
+}
+
+DataTable > .datatable--even-row {
+    background: #111827;
+    color: #ffffff;
+}
+
+DataTable > .datatable--cursor {
+    background: #14b8a6;
+    color: #000000;
+    text-style: bold;
+}
+
+DataTable > .datatable--hover {
+    background: #0f766e;
+    color: #ffffff;
+}
+
+/* Organization selector specific styling */
+#auth-warning {
+    height: 100%;
+    align: center middle;
+}
+
+Vertical {
+    height: 100%;
+    background: #1a1a1a;
+}
+
+/* Button styling */
+Button {
+    background: #4f46e5;
+    color: #ffffff;
+    border: solid #14b8a6;
+}
+
+Button:hover {
+    background: #6366f1;
+    color: #ffffff;
+}
+
+Button.-active {
+    background: #14b8a6;
+    color: #000000;
+}
+
+/* Static widget styling */
+Static {
+    color: #ffffff;
+}
+
+/* Container styling */
+Container {
+    background: #1a1a1a;
+}
+
+/* Focus styling */
+*:focus {
+    border: solid #14b8a6;
+}
+
+/* Success/Error/Info colors using our palette */
+.success {
+    background: #14b8a6;
+    color: #000000;
+}
+
+.error {
+    background: #000000;
+    color: #ffffff;
+    border: solid #14b8a6;
+}
+
+.info {
+    background: #4f46e5;
+    color: #ffffff;
+}
+
+/* Notification styling */
+.notification {
+    background: #1f2937;
+    color: #ffffff;
+    border: solid #14b8a6;
+}
+
+/* Organization-specific styling for current org indicator */
+.org-current {
+    color: #14b8a6;
+    text-style: bold;
+}
+
+.org-name {
+    color: #6366f1;
+}
+
+/* Status indicators */
+.status-active {
+    color: #14b8a6;
+}
+
+.status-complete {
+    color: #2dd4bf;
+}
+
+.status-error {
+    color: #ffffff;
+    background: #000000;
+}
+
+.status-pending {
+    color: #9ca3af;
+}

@@ -7,7 +7,12 @@ from rich.console import Console
 from rich.panel import Panel
 
 from codegen.cli.api.endpoints import API_ENDPOINT
-from codegen.cli.auth.token_manager import get_current_org_name, get_current_token, get_current_user_info
+from codegen.cli.auth.token_manager import (
+    get_cached_organizations,
+    get_current_org_name,
+    get_current_token,
+    get_current_user_info,
+)
 from codegen.cli.rich.spinners import create_spinner
 from codegen.cli.utils.org import resolve_org_id
 
@@ -96,6 +101,12 @@ def profile():
         profile_info.append("[cyan]Organization:[/cyan] [yellow]Not configured[/yellow] (set CODEGEN_ORG_ID or REPOSITORY_ORG_ID)")
     if role:
         profile_info.append(f"[cyan]Role:[/cyan]     {role}")
+
+    # Add available organizations from cache
+    cached_orgs = get_cached_organizations()
+    if cached_orgs and len(cached_orgs) > 1:
+        org_names = [f"{org['name']} ({org['id']})" for org in cached_orgs]
+        profile_info.append(f"[cyan]Available Orgs:[/cyan] {', '.join(org_names)}")
 
     profile_text = "\n".join(profile_info) if profile_info else "No profile information available"
 

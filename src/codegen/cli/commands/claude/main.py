@@ -7,36 +7,82 @@ import sys
 import threading
 import time
 
+import requests
 import typer
+from rich import box
+from rich.panel import Panel
+
+
+from codegen.cli.api.endpoints import API_ENDPOINT
+from codegen.cli.auth.token_manager import get_current_token
 from codegen.cli.commands.claude.claude_log_watcher import ClaudeLogWatcherManager
 from codegen.cli.commands.claude.claude_session_api import end_claude_session, generate_session_id
 from codegen.cli.commands.claude.config.mcp_setup import add_codegen_mcp_server, cleanup_codegen_mcp_server
 from codegen.cli.commands.claude.hooks import cleanup_claude_hook, ensure_claude_hook, get_codegen_url
 from codegen.cli.commands.claude.quiet_console import console
+from rich.console import Console
+
+t_console = Console()
+
+from codegen.cli.rich.spinners import create_spinner
 from codegen.cli.utils.org import resolve_org_id
 
 
-def claude(
-    org_id: int | None = typer.Option(None, help="Organization ID (defaults to CODEGEN_ORG_ID/REPOSITORY_ORG_ID or auto-detect)"),
-    no_mcp: bool | None = typer.Option(False, "--no-mcp", help="Disable Codegen's MCP server with additional capabilities over HTTP"),
-):
-    """Run Claude Code with session tracking.
+def _run_claude_background(resolved_org_id: int, prompt: str | None) -> None:
+    """Create a background agent run with Claude context and exit."""
+    token = get_current_token()
+    if not token:
+        console.print("[red]Error:[/red] Not authenticated. Please run 'codegen login' first.")
+        raise typer.Exit(1)
 
-    This command runs Claude Code and tracks the session in the backend API:
-    - Generates a unique session ID
-    - Creates an agent run when Claude starts
-    - Updates the agent run status when Claude exits
-    """
+    payload = {"prompt": prompt or "Start a Claude Code background session"}
+
+    spinner = create_spinner("Creating agent run...")
+    spinner.start()
+    try:
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+            "x-codegen-client": "codegen__claude_code",
+        }
+        url = f"{API_ENDPOINT.rstrip('/')}/v1/organizations/{resolved_org_id}/agent/run"
+        response = requests.post(url, headers=headers, json=payload)
+        response.raise_for_status()
+        agent_run_data = response.json()
+    finally:
+        spinner.stop()
+
+    run_id = agent_run_data.get("id", "Unknown")
+    status = agent_run_data.get("status", "Unknown")
+    web_url = agent_run_data.get("web_url", "")
+
+    result_lines = [
+        f"[cyan]Agent Run ID:[/cyan] {run_id}",
+        f"[cyan]Status:[/cyan]       {status}",
+    ]
+    if web_url:
+        result_lines.append(f"[cyan]Web URL:[/cyan]      {web_url}")
+
+    t_console.print(
+        Panel(
+            "\n".join(result_lines),
+            title="🤖 [bold]Background Agent Run Created[/bold]",
+            border_style="green",
+            box=box.ROUNDED,
+            padding=(1, 2),
+        )
+    )
+    t_console.print("\n[dim]💡 Track progress with:[/dim] [cyan]codegen agents[/cyan]")
+    if web_url:
+        t_console.print(f"[dim]🌐 View in browser:[/dim]  [link]{web_url}[/link]")
+
+
+def _run_claude_interactive(resolved_org_id: int, no_mcp: bool | None) -> None:
+    """Launch Claude Code with session tracking and log watching."""
     # Generate session ID for tracking
     session_id = generate_session_id()
     console.print(f"🆔 Generated session ID: {session_id[:8]}...", style="dim")
-    
-    # Resolve org_id early for session management
-    resolved_org_id = resolve_org_id(org_id)
-    if resolved_org_id is None:
-        console.print("[red]Error:[/red] Organization ID not provided. Pass --org-id, set CODEGEN_ORG_ID, or REPOSITORY_ORG_ID.")
-        raise typer.Exit(1)
-    
+
     console.print("🚀 Starting Claude Code with session tracking...", style="blue")
     console.print(f"🎯 Organization ID: {resolved_org_id}", style="dim")
 
@@ -79,29 +125,27 @@ def claude(
         url = get_codegen_url(session_id)
         console.print(f"\n🔵 Codegen URL: {url}\n", style="bold blue")
 
-
         process = subprocess.Popen(["claude", "--session-id", session_id])
-
 
         # Start log watcher for the session
         console.print("📋 Starting log watcher...", style="blue")
         log_watcher_started = log_watcher_manager.start_watcher(
             session_id=session_id,
             org_id=resolved_org_id,
-            poll_interval=1.0,  # Check every second
-            on_log_entry=None
+            poll_interval=1.0,
+            on_log_entry=None,
         )
-        
+
         if not log_watcher_started:
             console.print("⚠️  Failed to start log watcher", style="yellow")
 
         # Handle Ctrl+C gracefully
         def signal_handler(signum, frame):
             console.print("\n🛑 Stopping Claude Code...", style="yellow")
-            log_watcher_manager.stop_all_watchers()  # Stop log watchers
+            log_watcher_manager.stop_all_watchers()
             process.terminate()
-            cleanup_claude_hook()  # Clean up our hook
-            cleanup_codegen_mcp_server() # Clean up MCP Server
+            cleanup_claude_hook()
+            cleanup_codegen_mcp_server()
             end_claude_session(session_id, "ERROR", resolved_org_id)
             sys.exit(0)
 
@@ -140,7 +184,7 @@ def claude(
             log_watcher_manager.stop_all_watchers()
         except Exception as e:
             console.print(f"⚠️  Error stopping log watchers: {e}", style="yellow")
-            
+
         cleanup_claude_hook()
 
         # Show final session info
@@ -149,3 +193,24 @@ def claude(
         console.print(f"🆔 Session ID: {session_id}", style="dim")
         console.print(f"🎯 Organization ID: {resolved_org_id}", style="dim")
         console.print("💡 Check your backend to see the session data", style="dim")
+
+
+def claude(
+    org_id: int | None = typer.Option(None, help="Organization ID (defaults to CODEGEN_ORG_ID/REPOSITORY_ORG_ID or auto-detect)"),
+    no_mcp: bool | None = typer.Option(False, "--no-mcp", help="Disable Codegen's MCP server with additional capabilities over HTTP"),
+    background: str | None = typer.Option(None, "--background", "-b", help="Create a background agent run with this prompt instead of launching Claude Code"),
+):
+    """Run Claude Code with session tracking or create a background run."""
+    # Resolve org_id early for session management
+    resolved_org_id = resolve_org_id(org_id)
+    if resolved_org_id is None:
+        console.print("[red]Error:[/red] Organization ID not provided. Pass --org-id, set CODEGEN_ORG_ID, or REPOSITORY_ORG_ID.")
+        raise typer.Exit(1)
+
+    if background is not None:
+        # Use the value from --background as the prompt, with --prompt as fallback
+        final_prompt = background or prompt
+        _run_claude_background(resolved_org_id, final_prompt)
+        return
+
+    _run_claude_interactive(resolved_org_id, no_mcp)
