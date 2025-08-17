@@ -58,8 +58,15 @@ class TokenManager:
             # Add organization info if available
             orgs = org_data.get("items", [])
             if orgs and len(orgs) > 0:
-                primary_org = orgs[0]  # Use first org as primary
-                auth_data["organization"] = {"id": primary_org.get("id"), "name": primary_org.get("name"), "all_orgs": [{"id": org.get("id"), "name": org.get("name")} for org in orgs]}
+                # Store ALL organizations in cache for local resolution
+                all_orgs = [{"id": org.get("id"), "name": org.get("name")} for org in orgs]
+                primary_org = orgs[0]  # Use first org as primary/default
+                auth_data["organization"] = {
+                    "id": primary_org.get("id"), 
+                    "name": primary_org.get("name"), 
+                    "all_orgs": all_orgs
+                }
+                auth_data["organizations_cache"] = all_orgs  # Separate cache for easy access
 
         except requests.RequestException as e:
             # If we can't fetch org info, still save the token but without org data
@@ -171,6 +178,53 @@ class TokenManager:
             return auth_data["user"]
         return None
 
+    def get_cached_organizations(self) -> list[dict] | None:
+        """Get all cached organizations.
+        
+        Returns:
+            List of organization dictionaries with 'id' and 'name' keys, or None if no cache.
+        """
+        auth_data = self.get_auth_data()
+        if auth_data and "organizations_cache" in auth_data:
+            return auth_data["organizations_cache"]
+        # Fallback to legacy format
+        if auth_data and "organization" in auth_data and "all_orgs" in auth_data["organization"]:
+            return auth_data["organization"]["all_orgs"]
+        return None
+
+    def is_org_id_in_cache(self, org_id: int) -> bool:
+        """Check if an organization ID exists in the local cache.
+        
+        Args:
+            org_id: The organization ID to check
+            
+        Returns:
+            True if the organization ID is found in cache, False otherwise.
+        """
+        cached_orgs = self.get_cached_organizations()
+        if not cached_orgs:
+            return False
+        
+        return any(org.get("id") == org_id for org in cached_orgs)
+
+    def get_org_name_from_cache(self, org_id: int) -> str | None:
+        """Get organization name from cache by ID.
+        
+        Args:
+            org_id: The organization ID to look up
+            
+        Returns:
+            Organization name if found in cache, None otherwise.
+        """
+        cached_orgs = self.get_cached_organizations()
+        if not cached_orgs:
+            return None
+            
+        for org in cached_orgs:
+            if org.get("id") == org_id:
+                return org.get("name")
+        return None
+
 
 def get_current_token() -> str | None:
     """Get the current authentication token if one exists.
@@ -233,6 +287,42 @@ def get_current_org_name() -> str | None:
     return token_manager.get_org_name()
 
 
+def get_cached_organizations() -> list[dict] | None:
+    """Get all cached organizations.
+    
+    Returns:
+        List of organization dictionaries with 'id' and 'name' keys, or None if no cache.
+    """
+    token_manager = TokenManager()
+    return token_manager.get_cached_organizations()
+
+
+def is_org_id_cached(org_id: int) -> bool:
+    """Check if an organization ID exists in the local cache.
+    
+    Args:
+        org_id: The organization ID to check
+        
+    Returns:
+        True if the organization ID is found in cache, False otherwise.
+    """
+    token_manager = TokenManager()
+    return token_manager.is_org_id_in_cache(org_id)
+
+
+def get_org_name_from_cache(org_id: int) -> str | None:
+    """Get organization name from cache by ID.
+    
+    Args:
+        org_id: The organization ID to look up
+        
+    Returns:
+        Organization name if found in cache, None otherwise.
+    """
+    token_manager = TokenManager()
+    return token_manager.get_org_name_from_cache(org_id)
+
+
 def get_current_user_info() -> dict | None:
     """Get the stored user info if available.
 
@@ -241,3 +331,83 @@ def get_current_user_info() -> dict | None:
     """
     token_manager = TokenManager()
     return token_manager.get_user_info()
+
+
+# Repository caching functions (similar to organization caching)
+
+def get_cached_repositories() -> list[dict] | None:
+    """Get all cached repositories.
+    
+    Returns:
+        List of repository dictionaries with 'id' and 'name' keys, or None if no cache.
+    """
+    token_manager = TokenManager()
+    auth_data = token_manager.get_auth_data()
+    if auth_data and "repositories_cache" in auth_data:
+        return auth_data["repositories_cache"]
+    return None
+
+
+def cache_repositories(repositories: list[dict]) -> None:
+    """Cache repositories to local storage.
+    
+    Args:
+        repositories: List of repository dictionaries to cache
+    """
+    token_manager = TokenManager()
+    auth_data = token_manager.get_auth_data()
+    if auth_data:
+        auth_data["repositories_cache"] = repositories
+        # Save back to file
+        try:
+            import json
+            with open(token_manager.token_file, 'w') as f:
+                json.dump(auth_data, f, indent=2)
+        except Exception:
+            pass  # Fail silently
+
+
+def is_repo_id_cached(repo_id: int) -> bool:
+    """Check if a repository ID exists in the local cache.
+    
+    Args:
+        repo_id: The repository ID to check
+        
+    Returns:
+        True if the repository ID is found in cache, False otherwise.
+    """
+    cached_repos = get_cached_repositories()
+    if not cached_repos:
+        return False
+    
+    return any(repo.get("id") == repo_id for repo in cached_repos)
+
+
+def get_repo_name_from_cache(repo_id: int) -> str | None:
+    """Get repository name from cache by ID.
+    
+    Args:
+        repo_id: The repository ID to look up
+        
+    Returns:
+        Repository name if found in cache, None otherwise.
+    """
+    cached_repos = get_cached_repositories()
+    if not cached_repos:
+        return None
+    
+    for repo in cached_repos:
+        if repo.get("id") == repo_id:
+            return repo.get("name")
+    
+    return None
+
+
+def get_current_repo_name() -> str | None:
+    """Get the current repository name from environment or cache."""
+    from codegen.cli.utils.repo import get_current_repo_id
+    
+    repo_id = get_current_repo_id()
+    if repo_id:
+        return get_repo_name_from_cache(repo_id)
+    return None
