@@ -38,7 +38,11 @@
               "integrations/figma",
               "integrations/circleci",
               "integrations/web-search",
-              "integrations/postgres"
+              "integrations/postgres",
+              {
+                "group": "integrations/mcp",
+                "name": "Remote MCP Server"
+              }
             ]
           },
           {
