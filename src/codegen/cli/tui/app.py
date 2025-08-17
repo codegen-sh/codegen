@@ -7,6 +7,9 @@ import tty
 from datetime import datetime
 from typing import Any
 
+import requests
+
+from codegen.cli.api.endpoints import API_ENDPOINT
 from codegen.cli.auth.token_manager import get_current_token
 from codegen.cli.utils.org import resolve_org_id
 
@@ -24,6 +27,15 @@ class MinimalTUI:
         self.running = True
         self.show_action_menu = False
         self.action_menu_selection = 0
+
+        # Tab management
+        self.tabs = ["recents", "new"]
+        self.current_tab = 0
+
+        # New tab state
+        self.prompt_input = ""
+        self.cursor_position = 0
+        self.input_mode = False  # When true, we're typing in the input box
 
         # Set up signal handler for Ctrl+C
         signal.signal(signal.SIGINT, self._signal_handler)
@@ -119,8 +131,18 @@ class MinimalTUI:
             return created_at[:16] if len(created_at) > 16 else created_at
 
     def _display_header(self):
-        """Display the minimal header."""
-        print("🤖 \033[1mRecents\033[0m")
+        """Display the header with tabs."""
+        print("🤖 \033[1mCodegen CLI\033[0m")
+
+        # Display tabs
+        tab_line = ""
+        for i, tab in enumerate(self.tabs):
+            if i == self.current_tab:
+                tab_line += f"\033[34m[{tab}]\033[0m  "  # Blue for active tab
+        else:
+            tab_line += f"\033[90m{tab}\033[0m  "  # Gray for inactive tabs
+
+        print(tab_line)
         print()
 
     def _display_agent_list(self):
@@ -154,6 +176,110 @@ class MinimalTUI:
             # Show action menu right below the selected row if it's expanded
             if i == self.selected_index and self.show_action_menu:
                 self._display_inline_action_menu(agent_run)
+
+    def _display_new_tab(self):
+        """Display the new agent creation interface."""
+        print("Create a new agent run:")
+        print()
+
+        # Input prompt label
+        print("Prompt:")
+
+        # Get terminal width, default to 80 if can't determine
+        try:
+            import os
+
+            terminal_width = os.get_terminal_size().columns
+        except (OSError, AttributeError):
+            terminal_width = 80
+
+        # Calculate input box width (leave some margin)
+        box_width = max(60, terminal_width - 4)
+
+        # Input box with cursor
+        input_display = self.prompt_input
+        if self.input_mode:
+            # Add cursor indicator when in input mode
+            if self.cursor_position <= len(input_display):
+                input_display = input_display[: self.cursor_position] + "█" + input_display[self.cursor_position :]
+
+        # Handle long input that exceeds box width
+        if len(input_display) > box_width - 4:
+            # Show portion around cursor
+            start_pos = max(0, self.cursor_position - (box_width // 2))
+            input_display = input_display[start_pos : start_pos + box_width - 4]
+
+        # Display full-width input box with simple border like Claude Code
+        border_style = "\033[34m" if self.input_mode else "\033[90m"  # Blue when active, gray when inactive
+        reset = "\033[0m"
+
+        print(border_style + "┌" + "─" * (box_width - 2) + "┐" + reset)
+        padding = box_width - 4 - len(input_display.replace("█", ""))
+        print(border_style + "│" + reset + f" {input_display}{' ' * max(0, padding)} " + border_style + "│" + reset)
+        print(border_style + "└" + "─" * (box_width - 2) + "┘" + reset)
+        print()
+
+        if self.input_mode:
+            print("\033[90mType your prompt • [Enter] create agent • [Esc] cancel\033[0m")
+        else:
+            print("\033[90m[Enter] start typing • [Tab] switch tabs • [Q] quit\033[0m")
+
+    def _create_background_agent(self, prompt: str):
+        """Create a background agent run."""
+        if not self.token or not self.org_id:
+            print("\n❌ Not authenticated or no organization configured.")
+            input("Press Enter to continue...")
+            return
+
+        if not prompt.strip():
+            print("\n❌ Please enter a prompt.")
+            input("Press Enter to continue...")
+            return
+
+        print(f"\n🔄 Creating agent run with prompt: '{prompt[:50]}{'...' if len(prompt) > 50 else ''}'")
+
+        try:
+            payload = {"prompt": prompt.strip()}
+            headers = {
+                "Authorization": f"Bearer {self.token}",
+                "Content-Type": "application/json",
+                "x-codegen-client": "codegen__tui",
+            }
+            url = f"{API_ENDPOINT.rstrip('/')}/v1/organizations/{self.org_id}/agent/run"
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
+            response.raise_for_status()
+            agent_run_data = response.json()
+
+            run_id = agent_run_data.get("id", "Unknown")
+            status = agent_run_data.get("status", "Unknown")
+            web_url = self._generate_agent_url(run_id)
+
+            print("\n✅ Agent run created successfully!")
+            print(f"   Run ID: {run_id}")
+            print(f"   Status: {status}")
+            print(f"   Web URL: {web_url}")
+
+            # Clear the input
+            self.prompt_input = ""
+            self.cursor_position = 0
+            self.input_mode = False
+
+            # Optionally refresh the recents tab if we're going back to it
+            if hasattr(self, "_load_agent_runs"):
+                print("\n🔄 Refreshing recents...")
+                self._load_agent_runs()
+
+        except Exception as e:
+            print(f"\n❌ Failed to create agent run: {e}")
+
+        input("\nPress Enter to continue...")
+
+    def _display_content(self):
+        """Display content based on current tab."""
+        if self.current_tab == 0:  # recents
+            self._display_agent_list()
+        elif self.current_tab == 1:  # new
+            self._display_new_tab()
 
     def _display_inline_action_menu(self, agent_run: dict):
         """Display action menu inline below the selected row."""
@@ -203,39 +329,91 @@ class MinimalTUI:
 
     def _handle_keypress(self, key: str):
         """Handle key presses for navigation."""
+        # Global quit
         if key.lower() == "q" or key == "\x03":  # q or Ctrl+C
             self.running = False
+            return
+
+        # Tab switching (unless in input mode)
+        if not self.input_mode and key == "\t":  # Tab key
+            self.current_tab = (self.current_tab + 1) % len(self.tabs)
+            # Reset state when switching tabs
+            self.show_action_menu = False
+            self.action_menu_selection = 0
+            self.selected_index = 0
+            return
+
+        # Handle based on current context
+        if self.input_mode:
+            self._handle_input_mode_keypress(key)
         elif self.show_action_menu:
-            # Handle action menu navigation
-            if key == "\x1b[A" or key.lower() == "w":  # Up arrow or W
-                self.action_menu_selection = max(0, self.action_menu_selection - 1)
-            elif key == "\x1b[B" or key.lower() == "s":  # Down arrow or S
-                self.action_menu_selection = min(1, self.action_menu_selection + 1)  # 2 options: 0,1
-            elif key == "\r" or key == "\n":  # Enter
-                self._execute_inline_action()
-                self.show_action_menu = False  # Close menu after action
-            elif key == "\x1b" or key.lower() == "escape":  # Escape
-                self.show_action_menu = False  # Close menu
-                self.action_menu_selection = 0  # Reset selection
-        else:
-            # Handle main list navigation
-            if key == "\x1b[A" or key.lower() == "w":  # Up arrow or W
-                self.selected_index = max(0, self.selected_index - 1)
-                self.show_action_menu = False  # Close any open menu
-                self.action_menu_selection = 0
-            elif key == "\x1b[B" or key.lower() == "s":  # Down arrow or S
-                self.selected_index = min(len(self.agent_runs) - 1, self.selected_index + 1)
-                self.show_action_menu = False  # Close any open menu
-                self.action_menu_selection = 0
-            elif key == "\r" or key == "\n" or key.lower() == "e":  # Enter or E
-                self.show_action_menu = True  # Open action menu
-                self.action_menu_selection = 0  # Reset to first option
-            elif key.lower() == "r":
-                self._refresh()
-                self.show_action_menu = False  # Close menu on refresh
-                self.action_menu_selection = 0
-            elif len(key) > 1:  # Handle any other escape sequences
-                pass  # Ignore unknown escape sequences
+            self._handle_action_menu_keypress(key)
+        elif self.current_tab == 0:  # recents tab
+            self._handle_recents_keypress(key)
+        elif self.current_tab == 1:  # new tab
+            self._handle_new_tab_keypress(key)
+
+    def _handle_input_mode_keypress(self, key: str):
+        """Handle keypresses when in text input mode."""
+        if key == "\x1b":  # Escape - exit input mode
+            self.input_mode = False
+        elif key == "\r" or key == "\n":  # Enter - create agent run
+            if self.prompt_input.strip():  # Only create if there's actual content
+                self._create_background_agent(self.prompt_input)
+            else:
+                self.input_mode = False  # Exit input mode if empty
+        elif key == "\x7f" or key == "\b":  # Backspace
+            if self.cursor_position > 0:
+                self.prompt_input = self.prompt_input[: self.cursor_position - 1] + self.prompt_input[self.cursor_position :]
+                self.cursor_position -= 1
+        elif key == "\x1b[C":  # Right arrow
+            self.cursor_position = min(len(self.prompt_input), self.cursor_position + 1)
+        elif key == "\x1b[D":  # Left arrow
+            self.cursor_position = max(0, self.cursor_position - 1)
+        elif len(key) == 1 and key.isprintable():  # Regular character
+            self.prompt_input = self.prompt_input[: self.cursor_position] + key + self.prompt_input[self.cursor_position :]
+            self.cursor_position += 1
+
+    def _handle_action_menu_keypress(self, key: str):
+        """Handle action menu navigation."""
+        if key == "\x1b[A" or key.lower() == "w":  # Up arrow or W
+            self.action_menu_selection = max(0, self.action_menu_selection - 1)
+        elif key == "\x1b[B" or key.lower() == "s":  # Down arrow or S
+            self.action_menu_selection = min(1, self.action_menu_selection + 1)  # 2 options: 0,1
+        elif key == "\r" or key == "\n":  # Enter
+            self._execute_inline_action()
+            self.show_action_menu = False  # Close menu after action
+        elif key == "\x1b" or key.lower() == "escape":  # Escape
+            self.show_action_menu = False  # Close menu
+            self.action_menu_selection = 0  # Reset selection
+
+    def _handle_recents_keypress(self, key: str):
+        """Handle keypresses in the recents tab."""
+        if key == "\x1b[A" or key.lower() == "w":  # Up arrow or W
+            self.selected_index = max(0, self.selected_index - 1)
+            self.show_action_menu = False  # Close any open menu
+            self.action_menu_selection = 0
+        elif key == "\x1b[B" or key.lower() == "s":  # Down arrow or S
+            self.selected_index = min(len(self.agent_runs) - 1, self.selected_index + 1)
+            self.show_action_menu = False  # Close any open menu
+            self.action_menu_selection = 0
+        elif key == "\r" or key == "\n" or key.lower() == "e":  # Enter or E
+            self.show_action_menu = True  # Open action menu
+            self.action_menu_selection = 0  # Reset to first option
+        elif key.lower() == "r":
+            self._refresh()
+            self.show_action_menu = False  # Close menu on refresh
+            self.action_menu_selection = 0
+
+    def _handle_new_tab_keypress(self, key: str):
+        """Handle keypresses in the new tab."""
+        if key == "\r" or key == "\n":  # Enter - start input mode
+            if not self.input_mode:
+                self.input_mode = True
+                self.cursor_position = len(self.prompt_input)
+            else:
+                # If already in input mode, Enter should create the agent
+                self._create_background_agent(self.prompt_input)
 
     def _execute_inline_action(self):
         """Execute the selected action from the inline menu."""
@@ -251,15 +429,15 @@ class MinimalTUI:
             print(f"\n🔄 Pull locally functionality not yet implemented for agent {agent_id}")
             input("Press Enter to continue...")
         elif self.action_menu_selection == 1:
-            # Open in web option
+            # Open in web option - seamless, no pause needed
             try:
                 import webbrowser
 
                 webbrowser.open(url)
-                print(f"\n🌐 Opened {url} in your default browser")
+                # No pause - let it flow back naturally to collapsed state
             except Exception as e:
                 print(f"\n❌ Failed to open browser: {e}")
-            input("Press Enter to continue...")
+                input("Press Enter to continue...")  # Only pause on errors
 
     def _open_agent_details(self):
         """Toggle the inline action menu."""
@@ -277,11 +455,17 @@ class MinimalTUI:
         # Move cursor to top and clear screen from cursor down
         print("\033[H\033[J", end="")
         self._display_header()
-        self._display_agent_list()
-        if self.show_action_menu:
+        self._display_content()
+
+        # Show appropriate instructions based on context
+        if self.input_mode:
+            print("\n\033[90mType your prompt, [Enter] to create, [Esc] to cancel, [Q] quit\033[0m")
+        elif self.show_action_menu:
             print("\n\033[90m(arrows) navigate menu, [Enter] select, [Esc] close, [Q] quit\033[0m")
-        else:
-            print("\n\033[90m(arrows) navigate, [Enter] actions, [R] refresh, [Q] quit\033[0m")
+        elif self.current_tab == 0:  # recents
+            print("\n\033[90m[Tab] switch tabs, (arrows) navigate, [Enter] actions, [R] refresh, [Q] quit\033[0m")
+        elif self.current_tab == 1:  # new
+            print("\n\033[90m[Tab] switch tabs, [Enter] start typing, [Q] quit\033[0m")
 
     def run(self):
         """Run the minimal TUI."""
