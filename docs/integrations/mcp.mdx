@@ -77,33 +77,6 @@ The remote MCP server uses your Codegen API key for authentication. You can obta
 
 The remote MCP server provides the following tools for AI agents:
 
-### Agent Management
-
-- **create_agent_run**: Create a new agent run in your organization
-- **get_agent_run**: Get details of a specific agent run
-
-### Organization Management
-
-- **get_organizations**: List organizations you have access to
-- **get_users**: List users in an organization
-- **get_user**: Get details of a specific user
-
-## Troubleshooting
-
-### Common Issues
-
-**Authentication errors**
-
-- Verify your API key is valid and not expired
-- Check that the API key has the necessary permissions
-- Ensure the Authorization header is correctly formatted
-
-**Connection issues**
-
-- Check your network connectivity to mcp.codegen.com
-- Verify the URL is correctly specified
-- Ensure your AI agent supports HTTP transport for MCP
-
 ### Getting Help
 
 If you encounter issues with the remote MCP server:
@@ -111,36 +84,5 @@ If you encounter issues with the remote MCP server:
 1. Check the [Codegen documentation](https://docs.codegen.com)
 2. Join our [community Slack](https://community.codegen.com)
 3. Report issues on [GitHub](https://github.com/codegen-sh/codegen)
-
-## Examples
-
-### Creating an Agent Run
-
-```python
-# Example of how an AI agent might use the MCP server
-# This would be handled automatically by your AI agent
-
-{
-  "tool": "create_agent_run",
-  "arguments": {
-    "org_id": 123,
-    "prompt": "Review the latest pull request and suggest improvements",
-    "repo_name": "my-project",
-    "branch_name": "feature-branch"
-  }
-}
-```
-
-### Getting Organization Information
-
-```python
-{
-  "tool": "get_organizations",
-  "arguments": {
-    "page": 1,
-    "limit": 10
-  }
-}
-```
 
 The remote MCP server makes it easy to integrate Codegen's powerful AI development capabilities into your existing AI agent workflows without the need to run a local server.
