@@ -1,0 +1,11 @@
+{
+	"permissions": {
+		"allow": [
+			"mcp__codegen-tools__linear_get_teams",
+			"mcp__codegen-tools__linear_search_issues",
+			"mcp__codegen-tools__linear_create_issue"
+		],
+		"deny": [],
+		"ask": []
+	}
+}

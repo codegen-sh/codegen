@@ -4,14 +4,12 @@ import os
 import signal
 import subprocess
 import sys
-import threading
-import time
 
 import requests
 import typer
 from rich import box
+from rich.console import Console
 from rich.panel import Panel
-
 
 from codegen.cli.api.endpoints import API_ENDPOINT
 from codegen.cli.auth.token_manager import get_current_token
@@ -20,12 +18,10 @@ from codegen.cli.commands.claude.claude_session_api import end_claude_session, g
 from codegen.cli.commands.claude.config.mcp_setup import add_codegen_mcp_server, cleanup_codegen_mcp_server
 from codegen.cli.commands.claude.hooks import cleanup_claude_hook, ensure_claude_hook, get_codegen_url
 from codegen.cli.commands.claude.quiet_console import console
-from rich.console import Console
-
-t_console = Console()
-
 from codegen.cli.rich.spinners import create_spinner
 from codegen.cli.utils.org import resolve_org_id
+
+t_console = Console()
 
 
 def _run_claude_background(resolved_org_id: int, prompt: str | None) -> None:
@@ -208,8 +204,8 @@ def claude(
         raise typer.Exit(1)
 
     if background is not None:
-        # Use the value from --background as the prompt, with --prompt as fallback
-        final_prompt = background or prompt
+        # Use the value from --background as the prompt
+        final_prompt = background
         _run_claude_background(resolved_org_id, final_prompt)
         return
 
