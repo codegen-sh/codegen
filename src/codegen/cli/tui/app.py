@@ -4,6 +4,7 @@ import signal
 import sys
 import termios
 import tty
+import select
 from datetime import datetime
 from typing import Any
 
@@ -179,12 +180,38 @@ class MinimalTUI:
         print()
 
     def _display_agent_list(self):
-        """Display the list of agent runs."""
+        """Display the list of agent runs, fixed to 10 lines of main content."""
         if not self.agent_runs:
             print("No agent runs found.")
+            self._pad_to_lines(1)
             return
 
-        for i, agent_run in enumerate(self.agent_runs):
+        # Determine how many extra lines the inline action menu will print (if open)
+        menu_lines = 0
+        if self.show_action_menu and 0 <= self.selected_index < len(self.agent_runs):
+            selected_run = self.agent_runs[self.selected_index]
+            github_prs = selected_run.get("github_pull_requests", [])
+            options_count = 1  # "open in web"
+            if github_prs:
+                options_count += 1  # "pull locally"
+            if github_prs and github_prs[0].get("url"):
+                options_count += 1  # "open PR"
+            menu_lines = options_count + 1  # +1 for the hint line
+
+        # We want total printed lines (rows + menu) to be 10
+        window_size = max(1, 10 - menu_lines)
+
+        total = len(self.agent_runs)
+        if total <= window_size:
+            start = 0
+            end = total
+        else:
+            start = max(0, min(self.selected_index - window_size // 2, total - window_size))
+            end = start + window_size
+
+        printed_rows = 0
+        for i in range(start, end):
+            agent_run = self.agent_runs[i]
             # Highlight selected item
             prefix = "→ " if i == self.selected_index and not self.show_action_menu else "  "
 
@@ -192,23 +219,25 @@ class MinimalTUI:
             created = self._format_date(agent_run.get("created_at", "Unknown"))
             summary = agent_run.get("summary", "No summary") or "No summary"
 
-            # No need to truncate summary as much since we removed the URL column
             if len(summary) > 60:
                 summary = summary[:57] + "..."
 
-            # Color coding: indigo blue for selected, darker gray for others (but keep status colors)
             if i == self.selected_index and not self.show_action_menu:
-                # Blue timestamp and summary for selected row, but preserve status colors
                 line = f"\033[34m{prefix}{created:<10}\033[0m {status} \033[34m{summary}\033[0m"
             else:
-                # Gray text for non-selected rows, but preserve status colors
                 line = f"\033[90m{prefix}{created:<10}\033[0m {status} \033[90m{summary}\033[0m"
 
             print(line)
+            printed_rows += 1
 
             # Show action menu right below the selected row if it's expanded
             if i == self.selected_index and self.show_action_menu:
                 self._display_inline_action_menu(agent_run)
+
+        # If fewer than needed to reach 10 lines, pad blank lines
+        total_printed = printed_rows + menu_lines
+        if total_printed < 10:
+            self._pad_to_lines(total_printed)
 
     def _display_new_tab(self):
         """Display the new agent creation interface."""
@@ -248,6 +277,9 @@ class MinimalTUI:
         print(border_style + "│" + reset + f" {input_display}{' ' * max(0, padding)} " + border_style + "│" + reset)
         print(border_style + "└" + "─" * (box_width - 2) + "┘" + reset)
         print()
+
+        # The new tab main content area should be a fixed 10 lines
+        self._pad_to_lines(6)
 
     def _create_background_agent(self, prompt: str):
         """Create a background agent run."""
@@ -298,33 +330,36 @@ class MinimalTUI:
 
     def _show_post_creation_menu(self, web_url: str):
         """Show menu after successful agent creation."""
-        print("\nWhat would you like to do next?")
-        print()
+        from codegen.cli.utils.inplace_print import inplace_print
 
+        print("\nWhat would you like to do next?")
         options = ["open in web preview", "go to recents"]
         selected = 0
+        prev_lines = 0
 
-        while True:
-            # Clear previous menu display and move cursor up
-            for i in range(len(options) + 2):
-                print("\033[K")  # Clear line
-            print(f"\033[{len(options) + 2}A", end="")  # Move cursor up
-
+        def build_lines():
+            menu_lines = []
+            # Options
             for i, option in enumerate(options):
                 if i == selected:
-                    print(f"    \033[34m→ {option}\033[0m")
+                    menu_lines.append(f"    \033[34m→ {option}\033[0m")
                 else:
-                    print(f"    \033[90m  {option}\033[0m")
+                    menu_lines.append(f"    \033[90m  {option}\033[0m")
+            # Hint line last
+            menu_lines.append("\033[90m[Enter] select • [↑↓] navigate • [Esc] back to new tab\033[0m")
+            return menu_lines
 
-            print("\n\033[90m[Enter] select • [↑↓] navigate • [Esc] back to new tab\033[0m")
+        # Initial render
+        prev_lines = inplace_print(build_lines(), prev_lines)
 
-            # Get input
+        while True:
             key = self._get_char()
-
             if key == "\x1b[A" or key.lower() == "w":  # Up arrow or W
-                selected = max(0, selected - 1)
+                selected = (selected - 1) % len(options)
+                prev_lines = inplace_print(build_lines(), prev_lines)
             elif key == "\x1b[B" or key.lower() == "s":  # Down arrow or S
-                selected = min(len(options) - 1, selected + 1)
+                selected = (selected + 1) % len(options)
+                prev_lines = inplace_print(build_lines(), prev_lines)
             elif key == "\r" or key == "\n":  # Enter - select option
                 if selected == 0:  # open in web preview
                     try:
@@ -340,6 +375,8 @@ class MinimalTUI:
                     self._load_agent_runs()  # Refresh the data
                 break
             elif key == "\x1b":  # Esc - back to new tab
+                self.current_tab = 1  # 'new' tab index
+                self.input_mode = True
                 break
 
     def _display_web_tab(self):
@@ -353,6 +390,8 @@ class MinimalTUI:
         print(f"  \033[34m→ Open Web ({display_url})\033[0m")
         print()
         print("Press Enter to open the web interface in your browser.")
+        # The web tab main content area should be a fixed 10 lines
+        self._pad_to_lines(5)
 
     def _pull_agent_branch(self, agent_id: str):
         """Pull the PR branch for an agent run locally."""
@@ -385,6 +424,11 @@ class MinimalTUI:
             self._display_new_tab()
         elif self.current_tab == 2:  # web
             self._display_web_tab()
+
+    def _pad_to_lines(self, lines_printed: int, target: int = 10):
+        """Pad the main content area with blank lines to reach a fixed height."""
+        for _ in range(max(0, target - lines_printed)):
+            print()
 
     def _display_inline_action_menu(self, agent_run: dict):
         """Display action menu inline below the selected row."""
@@ -432,8 +476,15 @@ class MinimalTUI:
 
                 # Handle escape sequences (arrow keys)
                 if ch == "\x1b":  # ESC
+                    # Peek for additional bytes to distinguish bare ESC vs sequences
+                    ready, _, _ = select.select([sys.stdin], [], [], 0.03)
+                    if not ready:
+                        return "\x1b"  # bare Esc
                     ch2 = sys.stdin.read(1)
                     if ch2 == "[":
+                        ready2, _, _ = select.select([sys.stdin], [], [], 0.03)
+                        if not ready2:
+                            return "\x1b["
                         ch3 = sys.stdin.read(1)
                         return f"\x1b[{ch3}"
                     else:
