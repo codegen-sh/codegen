@@ -122,16 +122,27 @@ class MinimalTUI:
             return "\033[34m✓\033[0m Done"  # Blue checkmark for merged PR
 
         status_map = {
-            "COMPLETE": "\033[32m○\033[0m Complete",  # Green empty circle outline
-            "ACTIVE": "\033[35m●\033[0m Active",  # Dark purple solid circle
-            "RUNNING": "\033[35m●\033[0m Running",  # Dark purple solid circle
-            "CANCELLED": "\033[90m○\033[0m Cancelled",  # Gray empty circle
-            "ERROR": "\033[31m●\033[0m Error",  # Red solid circle
-            "FAILED": "\033[31m●\033[0m Failed",  # Red solid circle
-            "STOPPED": "\033[90m○\033[0m Stopped",  # Gray empty circle
-            "PENDING": "\033[37m○\033[0m Pending",  # Light gray empty circle
+            "COMPLETE": "\033[38;2;52;211;153m○\033[0m Complete",  # emerald-400
+            "ACTIVE": "\033[38;2;162;119;255m●\033[0m Active",  # #a277ff (purple from badge)
+            "RUNNING": "\033[38;2;162;119;255m●\033[0m Running",  # #a277ff (purple from badge)
+            "ERROR": "\033[38;2;248;113;113m●\033[0m Error",  # red-400
+            "FAILED": "\033[38;2;248;113;113m●\033[0m Failed",  # red-400
+            "CANCELLED": "\033[38;2;156;163;175m○\033[0m Cancelled",  # gray-400
+            "STOPPED": "\033[38;2;156;163;175m○\033[0m Stopped",  # gray-400
+            "PENDING": "\033[38;2;156;163;175m○\033[0m Pending",  # gray-400
+            "TIMEOUT": "\033[38;2;251;146;60m●\033[0m Timeout",  # orange-400
+            "MAX_ITERATIONS_REACHED": "\033[38;2;251;191;36m●\033[0m Max Iterations",  # amber-400
+            "OUT_OF_TOKENS": "\033[38;2;251;191;36m●\033[0m Out of Tokens",  # amber-400
+            "EVALUATION": "\033[38;2;196;181;253m●\033[0m Evaluation",  # purple-400
         }
         return status_map.get(status, f"\033[37m○\033[0m {status}")
+
+    def _strip_ansi_codes(self, text: str) -> str:
+        """Strip ANSI color codes from text."""
+        import re
+
+        ansi_escape = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
+        return ansi_escape.sub("", text)
 
     def _format_date(self, created_at: str) -> str:
         """Format creation date."""
@@ -146,8 +157,9 @@ class MinimalTUI:
 
     def _display_header(self):
         """Display the header with tabs."""
-        # ASCII art header inspired by the CRUSH design
-        print("\033[35m" + "/" * 20 + "  \033[1mCODEGEN\033[0m\033[35m  " + "/" * 20 + "\033[0m")
+        # Simple header with indigo slashes and Codegen text
+        print("\033[38;2;82;19;217m" + "/" * 20 + " Codegen\033[0m")
+        print()  # Add blank line between header and tabs
 
         # Display tabs
         tab_line = ""
@@ -178,13 +190,13 @@ class MinimalTUI:
             if len(summary) > 60:
                 summary = summary[:57] + "..."
 
-            # Color coding: indigo blue for selected, darker gray for others
+            # Color coding: indigo blue for selected, darker gray for others (but keep status colors)
             if i == self.selected_index and not self.show_action_menu:
-                # Dark blue (similar to text-indigo-700) for selected row
-                line = f"\033[34m{prefix}{created:<10} {status:<12} {summary}\033[0m"
+                # Blue timestamp and summary for selected row, but preserve status colors
+                line = f"\033[34m{prefix}{created:<10}\033[0m {status} \033[34m{summary}\033[0m"
             else:
-                # Darker gray for non-selected rows
-                line = f"\033[90m{prefix}{created:<10} {status:<12} {summary}\033[0m"
+                # Gray text for non-selected rows, but preserve status colors
+                line = f"\033[90m{prefix}{created:<10}\033[0m {status} \033[90m{summary}\033[0m"
 
             print(line)
 
