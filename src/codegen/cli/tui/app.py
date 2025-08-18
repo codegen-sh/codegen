@@ -146,15 +146,16 @@ class MinimalTUI:
 
     def _display_header(self):
         """Display the header with tabs."""
-        print("🤖 \033[1mCodegen CLI\033[0m")
+        # ASCII art header inspired by the CRUSH design
+        print("\033[35m" + "/" * 20 + "  \033[1mCODEGEN\033[0m\033[35m  " + "/" * 20 + "\033[0m")
 
         # Display tabs
         tab_line = ""
         for i, tab in enumerate(self.tabs):
             if i == self.current_tab:
                 tab_line += f"\033[34m[{tab}]\033[0m  "  # Blue for active tab
-        else:
-            tab_line += f"\033[90m{tab}\033[0m  "  # Gray for inactive tabs
+            else:
+                tab_line += f"\033[90m{tab}\033[0m  "  # Gray for inactive tabs
 
         print(tab_line)
         print()
@@ -445,7 +446,7 @@ class MinimalTUI:
         if key == "\r" or key == "\n":  # Enter
             self._execute_inline_action()
             self.show_action_menu = False  # Close menu after action
-        elif key.lower() == "c":  # 'C' key to close
+        elif key.lower() == "c" or key == "\x1b[D":  # 'C' key or Left arrow to close
             self.show_action_menu = False  # Close menu
             self.action_menu_selection = 0  # Reset selection
 
@@ -458,6 +459,12 @@ class MinimalTUI:
         elif key == "\x1b[B" or key.lower() == "s":  # Down arrow or S
             self.selected_index = min(len(self.agent_runs) - 1, self.selected_index + 1)
             self.show_action_menu = False  # Close any open menu
+            self.action_menu_selection = 0
+        elif key == "\x1b[C":  # Right arrow - open action menu
+            self.show_action_menu = True  # Open action menu
+            self.action_menu_selection = 0  # Reset to first option
+        elif key == "\x1b[D":  # Left arrow - close action menu
+            self.show_action_menu = False  # Close action menu
             self.action_menu_selection = 0
         elif key == "\r" or key == "\n" or key.lower() == "e":  # Enter or E
             self.show_action_menu = True  # Open action menu
@@ -558,7 +565,7 @@ class MinimalTUI:
         elif self.show_action_menu:
             print("\n\033[90m[Enter] select • [C] close • [Q] quit\033[0m")
         elif self.current_tab == 0:  # recents
-            print("\n\033[90m[Tab] switch tabs • (arrows) navigate • [Enter] actions • [R] refresh • [Q] quit\033[0m")
+            print("\n\033[90m[Tab] switch tabs • (↑↓) navigate • (←→) open/close • [Enter] actions • [R] refresh • [Q] quit\033[0m")
         elif self.current_tab == 1:  # new
             print("\n\033[90m[Tab] switch tabs • [Enter] start typing • [Q] quit\033[0m")
         elif self.current_tab == 2:  # web
