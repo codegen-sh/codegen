@@ -15,7 +15,7 @@ from codegen.cli.commands.integrations.main import integrations_app
 from codegen.cli.commands.login.main import login
 from codegen.cli.commands.logout.main import logout
 from codegen.cli.commands.org.main import org
-from codegen.cli.commands.profile.main import profile
+from codegen.cli.commands.profile.main import profile_app
 from codegen.cli.commands.repo.main import repo
 from codegen.cli.commands.style_debug.main import style_debug
 from codegen.cli.commands.tools.main import tools
@@ -42,7 +42,7 @@ main.command("init", help="Initialize or update the Codegen folder.")(init)
 main.command("login", help="Store authentication token.")(login)
 main.command("logout", help="Clear stored authentication token.")(logout)
 main.command("org", help="Manage and switch between organizations.")(org)
-main.command("profile", help="Display information about the currently authenticated user.")(profile)
+# Profile is now a Typer app
 main.command("repo", help="Manage repository configuration and environment variables.")(repo)
 main.command("style-debug", help="Debug command to visualize CLI styling (spinners, etc).")(style_debug)
 main.command("tools", help="List available tools from the Codegen API.")(tools)
@@ -53,6 +53,7 @@ main.command("update", help="Update Codegen to the latest or specified version")
 main.add_typer(agents_app, name="agents")
 main.add_typer(config_command, name="config")
 main.add_typer(integrations_app, name="integrations")
+main.add_typer(profile_app, name="profile")
 
 
 @main.callback(invoke_without_command=True)

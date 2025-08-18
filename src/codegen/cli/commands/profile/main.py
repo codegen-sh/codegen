@@ -2,9 +2,7 @@
 
 import requests
 import typer
-from rich import box
 from rich.console import Console
-from rich.panel import Panel
 
 from codegen.cli.api.endpoints import API_ENDPOINT
 from codegen.cli.auth.token_manager import (
@@ -12,15 +10,20 @@ from codegen.cli.auth.token_manager import (
     get_current_org_name,
     get_current_token,
     get_current_user_info,
+    set_default_organization,
 )
 from codegen.cli.rich.spinners import create_spinner
 from codegen.cli.utils.org import resolve_org_id
+from codegen.cli.utils.simple_selector import simple_org_selector
 
 console = Console()
 
+# Create the profile Typer app
+profile_app = typer.Typer(name="profile", help="Manage user profile and organization settings.")
 
-def profile():
-    """Display information about the currently authenticated user."""
+
+def _get_profile_data() -> dict:
+    """Get profile data (shared between commands)."""
     # Get the current token
     token = get_current_token()
     if not token:
@@ -83,39 +86,107 @@ def profile():
         finally:
             spinner.stop()
 
-    # Build profile information
-    profile_info = []
-    if user_id != "Unknown":
-        profile_info.append(f"[cyan]User ID:[/cyan]  {user_id}")
-    if full_name:
-        profile_info.append(f"[cyan]Name:[/cyan]     {full_name}")
-    if email:
-        profile_info.append(f"[cyan]Email:[/cyan]    {email}")
-    if github_username:
-        profile_info.append(f"[cyan]GitHub:[/cyan]   {github_username}")
-    if org_name:
-        profile_info.append(f"[cyan]Organization:[/cyan] {org_name}")
-    elif org_id:
-        profile_info.append(f"[cyan]Organization:[/cyan] Organization {org_id}")
-    else:
-        profile_info.append("[cyan]Organization:[/cyan] [yellow]Not configured[/yellow] (set CODEGEN_ORG_ID or REPOSITORY_ORG_ID)")
-    if role:
-        profile_info.append(f"[cyan]Role:[/cyan]     {role}")
+    return {
+        "user_id": user_id,
+        "full_name": full_name,
+        "email": email,
+        "github_username": github_username,
+        "role": role,
+        "org_name": org_name,
+        "org_id": org_id,
+    }
 
-    # Add available organizations from cache
+
+@profile_app.callback(invoke_without_command=True)
+def profile_main(ctx: typer.Context):
+    """Display organization selection dropdown or profile info."""
+    if ctx.invoked_subcommand is None:
+        # No subcommand - show organization selector
+        _show_org_selector()
+
+
+@profile_app.command("list")
+def profile_list():
+    """List all available organizations."""
+    data = _get_profile_data()
     cached_orgs = get_cached_organizations()
-    if cached_orgs and len(cached_orgs) > 1:
-        org_names = [f"{org['name']} ({org['id']})" for org in cached_orgs]
-        profile_info.append(f"[cyan]Available Orgs:[/cyan] {', '.join(org_names)}")
 
-    profile_text = "\n".join(profile_info) if profile_info else "No profile information available"
+    if not cached_orgs:
+        console.print("[yellow]No organizations found. Please run 'codegen login' first.[/yellow]")
+        return
 
-    console.print(
-        Panel(
-            profile_text,
-            title="👤 [bold]User Profile[/bold]",
-            border_style="cyan",
-            box=box.ROUNDED,
-            padding=(1, 2),
-        )
-    )
+    # Build profile information
+    if data["user_id"] != "Unknown":
+        console.print(f"[dim]User ID:[/dim]  [blue]{data['user_id']}[/blue]")
+    if data["full_name"]:
+        console.print(f"[dim]Name:[/dim]     [blue]{data['full_name']}[/blue]")
+    if data["email"]:
+        console.print(f"[dim]Email:[/dim]    [blue]{data['email']}[/blue]")
+    if data["github_username"]:
+        console.print(f"[dim]GitHub:[/dim]   [blue]{data['github_username']}[/blue]")
+    if data["role"]:
+        console.print(f"[dim]Role:[/dim]     [blue]{data['role']}[/blue]")
+
+    # Current organization
+    if data["org_name"]:
+        console.print(f"[dim]Current Org:[/dim] [blue]{data['org_name']} ({data['org_id']})[/blue]")
+    elif data["org_id"]:
+        console.print(f"[dim]Current Org:[/dim] [blue]Organization {data['org_id']}[/blue]")
+    else:
+        console.print("[dim]Current Org:[/dim] [yellow]Not configured[/yellow]")
+
+    console.print()
+    console.print("[dim]Available Organizations:[/dim]")
+
+    for org in cached_orgs:
+        org_id = org.get("id")
+        org_name = org.get("name")
+        is_current = " [green](current)[/green]" if org_id == data["org_id"] else ""
+        console.print(f"  • [blue]{org_name}[/blue] [dim](ID: {org_id})[/dim]{is_current}")
+
+
+def _show_org_selector():
+    """Show the organization selector."""
+    cached_orgs = get_cached_organizations()
+
+    if not cached_orgs:
+        console.print("[red]Error:[/red] No organizations found. Please run 'codegen login' first.")
+        raise typer.Exit(1)
+
+    if len(cached_orgs) == 1:
+        # Only one org, set it as default
+        org = cached_orgs[0]
+        org_id = org.get("id")
+        org_name = org.get("name")
+        try:
+            set_default_organization(org_id, org_name)
+            console.print(f"[green]✓[/green] Set default organization: {org_name} (ID: {org_id})")
+        except Exception as e:
+            console.print(f"[red]Error:[/red] Failed to set default organization: {e}")
+            raise typer.Exit(1)
+        return
+
+    # Multiple orgs - show simple selector
+    current_org_id = resolve_org_id()
+    console.print("[blue]Select your default organization:[/blue]")
+
+    selected_org = simple_org_selector(organizations=cached_orgs, current_org_id=current_org_id, title="👤 Select Default Organization")
+
+    if selected_org:
+        org_id = selected_org.get("id")
+        org_name = selected_org.get("name")
+        try:
+            set_default_organization(org_id, org_name)
+            console.print(f"\n[green]✓ Set default organization:[/green] {org_name} (ID: {org_id})")
+            console.print("[green]✓ Updated ~/.codegen/auth.json[/green]")
+        except Exception as e:
+            console.print(f"\n[red]Error:[/red] Failed to set default organization: {e}")
+            raise typer.Exit(1)
+    else:
+        console.print("\n[yellow]No organization selected.[/yellow]")
+
+
+# For backward compatibility, export the profile function
+def profile():
+    """Display organization selector (legacy function)."""
+    _show_org_selector()
