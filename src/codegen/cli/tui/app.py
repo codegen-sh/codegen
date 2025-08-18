@@ -206,11 +206,8 @@ class MinimalTUI:
 
     def _display_new_tab(self):
         """Display the new agent creation interface."""
-        print("Create a new agent run:")
+        print("Create new background agent (Claude Code):")
         print()
-
-        # Input prompt label
-        print("Prompt:")
 
         # Get terminal width, default to 80 if can't determine
         try:
@@ -245,11 +242,6 @@ class MinimalTUI:
         print(border_style + "│" + reset + f" {input_display}{' ' * max(0, padding)} " + border_style + "│" + reset)
         print(border_style + "└" + "─" * (box_width - 2) + "┘" + reset)
         print()
-
-        if self.input_mode:
-            print("\033[90mType your prompt • [Enter] create agent • [Esc] cancel\033[0m")
-        else:
-            print("\033[90m[Enter] start typing • [Tab] switch tabs • [Q] quit\033[0m")
 
     def _create_background_agent(self, prompt: str):
         """Create a background agent run."""
@@ -291,15 +283,58 @@ class MinimalTUI:
             self.cursor_position = 0
             self.input_mode = False
 
-            # Optionally refresh the recents tab if we're going back to it
-            if hasattr(self, "_load_agent_runs"):
-                print("\n🔄 Refreshing recents...")
-                self._load_agent_runs()
+            # Show post-creation menu
+            self._show_post_creation_menu(web_url)
 
         except Exception as e:
             print(f"\n❌ Failed to create agent run: {e}")
+            input("\nPress Enter to continue...")
 
-        input("\nPress Enter to continue...")
+    def _show_post_creation_menu(self, web_url: str):
+        """Show menu after successful agent creation."""
+        print("\nWhat would you like to do next?")
+        print()
+
+        options = ["open in web preview", "go to recents"]
+        selected = 0
+
+        while True:
+            # Clear previous menu display and move cursor up
+            for i in range(len(options) + 2):
+                print("\033[K")  # Clear line
+            print(f"\033[{len(options) + 2}A", end="")  # Move cursor up
+
+            for i, option in enumerate(options):
+                if i == selected:
+                    print(f"    \033[34m→ {option}\033[0m")
+                else:
+                    print(f"    \033[90m  {option}\033[0m")
+
+            print("\n\033[90m[Enter] select • [↑↓] navigate • [Esc] back to new tab\033[0m")
+
+            # Get input
+            key = self._get_char()
+
+            if key == "\x1b[A" or key.lower() == "w":  # Up arrow or W
+                selected = max(0, selected - 1)
+            elif key == "\x1b[B" or key.lower() == "s":  # Down arrow or S
+                selected = min(len(options) - 1, selected + 1)
+            elif key == "\r" or key == "\n":  # Enter - select option
+                if selected == 0:  # open in web preview
+                    try:
+                        import webbrowser
+
+                        webbrowser.open(web_url)
+                    except Exception as e:
+                        print(f"\n❌ Failed to open browser: {e}")
+                        input("Press Enter to continue...")
+                elif selected == 1:  # go to recents
+                    self.current_tab = 0  # Switch to recents tab
+                    self.input_mode = False
+                    self._load_agent_runs()  # Refresh the data
+                break
+            elif key == "\x1b":  # Esc - back to new tab
+                break
 
     def _display_web_tab(self):
         """Display the web interface access tab."""
@@ -367,14 +402,14 @@ class MinimalTUI:
                 options.append(f"open PR ({pr_display})")
 
         for i, option in enumerate(options):
-            if i == 0:
-                # Always highlight first (top) option in blue
+            if i == self.action_menu_selection:
+                # Highlight selected option in blue
                 print(f"    \033[34m→ {option}\033[0m")
             else:
                 # All other options in gray
                 print(f"    \033[90m  {option}\033[0m")
 
-        print("\033[90m    [Enter] select, [C] close\033[0m")
+        print("\033[90m    [Enter] select • [↑↓] navigate • [C] close\033[0m")
 
     def _get_char(self):
         """Get a single character from stdin, handling arrow keys."""
@@ -406,18 +441,27 @@ class MinimalTUI:
 
     def _handle_keypress(self, key: str):
         """Handle key presses for navigation."""
-        # Global quit
-        if key.lower() == "q" or key == "\x03":  # q or Ctrl+C
+        # Global quit (but not when typing in new tab)
+        if key == "\x03":  # Ctrl+C
+            self.running = False
+            return
+        elif key.lower() == "q" and not (self.input_mode and self.current_tab == 1):  # q only if not typing in new tab
             self.running = False
             return
 
-        # Tab switching (unless in input mode)
-        if not self.input_mode and key == "\t":  # Tab key
+        # Tab switching (works even in input mode)
+        if key == "\t":  # Tab key
             self.current_tab = (self.current_tab + 1) % len(self.tabs)
             # Reset state when switching tabs
             self.show_action_menu = False
             self.action_menu_selection = 0
             self.selected_index = 0
+            # Auto-focus prompt when switching to new tab
+            if self.current_tab == 1:  # new tab
+                self.input_mode = True
+                self.cursor_position = len(self.prompt_input)
+            else:
+                self.input_mode = False
             return
 
         # Handle based on current context
@@ -434,7 +478,7 @@ class MinimalTUI:
 
     def _handle_input_mode_keypress(self, key: str):
         """Handle keypresses when in text input mode."""
-        if key.lower() == "c":  # 'C' key - exit input mode
+        if key == "\x1b":  # Esc key - exit input mode
             self.input_mode = False
         elif key == "\r" or key == "\n":  # Enter - create agent run
             if self.prompt_input.strip():  # Only create if there's actual content
@@ -461,6 +505,30 @@ class MinimalTUI:
         elif key.lower() == "c" or key == "\x1b[D":  # 'C' key or Left arrow to close
             self.show_action_menu = False  # Close menu
             self.action_menu_selection = 0  # Reset selection
+        elif key == "\x1b[A" or key.lower() == "w":  # Up arrow or W
+            # Get available options count
+            if 0 <= self.selected_index < len(self.agent_runs):
+                agent_run = self.agent_runs[self.selected_index]
+                github_prs = agent_run.get("github_pull_requests", [])
+                options_count = 1  # Always have "open in web"
+                if github_prs:
+                    options_count += 1  # "pull locally"
+                if github_prs and github_prs[0].get("url"):
+                    options_count += 1  # "open PR"
+
+                self.action_menu_selection = max(0, self.action_menu_selection - 1)
+        elif key == "\x1b[B" or key.lower() == "s":  # Down arrow or S
+            # Get available options count
+            if 0 <= self.selected_index < len(self.agent_runs):
+                agent_run = self.agent_runs[self.selected_index]
+                github_prs = agent_run.get("github_pull_requests", [])
+                options_count = 1  # Always have "open in web"
+                if github_prs:
+                    options_count += 1  # "pull locally"
+                if github_prs and github_prs[0].get("url"):
+                    options_count += 1  # "open PR"
+
+                self.action_menu_selection = min(options_count - 1, self.action_menu_selection + 1)
 
     def _handle_recents_keypress(self, key: str):
         """Handle keypresses in the recents tab."""
@@ -527,9 +595,9 @@ class MinimalTUI:
         if github_prs and github_prs[0].get("url"):
             options.append("open PR")
 
-        # Always execute the first (top) option
-        if len(options) > 0:
-            selected_option = options[0]
+        # Execute the currently selected option
+        if len(options) > self.action_menu_selection:
+            selected_option = options[self.action_menu_selection]
 
             if selected_option == "pull locally":
                 self._pull_agent_branch(agent_id)
@@ -572,10 +640,12 @@ class MinimalTUI:
         self._display_content()
 
         # Show appropriate instructions based on context
-        if self.input_mode:
-            print("\n\033[90mType your prompt • [Enter] create • [C] cancel • [Q] quit\033[0m")
+        if self.input_mode and self.current_tab == 1:  # new tab input mode
+            print("\n\033[90mType your prompt • [Enter] create • [Esc] cancel • [Tab] switch tabs • [Ctrl+C] quit\033[0m")
+        elif self.input_mode:  # other input modes
+            print("\n\033[90mType your prompt • [Enter] create • [Esc] cancel • [Ctrl+C] quit\033[0m")
         elif self.show_action_menu:
-            print("\n\033[90m[Enter] select • [C] close • [Q] quit\033[0m")
+            print("\n\033[90m[Enter] select • [↑↓] navigate • [C] close • [Q] quit\033[0m")
         elif self.current_tab == 0:  # recents
             print("\n\033[90m[Tab] switch tabs • (↑↓) navigate • (←→) open/close • [Enter] actions • [R] refresh • [Q] quit\033[0m")
         elif self.current_tab == 1:  # new
