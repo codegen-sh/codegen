@@ -11,7 +11,7 @@ import requests
 import typer
 
 from codegen.cli.api.endpoints import API_ENDPOINT
-from codegen.cli.auth.token_manager import get_current_token
+from codegen.cli.auth.token_manager import get_current_org_name, get_current_token
 from codegen.cli.commands.agent.main import pull
 from codegen.cli.utils.org import resolve_org_id
 from codegen.cli.utils.url import generate_webapp_url, get_domain
@@ -56,6 +56,23 @@ class MinimalTUI:
         self.running = False
         print("\n")  # Just add a newline and exit
         sys.exit(0)
+
+    def _format_status_line(self, left_text: str) -> str:
+        """Format status line with instructions and org info on a new line below."""
+        # Get organization name
+        org_name = get_current_org_name()
+        if not org_name:
+            org_name = f"Org {self.org_id}" if hasattr(self, "org_id") and self.org_id else "No Org"
+
+        # Use the same purple color as the Codegen logo
+        purple_color = "\033[38;2;82;19;217m"
+        reset_color = "\033[0m"
+
+        # Return instructions on first line, org on second line (bottom left)
+        instructions_line = f"\033[90m{left_text}\033[0m"
+        org_line = f"{purple_color}• {org_name}{reset_color}"
+
+        return f"{instructions_line}\n{org_line}"
 
     def _load_agent_runs(self) -> bool:
         """Load the last 10 agent runs."""
@@ -635,17 +652,17 @@ class MinimalTUI:
 
         # Show appropriate instructions based on context
         if self.input_mode and self.current_tab == 1:  # new tab input mode
-            print("\n\033[90mType your prompt • [Enter] create • [Esc] cancel • [Tab] switch tabs • [Ctrl+C] quit\033[0m")
+            print(f"\n{self._format_status_line('Type your prompt • [Enter] create • [Esc] cancel • [Tab] switch tabs • [Ctrl+C] quit')}")
         elif self.input_mode:  # other input modes
-            print("\n\033[90mType your prompt • [Enter] create • [Esc] cancel • [Ctrl+C] quit\033[0m")
+            print(f"\n{self._format_status_line('Type your prompt • [Enter] create • [Esc] cancel • [Ctrl+C] quit')}")
         elif self.show_action_menu:
-            print("\n\033[90m[Enter] select • [↑↓] navigate • [C] close • [Q] quit\033[0m")
+            print(f"\n{self._format_status_line('[Enter] select • [↑↓] navigate • [C] close • [Q] quit')}")
         elif self.current_tab == 0:  # recents
-            print("\n\033[90m[Tab] switch tabs • (↑↓) navigate • (←→) open/close • [Enter] actions • [R] refresh • [Q] quit\033[0m")
+            print(f"\n{self._format_status_line('[Tab] switch tabs • (↑↓) navigate • (←→) open/close • [Enter] actions • [R] refresh • [Q] quit')}")
         elif self.current_tab == 1:  # new
-            print("\n\033[90m[Tab] switch tabs • [Enter] start typing • [Q] quit\033[0m")
+            print(f"\n{self._format_status_line('[Tab] switch tabs • [Enter] start typing • [Q] quit')}")
         elif self.current_tab == 2:  # web
-            print("\n\033[90m[Tab] switch tabs • [Enter] open web • [Q] quit\033[0m")
+            print(f"\n{self._format_status_line('[Tab] switch tabs • [Enter] open web • [Q] quit')}")
 
     def run(self):
         """Run the minimal TUI."""
