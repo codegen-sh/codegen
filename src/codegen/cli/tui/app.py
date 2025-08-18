@@ -11,9 +11,10 @@ import requests
 import typer
 
 from codegen.cli.api.endpoints import API_ENDPOINT
-from codegen.cli.auth.token_manager import get_current_token
+from codegen.cli.auth.token_manager import get_current_org_name, get_current_token
 from codegen.cli.commands.agent.main import pull
 from codegen.cli.utils.org import resolve_org_id
+from codegen.cli.utils.url import generate_webapp_url, get_domain
 
 
 class MinimalTUI:
@@ -44,29 +45,34 @@ class MinimalTUI:
 
     def _get_webapp_domain(self) -> str:
         """Get the webapp domain based on environment."""
-        # Simple environment detection - can be expanded later
-        import os
-
-        env = os.getenv("ENV", "staging").lower()
-
-        if env == "production":
-            return "codegen.com"
-        elif env == "local":
-            return "localhost:3000"
-        else:  # staging or default
-            return "chadcode.sh"
+        return get_domain()
 
     def _generate_agent_url(self, agent_id: str) -> str:
         """Generate the complete agent URL."""
-        domain = self._get_webapp_domain()
-        protocol = "http" if "localhost" in domain else "https"
-        return f"{protocol}://{domain}/x/{agent_id}"
+        return generate_webapp_url(f"x/{agent_id}")
 
     def _signal_handler(self, signum, frame):
         """Handle Ctrl+C gracefully without clearing screen."""
         self.running = False
         print("\n")  # Just add a newline and exit
         sys.exit(0)
+
+    def _format_status_line(self, left_text: str) -> str:
+        """Format status line with instructions and org info on a new line below."""
+        # Get organization name
+        org_name = get_current_org_name()
+        if not org_name:
+            org_name = f"Org {self.org_id}" if hasattr(self, "org_id") and self.org_id else "No Org"
+
+        # Use the same purple color as the Codegen logo
+        purple_color = "\033[38;2;82;19;217m"
+        reset_color = "\033[0m"
+
+        # Return instructions on first line, org on second line (bottom left)
+        instructions_line = f"\033[90m{left_text}\033[0m"
+        org_line = f"{purple_color}• {org_name}{reset_color}"
+
+        return f"{instructions_line}\n{org_line}"
 
     def _load_agent_runs(self) -> bool:
         """Load the last 10 agent runs."""
@@ -338,9 +344,13 @@ class MinimalTUI:
 
     def _display_web_tab(self):
         """Display the web interface access tab."""
+        # Generate the proper domain-based URL for display
+        me_url = generate_webapp_url("me")
+        display_url = me_url.replace("https://", "").replace("http://", "")
+
         print("Open Web Interface:")
         print()
-        print("  \033[34m→ Open Web (localhost:3000/me)\033[0m")
+        print(f"  \033[34m→ Open Web ({display_url})\033[0m")
         print()
         print("Press Enter to open the web interface in your browser.")
 
@@ -570,7 +580,8 @@ class MinimalTUI:
             try:
                 import webbrowser
 
-                webbrowser.open("http://localhost:3000/me")
+                me_url = generate_webapp_url("me")
+                webbrowser.open(me_url)
                 print("\n✅ Opening web interface in browser...")
             except Exception as e:
                 print(f"\n❌ Failed to open browser: {e}")
@@ -641,17 +652,17 @@ class MinimalTUI:
 
         # Show appropriate instructions based on context
         if self.input_mode and self.current_tab == 1:  # new tab input mode
-            print("\n\033[90mType your prompt • [Enter] create • [Esc] cancel • [Tab] switch tabs • [Ctrl+C] quit\033[0m")
+            print(f"\n{self._format_status_line('Type your prompt • [Enter] create • [Esc] cancel • [Tab] switch tabs • [Ctrl+C] quit')}")
         elif self.input_mode:  # other input modes
-            print("\n\033[90mType your prompt • [Enter] create • [Esc] cancel • [Ctrl+C] quit\033[0m")
+            print(f"\n{self._format_status_line('Type your prompt • [Enter] create • [Esc] cancel • [Ctrl+C] quit')}")
         elif self.show_action_menu:
-            print("\n\033[90m[Enter] select • [↑↓] navigate • [C] close • [Q] quit\033[0m")
+            print(f"\n{self._format_status_line('[Enter] select • [↑↓] navigate • [C] close • [Q] quit')}")
         elif self.current_tab == 0:  # recents
-            print("\n\033[90m[Tab] switch tabs • (↑↓) navigate • (←→) open/close • [Enter] actions • [R] refresh • [Q] quit\033[0m")
+            print(f"\n{self._format_status_line('[Tab] switch tabs • (↑↓) navigate • (←→) open/close • [Enter] actions • [R] refresh • [Q] quit')}")
         elif self.current_tab == 1:  # new
-            print("\n\033[90m[Tab] switch tabs • [Enter] start typing • [Q] quit\033[0m")
+            print(f"\n{self._format_status_line('[Tab] switch tabs • [Enter] start typing • [Q] quit')}")
         elif self.current_tab == 2:  # web
-            print("\n\033[90m[Tab] switch tabs • [Enter] open web • [Q] quit\033[0m")
+            print(f"\n{self._format_status_line('[Tab] switch tabs • [Enter] open web • [Q] quit')}")
 
     def run(self):
         """Run the minimal TUI."""
