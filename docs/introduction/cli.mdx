@@ -19,6 +19,8 @@ Install the Codegen CLI using pip or uv:
 pip install codegen
 # or
 uv pip install codegen
+# or
+uv tool install codegen
 ```
 
 ## Authentication
@@ -56,7 +58,7 @@ The Codegen CLI offers several commands for different functionalities:
 
 | Command | Description |
 | ------- | ----------- |
-| `agent` | Create a new agent run with a prompt |
+| `agent` | Create a new agent run with a prompt, fetch an existing agent run by ID, or pull PR branch |
 | `agents` | Manage and interact with your agents |
 | `claude` | Run Claude Code with OpenTelemetry monitoring and logging |
 | `config` | Manage configuration settings |
@@ -78,7 +80,17 @@ The Codegen CLI offers several commands for different functionalities:
 To create a new agent run with a prompt:
 
 ```bash
-codegen agent "Implement a function to calculate Fibonacci numbers in Python"
+codegen agent --prompt "Implement a function to calculate Fibonacci numbers in Python"
+```
+
+You can also fetch an existing agent run by ID or pull a PR branch:
+
+```bash
+# Get run details in JSON format
+codegen agent --id 123 --json
+
+# Pull PR branch from an agent run
+codegen agent --id 123 pull
 ```
 
 ### Managing Organizations
@@ -128,6 +140,7 @@ The CLI respects the following environment variables:
 | `CODEGEN_API_TOKEN` | Your Codegen API token for authentication |
 | `CODEGEN_API_URL` | Custom API URL (if using a self-hosted instance) |
 | `CODEGEN_ORG_ID` | Default organization ID |
+| `REPOSITORY_ORG_ID` | Organization ID for repository-specific operations |
 
 ## What can I do with the Codegen CLI?
 
@@ -161,4 +174,3 @@ import {
     Star us on GitHub and contribute to the project.
   </Card>
 </CardGroup>
-
