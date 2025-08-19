@@ -36,8 +36,6 @@ def ensure_claude_hook() -> bool:
         CLAUDE_CONFIG_DIR.mkdir(exist_ok=True)
 
         # Build the shell command that will create session via API and write session data
-        start_hook_script_path = Path(__file__).parent / "config" / "claude_session_hook.py"
-        start_hook_command = f"python3 {start_hook_script_path} > {SESSION_FILE}"
 
         # Build the stop hook command to mark session COMPLETE
         stop_hook_script_path = Path(__file__).parent / "config" / "claude_session_stop_hook.py"
@@ -63,28 +61,23 @@ def ensure_claude_hook() -> bool:
         # Ensure proper structure exists
         if "hooks" not in hooks_config:
             hooks_config["hooks"] = {}
-        if "SessionStart" not in hooks_config["hooks"]:
-            hooks_config["hooks"]["SessionStart"] = []
         if "Stop" not in hooks_config["hooks"]:
             hooks_config["hooks"]["Stop"] = []
         if "UserPromptSubmit" not in hooks_config["hooks"]:
             hooks_config["hooks"]["UserPromptSubmit"] = []
 
         # Get existing hooks
-        session_start_hooks = hooks_config["hooks"]["SessionStart"]
         stop_hooks = hooks_config["hooks"]["Stop"]
         active_hooks = hooks_config["hooks"]["UserPromptSubmit"]
 
         # Check if we're replacing existing hooks
-        replaced_existing = (len(session_start_hooks) > 0) or (len(stop_hooks) > 0) or (len(active_hooks) > 0)
+        replaced_existing = (len(stop_hooks) > 0) or (len(active_hooks) > 0)
 
         # Create the new hook structures (following Claude's format)
-        new_start_hook_group = {"hooks": [{"type": "command", "command": start_hook_command}]}
         new_stop_hook_group = {"hooks": [{"type": "command", "command": stop_hook_command}]}
         new_active_hook_group = {"hooks": [{"type": "command", "command": active_hook_command}]}
 
         # Replace all existing hooks with our single hook per event
-        hooks_config["hooks"]["SessionStart"] = [new_start_hook_group]
         hooks_config["hooks"]["Stop"] = [new_stop_hook_group]
         hooks_config["hooks"]["UserPromptSubmit"] = [new_active_hook_group]
 
@@ -97,7 +90,6 @@ def ensure_claude_hook() -> bool:
             console.print("✅ Replaced existing Claude hooks (SessionStart, Stop)", style="green")
         else:
             console.print("✅ Registered new Claude hooks (SessionStart, Stop)", style="green")
-        console.print(f"   Start hook: {start_hook_command}", style="dim")
         console.print(f"   Stop hook:  {stop_hook_command}", style="dim")
         console.print(f"   Active hook:{' ' if len('Active hook:') < 1 else ''} {active_hook_command}", style="dim")
 
@@ -106,13 +98,6 @@ def ensure_claude_hook() -> bool:
             with open(HOOKS_CONFIG_FILE) as f:
                 verify_config = json.load(f)
 
-            # Check that our hooks are in the config
-            found_start_hook = False
-            for hook_group in verify_config.get("hooks", {}).get("SessionStart", []):
-                for hook in hook_group.get("hooks", []):
-                    if SESSION_FILE.name in hook.get("command", ""):
-                        found_start_hook = True
-                        break
             found_stop_hook = False
             for hook_group in verify_config.get("hooks", {}).get("Stop", []):
                 for hook in hook_group.get("hooks", []):
@@ -126,7 +111,7 @@ def ensure_claude_hook() -> bool:
                         found_active_hook = True
                         break
 
-            if found_start_hook and found_stop_hook and found_active_hook:
+            if found_stop_hook and found_active_hook:
                 console.print("✅ Hook configuration verified", style="dim")
             else:
                 console.print("⚠️  Hook was written but verification failed", style="yellow")

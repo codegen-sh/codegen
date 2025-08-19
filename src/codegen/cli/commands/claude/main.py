@@ -1,5 +1,6 @@
 """Claude Code command with session tracking."""
 
+import json
 import os
 import signal
 import subprocess
@@ -20,7 +21,7 @@ from codegen.cli.commands.claude.claude_session_api import (
     create_claude_session,
 )
 from codegen.cli.commands.claude.config.mcp_setup import add_codegen_mcp_server, cleanup_codegen_mcp_server
-from codegen.cli.commands.claude.hooks import cleanup_claude_hook, ensure_claude_hook, get_codegen_url
+from codegen.cli.commands.claude.hooks import cleanup_claude_hook, ensure_claude_hook, get_codegen_url, SESSION_FILE
 from codegen.cli.commands.claude.quiet_console import console
 from codegen.cli.rich.spinners import create_spinner
 from codegen.cli.utils.org import resolve_org_id
@@ -98,11 +99,28 @@ def _run_claude_interactive(resolved_org_id: int, no_mcp: bool | None) -> None:
         else:
             console.print("⚠️  Could not create backend session at startup (will rely on hooks)", style="yellow")
     except Exception as e:
+        agent_run_id = None
         console.print(f"⚠️  Session creation error at startup: {e}", style="yellow")
 
     # Set up Claude hook for session tracking
     if not ensure_claude_hook():
         console.print("⚠️  Failed to set up session tracking hook", style="yellow")
+
+    # Write session context file for downstream hooks and tools (after hook setup)
+    try:
+        SESSION_FILE.parent.mkdir(exist_ok=True)
+        session_payload = {
+            "session_id": session_id,
+            "agent_run_id": agent_run_id,
+            "org_id": resolved_org_id,
+            "hook_event": "Startup",
+        }
+        with open(SESSION_FILE, "w") as f:
+            json.dump(session_payload, f, indent=2)
+            f.write("\n")
+        console.print("📝 Wrote session file to ~/.codegen/claude-session.json", style="dim")
+    except Exception as e:
+        console.print(f"⚠️  Could not write session file: {e}", style="yellow")
 
     # Initialize log watcher manager
     log_watcher_manager = ClaudeLogWatcherManager()
