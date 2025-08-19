@@ -29,8 +29,8 @@ from codegen.agents.agent import Agent
 
 # Initialize the Agent with your organization ID and API token
 agent = Agent(
-    org_id="YOUR_ORG_ID",  # Find this at codegen.com/developer
-    token="YOUR_API_TOKEN",  # Get this from codegen.com/developer
+    org_id="YOUR_ORG_ID",  # Find this at codegen.com/token
+    token="YOUR_API_TOKEN",  # Get this from codegen.com/token
     # base_url="https://codegen-sh-rest-api.modal.run",  # Optional - defaults to production
 )
 
