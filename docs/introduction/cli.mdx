@@ -118,41 +118,6 @@ codegen login
 
 ---
 
-### `codegen tui`
-
-**Description:** Launch the interactive TUI interface.
-
-**Usage Pattern:**
-- `codegen tui`
-
----
-
-### `codegen update`
-
-**Description:** Update Codegen to the latest or specified version.
-
-**Usage Patterns:**
-- **Update to latest:** `codegen update`
-- **Update to specific version:** `codegen update --version X.Y.Z`
-
-**Options:**
-- `--version TEXT` Specific version to update to
-- `--check` Only check for updates, don't install (flag)
-- `--force` Force update even if already at latest version (flag)
-
----
-
-## Environment Variables
-
-The CLI respects the following environment variables:
-
-| Variable | Description |
-| -------- | ----------- |
-| `CODEGEN_API_TOKEN` | Your Codegen API token for authentication |
-| `CODEGEN_API_URL` | Custom API URL (if using a self-hosted instance) |
-| `CODEGEN_ORG_ID` | Default organization ID |
-| `REPOSITORY_ORG_ID` | Organization ID for repository-specific operations |
-
 ## Get Started
 
 import {
@@ -174,4 +139,3 @@ import {
     Star us on GitHub and contribute to the project.
   </Card>
 </CardGroup>
-
