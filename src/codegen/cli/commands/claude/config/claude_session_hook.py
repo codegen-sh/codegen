@@ -11,13 +11,16 @@ import os
 import sys
 from pathlib import Path
 
-from codegen.cli.commands.claude.claude_session_api import create_claude_session
-from codegen.cli.utils.org import resolve_org_id
-
 # Add the codegen CLI to the path so we can import from it
 script_dir = Path(__file__).parent
-codegen_cli_dir = script_dir.parent.parent.parent
+codegen_cli_dir = script_dir.parent.parent.parent.parent
 sys.path.insert(0, str(codegen_cli_dir))
+
+try:
+    from codegen.cli.commands.claude.claude_session_api import create_claude_session
+    from codegen.cli.utils.org import resolve_org_id
+except ImportError:
+    create_claude_session = None
 
 
 def main():
