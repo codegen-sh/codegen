@@ -4,7 +4,6 @@ import signal
 import sys
 import termios
 import tty
-import select
 from datetime import datetime
 from typing import Any
 
@@ -346,7 +345,7 @@ class MinimalTUI:
                 else:
                     menu_lines.append(f"    \033[90m  {option}\033[0m")
             # Hint line last
-            menu_lines.append("\033[90m[Enter] select • [↑↓] navigate • [Esc] back to new tab\033[0m")
+            menu_lines.append("\033[90m[Enter] select • [↑↓] navigate • [B] back to new tab\033[0m")
             return menu_lines
 
         # Initial render
@@ -374,7 +373,7 @@ class MinimalTUI:
                     self.input_mode = False
                     self._load_agent_runs()  # Refresh the data
                 break
-            elif key == "\x1b":  # Esc - back to new tab
+            elif key == "B":  # Back to new tab
                 self.current_tab = 1  # 'new' tab index
                 self.input_mode = True
                 break
@@ -476,18 +475,13 @@ class MinimalTUI:
 
                 # Handle escape sequences (arrow keys)
                 if ch == "\x1b":  # ESC
-                    # Peek for additional bytes to distinguish bare ESC vs sequences
-                    ready, _, _ = select.select([sys.stdin], [], [], 0.03)
-                    if not ready:
-                        return "\x1b"  # bare Esc
+                    # Read the rest of the escape sequence synchronously
                     ch2 = sys.stdin.read(1)
                     if ch2 == "[":
-                        ready2, _, _ = select.select([sys.stdin], [], [], 0.03)
-                        if not ready2:
-                            return "\x1b["
                         ch3 = sys.stdin.read(1)
                         return f"\x1b[{ch3}"
                     else:
+                        # Return combined sequence (e.g., Alt+<key>)
                         return ch + ch2
                 return ch
             finally:
@@ -539,7 +533,7 @@ class MinimalTUI:
 
     def _handle_input_mode_keypress(self, key: str):
         """Handle keypresses when in text input mode."""
-        if key == "\x1b":  # Esc key - exit input mode
+        if key == "B":  # Back action in new tab
             self.input_mode = False
         elif key == "\r" or key == "\n":  # Enter - create agent run
             if self.prompt_input.strip():  # Only create if there's actual content
@@ -703,9 +697,9 @@ class MinimalTUI:
 
         # Show appropriate instructions based on context
         if self.input_mode and self.current_tab == 1:  # new tab input mode
-            print(f"\n{self._format_status_line('Type your prompt • [Enter] create • [Esc] cancel • [Tab] switch tabs • [Ctrl+C] quit')}")
+            print(f"\n{self._format_status_line('Type your prompt • [Enter] create • [B] cancel • [Tab] switch tabs • [Ctrl+C] quit')}")
         elif self.input_mode:  # other input modes
-            print(f"\n{self._format_status_line('Type your prompt • [Enter] create • [Esc] cancel • [Ctrl+C] quit')}")
+            print(f"\n{self._format_status_line('Type your prompt • [Enter] create • [B] cancel • [Ctrl+C] quit')}")
         elif self.show_action_menu:
             print(f"\n{self._format_status_line('[Enter] select • [↑↓] navigate • [C] close • [Q] quit')}")
         elif self.current_tab == 0:  # recents
