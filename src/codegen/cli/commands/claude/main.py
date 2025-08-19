@@ -14,7 +14,7 @@ from rich.panel import Panel
 from codegen.cli.api.endpoints import API_ENDPOINT
 from codegen.cli.auth.token_manager import get_current_token
 from codegen.cli.commands.claude.claude_log_watcher import ClaudeLogWatcherManager
-from codegen.cli.commands.claude.claude_session_api import end_claude_session, generate_session_id
+from codegen.cli.commands.claude.claude_session_api import update_claude_session_status, generate_session_id
 from codegen.cli.commands.claude.config.mcp_setup import add_codegen_mcp_server, cleanup_codegen_mcp_server
 from codegen.cli.commands.claude.hooks import cleanup_claude_hook, ensure_claude_hook, get_codegen_url
 from codegen.cli.commands.claude.quiet_console import console
@@ -142,7 +142,7 @@ def _run_claude_interactive(resolved_org_id: int, no_mcp: bool | None) -> None:
             process.terminate()
             cleanup_claude_hook()
             cleanup_codegen_mcp_server()
-            end_claude_session(session_id, "ERROR", resolved_org_id)
+            update_claude_session_status(session_id, "ERROR", resolved_org_id)
             sys.exit(0)
 
         signal.signal(signal.SIGINT, signal_handler)
@@ -152,7 +152,7 @@ def _run_claude_interactive(resolved_org_id: int, no_mcp: bool | None) -> None:
 
         # Handle session completion based on exit code
         session_status = "COMPLETE" if returncode == 0 else "ERROR"
-        end_claude_session(session_id, session_status, resolved_org_id)
+        update_claude_session_status(session_id, session_status, resolved_org_id)
 
         if returncode != 0:
             console.print(f"❌ Claude Code exited with error code {returncode}", style="red")
@@ -163,16 +163,16 @@ def _run_claude_interactive(resolved_org_id: int, no_mcp: bool | None) -> None:
         console.print("❌ Claude Code not found. Please install Claude Code first.", style="red")
         console.print("💡 Visit: https://claude.ai/download", style="dim")
         log_watcher_manager.stop_all_watchers()
-        end_claude_session(session_id, "ERROR", resolved_org_id)
+        update_claude_session_status(session_id, "ERROR", resolved_org_id)
         raise typer.Exit(1)
     except KeyboardInterrupt:
         console.print("\n🛑 Interrupted by user", style="yellow")
         log_watcher_manager.stop_all_watchers()
-        end_claude_session(session_id, "ERROR", resolved_org_id)
+        update_claude_session_status(session_id, "ERROR", resolved_org_id)
     except Exception as e:
         console.print(f"❌ Error running Claude Code: {e}", style="red")
         log_watcher_manager.stop_all_watchers()
-        end_claude_session(session_id, "ERROR", resolved_org_id)
+        update_claude_session_status(session_id, "ERROR", resolved_org_id)
         raise typer.Exit(1)
     finally:
         # Clean up resources
