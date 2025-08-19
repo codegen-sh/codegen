@@ -34,6 +34,7 @@
               "integrations/github",
               "integrations/slack",
               "integrations/linear",
+              "integrations/clickup",
               "integrations/notion",
               "integrations/figma",
               "integrations/circleci",
