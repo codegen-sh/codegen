@@ -1,0 +1,164 @@
+---
+title: "Codegen CLI"
+sidebarTitle: "CLI"
+icon: "terminal"
+iconType: "solid"
+---
+
+The Codegen CLI provides a command-line interface for interacting with [Codegen](https://codegen.com) SWE agents directly from your terminal.
+
+<Tip>
+  Go to [developer settings](https://codegen.sh/token) to generate an API token for CLI authentication
+</Tip>
+
+## Installation
+
+Install the Codegen CLI using pip or uv:
+
+```bash
+pip install codegen
+# or
+uv pip install codegen
+```
+
+## Authentication
+
+Before using the CLI, you need to authenticate with your Codegen API token:
+
+```bash
+# Login with your API token
+codegen login --token YOUR_API_TOKEN
+
+# Alternatively, you can set the CODEGEN_API_TOKEN environment variable
+export CODEGEN_API_TOKEN=YOUR_API_TOKEN
+```
+
+## Basic Usage
+
+Once authenticated, you can use the CLI to interact with Codegen:
+
+```bash
+# Get CLI help
+codegen --help
+
+# View version information
+codegen --version
+
+# Launch the interactive TUI interface
+codegen
+# or
+codegen tui
+```
+
+## Available Commands
+
+The Codegen CLI offers several commands for different functionalities:
+
+| Command | Description |
+| ------- | ----------- |
+| `agent` | Create a new agent run with a prompt |
+| `agents` | Manage and interact with your agents |
+| `claude` | Run Claude Code with OpenTelemetry monitoring and logging |
+| `config` | Manage configuration settings |
+| `init` | Initialize or update the Codegen folder |
+| `integrations` | Manage integrations with external services |
+| `login` | Store authentication token |
+| `logout` | Clear stored authentication token |
+| `org` | Manage and switch between organizations |
+| `profile` | Manage your Codegen profile |
+| `repo` | Manage repository configuration and environment variables |
+| `tools` | List available tools from the Codegen API |
+| `tui` | Launch the interactive TUI interface |
+| `update` | Update Codegen to the latest or specified version |
+
+## Common Workflows
+
+### Creating an Agent Run
+
+To create a new agent run with a prompt:
+
+```bash
+codegen agent "Implement a function to calculate Fibonacci numbers in Python"
+```
+
+### Managing Organizations
+
+To list and switch between organizations:
+
+```bash
+# List available organizations
+codegen org list
+
+# Switch to a specific organization
+codegen org switch ORG_ID
+```
+
+### Managing Repositories
+
+To configure repositories:
+
+```bash
+# List repositories
+codegen repo list
+
+# Configure a repository
+codegen repo config REPO_NAME
+```
+
+### Using the TUI (Terminal User Interface)
+
+The Codegen CLI includes a rich terminal user interface for interactive use:
+
+```bash
+codegen tui
+```
+
+This launches an interactive interface where you can:
+- Create and manage agent runs
+- View agent run status and results
+- Configure settings
+- Manage organizations and repositories
+
+## Environment Variables
+
+The CLI respects the following environment variables:
+
+| Variable | Description |
+| -------- | ----------- |
+| `CODEGEN_API_TOKEN` | Your Codegen API token for authentication |
+| `CODEGEN_API_URL` | Custom API URL (if using a self-hosted instance) |
+| `CODEGEN_ORG_ID` | Default organization ID |
+
+## What can I do with the Codegen CLI?
+
+The Codegen CLI is your terminal gateway to interacting with your AI Software Engineer. You can use it to:
+
+- **Run agents from your terminal**: Create agent runs with custom prompts directly from your command line
+- **Manage your Codegen resources**: Configure organizations, repositories, and integrations
+- **Integrate into scripts and workflows**: Incorporate Codegen capabilities into your shell scripts and automation workflows
+- **Interactive TUI experience**: Use the rich terminal interface for a more visual interaction with Codegen
+
+Essentially, the CLI allows you to leverage Codegen's AI capabilities directly from your terminal or in automated scripts.
+
+## Get Started
+
+import {
+  COMMUNITY_SLACK_URL,
+  CODEGEN_SDK_GITHUB_URL,
+} from "/snippets/links.mdx";
+
+<CardGroup cols={2}>
+  <Card title="Create Account" icon="user-plus" href="https://codegen.sh/login">
+    Sign up for a free account and get your API token.
+  </Card>
+  <Card title="Join our Slack" icon="slack" href={COMMUNITY_SLACK_URL}>
+    Get help and connect with the Codegen community.
+  </Card>
+  <Card title="Tutorials" icon="diagram-project" href="/tutorials/at-a-glance">
+    Learn how to use Codegen for common code transformation tasks.
+  </Card>
+  <Card title="View on GitHub" icon="github" href={CODEGEN_SDK_GITHUB_URL}>
+    Star us on GitHub and contribute to the project.
+  </Card>
+</CardGroup>
+
