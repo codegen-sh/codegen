@@ -2,11 +2,9 @@
 
 import json
 import os
-import time
 from pathlib import Path
 
 from codegen.cli.commands.claude.quiet_console import console
-
 
 CLAUDE_CONFIG_DIR = Path.home() / ".claude"
 HOOKS_CONFIG_FILE = CLAUDE_CONFIG_DIR / "settings.json"
@@ -39,7 +37,7 @@ def ensure_claude_hook() -> bool:
 
         # Build the shell command that will create session via API and write session data
         start_hook_script_path = Path(__file__).parent / "config" / "claude_session_hook.py"
-        start_hook_command = f"mkdir -p {CODEGEN_DIR} && python3 {start_hook_script_path} > {SESSION_FILE}"
+        start_hook_command = f"python3 {start_hook_script_path} > {SESSION_FILE}"
 
         # Build the stop hook command to mark session COMPLETE
         stop_hook_script_path = Path(__file__).parent / "config" / "claude_session_stop_hook.py"
@@ -99,9 +97,9 @@ def ensure_claude_hook() -> bool:
             console.print("✅ Replaced existing Claude hooks (SessionStart, Stop)", style="green")
         else:
             console.print("✅ Registered new Claude hooks (SessionStart, Stop)", style="green")
-        console.print(f"   Start hook: {start_hook_command[:50]}...", style="dim")
+        console.print(f"   Start hook: {start_hook_command}", style="dim")
         console.print(f"   Stop hook:  {stop_hook_command}", style="dim")
-        console.print(f"   Active hook:{' ' if len('Active hook:')<1 else ''} {active_hook_command}", style="dim")
+        console.print(f"   Active hook:{' ' if len('Active hook:') < 1 else ''} {active_hook_command}", style="dim")
 
         # Verify the hook was written correctly
         try:

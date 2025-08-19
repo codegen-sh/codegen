@@ -17,9 +17,9 @@ codegen_cli_dir = script_dir.parent.parent.parent
 sys.path.insert(0, str(codegen_cli_dir))
 
 try:
-    from codegen.cli.commands.claude.claude_session_api import end_claude_session
+    from codegen.cli.commands.claude.claude_session_api import update_claude_session_status
 except ImportError:
-    end_claude_session = None
+    update_claude_session_status = None
 
 
 def read_session_file() -> dict:
@@ -53,14 +53,11 @@ def main():
             except ValueError:
                 org_id = None
 
-        if end_claude_session and session_id:
-            end_claude_session(session_id, "COMPLETE", org_id)
+        if update_claude_session_status and session_id:
+            update_claude_session_status(session_id, "COMPLETE", org_id)
 
         # Print minimal output to avoid noisy hooks
-        print(json.dumps({
-            "session_id": session_id,
-            "status": "COMPLETE"
-        }))
+        print(json.dumps({"session_id": session_id, "status": "COMPLETE"}))
 
     except Exception as e:
         # Ensure hook doesn't fail Claude if something goes wrong
@@ -69,4 +66,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

@@ -11,18 +11,13 @@ import os
 import sys
 from pathlib import Path
 
+from codegen.cli.commands.claude.claude_session_api import create_claude_session
+from codegen.cli.utils.org import resolve_org_id
+
 # Add the codegen CLI to the path so we can import from it
 script_dir = Path(__file__).parent
 codegen_cli_dir = script_dir.parent.parent.parent
 sys.path.insert(0, str(codegen_cli_dir))
-
-try:
-    from codegen.cli.commands.claude.claude_session_api import create_claude_session
-    from codegen.cli.utils.org import resolve_org_id
-except ImportError:
-    # Fallback if imports fail - just write basic session data
-    create_claude_session = None
-    resolve_org_id = None
 
 
 def main():
@@ -44,10 +39,11 @@ def main():
         if not session_id:
             # Fallback: try to extract from input data
             session_id = input_data.get("session_id")
-        
+
         if not session_id:
             # Generate a basic session ID if none available
             import uuid
+
             session_id = str(uuid.uuid4())
 
         # Get org_id from environment variable (set by main.py)
@@ -65,17 +61,11 @@ def main():
 
         # Create session via API if available
         agent_run_id = None
-        if create_claude_session and org_id:
+        if org_id:
             agent_run_id = create_claude_session(session_id, org_id)
 
         # Prepare session data
-        session_data = {
-            "session_id": session_id,
-            "agent_run_id": agent_run_id,
-            "org_id": org_id,
-            "hook_event": input_data.get("hook_event_name"),
-            "timestamp": input_data.get("timestamp")
-        }
+        session_data = {"session_id": session_id, "agent_run_id": agent_run_id, "org_id": org_id, "hook_event": input_data.get("hook_event_name"), "timestamp": input_data.get("timestamp")}
 
         # Output the session data (this gets written to the session file by the hook command)
         print(json.dumps(session_data, indent=2))
@@ -83,12 +73,7 @@ def main():
     except Exception as e:
         # If anything fails, at least output basic session data
         session_id = os.environ.get("CODEGEN_CLAUDE_SESSION_ID", "unknown")
-        fallback_data = {
-            "session_id": session_id,
-            "error": str(e),
-            "agent_run_id": None,
-            "org_id": None
-        }
+        fallback_data = {"session_id": session_id, "error": str(e), "agent_run_id": None, "org_id": None}
         print(json.dumps(fallback_data, indent=2))
 
 
