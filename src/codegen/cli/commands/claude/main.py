@@ -14,7 +14,11 @@ from rich.panel import Panel
 from codegen.cli.api.endpoints import API_ENDPOINT
 from codegen.cli.auth.token_manager import get_current_token
 from codegen.cli.commands.claude.claude_log_watcher import ClaudeLogWatcherManager
-from codegen.cli.commands.claude.claude_session_api import update_claude_session_status, generate_session_id
+from codegen.cli.commands.claude.claude_session_api import (
+    update_claude_session_status,
+    generate_session_id,
+    create_claude_session,
+)
 from codegen.cli.commands.claude.config.mcp_setup import add_codegen_mcp_server, cleanup_codegen_mcp_server
 from codegen.cli.commands.claude.hooks import cleanup_claude_hook, ensure_claude_hook, get_codegen_url
 from codegen.cli.commands.claude.quiet_console import console
@@ -85,6 +89,16 @@ def _run_claude_interactive(resolved_org_id: int, no_mcp: bool | None) -> None:
     # Set up environment variables for hooks to access session information
     os.environ["CODEGEN_CLAUDE_SESSION_ID"] = session_id
     os.environ["CODEGEN_CLAUDE_ORG_ID"] = str(resolved_org_id)
+
+    # Proactively create the backend session as a fallback in case hooks fail
+    try:
+        agent_run_id = create_claude_session(session_id, resolved_org_id)
+        if agent_run_id:
+            console.print("✅ Backend session created", style="green")
+        else:
+            console.print("⚠️  Could not create backend session at startup (will rely on hooks)", style="yellow")
+    except Exception as e:
+        console.print(f"⚠️  Session creation error at startup: {e}", style="yellow")
 
     # Set up Claude hook for session tracking
     if not ensure_claude_hook():
