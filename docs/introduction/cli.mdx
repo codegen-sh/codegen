@@ -5,131 +5,142 @@ icon: "terminal"
 iconType: "solid"
 ---
 
-The Codegen CLI provides a command-line interface for interacting with [Codegen](https://codegen.com) SWE agents directly from your terminal.
+# Codegen CLI Manual
 
-<Tip>
-  Go to [developer settings](https://codegen.sh/token) to generate an API token for CLI authentication
-</Tip>
+Welcome to the Codegen CLI documentation. This guide covers all available commands and their usage patterns.
 
 ## Installation
 
-Install the Codegen CLI using pip or uv:
-
 ```bash
-pip install codegen
-# or
-uv pip install codegen
-# or
 uv tool install codegen
 ```
 
-## Authentication
-
-Before using the CLI, you need to authenticate with your Codegen API token:
+## Initialization
 
 ```bash
-# Login with your API token
-codegen login --token YOUR_API_TOKEN
-
-# Alternatively, you can set the CODEGEN_API_TOKEN environment variable
-export CODEGEN_API_TOKEN=YOUR_API_TOKEN
+codegen login
 ```
 
-## Basic Usage
+## CLI Reference
 
-Once authenticated, you can use the CLI to interact with Codegen:
+### `codegen` (root)
 
-```bash
-# Get CLI help
-codegen --help
+**Description:** Launches the interactive TUI if no subcommand is provided.
 
-# View version information
-codegen --version
+---
 
-# Launch the interactive TUI interface
-codegen
-# or
-codegen tui
-```
+### `codegen agent`
 
-## Available Commands
+**Description:** Create a new agent run with a prompt, fetch an existing agent run by ID, or pull PR branch.
 
-The Codegen CLI offers several commands for different functionalities:
+**Usage Patterns:**
+- **Create run:** `codegen agent --prompt "Your prompt"`
+- **Get run JSON:** `codegen agent --id 123 --json`
+- **Pull PR branch:** `codegen agent --id 123 pull`
 
-| Command | Description |
-| ------- | ----------- |
-| `agent` | Create a new agent run with a prompt, fetch an existing agent run by ID, or pull PR branch |
-| `agents` | Manage and interact with your agents |
-| `claude` | Run Claude Code with OpenTelemetry monitoring and logging |
-| `config` | Manage configuration settings |
-| `init` | Initialize or update the Codegen folder |
-| `integrations` | Manage integrations with external services |
-| `login` | Store authentication token |
-| `logout` | Clear stored authentication token |
-| `org` | Manage and switch between organizations |
-| `profile` | Manage your Codegen profile |
-| `repo` | Manage repository configuration and environment variables |
-| `tools` | List available tools from the Codegen API |
-| `tui` | Launch the interactive TUI interface |
-| `update` | Update Codegen to the latest or specified version |
+**Options:**
+- `--prompt, -p TEXT` The prompt to send to the agent (mutually exclusive with --id unless using create)
+- `--id INT` Agent run ID to fetch or pull
+- `--json` Output raw JSON response when fetching (flag)
+- `--org-id INT` Organization ID (defaults to CODEGEN_API_TOKEN/REPOSITORY_ORG_ID or auto-detect)
+- `--model TEXT` Model to use for this agent run (optional)
+- `--repo-id INT` Repository ID to use for this agent run (optional)
 
-## Common Workflows
+**Positional Actions:**
+- `pull` Pull the PR branch associated with an agent run (requires --id)
 
-### Creating an Agent Run
+---
 
-To create a new agent run with a prompt:
+### `codegen agents`
 
-```bash
-codegen agent --prompt "Implement a function to calculate Fibonacci numbers in Python"
-```
+**Description:** List and manage agent runs.
 
-You can also fetch an existing agent run by ID or pull a PR branch:
+**Usage Patterns:**
+- **List runs:** `codegen agents list`
+- **Get run details:** `codegen agents get 123`
 
-```bash
-# Get run details in JSON format
-codegen agent --id 123 --json
+**Options:**
+- `--org-id INT` Organization ID (defaults to CODEGEN_ORG_ID/REPOSITORY_ORG_ID or auto-detect)
+- `--limit INT` Maximum number of runs to return (default: 10)
+- `--json` Output raw JSON response (flag)
 
-# Pull PR branch from an agent run
-codegen agent --id 123 pull
-```
+---
 
-### Managing Organizations
+### `codegen login`
 
-To list and switch between organizations:
+**Description:** Store authentication token.
 
-```bash
-# List available organizations
-codegen org list
+**Usage Patterns:**
+- **Interactive login:** `codegen login`
+- **Token login:** `codegen login --token YOUR_API_TOKEN`
 
-# Switch to a specific organization
-codegen org switch ORG_ID
-```
+**Options:**
+- `--token TEXT` API token to store
+- `--no-verify` Skip token verification (flag)
 
-### Managing Repositories
+---
 
-To configure repositories:
+### `codegen logout`
 
-```bash
-# List repositories
-codegen repo list
+**Description:** Clear stored authentication token.
 
-# Configure a repository
-codegen repo config REPO_NAME
-```
+**Usage Pattern:**
+- `codegen logout`
 
-### Using the TUI (Terminal User Interface)
+---
 
-The Codegen CLI includes a rich terminal user interface for interactive use:
+### `codegen org`
 
-```bash
-codegen tui
-```
+**Description:** Manage and switch between organizations.
 
-This launches an interactive interface where you can:
-- Create and manage agent runs
-- View agent run status and results
-- Configure settings
-- Manage organizations and repositories
+**Usage Patterns:**
+- **List organizations:** `codegen org list`
+- **Switch organization:** `codegen org switch ORG_ID`
+- **Get current organization:** `codegen org current`
+
+**Options:**
+- `--json` Output raw JSON response (flag)
+
+---
+
+### `codegen repo`
+
+**Description:** Manage repository configuration and environment variables.
+
+**Usage Patterns:**
+- **List repositories:** `codegen repo list`
+- **Configure repository:** `codegen repo config REPO_NAME`
+- **Get repository details:** `codegen repo get REPO_ID`
+
+**Options:**
+- `--org-id INT` Organization ID (defaults to CODEGEN_ORG_ID or auto-detect)
+- `--json` Output raw JSON response (flag)
+
+---
+
+### `codegen tui`
+
+**Description:** Launch the interactive TUI interface.
+
+**Usage Pattern:**
+- `codegen tui`
+
+---
+
+### `codegen update`
+
+**Description:** Update Codegen to the latest or specified version.
+
+**Usage Patterns:**
+- **Update to latest:** `codegen update`
+- **Update to specific version:** `codegen update --version X.Y.Z`
+
+**Options:**
+- `--version TEXT` Specific version to update to
+- `--check` Only check for updates, don't install (flag)
+- `--force` Force update even if already at latest version (flag)
+
+---
 
 ## Environment Variables
 
@@ -141,17 +152,6 @@ The CLI respects the following environment variables:
 | `CODEGEN_API_URL` | Custom API URL (if using a self-hosted instance) |
 | `CODEGEN_ORG_ID` | Default organization ID |
 | `REPOSITORY_ORG_ID` | Organization ID for repository-specific operations |
-
-## What can I do with the Codegen CLI?
-
-The Codegen CLI is your terminal gateway to interacting with your AI Software Engineer. You can use it to:
-
-- **Run agents from your terminal**: Create agent runs with custom prompts directly from your command line
-- **Manage your Codegen resources**: Configure organizations, repositories, and integrations
-- **Integrate into scripts and workflows**: Incorporate Codegen capabilities into your shell scripts and automation workflows
-- **Interactive TUI experience**: Use the rich terminal interface for a more visual interaction with Codegen
-
-Essentially, the CLI allows you to leverage Codegen's AI capabilities directly from your terminal or in automated scripts.
 
 ## Get Started
 
@@ -174,3 +174,4 @@ import {
     Star us on GitHub and contribute to the project.
   </Card>
 </CardGroup>
+
