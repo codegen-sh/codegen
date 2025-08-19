@@ -13,7 +13,7 @@ from pathlib import Path
 
 # Add the codegen CLI to the path so we can import from it
 script_dir = Path(__file__).parent
-codegen_cli_dir = script_dir.parent.parent.parent
+codegen_cli_dir = script_dir.parent.parent.parent.parent
 sys.path.insert(0, str(codegen_cli_dir))
 
 try:
