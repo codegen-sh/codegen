@@ -6,6 +6,8 @@ import termios
 import tty
 from datetime import datetime
 from typing import Any
+import threading
+import time
 
 import requests
 import typer
@@ -35,13 +37,65 @@ class MinimalTUI:
         self.tabs = ["recents", "new", "web"]
         self.current_tab = 0
 
+        # Refresh state
+        self.is_refreshing = False
+        self._auto_refresh_interval_seconds = 10
+        self._refresh_lock = threading.Lock()
+
         # New tab state
         self.prompt_input = ""
+
         self.cursor_position = 0
         self.input_mode = False  # When true, we're typing in the input box
 
         # Set up signal handler for Ctrl+C
         signal.signal(signal.SIGINT, self._signal_handler)
+
+        # Start background auto-refresh thread (daemon)
+        self._auto_refresh_thread = threading.Thread(target=self._auto_refresh_loop, daemon=True)
+        self._auto_refresh_thread.start()
+
+    def _auto_refresh_loop(self):
+        """Background loop to auto-refresh recents tab every interval."""
+        while True:
+            # Sleep first so we don't immediately spam a refresh on start
+            time.sleep(self._auto_refresh_interval_seconds)
+
+            if not self.running:
+                break
+
+            # Only refresh when on recents tab and not currently refreshing
+            if self.current_tab == 0 and not self.is_refreshing:
+                # Try background refresh; if lock is busy, skip this tick
+                acquired = self._refresh_lock.acquire(blocking=False)
+                if not acquired:
+                    continue
+                try:
+                    # Double-check state after acquiring lock
+                    if self.running and self.current_tab == 0 and not self.is_refreshing:
+                        self._background_refresh()
+                finally:
+                    self._refresh_lock.release()
+
+    def _background_refresh(self):
+        """Refresh data without disrupting selection/menu state; redraw if still on recents."""
+        self.is_refreshing = True
+        # Do not redraw immediately to reduce flicker; header shows indicator on next paint
+
+        previous_index = self.selected_index
+        try:
+            if self._load_agent_runs():
+                # Preserve selection but clamp to new list bounds
+                if self.agent_runs:
+                    self.selected_index = max(0, min(previous_index, len(self.agent_runs) - 1))
+                else:
+                    self.selected_index = 0
+        finally:
+            self.is_refreshing = False
+
+        # Redraw only if still on recents and app running
+        if self.running and self.current_tab == 0:
+            self._clear_and_redraw()
 
     def _get_webapp_domain(self) -> str:
         """Get the webapp domain based on environment."""
@@ -71,6 +125,10 @@ class MinimalTUI:
         # Return instructions on first line, org on second line (bottom left)
         instructions_line = f"\033[90m{left_text}\033[0m"
         org_line = f"{purple_color}• {org_name}{reset_color}"
+
+        # Append a subtle refresh indicator when a refresh is in progress
+        if getattr(self, "is_refreshing", False):
+            org_line += "  \033[90m■ Refreshing…\033[0m"
 
         return f"{instructions_line}\n{org_line}"
 
@@ -685,8 +743,16 @@ class MinimalTUI:
 
     def _refresh(self):
         """Refresh the agent runs list."""
+        # Indicate refresh and redraw immediately so the user sees it
+        self.is_refreshing = True
+        self._clear_and_redraw()
+
         if self._load_agent_runs():
             self.selected_index = 0  # Reset selection
+
+        # Clear refresh indicator and redraw with updated data
+        self.is_refreshing = False
+        self._clear_and_redraw()
 
     def _clear_and_redraw(self):
         """Clear screen and redraw everything."""
