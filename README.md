@@ -61,7 +61,7 @@ pip install codegen
 uv pip install codegen
 ```
 
-Get started at [codegen.com](https://codegen.com) and get your API token at [codegen.com/developer](https://codegen.com/developer).
+Get started at [codegen.com](https://codegen.com) and get your API token at [codegen.com/token](https://codegen.com/token).
 
 You can interact with your AI engineer via API, or chat with it in Slack, Linear, Github, or on our website.
 
