@@ -70,6 +70,7 @@ keywords = [
 ]
 [project.scripts]
 codegen = "codegen.cli.cli:main"
+cg = "codegen.cli.cli:main"
 
 [project.optional-dependencies]
 types = []

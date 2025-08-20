@@ -402,7 +402,7 @@ class MinimalTUI:
             input("Press Enter to continue...")
             return
 
-        print(f"\n🔄 Creating agent run with prompt: '{prompt[:50]}{'...' if len(prompt) > 50 else ''}'")
+        print(f"\n\033[90mCreating agent run with prompt: '{prompt[:50]}{'...' if len(prompt) > 50 else ''}'\033[0m")
 
         try:
             payload = {"prompt": prompt.strip()}
@@ -420,10 +420,10 @@ class MinimalTUI:
             status = agent_run_data.get("status", "Unknown")
             web_url = self._generate_agent_url(run_id)
 
-            print("\n✅ Agent run created successfully!")
-            print(f"   Run ID: {run_id}")
-            print(f"   Status: {status}")
-            print(f"   Web URL: {web_url}")
+            print("\n\033[90mAgent run created successfully!\033[0m")
+            print(f"\033[90m   Run ID: {run_id}\033[0m")
+            print(f"\033[90m   Status: {status}\033[0m")
+            print(f"\033[90m   Web URL: \033[38;2;255;202;133m{web_url}\033[0m")
 
             # Clear the input
             self.prompt_input = ""
@@ -441,8 +441,8 @@ class MinimalTUI:
         """Show menu after successful agent creation."""
         from codegen.cli.utils.inplace_print import inplace_print
 
-        print("\nWhat would you like to do next?")
-        options = ["open in web preview", "go to recent"]
+        print("\n\033[90mWhat would you like to do next?\033[0m")
+        options = ["Open Trace ↗", "Go to Recent"]
         selected = 0
         prev_lines = 0
 
@@ -470,7 +470,7 @@ class MinimalTUI:
                 selected = (selected + 1) % len(options)
                 prev_lines = inplace_print(build_lines(), prev_lines)
             elif key == "\r" or key == "\n":  # Enter - select option
-                if selected == 0:  # open in web preview
+                if selected == 0:  # Open Trace
                     try:
                         import webbrowser
 
@@ -478,7 +478,7 @@ class MinimalTUI:
                     except Exception as e:
                         print(f"\n❌ Failed to open browser: {e}")
                         input("Press Enter to continue...")
-                elif selected == 1:  # go to recent
+                elif selected == 1:  # Go to Recent
                     self.current_tab = 0  # Switch to recent tab
                     self.input_mode = False
                     self._load_agent_runs()  # Refresh the data
@@ -884,8 +884,16 @@ class MinimalTUI:
     def run(self):
         """Run the minimal TUI."""
         if not self.is_authenticated:
-            print("⚠️  Not authenticated. Please run 'codegen login' first.")
-            return
+            # Automatically start login flow for first-time users
+            from codegen.cli.auth.login import login_routine
+
+            try:
+                login_routine()
+                # login_routine will launch TUI after successful authentication
+                return
+            except Exception:
+                # If login fails, just exit gracefully
+                return
 
         # Show UI immediately
         self._clear_and_redraw()

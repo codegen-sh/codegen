@@ -23,6 +23,10 @@ def login_routine(token: str | None = None) -> str:
         typer.Exit: If login fails
 
     """
+    # Display header like in the main TUI
+    print("\033[38;2;82;19;217m" + "/" * 20 + " Codegen\033[0m")
+    print()
+
     # Try environment variable first
     token = token or global_env.CODEGEN_USER_ACCESS_TOKEN
 
@@ -39,7 +43,7 @@ def login_routine(token: str | None = None) -> str:
     try:
         token_manager = TokenManager()
         token_manager.authenticate_token(token)
-        rich.print(f"[green]✓ Stored token and profile to:[/green] {token_manager.token_file}")
+        rich.print(f"[dim]✓ Stored token and profile to:[/dim] [#ffca85]{token_manager.token_file}[/#ffca85]")
 
         # Show organization selector if multiple organizations available
         organizations = get_cached_organizations()
@@ -68,6 +72,12 @@ def login_routine(token: str | None = None) -> str:
                 rich.print(f"[green]✓ Set default organization:[/green] {org_name}")
             except Exception as e:
                 rich.print(f"[yellow]Warning: Could not set default organization: {e}[/yellow]")
+
+        # After successful login, launch the TUI
+        print()  # Add some space
+        from codegen.cli.tui.app import run_tui
+
+        run_tui()
 
         return token
     except AuthError as e:
