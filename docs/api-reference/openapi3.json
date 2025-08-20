@@ -1193,6 +1193,94 @@
         }
       }
     },
+    "/v1/organizations/{org_id}/sandbox/{sandbox_id}/analyze-logs": {
+      "post": {
+        "tags": [
+          "sandbox",
+          "sandbox",
+          "sandbox"
+        ],
+        "summary": "Analyze Sandbox Logs",
+        "description": "Analyze sandbox setup logs using an AI agent.\n\nThis endpoint creates an AI agent that will analyze the setup logs from a sandbox,\nidentify any errors, provide insights about what went wrong, and suggest potential\nsolutions. The analysis runs asynchronously and results can be retrieved using the\nreturned agent run ID.\n\nRate limit: 5 requests per minute.",
+        "operationId": "analyze_sandbox_logs_v1_organizations__org_id__sandbox__sandbox_id__analyze_logs_post",
+        "parameters": [
+          {
+            "name": "sandbox_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sandbox Id"
+            }
+          },
+          {
+            "name": "org_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Org Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyzeLogsResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIRateLimitErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PermissionsErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Sandbox not found"
+          },
+          "400": {
+            "description": "No logs available for analysis"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/alpha/organizations/{org_id}/agent/run/{agent_run_id}/logs": {
       "get": {
         "tags": [
@@ -1702,6 +1790,32 @@
         ],
         "title": "AgentRunWithLogsResponse",
         "description": "Represents an agent run in API responses"
+      },
+      "AnalyzeLogsResponse": {
+        "properties": {
+          "agent_run_id": {
+            "type": "integer",
+            "title": "Agent Run Id",
+            "description": "The ID of the agent run analyzing the logs"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "The status of the agent run"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "description": "Information about the analysis process"
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent_run_id",
+          "status",
+          "message"
+        ],
+        "title": "AnalyzeLogsResponse"
       },
       "ApiAgentRunSourceType": {
         "type": "string",
