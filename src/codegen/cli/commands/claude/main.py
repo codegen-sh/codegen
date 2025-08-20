@@ -174,7 +174,7 @@ def _run_claude_interactive(resolved_org_id: int, no_mcp: bool | None) -> None:
             process.terminate()
             cleanup_claude_hook()
             cleanup_codegen_mcp_server()
-            update_claude_session_status(session_id, "ERROR", resolved_org_id)
+            update_claude_session_status(session_id, "COMPLETE", resolved_org_id)
             sys.exit(0)
 
         signal.signal(signal.SIGINT, signal_handler)
@@ -200,7 +200,7 @@ def _run_claude_interactive(resolved_org_id: int, no_mcp: bool | None) -> None:
     except KeyboardInterrupt:
         console.print("\n🛑 Interrupted by user", style="yellow")
         log_watcher_manager.stop_all_watchers()
-        update_claude_session_status(session_id, "ERROR", resolved_org_id)
+        update_claude_session_status(session_id, "CANCELLED", resolved_org_id)
     except Exception as e:
         console.print(f"❌ Error running Claude Code: {e}", style="red")
         log_watcher_manager.stop_all_watchers()
