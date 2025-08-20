@@ -55,6 +55,6 @@ def handle_auth_error(f):
             return f(*args, **kwargs)
         except AuthError:
             rich.print(Panel("[red]Authentication Error:[/red] Please run 'codegen login' first.", title="Codegen Error", border_style="red"))
-            raise typer.Abort()
+            raise typer.Exit(1)
 
     return wrapper
