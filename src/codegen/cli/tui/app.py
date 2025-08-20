@@ -3,11 +3,11 @@
 import signal
 import sys
 import termios
+import threading
+import time
 import tty
 from datetime import datetime
 from typing import Any
-import threading
-import time
 
 import requests
 import typer
@@ -15,6 +15,7 @@ import typer
 from codegen.cli.api.endpoints import API_ENDPOINT
 from codegen.cli.auth.token_manager import get_current_org_name, get_current_token
 from codegen.cli.commands.agent.main import pull
+from codegen.cli.commands.claude.main import _run_claude_interactive
 from codegen.cli.utils.org import resolve_org_id
 from codegen.cli.utils.url import generate_webapp_url, get_domain
 
@@ -34,11 +35,12 @@ class MinimalTUI:
         self.action_menu_selection = 0
 
         # Tab management
-        self.tabs = ["recents", "new", "web"]
+        self.tabs = ["recent", "claude", "new", "kanban"]
         self.current_tab = 0
 
         # Refresh state
         self.is_refreshing = False
+        self.initial_loading = True  # Track if we're still doing the initial load
         self._auto_refresh_interval_seconds = 10
         self._refresh_lock = threading.Lock()
 
@@ -56,7 +58,7 @@ class MinimalTUI:
         self._auto_refresh_thread.start()
 
     def _auto_refresh_loop(self):
-        """Background loop to auto-refresh recents tab every interval."""
+        """Background loop to auto-refresh recent tab every interval."""
         while True:
             # Sleep first so we don't immediately spam a refresh on start
             time.sleep(self._auto_refresh_interval_seconds)
@@ -64,7 +66,7 @@ class MinimalTUI:
             if not self.running:
                 break
 
-            # Only refresh when on recents tab and not currently refreshing
+            # Only refresh when on recent tab and not currently refreshing
             if self.current_tab == 0 and not self.is_refreshing:
                 # Try background refresh; if lock is busy, skip this tick
                 acquired = self._refresh_lock.acquire(blocking=False)
@@ -78,7 +80,7 @@ class MinimalTUI:
                     self._refresh_lock.release()
 
     def _background_refresh(self):
-        """Refresh data without disrupting selection/menu state; redraw if still on recents."""
+        """Refresh data without disrupting selection/menu state; redraw if still on recent."""
         self.is_refreshing = True
         # Do not redraw immediately to reduce flicker; header shows indicator on next paint
 
@@ -93,7 +95,7 @@ class MinimalTUI:
         finally:
             self.is_refreshing = False
 
-        # Redraw only if still on recents and app running
+        # Redraw only if still on recent and app running
         if self.running and self.current_tab == 0:
             self._clear_and_redraw()
 
@@ -165,6 +167,7 @@ class MinimalTUI:
             response_data = response.json()
 
             self.agent_runs = response_data.get("items", [])
+            self.initial_loading = False  # Mark initial loading as complete
             return True
 
         except Exception as e:
@@ -183,23 +186,59 @@ class MinimalTUI:
                     break
 
         if is_done:
-            return "\033[34m✓\033[0m Done"  # Blue checkmark for merged PR
+            return "\033[38;2;130;226;255m✓\033[0m", "done"  # aura blue #82e2ff checkmark for merged PR
 
         status_map = {
-            "COMPLETE": "\033[38;2;52;211;153m○\033[0m Complete",  # emerald-400
-            "ACTIVE": "\033[38;2;162;119;255m●\033[0m Active",  # #a277ff (purple from badge)
-            "RUNNING": "\033[38;2;162;119;255m●\033[0m Running",  # #a277ff (purple from badge)
-            "ERROR": "\033[38;2;248;113;113m●\033[0m Error",  # red-400
-            "FAILED": "\033[38;2;248;113;113m●\033[0m Failed",  # red-400
-            "CANCELLED": "\033[38;2;156;163;175m○\033[0m Cancelled",  # gray-400
-            "STOPPED": "\033[38;2;156;163;175m○\033[0m Stopped",  # gray-400
-            "PENDING": "\033[38;2;156;163;175m○\033[0m Pending",  # gray-400
-            "TIMEOUT": "\033[38;2;251;146;60m●\033[0m Timeout",  # orange-400
-            "MAX_ITERATIONS_REACHED": "\033[38;2;251;191;36m●\033[0m Max Iterations",  # amber-400
-            "OUT_OF_TOKENS": "\033[38;2;251;191;36m●\033[0m Out of Tokens",  # amber-400
-            "EVALUATION": "\033[38;2;196;181;253m●\033[0m Evaluation",  # purple-400
+            "COMPLETE": "\033[38;2;66;196;153m○\033[0m",  # oklch(43.2% 0.095 166.913) ≈ rgb(66,196,153) hollow circle
+            "ACTIVE": "\033[38;2;162;119;255m○\033[0m",  # aura purple #a277ff (hollow circle)
+            "RUNNING": "\033[38;2;162;119;255m●\033[0m",  # aura purple #a277ff
+            "ERROR": "\033[38;2;255;103;103m○\033[0m",  # aura red #ff6767 (empty circle)
+            "FAILED": "\033[38;2;255;103;103m○\033[0m",  # aura red #ff6767 (empty circle)
+            "CANCELLED": "\033[38;2;109;109;109m○\033[0m",  # aura gray #6d6d6d
+            "STOPPED": "\033[38;2;109;109;109m○\033[0m",  # aura gray #6d6d6d
+            "PENDING": "\033[38;2;109;109;109m○\033[0m",  # aura gray #6d6d6d
+            "TIMEOUT": "\033[38;2;255;202;133m●\033[0m",  # aura orange #ffca85
+            "MAX_ITERATIONS_REACHED": "\033[38;2;255;202;133m●\033[0m",  # aura orange #ffca85
+            "OUT_OF_TOKENS": "\033[38;2;255;202;133m●\033[0m",  # aura orange #ffca85
+            "EVALUATION": "\033[38;2;246;148;255m●\033[0m",  # aura pink #f694ff
         }
-        return status_map.get(status, f"\033[37m○\033[0m {status}")
+
+        status_text_map = {
+            "COMPLETE": "complete",
+            "ACTIVE": "active",
+            "RUNNING": "running",
+            "ERROR": "error",
+            "FAILED": "failed",
+            "CANCELLED": "cancelled",
+            "STOPPED": "stopped",
+            "PENDING": "pending",
+            "TIMEOUT": "timeout",
+            "MAX_ITERATIONS_REACHED": "max iterations",
+            "OUT_OF_TOKENS": "out of tokens",
+            "EVALUATION": "evaluation",
+        }
+
+        circle = status_map.get(status, "\033[37m○\033[0m")
+        text = status_text_map.get(status, status.lower() if status else "unknown")
+        return circle, text
+
+    def _format_pr_info(self, agent_run: dict) -> str:
+        """Format PR information as 'PR #123' or empty string."""
+        github_prs = agent_run.get("github_pull_requests", [])
+        if not github_prs:
+            return ""
+
+        pr = github_prs[0]  # Take the first PR
+        pr_url = pr.get("url", "")
+        if not pr_url:
+            return ""
+
+        # Extract PR number from URL like "https://github.com/org/repo/pull/123"
+        try:
+            pr_number = pr_url.split("/pull/")[-1].split("/")[0]
+            return f"PR #{pr_number}"
+        except (IndexError, AttributeError):
+            return ""
 
     def _strip_ansi_codes(self, text: str) -> str:
         """Strip ANSI color codes from text."""
@@ -229,7 +268,7 @@ class MinimalTUI:
         tab_line = ""
         for i, tab in enumerate(self.tabs):
             if i == self.current_tab:
-                tab_line += f"\033[34m[{tab}]\033[0m  "  # Blue for active tab
+                tab_line += f"\033[38;2;255;202;133m/{tab}\033[0m  "  # Orange for active tab with slash
             else:
                 tab_line += f"\033[90m{tab}\033[0m  "  # Gray for inactive tabs
 
@@ -239,7 +278,10 @@ class MinimalTUI:
     def _display_agent_list(self):
         """Display the list of agent runs, fixed to 10 lines of main content."""
         if not self.agent_runs:
-            print("No agent runs found.")
+            if self.initial_loading:
+                print("Loading...")
+            else:
+                print("No agent runs found.")
             self._pad_to_lines(1)
             return
 
@@ -272,17 +314,27 @@ class MinimalTUI:
             # Highlight selected item
             prefix = "→ " if i == self.selected_index and not self.show_action_menu else "  "
 
-            status = self._format_status(agent_run.get("status", "Unknown"), agent_run)
+            status_circle, status_text = self._format_status(agent_run.get("status", "Unknown"), agent_run)
             created = self._format_date(agent_run.get("created_at", "Unknown"))
             summary = agent_run.get("summary", "No summary") or "No summary"
+
+            # Append PR info to summary if available
+            pr_info = self._format_pr_info(agent_run)
+            if pr_info:
+                summary = f"{summary} ({pr_info})"
 
             if len(summary) > 60:
                 summary = summary[:57] + "..."
 
+            # Calculate display width of status (without ANSI codes) for alignment
+            status_display = f"{status_circle} {status_text}"
+            status_display_width = len(self._strip_ansi_codes(status_display))
+            status_padding = " " * max(0, 17 - status_display_width)
+
             if i == self.selected_index and not self.show_action_menu:
-                line = f"\033[34m{prefix}{created:<10}\033[0m {status} \033[34m{summary}\033[0m"
+                line = f"\033[37m{prefix}{created:<10}\033[0m {status_circle} \033[37m{status_text}\033[0m{status_padding}\033[37m{summary}\033[0m"
             else:
-                line = f"\033[90m{prefix}{created:<10}\033[0m {status} \033[90m{summary}\033[0m"
+                line = f"\033[90m{prefix}{created:<10}\033[0m {status_circle} \033[90m{status_text}\033[0m{status_padding}\033[90m{summary}\033[0m"
 
             print(line)
             printed_rows += 1
@@ -326,7 +378,7 @@ class MinimalTUI:
             input_display = input_display[start_pos : start_pos + box_width - 4]
 
         # Display full-width input box with simple border like Claude Code
-        border_style = "\033[34m" if self.input_mode else "\033[90m"  # Blue when active, gray when inactive
+        border_style = "\033[37m" if self.input_mode else "\033[90m"  # White when active, gray when inactive
         reset = "\033[0m"
 
         print(border_style + "┌" + "─" * (box_width - 2) + "┐" + reset)
@@ -390,7 +442,7 @@ class MinimalTUI:
         from codegen.cli.utils.inplace_print import inplace_print
 
         print("\nWhat would you like to do next?")
-        options = ["open in web preview", "go to recents"]
+        options = ["open in web preview", "go to recent"]
         selected = 0
         prev_lines = 0
 
@@ -399,7 +451,7 @@ class MinimalTUI:
             # Options
             for i, option in enumerate(options):
                 if i == selected:
-                    menu_lines.append(f"    \033[34m→ {option}\033[0m")
+                    menu_lines.append(f"    \033[37m→ {option}\033[0m")
                 else:
                     menu_lines.append(f"    \033[90m  {option}\033[0m")
             # Hint line last
@@ -426,29 +478,35 @@ class MinimalTUI:
                     except Exception as e:
                         print(f"\n❌ Failed to open browser: {e}")
                         input("Press Enter to continue...")
-                elif selected == 1:  # go to recents
-                    self.current_tab = 0  # Switch to recents tab
+                elif selected == 1:  # go to recent
+                    self.current_tab = 0  # Switch to recent tab
                     self.input_mode = False
                     self._load_agent_runs()  # Refresh the data
                 break
             elif key == "B":  # Back to new tab
-                self.current_tab = 1  # 'new' tab index
+                self.current_tab = 2  # 'new' tab index
                 self.input_mode = True
                 break
 
-    def _display_web_tab(self):
-        """Display the web interface access tab."""
+    def _display_dashboard_tab(self):
+        """Display the kanban interface access tab."""
         # Generate the proper domain-based URL for display
         me_url = generate_webapp_url("me")
         display_url = me_url.replace("https://", "").replace("http://", "")
 
-        print("Open Web Interface:")
+        print(f"  \033[37m→ Open Kanban ({display_url})\033[0m")
         print()
-        print(f"  \033[34m→ Open Web ({display_url})\033[0m")
+        print("Press Enter to open web kanban.")
+        # The kanban tab main content area should be a fixed 10 lines
+        self._pad_to_lines(7)
+
+    def _display_claude_tab(self):
+        """Display the Claude Code interface tab."""
+        print("  \033[37m→ Run Claude Code\033[0m")
         print()
-        print("Press Enter to open the web interface in your browser.")
-        # The web tab main content area should be a fixed 10 lines
-        self._pad_to_lines(5)
+        print("Press Enter to launch Claude Code with session tracking.")
+        # The claude tab main content area should be a fixed 10 lines
+        self._pad_to_lines(7)
 
     def _pull_agent_branch(self, agent_id: str):
         """Pull the PR branch for an agent run locally."""
@@ -475,12 +533,14 @@ class MinimalTUI:
 
     def _display_content(self):
         """Display content based on current tab."""
-        if self.current_tab == 0:  # recents
+        if self.current_tab == 0:  # recent
             self._display_agent_list()
-        elif self.current_tab == 1:  # new
+        elif self.current_tab == 1:  # claude
+            self._display_claude_tab()
+        elif self.current_tab == 2:  # new
             self._display_new_tab()
-        elif self.current_tab == 2:  # web
-            self._display_web_tab()
+        elif self.current_tab == 3:  # kanban
+            self._display_dashboard_tab()
 
     def _pad_to_lines(self, lines_printed: int, target: int = 10):
         """Pad the main content area with blank lines to reach a fixed height."""
@@ -491,31 +551,35 @@ class MinimalTUI:
         """Display action menu inline below the selected row."""
         agent_id = agent_run.get("id", "unknown")
         web_url = self._generate_agent_url(agent_id)
-        # Extract just the domain/path part without protocol for display
-        display_url = web_url.replace("https://", "").replace("http://", "")
 
         # Check if there are GitHub PRs associated with this agent run
         github_prs = agent_run.get("github_pull_requests", [])
 
-        # Start with basic web option
-        options = [f"open in web ({display_url})"]
+        # Build options in the requested order
+        options = []
 
-        # Only add pull locally if there are PRs
-        if github_prs:
-            options.insert(0, "pull locally")  # Add as first option
-
-        # Add PR option if available
+        # 1. Open PR (if available)
         if github_prs:
             pr_url = github_prs[0].get("url", "")
             if pr_url:
-                # Extract just the GitHub part for display
-                pr_display = pr_url.replace("https://github.com/", "github.com/")
-                options.append(f"open PR ({pr_display})")
+                # Extract PR number for display
+                try:
+                    pr_number = pr_url.split("/pull/")[-1].split("/")[0]
+                    options.append(f"Open PR #{pr_number} ↗")
+                except (IndexError, AttributeError):
+                    options.append("Open PR ↗")
+
+        # 2. Pull locally (if PRs available)
+        if github_prs:
+            options.append("Pull locally")
+
+        # 3. Open Trace (always available)
+        options.append("Open Trace ↗")
 
         for i, option in enumerate(options):
             if i == self.action_menu_selection:
-                # Highlight selected option in blue
-                print(f"    \033[34m→ {option}\033[0m")
+                # Highlight selected option in white
+                print(f"    \033[37m→ {option}\033[0m")
             else:
                 # All other options in gray
                 print(f"    \033[90m  {option}\033[0m")
@@ -558,7 +622,7 @@ class MinimalTUI:
         if key == "\x03":  # Ctrl+C
             self.running = False
             return
-        elif key.lower() == "q" and not (self.input_mode and self.current_tab == 1):  # q only if not typing in new tab
+        elif key.lower() == "q" and not (self.input_mode and self.current_tab == 2):  # q only if not typing in new tab
             self.running = False
             return
 
@@ -570,7 +634,7 @@ class MinimalTUI:
             self.action_menu_selection = 0
             self.selected_index = 0
             # Auto-focus prompt when switching to new tab
-            if self.current_tab == 1:  # new tab
+            if self.current_tab == 2:  # new tab
                 self.input_mode = True
                 self.cursor_position = len(self.prompt_input)
             else:
@@ -582,12 +646,14 @@ class MinimalTUI:
             self._handle_input_mode_keypress(key)
         elif self.show_action_menu:
             self._handle_action_menu_keypress(key)
-        elif self.current_tab == 0:  # recents tab
-            self._handle_recents_keypress(key)
-        elif self.current_tab == 1:  # new tab
+        elif self.current_tab == 0:  # recent tab
+            self._handle_recent_keypress(key)
+        elif self.current_tab == 1:  # claude tab
+            self._handle_claude_tab_keypress(key)
+        elif self.current_tab == 2:  # new tab
             self._handle_new_tab_keypress(key)
-        elif self.current_tab == 2:  # web tab
-            self._handle_web_tab_keypress(key)
+        elif self.current_tab == 3:  # kanban tab
+            self._handle_dashboard_tab_keypress(key)
 
     def _handle_input_mode_keypress(self, key: str):
         """Handle keypresses when in text input mode."""
@@ -623,11 +689,11 @@ class MinimalTUI:
             if 0 <= self.selected_index < len(self.agent_runs):
                 agent_run = self.agent_runs[self.selected_index]
                 github_prs = agent_run.get("github_pull_requests", [])
-                options_count = 1  # Always have "open in web"
+                options_count = 1  # Always have "Open Trace"
                 if github_prs:
-                    options_count += 1  # "pull locally"
+                    options_count += 1  # "Pull locally"
                 if github_prs and github_prs[0].get("url"):
-                    options_count += 1  # "open PR"
+                    options_count += 1  # "Open PR"
 
                 self.action_menu_selection = max(0, self.action_menu_selection - 1)
         elif key == "\x1b[B" or key.lower() == "s":  # Down arrow or S
@@ -635,16 +701,16 @@ class MinimalTUI:
             if 0 <= self.selected_index < len(self.agent_runs):
                 agent_run = self.agent_runs[self.selected_index]
                 github_prs = agent_run.get("github_pull_requests", [])
-                options_count = 1  # Always have "open in web"
+                options_count = 1  # Always have "Open Trace"
                 if github_prs:
-                    options_count += 1  # "pull locally"
+                    options_count += 1  # "Pull locally"
                 if github_prs and github_prs[0].get("url"):
-                    options_count += 1  # "open PR"
+                    options_count += 1  # "Open PR"
 
                 self.action_menu_selection = min(options_count - 1, self.action_menu_selection + 1)
 
-    def _handle_recents_keypress(self, key: str):
-        """Handle keypresses in the recents tab."""
+    def _handle_recent_keypress(self, key: str):
+        """Handle keypresses in the recent tab."""
         if key == "\x1b[A" or key.lower() == "w":  # Up arrow or W
             self.selected_index = max(0, self.selected_index - 1)
             self.show_action_menu = False  # Close any open menu
@@ -677,18 +743,51 @@ class MinimalTUI:
                 # If already in input mode, Enter should create the agent
                 self._create_background_agent(self.prompt_input)
 
-    def _handle_web_tab_keypress(self, key: str):
-        """Handle keypresses in the web tab."""
-        if key == "\r" or key == "\n":  # Enter - open web interface
+    def _handle_dashboard_tab_keypress(self, key: str):
+        """Handle keypresses in the kanban tab."""
+        if key == "\r" or key == "\n":  # Enter - open web kanban
             try:
                 import webbrowser
 
                 me_url = generate_webapp_url("me")
                 webbrowser.open(me_url)
-                print("\n✅ Opening web interface in browser...")
+                print("\n✅ Opening web kanban in browser...")
             except Exception as e:
                 print(f"\n❌ Failed to open browser: {e}")
                 input("Press Enter to continue...")
+
+    def _handle_claude_tab_keypress(self, key: str):
+        """Handle keypresses in the claude tab."""
+        if key == "\r" or key == "\n":  # Enter - run Claude Code
+            self._run_claude_code()
+
+    def _run_claude_code(self):
+        """Launch Claude Code with session tracking."""
+        if not self.token or not self.org_id:
+            print("\n❌ Not authenticated or no organization configured.")
+            input("Press Enter to continue...")
+            return
+
+        # Show immediate feedback in orange
+        print("\n\033[38;2;255;202;133m> claude code mode\033[0m")
+
+        # Stop the TUI and clear screen completely after brief moment
+        self.running = False
+        print("\033[2J\033[H", end="")  # Clear entire screen and move cursor to top
+
+        try:
+            # Call the interactive claude function with the current org_id
+            # The function handles all the session tracking and launching
+            _run_claude_interactive(self.org_id, no_mcp=False)
+        except typer.Exit:
+            # Claude Code finished, just continue silently
+            pass
+        except Exception as e:
+            print(f"\n❌ Unexpected error launching Claude Code: {e}")
+            input("Press Enter to continue...")
+
+        # Exit the TUI completely - don't return to it
+        sys.exit(0)
 
     def _execute_inline_action(self):
         """Execute the selected action from the inline menu."""
@@ -699,32 +798,26 @@ class MinimalTUI:
         agent_id = agent_run.get("id", "unknown")
         web_url = self._generate_agent_url(agent_id)
 
-        # Get the available options to map selection to action
+        # Build options in the same order as display
         github_prs = agent_run.get("github_pull_requests", [])
-        options = ["open in web"]
+        options = []
 
-        if github_prs:
-            options.insert(0, "pull locally")  # Add as first option
-
+        # 1. Open PR (if available)
         if github_prs and github_prs[0].get("url"):
             options.append("open PR")
+
+        # 2. Pull locally (if PRs available)
+        if github_prs:
+            options.append("pull locally")
+
+        # 3. Open Trace (always available)
+        options.append("open trace")
 
         # Execute the currently selected option
         if len(options) > self.action_menu_selection:
             selected_option = options[self.action_menu_selection]
 
-            if selected_option == "pull locally":
-                self._pull_agent_branch(agent_id)
-            elif selected_option.startswith("open in web"):
-                try:
-                    import webbrowser
-
-                    webbrowser.open(web_url)
-                    # No pause - let it flow back naturally to collapsed state
-                except Exception as e:
-                    print(f"\n❌ Failed to open browser: {e}")
-                    input("Press Enter to continue...")  # Only pause on errors
-            elif selected_option == "open PR":
+            if selected_option == "open PR":
                 pr_url = github_prs[0]["url"]
                 try:
                     import webbrowser
@@ -733,6 +826,17 @@ class MinimalTUI:
                     # No pause - seamless flow back to collapsed state
                 except Exception as e:
                     print(f"\n❌ Failed to open PR: {e}")
+                    input("Press Enter to continue...")  # Only pause on errors
+            elif selected_option == "pull locally":
+                self._pull_agent_branch(agent_id)
+            elif selected_option == "open trace":
+                try:
+                    import webbrowser
+
+                    webbrowser.open(web_url)
+                    # No pause - let it flow back naturally to collapsed state
+                except Exception as e:
+                    print(f"\n❌ Failed to open browser: {e}")
                     input("Press Enter to continue...")  # Only pause on errors
 
     def _open_agent_details(self):
@@ -762,18 +866,20 @@ class MinimalTUI:
         self._display_content()
 
         # Show appropriate instructions based on context
-        if self.input_mode and self.current_tab == 1:  # new tab input mode
+        if self.input_mode and self.current_tab == 2:  # new tab input mode
             print(f"\n{self._format_status_line('Type your prompt • [Enter] create • [B] cancel • [Tab] switch tabs • [Ctrl+C] quit')}")
         elif self.input_mode:  # other input modes
             print(f"\n{self._format_status_line('Type your prompt • [Enter] create • [B] cancel • [Ctrl+C] quit')}")
         elif self.show_action_menu:
             print(f"\n{self._format_status_line('[Enter] select • [↑↓] navigate • [C] close • [Q] quit')}")
-        elif self.current_tab == 0:  # recents
+        elif self.current_tab == 0:  # recent
             print(f"\n{self._format_status_line('[Tab] switch tabs • (↑↓) navigate • (←→) open/close • [Enter] actions • [R] refresh • [Q] quit')}")
-        elif self.current_tab == 1:  # new
+        elif self.current_tab == 1:  # claude
+            print(f"\n{self._format_status_line('[Tab] switch tabs • [Enter] launch claude code with telemetry • [Q] quit')}")
+        elif self.current_tab == 2:  # new
             print(f"\n{self._format_status_line('[Tab] switch tabs • [Enter] start typing • [Q] quit')}")
-        elif self.current_tab == 2:  # web
-            print(f"\n{self._format_status_line('[Tab] switch tabs • [Enter] open web • [Q] quit')}")
+        elif self.current_tab == 3:  # kanban
+            print(f"\n{self._format_status_line('[Tab] switch tabs • [Enter] open web kanban • [Q] quit')}")
 
     def run(self):
         """Run the minimal TUI."""
@@ -781,13 +887,17 @@ class MinimalTUI:
             print("⚠️  Not authenticated. Please run 'codegen login' first.")
             return
 
-        print("Loading...")
-        if not self._load_agent_runs():
-            print("Failed to load agent runs. Please check your authentication and try again.")
-            return
-
-        # Initial display
+        # Show UI immediately
         self._clear_and_redraw()
+
+        # Start initial data load in background (non-blocking)
+        def initial_load():
+            self._load_agent_runs()
+            if self.running:  # Only redraw if still running
+                self._clear_and_redraw()
+
+        load_thread = threading.Thread(target=initial_load, daemon=True)
+        load_thread.start()
 
         # Main event loop
         while self.running:
