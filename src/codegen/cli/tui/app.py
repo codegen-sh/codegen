@@ -768,7 +768,10 @@ class MinimalTUI:
             input("Press Enter to continue...")
             return
 
-        # Stop the TUI and clear screen completely
+        # Show immediate feedback in orange
+        print("\n\033[38;2;255;202;133m> claude code mode\033[0m")
+
+        # Stop the TUI and clear screen completely after brief moment
         self.running = False
         print("\033[2J\033[H", end="")  # Clear entire screen and move cursor to top
 
