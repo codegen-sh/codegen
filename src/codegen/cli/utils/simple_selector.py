@@ -77,7 +77,7 @@ def simple_select(title: str, options: list[dict[str, Any]], display_key: str = 
         for i, option in enumerate(options):
             display_text = str(option.get(display_key, f"Option {i + 1}"))
             if i == selected:
-                print(f"  \033[34m→ {display_text}\033[0m")
+                print(f"  \033[37m→ {display_text}\033[0m")  # White for selected
             else:
                 print(f"  \033[90m  {display_text}\033[0m")
 
@@ -100,7 +100,7 @@ def simple_select(title: str, options: list[dict[str, Any]], display_key: str = 
                 for i, option in enumerate(options):
                     display_text = str(option.get(display_key, f"Option {i + 1}"))
                     if i == selected:
-                        print(f"  \033[34m→ {display_text}\033[0m\033[K")  # Clear to end of line
+                        print(f"  \033[37m→ {display_text}\033[0m\033[K")  # White for selected, clear to end of line
                     else:
                         print(f"  \033[90m  {display_text}\033[0m\033[K")  # Clear to end of line
                 if show_help:
@@ -115,7 +115,7 @@ def simple_select(title: str, options: list[dict[str, Any]], display_key: str = 
                 for i, option in enumerate(options):
                     display_text = str(option.get(display_key, f"Option {i + 1}"))
                     if i == selected:
-                        print(f"  \033[34m→ {display_text}\033[0m\033[K")  # Clear to end of line
+                        print(f"  \033[37m→ {display_text}\033[0m\033[K")  # White for selected, clear to end of line
                     else:
                         print(f"  \033[90m  {display_text}\033[0m\033[K")  # Clear to end of line
                 if show_help:
