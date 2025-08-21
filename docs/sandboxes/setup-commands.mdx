@@ -36,6 +36,7 @@ Enter your desired setup commands in the provided text area, with one command pe
   - All setup commands run as the **root** user
   - Your repository is cloned to the **/workspace** directory
   - If you need to run commands as a non-root user, use `su <username> -c "command"` (e.g., `su linuxbrew -c "brew install <package>"`)
+  - When using quotes inside the `su` command, make sure to escape them properly: `su linuxbrew -c 'brew install "package with spaces"'` or `su linuxbrew -c "brew install \"package with spaces\""` 
 </Info>
 
 For example, you might want to:
@@ -78,6 +79,12 @@ npm run build
 # Running commands as a non-root user (e.g., for Homebrew)
 su linuxbrew -c "brew install postgresql"
 su linuxbrew -c "brew services start postgresql"
+
+# Handling quotes in commands (using single quotes around the command)
+su linuxbrew -c 'brew install "package with spaces"'
+
+# Alternative: escaping double quotes inside the command
+su linuxbrew -c "brew install \"package with spaces\""
 ```
 
 ### Working with Different Python Versions
