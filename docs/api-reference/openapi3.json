@@ -599,7 +599,7 @@
           "agents"
         ],
         "summary": "Resume Agent Run",
-        "description": "Resume a paused agent run.\n\nResumes a paused agent run, allowing it to continue processing.",
+        "description": "Resume a paused agent run.\n\nResumes a paused agent run, allowing it to continue processing.\n\nNote: Setup commands agents are automatically routed to their dedicated resume function.",
         "operationId": "resume_agent_run_v1_organizations__org_id__agent_run_resume_post",
         "parameters": [
           {
@@ -1102,6 +1102,78 @@
               }
             },
             "description": "Forbidden"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/organizations/{org_id}/setup-commands/generate": {
+      "post": {
+        "tags": [
+          "setup-commands",
+          "setup-commands",
+          "setup-commands"
+        ],
+        "summary": "Generate Setup Commands",
+        "description": "Generate setup commands for a repository.\n\nCreates and initiates a setup command generation agent for the specified repository.\nThe agent will analyze the repository structure and generate appropriate setup commands.\n\nRate limit: 5 requests per minute.",
+        "operationId": "generate_setup_commands_v1_organizations__org_id__setup_commands_generate_post",
+        "parameters": [
+          {
+            "name": "org_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Org Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateSetupCommandsInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupCommandsResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Repository not found"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "500": {
+            "description": "Internal server error"
           },
           "422": {
             "description": "Validation Error",
@@ -1830,7 +1902,8 @@
           "CHAT",
           "JIRA",
           "CLICKUP",
-          "MONDAY"
+          "MONDAY",
+          "SETUP_COMMANDS"
         ],
         "title": "ApiAgentRunSourceType"
       },
@@ -1898,6 +1971,31 @@
           "prompt"
         ],
         "title": "CreateAgentRunInput"
+      },
+      "GenerateSetupCommandsInput": {
+        "properties": {
+          "repo_id": {
+            "type": "integer",
+            "title": "Repo Id"
+          },
+          "prompt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt"
+          }
+        },
+        "type": "object",
+        "required": [
+          "repo_id"
+        ],
+        "title": "GenerateSetupCommandsInput",
+        "description": "Input for generating setup commands."
       },
       "GithubPullRequestResponse": {
         "properties": {
@@ -2391,6 +2489,30 @@
           "prompt"
         ],
         "title": "ResumeAgentRunInput"
+      },
+      "SetupCommandsResponse": {
+        "properties": {
+          "agent_run_id": {
+            "type": "integer",
+            "title": "Agent Run Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "url": {
+            "type": "string",
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "agent_run_id",
+          "status",
+          "url"
+        ],
+        "title": "SetupCommandsResponse",
+        "description": "Response for setup commands generation."
       },
       "StopAgentRunInput": {
         "properties": {
