@@ -1,9 +1,9 @@
-
 import subprocess
 
 from codegen.cli.api.endpoints import MCP_SERVER_ENDPOINT
-from codegen.cli.commands.claude.quiet_console import console
 from codegen.cli.auth.token_manager import get_current_token
+from codegen.cli.commands.claude.quiet_console import console
+from codegen.cli.commands.claude.utils import resolve_claude_path
 
 
 def add_codegen_mcp_server():
@@ -14,9 +14,14 @@ def add_codegen_mcp_server():
             console.print("⚠️  No authentication token found. Please run 'codegen login' first.", style="yellow")
             return
 
+        claude_path = resolve_claude_path()
+        if not claude_path:
+            console.print("⚠️  'claude' CLI not found to add MCP server", style="yellow")
+            return
+
         add_result = subprocess.run(
             [
-                "claude",
+                claude_path,
                 "mcp",
                 "add",
                 "--transport",
@@ -45,9 +50,14 @@ def add_codegen_mcp_server():
 
 def cleanup_codegen_mcp_server():
     try:
+        claude_path = resolve_claude_path()
+        if not claude_path:
+            # Silently skip if claude is not found during cleanup
+            return
+
         subprocess.run(
             [
-                "claude",
+                claude_path,
                 "mcp",
                 "remove",
                 "codegen-tools",
