@@ -8,7 +8,7 @@ def resolve_claude_path() -> str | None:
     """Resolve the path to the Claude Code CLI.
 
     Tries PATH first, then common local install locations created by `claude /migrate`.
-    
+
     Returns:
         Path to the claude executable if found, None otherwise.
     """
