@@ -110,6 +110,23 @@
     "decoration": "gradient"
   },
   "navbar": {
+    "links": [
+      {
+        "label": "Slack",
+        "href": "https://join.slack.com/t/codegen-community/shared_invite/zt-2f9xzs4vc-Ij0YgRrnu43F2ygMQRPQQQ",
+        "icon": "slack"
+      },
+      {
+        "label": "X",
+        "href": "https://x.com/codegen",
+        "icon": "x-twitter"
+      },
+      {
+        "label": "LinkedIn",
+        "href": "https://linkedin.com/company/codegen-dot-com",
+        "icon": "linkedin"
+      }
+    ],
     "primary": {
       "type": "button",
       "label": "GitHub",
@@ -141,3 +158,4 @@
     }
   }
 }
+
