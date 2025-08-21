@@ -31,6 +31,13 @@ To configure setup commands for a repository:
 
 Enter your desired setup commands in the provided text area, with one command per line. These commands will be executed in sequence within the sandbox environment.
 
+<Info>
+  **Important Environment Details:**
+  - All setup commands run as the **root** user
+  - Your repository is cloned to the **/workspace** directory
+  - If you need to run commands as a non-root user, use `su <username> -c "command"` (e.g., `su linuxbrew -c "brew install <package>"`)
+</Info>
+
 For example, you might want to:
 
 - Switch to a specific Node.js version.
@@ -65,6 +72,12 @@ pip install -r requirements.txt
 nvm use 18
 npm ci
 npm run build
+```
+
+```bash
+# Running commands as a non-root user (e.g., for Homebrew)
+su linuxbrew -c "brew install postgresql"
+su linuxbrew -c "brew services start postgresql"
 ```
 
 ### Working with Different Python Versions
@@ -144,4 +157,3 @@ deactivate
   The environment variables listed in the "Env Variables" section are available
   during the execution of these setup commands.
 </Tip>
-
