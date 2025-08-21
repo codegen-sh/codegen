@@ -16,13 +16,14 @@ from codegen.cli.api.endpoints import API_ENDPOINT
 from codegen.cli.auth.token_manager import get_current_token
 from codegen.cli.commands.claude.claude_log_watcher import ClaudeLogWatcherManager
 from codegen.cli.commands.claude.claude_session_api import (
-    update_claude_session_status,
-    generate_session_id,
     create_claude_session,
+    generate_session_id,
+    update_claude_session_status,
 )
 from codegen.cli.commands.claude.config.mcp_setup import add_codegen_mcp_server, cleanup_codegen_mcp_server
-from codegen.cli.commands.claude.hooks import cleanup_claude_hook, ensure_claude_hook, get_codegen_url, SESSION_FILE
+from codegen.cli.commands.claude.hooks import SESSION_FILE, cleanup_claude_hook, ensure_claude_hook, get_codegen_url
 from codegen.cli.commands.claude.quiet_console import console
+from codegen.cli.commands.claude.utils import resolve_claude_path
 from codegen.cli.rich.spinners import create_spinner
 from codegen.cli.utils.org import resolve_org_id
 
@@ -125,10 +126,24 @@ def _run_claude_interactive(resolved_org_id: int, no_mcp: bool | None) -> None:
     # Initialize log watcher manager
     log_watcher_manager = ClaudeLogWatcherManager()
 
-    # Test if Claude Code is accessible first
-    console.print("🔍 Testing Claude Code accessibility...", style="blue")
+    # Resolve Claude CLI path and test accessibility
+    claude_path = resolve_claude_path()
+    if not claude_path:
+        console.print("❌ Claude Code CLI not found.", style="red")
+        console.print(
+            "💡 If you migrated a local install, ensure `~/.claude/local/claude` exists, or add it to PATH.",
+            style="dim",
+        )
+        console.print(
+            "💡 Otherwise install globally via npm (e.g., `npm i -g claude`) or run `claude /migrate`.",
+            style="dim",
+        )
+        update_claude_session_status(session_id, "ERROR", resolved_org_id)
+        raise typer.Exit(1)
+
+    console.print(f"🔍 Using Claude CLI at: {claude_path}", style="blue")
     try:
-        test_result = subprocess.run(["claude", "--version"], capture_output=True, text=True, timeout=10)
+        test_result = subprocess.run([claude_path, "--version"], capture_output=True, text=True, timeout=10)
         if test_result.returncode == 0:
             console.print(f"✅ Claude Code found: {test_result.stdout.strip()}", style="green")
         else:
@@ -153,7 +168,7 @@ def _run_claude_interactive(resolved_org_id: int, no_mcp: bool | None) -> None:
         url = get_codegen_url(session_id)
         console.print(f"\n🔵 Codegen URL: {url}\n", style="bold blue")
 
-        process = subprocess.Popen(["claude", "--session-id", session_id])
+        process = subprocess.Popen([claude_path, "--session-id", session_id])
 
         # Start log watcher for the session
         console.print("📋 Starting log watcher...", style="blue")
