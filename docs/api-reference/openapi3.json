@@ -1988,6 +1988,11 @@
               }
             ],
             "title": "Prompt"
+          },
+          "trigger_source": {
+            "type": "string",
+            "title": "Trigger Source",
+            "default": "setup-commands"
           }
         },
         "type": "object",
