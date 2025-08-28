@@ -5,6 +5,7 @@ import os
 import signal
 import subprocess
 import sys
+import time
 
 import requests
 import typer
@@ -26,14 +27,38 @@ from codegen.cli.commands.claude.quiet_console import console
 from codegen.cli.commands.claude.utils import resolve_claude_path
 from codegen.cli.rich.spinners import create_spinner
 from codegen.cli.utils.org import resolve_org_id
+from codegen.shared.logging.get_logger import get_logger
+
+# Initialize logger
+logger = get_logger(__name__)
+
+
+def _get_session_context() -> dict:
+    """Get session context for logging."""
+    try:
+        from codegen.cli.telemetry.otel_setup import get_session_uuid
+
+        return {"session_id": get_session_uuid()}
+    except ImportError:
+        return {}
+
 
 t_console = Console()
 
 
 def _run_claude_background(resolved_org_id: int, prompt: str | None) -> None:
     """Create a background agent run with Claude context and exit."""
+    logger.info(
+        "Claude background run started",
+        extra={"operation": "claude.background", "org_id": resolved_org_id, "prompt_length": len(prompt) if prompt else 0, "command": "codegen claude --background", **_get_session_context()},
+    )
+
+    start_time = time.time()
     token = get_current_token()
     if not token:
+        logger.error(
+            "Claude background run failed - not authenticated", extra={"operation": "claude.background", "org_id": resolved_org_id, "error_type": "not_authenticated", **_get_session_context()}
+        )
         console.print("[red]Error:[/red] Not authenticated. Please run 'codegen login' first.")
         raise typer.Exit(1)
 
@@ -51,6 +76,32 @@ def _run_claude_background(resolved_org_id: int, prompt: str | None) -> None:
         response = requests.post(url, headers=headers, json=payload)
         response.raise_for_status()
         agent_run_data = response.json()
+
+        duration_ms = (time.time() - start_time) * 1000
+        run_id = agent_run_data.get("id", "Unknown")
+        status = agent_run_data.get("status", "Unknown")
+
+        logger.info(
+            "Claude background run created successfully",
+            extra={"operation": "claude.background", "org_id": resolved_org_id, "agent_run_id": run_id, "status": status, "duration_ms": duration_ms, "success": True, **_get_session_context()},
+        )
+
+    except Exception as e:
+        duration_ms = (time.time() - start_time) * 1000
+        logger.error(
+            "Claude background run failed",
+            extra={
+                "operation": "claude.background",
+                "org_id": resolved_org_id,
+                "error_type": type(e).__name__,
+                "error_message": str(e),
+                "duration_ms": duration_ms,
+                "success": False,
+                **_get_session_context(),
+            },
+            exc_info=True,
+        )
+        raise
     finally:
         spinner.stop()
 
@@ -83,6 +134,12 @@ def _run_claude_interactive(resolved_org_id: int, no_mcp: bool | None) -> None:
     """Launch Claude Code with session tracking and log watching."""
     # Generate session ID for tracking
     session_id = generate_session_id()
+
+    logger.info(
+        "Claude interactive session started",
+        extra={"operation": "claude.interactive", "org_id": resolved_org_id, "claude_session_id": session_id, "mcp_disabled": bool(no_mcp), "command": "codegen claude", **_get_session_context()},
+    )
+
     console.print(f"🆔 Generated session ID: {session_id[:8]}...", style="dim")
 
     console.print("🚀 Starting Claude Code with session tracking...", style="blue")
@@ -129,6 +186,10 @@ def _run_claude_interactive(resolved_org_id: int, no_mcp: bool | None) -> None:
     # Resolve Claude CLI path and test accessibility
     claude_path = resolve_claude_path()
     if not claude_path:
+        logger.error(
+            "Claude CLI not found",
+            extra={"operation": "claude.interactive", "org_id": resolved_org_id, "claude_session_id": session_id, "error_type": "claude_cli_not_found", **_get_session_context()},
+        )
         console.print("❌ Claude Code CLI not found.", style="red")
         console.print(
             "💡 If you migrated a local install, ensure `~/.claude/local/claude` exists, or add it to PATH.",
@@ -202,21 +263,71 @@ def _run_claude_interactive(resolved_org_id: int, no_mcp: bool | None) -> None:
         update_claude_session_status(session_id, session_status, resolved_org_id)
 
         if returncode != 0:
+            logger.error(
+                "Claude interactive session failed",
+                extra={
+                    "operation": "claude.interactive",
+                    "org_id": resolved_org_id,
+                    "claude_session_id": session_id,
+                    "exit_code": returncode,
+                    "session_status": session_status,
+                    **_get_session_context(),
+                },
+            )
             console.print(f"❌ Claude Code exited with error code {returncode}", style="red")
         else:
+            logger.info(
+                "Claude interactive session completed successfully",
+                extra={
+                    "operation": "claude.interactive",
+                    "org_id": resolved_org_id,
+                    "claude_session_id": session_id,
+                    "exit_code": returncode,
+                    "session_status": session_status,
+                    **_get_session_context(),
+                },
+            )
             console.print("✅ Claude Code finished successfully", style="green")
 
     except FileNotFoundError:
+        logger.error(
+            "Claude Code executable not found",
+            extra={"operation": "claude.interactive", "org_id": resolved_org_id, "claude_session_id": session_id, "error_type": "claude_executable_not_found", **_get_session_context()},
+        )
         console.print("❌ Claude Code not found. Please install Claude Code first.", style="red")
         console.print("💡 Visit: https://claude.ai/download", style="dim")
         log_watcher_manager.stop_all_watchers()
         update_claude_session_status(session_id, "ERROR", resolved_org_id)
         raise typer.Exit(1)
     except KeyboardInterrupt:
+        logger.info(
+            "Claude interactive session interrupted by user",
+            extra={
+                "operation": "claude.interactive",
+                "org_id": resolved_org_id,
+                "claude_session_id": session_id,
+                "session_status": "CANCELLED",
+                "exit_reason": "user_interrupt",
+                **_get_session_context(),
+            },
+        )
         console.print("\n🛑 Interrupted by user", style="yellow")
         log_watcher_manager.stop_all_watchers()
         update_claude_session_status(session_id, "CANCELLED", resolved_org_id)
     except Exception as e:
+        logger.error(
+            "Claude interactive session error",
+            extra={
+                "operation": "claude.interactive",
+                "org_id": resolved_org_id,
+                "claude_session_id": session_id,
+                "error_type": type(e).__name__,
+                "error_message": str(e),
+                "session_status": "ERROR",
+                **_get_session_context(),
+            },
+            exc_info=True,
+        )
         console.print(f"❌ Error running Claude Code: {e}", style="red")
         log_watcher_manager.stop_all_watchers()
         update_claude_session_status(session_id, "ERROR", resolved_org_id)
@@ -244,16 +355,49 @@ def claude(
     background: str | None = typer.Option(None, "--background", "-b", help="Create a background agent run with this prompt instead of launching Claude Code"),
 ):
     """Run Claude Code with session tracking or create a background run."""
+    logger.info(
+        "Claude command invoked",
+        extra={
+            "operation": "claude.command",
+            "org_id": org_id,
+            "no_mcp": bool(no_mcp),
+            "is_background": background is not None,
+            "background_prompt_length": len(background) if background else 0,
+            "command": f"codegen claude{' --background' if background else ''}",
+            **_get_session_context(),
+        },
+    )
+
     # Resolve org_id early for session management
     resolved_org_id = resolve_org_id(org_id)
     if resolved_org_id is None:
+        logger.error("Claude command failed - no org ID", extra={"operation": "claude.command", "error_type": "org_id_missing", **_get_session_context()})
         console.print("[red]Error:[/red] Organization ID not provided. Pass --org-id, set CODEGEN_ORG_ID, or REPOSITORY_ORG_ID.")
         raise typer.Exit(1)
 
-    if background is not None:
-        # Use the value from --background as the prompt
-        final_prompt = background
-        _run_claude_background(resolved_org_id, final_prompt)
-        return
+    try:
+        if background is not None:
+            # Use the value from --background as the prompt
+            final_prompt = background
+            _run_claude_background(resolved_org_id, final_prompt)
+            return
 
-    _run_claude_interactive(resolved_org_id, no_mcp)
+        _run_claude_interactive(resolved_org_id, no_mcp)
+
+    except typer.Exit:
+        # Let typer exits pass through without additional logging
+        raise
+    except Exception as e:
+        logger.error(
+            "Claude command failed unexpectedly",
+            extra={
+                "operation": "claude.command",
+                "org_id": resolved_org_id,
+                "error_type": type(e).__name__,
+                "error_message": str(e),
+                "is_background": background is not None,
+                **_get_session_context(),
+            },
+            exc_info=True,
+        )
+        raise

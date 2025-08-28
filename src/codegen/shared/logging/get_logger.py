@@ -43,6 +43,33 @@ stderr_handler = logging.StreamHandler(sys.stderr)  # Logs to stderr
 stderr_handler.setFormatter(formatter)
 stderr_handler.addFilter(StdErrFilter())
 
+# Global OpenTelemetry handler (lazy-loaded)
+_otel_handler = None
+_otel_handler_checked = False
+
+
+def _get_otel_handler():
+    """Get OpenTelemetry handler if available and enabled."""
+    global _otel_handler, _otel_handler_checked
+
+    if _otel_handler_checked:
+        return _otel_handler
+
+    _otel_handler_checked = True
+
+    try:
+        from codegen.cli.telemetry.otel_setup import get_otel_logging_handler
+
+        _otel_handler = get_otel_logging_handler()
+    except ImportError:
+        # OTel dependencies not available
+        _otel_handler = None
+    except Exception:
+        # Other setup errors
+        _otel_handler = None
+
+    return _otel_handler
+
 
 def get_logger(name: str, level: int = logging.INFO) -> logging.Logger:
     logger = _setup_logger(name, level)
@@ -60,6 +87,11 @@ def _setup_logger(name: str, level: int = logging.INFO) -> logging.Logger:
 
     logger.addHandler(stdout_handler)
     logger.addHandler(stderr_handler)
+
+    # Add OpenTelemetry handler if telemetry is enabled
+    otel_handler = _get_otel_handler()
+    if otel_handler is not None:
+        logger.addHandler(otel_handler)
 
     # Ensure the logger propagates to the root logger
     logger.propagate = True

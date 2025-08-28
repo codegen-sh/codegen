@@ -18,16 +18,27 @@ from codegen.cli.commands.agent.main import pull
 from codegen.cli.commands.claude.main import _run_claude_interactive
 from codegen.cli.utils.org import resolve_org_id
 from codegen.cli.utils.url import generate_webapp_url, get_domain
+from codegen.shared.logging.get_logger import get_logger
+
+# Initialize logger for TUI telemetry
+logger = get_logger(__name__)
 
 
 class MinimalTUI:
     """Minimal non-full-screen TUI for browsing agent runs."""
 
     def __init__(self):
+        # Log TUI initialization
+        logger.info("TUI session started", extra={"operation": "tui.init", "component": "minimal_tui"})
+
         self.token = get_current_token()
         self.is_authenticated = bool(self.token)
         if self.is_authenticated:
             self.org_id = resolve_org_id()
+            logger.info("TUI authenticated successfully", extra={"operation": "tui.auth", "org_id": self.org_id, "authenticated": True})
+        else:
+            logger.warning("TUI started without authentication", extra={"operation": "tui.auth", "authenticated": False})
+
         self.agent_runs: list[dict[str, Any]] = []
         self.selected_index = 0
         self.running = True
@@ -56,6 +67,8 @@ class MinimalTUI:
         # Start background auto-refresh thread (daemon)
         self._auto_refresh_thread = threading.Thread(target=self._auto_refresh_loop, daemon=True)
         self._auto_refresh_thread.start()
+
+        logger.debug("TUI initialization completed", extra={"operation": "tui.init", "tabs": self.tabs, "auto_refresh_interval": self._auto_refresh_interval_seconds})
 
     def _auto_refresh_loop(self):
         """Background loop to auto-refresh recent tab every interval."""
@@ -137,7 +150,15 @@ class MinimalTUI:
     def _load_agent_runs(self) -> bool:
         """Load the last 10 agent runs."""
         if not self.token or not self.org_id:
+            logger.warning("Cannot load agent runs - missing auth", extra={"operation": "tui.load_agent_runs", "has_token": bool(self.token), "has_org_id": bool(getattr(self, "org_id", None))})
             return False
+
+        start_time = time.time()
+
+        # Only log debug info for initial load, not refreshes
+        is_initial_load = not hasattr(self, "_has_loaded_before")
+        if is_initial_load:
+            logger.debug("Loading agent runs", extra={"operation": "tui.load_agent_runs", "org_id": self.org_id, "is_initial_load": True})
 
         try:
             import requests
@@ -168,9 +189,36 @@ class MinimalTUI:
 
             self.agent_runs = response_data.get("items", [])
             self.initial_loading = False  # Mark initial loading as complete
+
+            duration_ms = (time.time() - start_time) * 1000
+
+            # Only log the initial load, not refreshes to avoid noise
+            is_initial_load = not hasattr(self, "_has_loaded_before")
+            if is_initial_load:
+                logger.info(
+                    "Agent runs loaded successfully",
+                    extra={
+                        "operation": "tui.load_agent_runs",
+                        "org_id": self.org_id,
+                        "user_id": user_id,
+                        "agent_count": len(self.agent_runs),
+                        "duration_ms": duration_ms,
+                        "is_initial_load": True,
+                    },
+                )
+
+            # Mark that we've loaded at least once
+            self._has_loaded_before = True
             return True
 
         except Exception as e:
+            duration_ms = (time.time() - start_time) * 1000
+            # Always log errors regardless of refresh vs initial load
+            logger.error(
+                "Failed to load agent runs",
+                extra={"operation": "tui.load_agent_runs", "org_id": self.org_id, "error_type": type(e).__name__, "error_message": str(e), "duration_ms": duration_ms},
+                exc_info=True,
+            )
             print(f"Error loading agent runs: {e}")
             return False
 
@@ -392,18 +440,23 @@ class MinimalTUI:
 
     def _create_background_agent(self, prompt: str):
         """Create a background agent run."""
+        logger.info("Creating background agent via TUI", extra={"operation": "tui.create_agent", "org_id": getattr(self, "org_id", None), "prompt_length": len(prompt), "client": "tui"})
+
         if not self.token or not self.org_id:
+            logger.error("Cannot create agent - missing auth", extra={"operation": "tui.create_agent", "has_token": bool(self.token), "has_org_id": bool(getattr(self, "org_id", None))})
             print("\n❌ Not authenticated or no organization configured.")
             input("Press Enter to continue...")
             return
 
         if not prompt.strip():
+            logger.warning("Agent creation cancelled - empty prompt", extra={"operation": "tui.create_agent", "org_id": self.org_id, "prompt_length": len(prompt)})
             print("\n❌ Please enter a prompt.")
             input("Press Enter to continue...")
             return
 
         print(f"\n\033[90mCreating agent run with prompt: '{prompt[:50]}{'...' if len(prompt) > 50 else ''}'\033[0m")
 
+        start_time = time.time()
         try:
             payload = {"prompt": prompt.strip()}
             headers = {
@@ -412,6 +465,9 @@ class MinimalTUI:
                 "x-codegen-client": "codegen__claude_code",
             }
             url = f"{API_ENDPOINT.rstrip('/')}/v1/organizations/{self.org_id}/agent/run"
+
+            # API request details not needed in logs - focus on user actions and results
+
             response = requests.post(url, headers=headers, json=payload, timeout=30)
             response.raise_for_status()
             agent_run_data = response.json()
@@ -419,6 +475,12 @@ class MinimalTUI:
             run_id = agent_run_data.get("id", "Unknown")
             status = agent_run_data.get("status", "Unknown")
             web_url = self._generate_agent_url(run_id)
+
+            duration_ms = (time.time() - start_time) * 1000
+            logger.info(
+                "Background agent created successfully",
+                extra={"operation": "tui.create_agent", "org_id": self.org_id, "agent_run_id": run_id, "status": status, "duration_ms": duration_ms, "prompt_length": len(prompt.strip())},
+            )
 
             print("\n\033[90mAgent run created successfully!\033[0m")
             print(f"\033[90m   Run ID: {run_id}\033[0m")
@@ -434,6 +496,12 @@ class MinimalTUI:
             self._show_post_creation_menu(web_url)
 
         except Exception as e:
+            duration_ms = (time.time() - start_time) * 1000
+            logger.error(
+                "Failed to create background agent",
+                extra={"operation": "tui.create_agent", "org_id": self.org_id, "error_type": type(e).__name__, "error_message": str(e), "duration_ms": duration_ms, "prompt_length": len(prompt)},
+                exc_info=True,
+            )
             print(f"\n❌ Failed to create agent run: {e}")
             input("\nPress Enter to continue...")
 
@@ -510,22 +578,55 @@ class MinimalTUI:
 
     def _pull_agent_branch(self, agent_id: str):
         """Pull the PR branch for an agent run locally."""
+        logger.info("Starting local pull via TUI", extra={"operation": "tui.pull_branch", "agent_id": agent_id, "org_id": getattr(self, "org_id", None)})
+
         print(f"\n🔄 Pulling PR branch for agent {agent_id}...")
         print("─" * 50)
 
+        start_time = time.time()
         try:
             # Call the existing pull command with the agent_id
             pull(agent_id=int(agent_id), org_id=self.org_id)
 
+            duration_ms = (time.time() - start_time) * 1000
+            logger.info("Local pull completed successfully", extra={"operation": "tui.pull_branch", "agent_id": agent_id, "org_id": self.org_id, "duration_ms": duration_ms, "success": True})
+
         except typer.Exit as e:
+            duration_ms = (time.time() - start_time) * 1000
             # typer.Exit is expected for both success and failure cases
             if e.exit_code == 0:
+                logger.info(
+                    "Local pull completed via typer exit",
+                    extra={"operation": "tui.pull_branch", "agent_id": agent_id, "org_id": self.org_id, "duration_ms": duration_ms, "exit_code": e.exit_code, "success": True},
+                )
                 print("\n✅ Pull completed successfully!")
             else:
+                logger.error(
+                    "Local pull failed via typer exit",
+                    extra={"operation": "tui.pull_branch", "agent_id": agent_id, "org_id": self.org_id, "duration_ms": duration_ms, "exit_code": e.exit_code, "success": False},
+                )
                 print(f"\n❌ Pull failed (exit code: {e.exit_code})")
         except ValueError:
+            duration_ms = (time.time() - start_time) * 1000
+            logger.error(
+                "Invalid agent ID for pull",
+                extra={"operation": "tui.pull_branch", "agent_id": agent_id, "org_id": getattr(self, "org_id", None), "duration_ms": duration_ms, "error_type": "invalid_agent_id"},
+            )
             print(f"\n❌ Invalid agent ID: {agent_id}")
         except Exception as e:
+            duration_ms = (time.time() - start_time) * 1000
+            logger.error(
+                "Unexpected error during pull",
+                extra={
+                    "operation": "tui.pull_branch",
+                    "agent_id": agent_id,
+                    "org_id": getattr(self, "org_id", None),
+                    "duration_ms": duration_ms,
+                    "error_type": type(e).__name__,
+                    "error_message": str(e),
+                },
+                exc_info=True,
+            )
             print(f"\n❌ Unexpected error during pull: {e}")
 
         print("─" * 50)
@@ -620,15 +721,45 @@ class MinimalTUI:
         """Handle key presses for navigation."""
         # Global quit (but not when typing in new tab)
         if key == "\x03":  # Ctrl+C
+            logger.info(
+                "TUI session ended by user",
+                extra={
+                    "operation": "tui.session_end",
+                    "org_id": getattr(self, "org_id", None),
+                    "reason": "ctrl_c",
+                    "current_tab": self.tabs[self.current_tab] if self.current_tab < len(self.tabs) else "unknown",
+                },
+            )
             self.running = False
             return
         elif key.lower() == "q" and not (self.input_mode and self.current_tab == 2):  # q only if not typing in new tab
+            logger.info(
+                "TUI session ended by user",
+                extra={
+                    "operation": "tui.session_end",
+                    "org_id": getattr(self, "org_id", None),
+                    "reason": "quit_key",
+                    "current_tab": self.tabs[self.current_tab] if self.current_tab < len(self.tabs) else "unknown",
+                },
+            )
             self.running = False
             return
 
         # Tab switching (works even in input mode)
         if key == "\t":  # Tab key
+            old_tab = self.current_tab
             self.current_tab = (self.current_tab + 1) % len(self.tabs)
+
+            # Log significant tab switches but at info level since it's user action
+            logger.info(
+                f"TUI tab switched to {self.tabs[self.current_tab]}",
+                extra={
+                    "operation": "tui.tab_switch",
+                    "from_tab": self.tabs[old_tab] if old_tab < len(self.tabs) else "unknown",
+                    "to_tab": self.tabs[self.current_tab] if self.current_tab < len(self.tabs) else "unknown",
+                },
+            )
+
             # Reset state when switching tabs
             self.show_action_menu = False
             self.action_menu_selection = 0
@@ -746,13 +877,16 @@ class MinimalTUI:
     def _handle_dashboard_tab_keypress(self, key: str):
         """Handle keypresses in the kanban tab."""
         if key == "\r" or key == "\n":  # Enter - open web kanban
+            logger.info("Opening web kanban from TUI", extra={"operation": "tui.open_kanban", "org_id": getattr(self, "org_id", None)})
             try:
                 import webbrowser
 
                 me_url = generate_webapp_url("me")
                 webbrowser.open(me_url)
+                # Debug details not needed for successful browser opens
                 print("\n✅ Opening web kanban in browser...")
             except Exception as e:
+                logger.error("Failed to open kanban in browser", extra={"operation": "tui.open_kanban", "error": str(e)})
                 print(f"\n❌ Failed to open browser: {e}")
                 input("Press Enter to continue...")
 
@@ -763,7 +897,10 @@ class MinimalTUI:
 
     def _run_claude_code(self):
         """Launch Claude Code with session tracking."""
+        logger.info("Launching Claude Code from TUI", extra={"operation": "tui.launch_claude", "org_id": getattr(self, "org_id", None), "source": "tui"})
+
         if not self.token or not self.org_id:
+            logger.error("Cannot launch Claude - missing auth", extra={"operation": "tui.launch_claude", "has_token": bool(self.token), "has_org_id": bool(getattr(self, "org_id", None))})
             print("\n❌ Not authenticated or no organization configured.")
             input("Press Enter to continue...")
             return
@@ -775,18 +912,34 @@ class MinimalTUI:
         self.running = False
         print("\033[2J\033[H", end="")  # Clear entire screen and move cursor to top
 
+        start_time = time.time()
         try:
+            # Transition details not needed - the launch and completion logs are sufficient
+
             # Call the interactive claude function with the current org_id
             # The function handles all the session tracking and launching
             _run_claude_interactive(self.org_id, no_mcp=False)
+
+            duration_ms = (time.time() - start_time) * 1000
+            logger.info("Claude Code session completed via TUI", extra={"operation": "tui.launch_claude", "org_id": self.org_id, "duration_ms": duration_ms, "exit_reason": "normal"})
+
         except typer.Exit:
             # Claude Code finished, just continue silently
+            duration_ms = (time.time() - start_time) * 1000
+            logger.info("Claude Code session exited via TUI", extra={"operation": "tui.launch_claude", "org_id": self.org_id, "duration_ms": duration_ms, "exit_reason": "typer_exit"})
             pass
         except Exception as e:
+            duration_ms = (time.time() - start_time) * 1000
+            logger.error(
+                "Error launching Claude Code from TUI",
+                extra={"operation": "tui.launch_claude", "org_id": self.org_id, "error_type": type(e).__name__, "error_message": str(e), "duration_ms": duration_ms},
+                exc_info=True,
+            )
             print(f"\n❌ Unexpected error launching Claude Code: {e}")
             input("Press Enter to continue...")
 
         # Exit the TUI completely - don't return to it
+        logger.info("TUI session ended - transitioning to Claude", extra={"operation": "tui.session_end", "org_id": getattr(self, "org_id", None), "reason": "claude_launch"})
         sys.exit(0)
 
     def _execute_inline_action(self):
@@ -817,14 +970,20 @@ class MinimalTUI:
         if len(options) > self.action_menu_selection:
             selected_option = options[self.action_menu_selection]
 
+            logger.info(
+                "TUI action executed", extra={"operation": "tui.execute_action", "action": selected_option, "agent_id": agent_id, "org_id": getattr(self, "org_id", None), "has_prs": bool(github_prs)}
+            )
+
             if selected_option == "open PR":
                 pr_url = github_prs[0]["url"]
                 try:
                     import webbrowser
 
                     webbrowser.open(pr_url)
+                    # Debug details not needed for successful browser opens
                     # No pause - seamless flow back to collapsed state
                 except Exception as e:
+                    logger.error("Failed to open PR in browser", extra={"operation": "tui.open_pr", "agent_id": agent_id, "error": str(e)})
                     print(f"\n❌ Failed to open PR: {e}")
                     input("Press Enter to continue...")  # Only pause on errors
             elif selected_option == "pull locally":
@@ -834,8 +993,10 @@ class MinimalTUI:
                     import webbrowser
 
                     webbrowser.open(web_url)
+                    # Debug details not needed for successful browser opens
                     # No pause - let it flow back naturally to collapsed state
                 except Exception as e:
+                    logger.error("Failed to open trace in browser", extra={"operation": "tui.open_trace", "agent_id": agent_id, "error": str(e)})
                     print(f"\n❌ Failed to open browser: {e}")
                     input("Press Enter to continue...")  # Only pause on errors
 
@@ -923,5 +1084,13 @@ class MinimalTUI:
 
 def run_tui():
     """Run the minimal Codegen TUI."""
-    tui = MinimalTUI()
-    tui.run()
+    logger.info("Starting TUI session", extra={"operation": "tui.start", "component": "run_tui"})
+
+    try:
+        tui = MinimalTUI()
+        tui.run()
+    except Exception as e:
+        logger.error("TUI session crashed", extra={"operation": "tui.crash", "error_type": type(e).__name__, "error_message": str(e)}, exc_info=True)
+        raise
+    finally:
+        logger.info("TUI session ended", extra={"operation": "tui.end", "component": "run_tui"})
