@@ -62,10 +62,21 @@ def debug(
     if enable is not None:
         telemetry.debug = enable
         telemetry.write_to_file(GLOBAL_ENV_FILE)
+
+        # Refresh logging configuration to immediately apply the debug mode change
+        try:
+            from codegen.shared.logging.get_logger import refresh_telemetry_config
+
+            refresh_telemetry_config()
+        except ImportError:
+            pass  # Logging refresh not available
+
         console.print(f"[green]✓ Debug mode {'enabled' if enable else 'disabled'}[/green]")
         if enable:
             console.print(f"[dim]Debug logs will be written to: {debug_dir}[/dim]")
-            console.print("[dim]Set CODEGEN_TELEMETRY_CONSOLE=1 to also print to console[/dim]")
+            console.print("[dim]Console logging will now be enabled for all CLI operations[/dim]")
+        else:
+            console.print("[dim]Console logging will now be disabled for CLI operations[/dim]")
 
     # Handle clear
     if clear:

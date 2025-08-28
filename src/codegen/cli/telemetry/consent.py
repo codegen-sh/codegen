@@ -68,6 +68,14 @@ def ensure_telemetry_consent() -> TelemetryConfig:
     # Save to global config
     telemetry.write_to_file(GLOBAL_ENV_FILE)
 
+    # Refresh logging configuration to apply the new settings
+    try:
+        from codegen.shared.logging.get_logger import refresh_telemetry_config
+
+        refresh_telemetry_config()
+    except ImportError:
+        pass  # Logging refresh not available
+
     return telemetry
 
 
@@ -82,6 +90,14 @@ def update_telemetry_consent(enabled: bool) -> None:
     telemetry.consent_prompted = True
 
     telemetry.write_to_file(GLOBAL_ENV_FILE)
+
+    # Refresh logging configuration to apply the new settings
+    try:
+        from codegen.shared.logging.get_logger import refresh_telemetry_config
+
+        refresh_telemetry_config()
+    except ImportError:
+        pass  # Logging refresh not available
 
     if enabled:
         rich.print("[green]✓ Telemetry enabled[/green]")

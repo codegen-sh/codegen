@@ -884,7 +884,6 @@ class MinimalTUI:
                 me_url = generate_webapp_url("me")
                 webbrowser.open(me_url)
                 # Debug details not needed for successful browser opens
-                print("\n✅ Opening web kanban in browser...")
             except Exception as e:
                 logger.error("Failed to open kanban in browser", extra={"operation": "tui.open_kanban", "error": str(e)})
                 print(f"\n❌ Failed to open browser: {e}")

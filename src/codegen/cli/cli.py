@@ -1,18 +1,11 @@
 import atexit
+
 import typer
 from rich.traceback import install
 
 from codegen import __version__
-from codegen.shared.logging.get_logger import get_logger
-
-# Initialize logger for CLI command tracking
-logger = get_logger(__name__)
-
-# Import config command (still a Typer app)
 from codegen.cli.commands.agent.main import agent
 from codegen.cli.commands.agents.main import agents_app
-
-# Import the actual command functions
 from codegen.cli.commands.claude.main import claude
 from codegen.cli.commands.config.main import config_command
 from codegen.cli.commands.init.main import init
@@ -26,14 +19,30 @@ from codegen.cli.commands.style_debug.main import style_debug
 from codegen.cli.commands.tools.main import tools
 from codegen.cli.commands.tui.main import tui
 from codegen.cli.commands.update.main import update
+from codegen.shared.logging.get_logger import get_logger
+
+# Initialize logger for CLI command tracking
+logger = get_logger(__name__)
+
+# Set up global exception logging early
+try:
+    from codegen.cli.telemetry.exception_logger import setup_global_exception_logging
+
+    setup_global_exception_logging()
+except ImportError:
+    # Exception logging dependencies not available - continue without it
+    pass
+
 
 install(show_locals=True)
 
 # Register telemetry shutdown on exit
 try:
+    from codegen.cli.telemetry.exception_logger import teardown_global_exception_logging
     from codegen.cli.telemetry.otel_setup import shutdown_otel_logging
 
     atexit.register(shutdown_otel_logging)
+    atexit.register(teardown_global_exception_logging)
 except ImportError:
     # OTel dependencies not available
     pass
