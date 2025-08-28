@@ -222,7 +222,7 @@ class MinimalTUI:
             print(f"Error loading agent runs: {e}")
             return False
 
-    def _format_status(self, status: str, agent_run: dict | None = None) -> str:
+    def _format_status(self, status: str, agent_run: dict | None = None) -> tuple[str, str]:
         """Format status with colored indicators matching kanban style."""
         # Check if this agent has a merged PR (done status)
         is_done = False
