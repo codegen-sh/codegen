@@ -43,11 +43,78 @@ stderr_handler = logging.StreamHandler(sys.stderr)  # Logs to stderr
 stderr_handler.setFormatter(formatter)
 stderr_handler.addFilter(StdErrFilter())
 
+# Global OpenTelemetry handler (lazy-loaded)
+_otel_handler = None
+_otel_handler_checked = False
+
+# Global telemetry config cache
+_telemetry_config = None
+_telemetry_config_checked = False
+
+
+def _get_telemetry_config():
+    """Get telemetry configuration for debug mode checking."""
+    global _telemetry_config, _telemetry_config_checked
+
+    if _telemetry_config_checked:
+        return _telemetry_config
+
+    _telemetry_config_checked = True
+
+    try:
+        # Use non-prompting config loader to avoid consent prompts during logging setup
+        from codegen.configs.models.telemetry import TelemetryConfig
+        from codegen.configs.constants import GLOBAL_ENV_FILE
+
+        _telemetry_config = TelemetryConfig(env_filepath=GLOBAL_ENV_FILE)
+    except ImportError:
+        # Telemetry dependencies not available
+        _telemetry_config = None
+    except Exception:
+        # Other setup errors - fallback to console logging
+        _telemetry_config = None
+
+    return _telemetry_config
+
+
+def _get_otel_handler():
+    """Get OpenTelemetry handler if available and enabled."""
+    global _otel_handler, _otel_handler_checked
+
+    if _otel_handler_checked:
+        return _otel_handler
+
+    _otel_handler_checked = True
+
+    try:
+        from codegen.cli.telemetry.otel_setup import get_otel_logging_handler
+
+        _otel_handler = get_otel_logging_handler()
+    except ImportError:
+        # OTel dependencies not available
+        _otel_handler = None
+    except Exception:
+        # Other setup errors
+        _otel_handler = None
+
+    return _otel_handler
+
 
 def get_logger(name: str, level: int = logging.INFO) -> logging.Logger:
     logger = _setup_logger(name, level)
-    _setup_exception_logging(logger)
+    # Note: Global exception handling is managed by cli/telemetry/exception_logger.py
     return logger
+
+
+def refresh_telemetry_config():
+    """Refresh the cached telemetry configuration.
+
+    This should be called when telemetry settings change to ensure
+    logging behavior updates accordingly.
+    """
+    global _telemetry_config_checked, _telemetry_config
+    _telemetry_config_checked = False
+    _telemetry_config = None
 
 
 def _setup_logger(name: str, level: int = logging.INFO) -> logging.Logger:
@@ -58,8 +125,27 @@ def _setup_logger(name: str, level: int = logging.INFO) -> logging.Logger:
         for h in logger.handlers:
             logger.removeHandler(h)
 
-    logger.addHandler(stdout_handler)
-    logger.addHandler(stderr_handler)
+    # Check telemetry configuration to determine console logging behavior
+    telemetry_config = _get_telemetry_config()
+
+    # Only add console handlers if:
+    # 1. Telemetry is not configured (default behavior)
+    # 2. Telemetry debug mode is enabled
+    # 3. Telemetry is disabled (fallback to console logging)
+    should_log_to_console = (
+        telemetry_config is None  # Telemetry not configured
+        or telemetry_config.debug  # Debug mode enabled
+        or not telemetry_config.enabled  # Telemetry disabled
+    )
+
+    if should_log_to_console:
+        logger.addHandler(stdout_handler)
+        logger.addHandler(stderr_handler)
+
+    # Always add OpenTelemetry handler if telemetry is enabled (regardless of debug mode)
+    otel_handler = _get_otel_handler()
+    if otel_handler is not None:
+        logger.addHandler(otel_handler)
 
     # Ensure the logger propagates to the root logger
     logger.propagate = True
@@ -68,9 +154,4 @@ def _setup_logger(name: str, level: int = logging.INFO) -> logging.Logger:
     return logger
 
 
-def _setup_exception_logging(logger: logging.Logger) -> None:
-    def log_exception(exc_type, exc_value, exc_traceback):
-        logger.exception("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
-
-    # Set the log_exception function as the exception hook
-    sys.excepthook = log_exception
+# Note: Exception logging is handled by cli/telemetry/exception_logger.py

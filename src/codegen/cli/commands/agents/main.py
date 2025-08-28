@@ -9,6 +9,10 @@ from codegen.cli.api.endpoints import API_ENDPOINT
 from codegen.cli.auth.token_manager import get_current_token
 from codegen.cli.rich.spinners import create_spinner
 from codegen.cli.utils.org import resolve_org_id
+from codegen.shared.logging.get_logger import get_logger
+
+# Initialize logger
+logger = get_logger(__name__)
 
 console = Console()
 
@@ -19,9 +23,12 @@ agents_app = typer.Typer(help="Manage Codegen agents")
 @agents_app.command("list")
 def list_agents(org_id: int | None = typer.Option(None, help="Organization ID (defaults to CODEGEN_ORG_ID/REPOSITORY_ORG_ID or auto-detect)")):
     """List agent runs from the Codegen API."""
+    logger.info("Agents list command invoked", extra={"operation": "agents.list", "org_id": org_id, "command": "codegen agents list"})
+
     # Get the current token
     token = get_current_token()
     if not token:
+        logger.error("Agents list failed - not authenticated", extra={"operation": "agents.list", "error_type": "not_authenticated"})
         console.print("[red]Error:[/red] Not authenticated. Please run 'codegen login' first.")
         raise typer.Exit(1)
 
