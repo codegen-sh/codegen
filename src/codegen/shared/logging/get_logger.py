@@ -62,14 +62,16 @@ def _get_telemetry_config():
     _telemetry_config_checked = True
 
     try:
-        from codegen.cli.telemetry.consent import ensure_telemetry_consent
+        # Use non-prompting config loader to avoid consent prompts during logging setup
+        from codegen.configs.models.telemetry import TelemetryConfig
+        from codegen.configs.constants import GLOBAL_ENV_FILE
 
-        _telemetry_config = ensure_telemetry_consent()
+        _telemetry_config = TelemetryConfig(env_filepath=GLOBAL_ENV_FILE)
     except ImportError:
         # Telemetry dependencies not available
         _telemetry_config = None
     except Exception:
-        # Other setup errors
+        # Other setup errors - fallback to console logging
         _telemetry_config = None
 
     return _telemetry_config
@@ -100,7 +102,7 @@ def _get_otel_handler():
 
 def get_logger(name: str, level: int = logging.INFO) -> logging.Logger:
     logger = _setup_logger(name, level)
-    _setup_exception_logging(logger)
+    # Note: Global exception handling is managed by cli/telemetry/exception_logger.py
     return logger
 
 
@@ -152,9 +154,4 @@ def _setup_logger(name: str, level: int = logging.INFO) -> logging.Logger:
     return logger
 
 
-def _setup_exception_logging(logger: logging.Logger) -> None:
-    def log_exception(exc_type, exc_value, exc_traceback):
-        logger.exception("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
-
-    # Set the log_exception function as the exception hook
-    sys.excepthook = log_exception
+# Note: Exception logging is handled by cli/telemetry/exception_logger.py
