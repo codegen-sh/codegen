@@ -9,8 +9,8 @@ class TestTopLevelImports:
         from codegen import Agent
 
         assert Agent is not None
-        
+
         # Verify it's the same class as the one in codegen.agents.agent
         from codegen.agents.agent import Agent as AgentFromModule
-        assert Agent is AgentFromModule
 
+        assert Agent is AgentFromModule
