@@ -38,7 +38,7 @@ def resolve_org_id(explicit_org_id: int | None = None) -> int | None:
         """Validate an org ID against the cache and show helpful errors."""
         if is_org_id_cached(org_id):
             return org_id
-        
+
         # If we have a cache but the org ID is not in it, show helpful error
         cached_orgs = get_cached_organizations()
         if cached_orgs:
@@ -46,7 +46,7 @@ def resolve_org_id(explicit_org_id: int | None = None) -> int | None:
             console.print(f"[red]Error:[/red] Organization ID {org_id} from {source} not found in your accessible organizations.")
             console.print(f"[yellow]Available organizations:[/yellow] {org_list}")
             return None
-        
+
         # If no cache available, trust the org ID (will be validated by API)
         return org_id
 
