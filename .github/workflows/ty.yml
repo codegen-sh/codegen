@@ -42,4 +42,18 @@ jobs:
         if: ${{ env.python_files != '' }}
         run: |
           echo "Running ty on changed files: ${{ env.python_files }}"
-          uv run ty check --output-format concise --python-version 3.12 --exclude "**/tests/**" --exclude "**/codegen_tests/**" ${{ env.python_files }}
+          # Filter out test files for type checking
+          src_files=()
+          for file in ${{ env.python_files }}; do
+            if [[ ! $file == *"/tests/"* && ! $file == *"/codegen_tests/"* ]]; then
+              src_files+=("${file}")
+            fi
+          done
+          
+          # Only run type checking if there are source files to check
+          if [ ${#src_files[@]} -gt 0 ]; then
+            echo "Running ty on source files: ${src_files[*]}"
+            uv run ty check --output-format concise --python-version 3.12 ${src_files[@]}
+          else
+            echo "No source files to check, skipping ty"
+          fi
