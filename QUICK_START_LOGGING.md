@@ -38,7 +38,7 @@ codegen config telemetry enable
 # 2. Run the demo
 python example_enhanced_agent_command.py
 
-# 3. Run any CLI command 
+# 3. Run any CLI command
 codegen agents  # or any other command
 
 # 4. Check status
@@ -57,7 +57,7 @@ logger.info("Operation started", extra={
     "user_input": relevant_input
 })
 
-# At end of function  
+# At end of function
 logger.info("Operation completed", extra={
     "operation": "command.subcommand",
     "success": True
@@ -71,7 +71,7 @@ try:
     pass
 except SomeSpecificError as e:
     logger.error("Specific error occurred", extra={
-        "operation": "command.subcommand", 
+        "operation": "command.subcommand",
         "error_type": "specific_error",
         "error_details": str(e)
     }, exc_info=True)
@@ -89,7 +89,7 @@ logger.info("Making API request", extra={
 
 # After successful API call
 logger.info("API request successful", extra={
-    "operation": "api.request", 
+    "operation": "api.request",
     "endpoint": "agent/run",
     "response_id": response.get("id"),
     "status_code": response.status_code
@@ -101,7 +101,7 @@ logger.info("API request successful", extra={
 ### 🔥 High Priority (Add These First)
 - **Operation start/end**: When commands begin/complete
 - **API calls**: Requests to your backend
-- **Authentication events**: Login/logout/token issues  
+- **Authentication events**: Login/logout/token issues
 - **Errors**: Any exception or failure
 - **User actions**: Commands run, options selected
 
@@ -126,30 +126,30 @@ logger = get_logger(__name__)
 
 def create(prompt: str, org_id: int | None = None, ...):
     """Create a new agent run with the given prompt."""
-    
+
     # ADD: Log start
     logger.info("Agent creation started", extra={
         "operation": "agent.create",
         "org_id": org_id,
         "prompt_length": len(prompt)
     })
-    
+
     # Your existing code...
     try:
         response = requests.post(url, headers=headers, json=payload)
         agent_run_data = response.json()
-        
-        # ADD: Log success  
+
+        # ADD: Log success
         logger.info("Agent created successfully", extra={
             "operation": "agent.create",
             "agent_run_id": agent_run_data.get("id"),
             "status": agent_run_data.get("status")
         })
-        
+
     except requests.RequestException as e:
         # ADD: Log error
         logger.error("Agent creation failed", extra={
-            "operation": "agent.create", 
+            "operation": "agent.create",
             "error_type": "api_error",
             "error": str(e)
         })
@@ -165,20 +165,20 @@ logger = get_logger(__name__)
 
 def _run_claude_interactive(resolved_org_id: int, no_mcp: bool | None) -> None:
     session_id = generate_session_id()
-    
+
     # ADD: Log session start
     logger.info("Claude session started", extra={
         "operation": "claude.session_start",
         "session_id": session_id[:8],  # Short version for privacy
         "org_id": resolved_org_id
     })
-    
+
     # Your existing code...
-    
+
     try:
         process = subprocess.Popen([claude_path, "--session-id", session_id])
         returncode = process.wait()
-        
+
         # ADD: Log session end
         logger.info("Claude session completed", extra={
             "operation": "claude.session_complete",
@@ -186,7 +186,7 @@ def _run_claude_interactive(resolved_org_id: int, no_mcp: bool | None) -> None:
             "exit_code": returncode,
             "status": "COMPLETE" if returncode == 0 else "ERROR"
         })
-        
+
     except Exception as e:
         # ADD: Log session error
         logger.error("Claude session failed", extra={
@@ -201,14 +201,14 @@ def _run_claude_interactive(resolved_org_id: int, no_mcp: bool | None) -> None:
 After making changes:
 
 1. **Run the command**: Execute your enhanced CLI command
-2. **Check telemetry status**: `codegen config telemetry status` 
+2. **Check telemetry status**: `codegen config telemetry status`
 3. **Look for logs in Grafana Cloud**: Search for your operation names
 4. **Test with telemetry disabled**: `codegen config telemetry disable` - should still work normally
 
 ## 🚀 Progressive Enhancement
 
 **Week 1**: Add basic operation logging to 2-3 commands
-**Week 2**: Add error logging to all commands  
+**Week 2**: Add error logging to all commands
 **Week 3**: Add performance metrics and detailed context
 **Week 4**: Create Grafana dashboards using the collected data
 

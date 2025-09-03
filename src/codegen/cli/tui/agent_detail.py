@@ -40,28 +40,28 @@ class AgentDetailTUI(Screen):
         """Create child widgets for the agent detail screen."""
         run_id = self.agent_run.get("id", "Unknown")
         summary = self.agent_run.get("summary", "No summary available")
-        
+
         yield Header()
-        
+
         with Vertical():
             yield Static(f"🤖 Agent Run Details - ID: {run_id}", classes="title", id="detail-title")
             yield Static("Use J for JSON, P to pull branch, W for web, Q/Esc to go back", classes="help")
-            
+
             # Basic info section
             info_table = DataTable(id="info-table", cursor_type="none")
             info_table.add_columns("Property", "Value")
             yield info_table
-            
+
             # Actions section
             with Horizontal(id="actions-section"):
                 yield Button("📄 View JSON", id="json-btn", variant="primary")
                 yield Button("🔀 Pull Branch", id="pull-btn", variant="default")
                 yield Button("🌐 Open Web", id="web-btn", variant="default")
                 yield Button("⬅️ Back", id="back-btn", variant="default")
-            
+
             # Status/loading area
             yield Static("", id="status-text")
-            
+
         yield Footer()
 
     def on_mount(self) -> None:
@@ -74,7 +74,7 @@ class AgentDetailTUI(Screen):
     def _populate_basic_info(self) -> None:
         """Populate the info table with basic agent run information."""
         info_table = self.query_one("#info-table", DataTable)
-        
+
         # Basic info from the agent run data
         run_id = self.agent_run.get("id", "Unknown")
         status = self.agent_run.get("status", "Unknown")
@@ -106,7 +106,7 @@ class AgentDetailTUI(Screen):
         """Load detailed agent run data from the API."""
         if self.is_loading:
             return
-            
+
         self.is_loading = True
         status_text = self.query_one("#status-text", Static)
         status_text.update("🔄 Loading detailed agent data...")
@@ -124,15 +124,15 @@ class AgentDetailTUI(Screen):
 
             headers = {"Authorization": f"Bearer {token}"}
             url = f"{API_ENDPOINT.rstrip('/')}/v1/organizations/{self.org_id}/agent/run/{run_id}"
-            
+
             response = requests.get(url, headers=headers)
             response.raise_for_status()
             self.agent_data = response.json()
-            
+
             # Update info table with additional details
             self._update_info_with_detailed_data()
             status_text.update("✅ Agent data loaded successfully")
-            
+
         except requests.HTTPError as e:
             if e.response.status_code == 404:
                 status_text.update(f"❌ Agent run {run_id} not found")
@@ -149,9 +149,9 @@ class AgentDetailTUI(Screen):
         """Update the info table with detailed data from the API."""
         if not self.agent_data:
             return
-            
+
         info_table = self.query_one("#info-table", DataTable)
-        
+
         # Check for GitHub PRs
         github_prs = self.agent_data.get("github_pull_requests", [])
         if github_prs:
@@ -163,9 +163,9 @@ class AgentDetailTUI(Screen):
                 pr_info += f"\n  • ... and {len(github_prs) - 3} more"
         else:
             pr_info = "No PRs available"
-            
+
         info_table.add_row("PR Branches", pr_info)
-        
+
         # Add model info if available
         model = self.agent_data.get("model", "Unknown")
         info_table.add_row("Model", model)
@@ -180,7 +180,7 @@ class AgentDetailTUI(Screen):
         if not self.agent_data:
             self.notify("❌ Detailed data not loaded yet", severity="error")
             return
-            
+
         # Create a JSON viewer screen
         json_screen = JSONViewerTUI(self.agent_data)
         self.app.push_screen(json_screen)
@@ -190,7 +190,7 @@ class AgentDetailTUI(Screen):
         if not self.agent_data:
             self.notify("❌ Detailed data not loaded yet", severity="error")
             return
-            
+
         # Check if we're in a git repository
         try:
             current_repo = LocalGitRepo(Path.cwd())
@@ -224,10 +224,10 @@ class AgentDetailTUI(Screen):
         """Asynchronously pull the PR branch."""
         status_text = self.query_one("#status-text", Static)
         status_text.update(f"🔄 Pulling branch {branch_name}...")
-        
+
         try:
             current_repo = LocalGitRepo(Path.cwd())
-            
+
             # Add remote if it doesn't exist
             remote_name = "codegen-pr"
             try:
@@ -235,14 +235,14 @@ class AgentDetailTUI(Screen):
             except Exception:
                 # Remote might already exist
                 pass
-            
+
             # Fetch and checkout the branch
             current_repo.fetch_remote(remote_name)
             current_repo.checkout_branch(f"{remote_name}/{branch_name}", branch_name)
-            
+
             status_text.update(f"✅ Successfully checked out branch: {branch_name}")
             self.notify(f"✅ Switched to branch: {branch_name}")
-            
+
         except Exception as e:
             error_msg = f"❌ Failed to pull branch: {e}"
             status_text.update(error_msg)
@@ -290,18 +290,18 @@ class JSONViewerTUI(Screen):
     def compose(self) -> ComposeResult:
         """Create child widgets for the JSON viewer."""
         yield Header()
-        
+
         with Vertical():
             yield Static("📄 Agent Run JSON Data", classes="title")
             yield Static("Use Q/Esc to go back", classes="help")
-            
+
             # Format JSON with pretty printing
             try:
                 json_text = json.dumps(self.data, indent=2, sort_keys=True)
                 yield Static(json_text, id="json-content")
             except Exception as e:
                 yield Static(f"Error formatting JSON: {e}", id="json-content")
-                
+
         yield Footer()
 
     def action_back(self) -> None:

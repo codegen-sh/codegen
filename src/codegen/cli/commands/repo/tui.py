@@ -10,7 +10,7 @@ from textual.widgets import DataTable, Footer, Header, Static
 
 from codegen.cli.auth.token_manager import get_cached_repositories, get_current_token
 from codegen.cli.utils.repo import (
-    get_current_repo_id, 
+    get_current_repo_id,
     set_repo_env_variable,
     update_env_file_with_repo,
     ensure_repositories_cached
@@ -35,37 +35,37 @@ class RepoSelectorTUI(Screen):
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
         yield Header()
-        
+
         if not self.repositories:
             yield Container(
-                Static("⚠️  No repositories found. Fetching repositories...", classes="warning-message"), 
+                Static("⚠️  No repositories found. Fetching repositories...", classes="warning-message"),
                 id="no-repos-warning"
             )
         else:
             with Vertical():
                 yield Static("🗂️ Select Your Repository", classes="title")
                 yield Static("Use ↑↓ to navigate, Enter to select, Q/Esc to quit", classes="help")
-                
+
                 table = DataTable(id="repos-table", cursor_type="row")
                 table.add_columns("Current", "ID", "Repository Name")
-                
+
                 # Get the actual current repo ID (checks environment variables first)
                 actual_current_repo_id = get_current_repo_id()
-                
+
                 for repo in self.repositories:
                     repo_id = repo["id"]
                     repo_name = repo["name"]
                     is_current = "●" if repo_id == actual_current_repo_id else " "
-                    
+
                     table.add_row(is_current, str(repo_id), repo_name, key=str(repo_id))
-                
+
                 yield table
-                
+
                 yield Static(
-                    "\n💡 Selecting a repository will update your CODEGEN_REPO_ID environment variable.", 
+                    "\n💡 Selecting a repository will update your CODEGEN_REPO_ID environment variable.",
                     classes="help"
                 )
-        
+
         yield Footer()
 
     def on_mount(self) -> None:
@@ -94,7 +94,7 @@ class RepoSelectorTUI(Screen):
                 selected_repo = self.repositories[table.cursor_row]
                 repo_id = selected_repo["id"]
                 repo_name = selected_repo["name"]
-                
+
                 self._set_repository(repo_id, repo_name)
         except Exception as e:
             self.notify(f"❌ Error selecting repository: {e}", severity="error")
@@ -103,53 +103,53 @@ class RepoSelectorTUI(Screen):
         """Set the selected repository as the current one."""
         # Update environment variable
         os.environ["CODEGEN_REPO_ID"] = str(repo_id)
-        
+
         # Try to update .env file
         env_updated = self._update_env_file(repo_id)
-        
+
         if env_updated:
             self.notify(f"✓ Set default repository: {repo_name} (ID: {repo_id})")
             self.notify("✓ Updated .env file with CODEGEN_REPO_ID")
         else:
             self.notify(f"✓ Set repository: {repo_name} (ID: {repo_id})")
             self.notify("ℹ  Add 'export CODEGEN_REPO_ID={repo_id}' to your shell for persistence")
-        
+
         # Wait a moment for user to see the notifications, then exit
         self.set_timer(2.0, self._close_screen)
 
     def _update_env_file(self, repo_id: int) -> bool:
         """Update the .env file with the new repository ID."""
         env_file_path = ".env"
-        
+
         try:
             lines = []
             key_updated = False
             key_to_update = "CODEGEN_REPO_ID"
-            
+
             # Read existing .env file if it exists
             if os.path.exists(env_file_path):
                 with open(env_file_path, "r") as f:
                     lines = f.readlines()
-            
+
             # Update or add the key
             for i, line in enumerate(lines):
                 if line.strip().startswith(f"{key_to_update}="):
                     lines[i] = f"{key_to_update}={repo_id}\n"
                     key_updated = True
                     break
-            
+
             # If key wasn't found, add it
             if not key_updated:
                 if lines and not lines[-1].endswith('\n'):
                     lines.append('\n')
                 lines.append(f"{key_to_update}={repo_id}\n")
-            
+
             # Write back to file
             with open(env_file_path, "w") as f:
                 f.writelines(lines)
-            
+
             return True
-            
+
         except Exception:
             return False
 
@@ -167,7 +167,7 @@ class RepoSelectorTUI(Screen):
 
 class RepoSelectorApp(App):
     """Standalone app wrapper for the repository selector."""
-    
+
     CSS_PATH = "../../tui/codegen_theme.tcss"  # Use custom Codegen theme
     TITLE = "Repository Selector - Codegen CLI"
     BINDINGS = [
@@ -184,37 +184,37 @@ class RepoSelectorApp(App):
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
         yield Header()
-        
+
         if not self.repositories:
             yield Container(
-                Static("⚠️  No repositories found. Fetching repositories...", classes="warning-message"), 
+                Static("⚠️  No repositories found. Fetching repositories...", classes="warning-message"),
                 id="no-repos-warning"
             )
         else:
             with Vertical():
                 yield Static("🗂️ Select Your Repository", classes="title")
                 yield Static("Use ↑↓ to navigate, Enter to select, Q/Esc to quit", classes="help")
-                
+
                 table = DataTable(id="repos-table", cursor_type="row")
                 table.add_columns("Current", "ID", "Repository Name")
-                
+
                 # Get the actual current repo ID (checks environment variables first)
                 actual_current_repo_id = get_current_repo_id()
-                
+
                 for repo in self.repositories:
                     repo_id = repo["id"]
                     repo_name = repo["name"]
                     is_current = "●" if repo_id == actual_current_repo_id else " "
-                    
+
                     table.add_row(is_current, str(repo_id), repo_name, key=str(repo_id))
-                
+
                 yield table
-                
+
                 yield Static(
-                    "\n💡 Selecting a repository will update your CODEGEN_REPO_ID environment variable.", 
+                    "\n💡 Selecting a repository will update your CODEGEN_REPO_ID environment variable.",
                     classes="help"
                 )
-        
+
         yield Footer()
 
     def on_mount(self) -> None:
@@ -243,7 +243,7 @@ class RepoSelectorApp(App):
                 selected_repo = self.repositories[table.cursor_row]
                 repo_id = selected_repo["id"]
                 repo_name = selected_repo["name"]
-                
+
                 self._set_repository(repo_id, repo_name)
         except Exception as e:
             self.notify(f"❌ Error selecting repository: {e}", severity="error")
@@ -252,52 +252,52 @@ class RepoSelectorApp(App):
         """Set the selected repository as the current one."""
         # Update environment variable
         os.environ["CODEGEN_REPO_ID"] = str(repo_id)
-        
+
         # Try to update .env file
         env_updated = self._update_env_file(repo_id)
-        
+
         if env_updated:
             self.notify(f"✓ Set default repository: {repo_name} (ID: {repo_id})")
             self.notify("✓ Updated .env file with CODEGEN_REPO_ID")
         else:
             self.notify(f"✓ Set repository: {repo_name} (ID: {repo_id})")
             self.notify("ℹ  Add 'export CODEGEN_REPO_ID={repo_id}' to your shell for persistence")
-        
+
         # Wait a moment for user to see the notifications, then exit
         self.set_timer(2.0, self.exit)
 
     def _update_env_file(self, repo_id: int) -> bool:
         """Update the .env file with the new repository ID."""
         env_file_path = ".env"
-        
+
         try:
             lines = []
             key_updated = False
             key_to_update = "CODEGEN_REPO_ID"
-            
+
             # Read existing .env file if it exists
             if os.path.exists(env_file_path):
                 with open(env_file_path, "r") as f:
                     lines = f.readlines()
-            
+
             # Update or add the key
             for i, line in enumerate(lines):
                 if line.strip().startswith(f"{key_to_update}="):
                     lines[i] = f"{key_to_update}={repo_id}\n"
                     key_updated = True
                     break
-            
+
             # If key wasn't found, add it
             if not key_updated:
                 if lines and not lines[-1].endswith('\n'):
                     lines.append('\n')
                 lines.append(f"{key_to_update}={repo_id}\n")
-            
+
             # Write back to file
             with open(env_file_path, "w") as f:
                 f.writelines(lines)
-            
+
             return True
-            
+
         except Exception:
             return False

@@ -73,7 +73,7 @@ def _set_default_organization(org_id: int, cached_orgs: list[dict]) -> None:
 
     # Set the environment variable
     os.environ["CODEGEN_ORG_ID"] = str(org_id)
-    
+
     # Try to update .env file if it exists
     env_file_path = ".env"
     if os.path.exists(env_file_path):
