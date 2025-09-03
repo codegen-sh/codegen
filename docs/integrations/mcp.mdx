@@ -1,212 +1,88 @@
 ---
-title: "MCP Server"
-description: "Connect AI agents to Codegen using the Model Context Protocol (MCP) server"
+title: "Remote MCP Server"
+description: "Connect AI agents to Codegen using the hosted Model Context Protocol (MCP) server"
 icon: "server"
 ---
 
-The Codegen MCP server enables AI agents to interact with the Codegen platform through the Model Context Protocol (MCP). This integration allows AI agents to access Codegen APIs, manage agent runs, and interact with your development workflow.
+Codegen provides a hosted MCP server that allows AI agents to interact with the Codegen platform through the Model Context Protocol (MCP). This integration enables AI agents to access Codegen APIs, manage agent runs, and interact with your development workflow without running a local server.
 
 ## Overview
 
-The MCP server provides:
+The remote MCP server provides:
 
+- **Cloud-Based Integration**: Access Codegen services from anywhere without local setup
 - **API Integration**: Direct access to Codegen platform APIs
 - **Agent Management**: Create and monitor agent runs
 - **Organization Management**: Access organization and user information
 - **Workflow Integration**: Seamless integration with AI development tools
 
-## Installation
-
-The MCP server is included with the Codegen CLI. Install it using:
-
-```bash
-uv tool install codegen
-```
-
 ## Configuration
 
-### For Cline (VS Code Extension)
+### For Claude Code
 
-Add this to your `cline_mcp_settings.json` file:
+To configure the remote Codegen MCP server in Claude Code:
 
-```json
-{
-  "mcpServers": {
-    "codegen": {
-      "command": "codegen",
-      "args": ["mcp"],
-      "cwd": "<path to your project>"
-    }
-  }
-}
+```bash
+claude mcp add --transport http codegen-tools https://mcp.codegen.com/mcp/ --header "Authorization: Bearer <auth token>"
 ```
 
-### For Claude Desktop
+Replace `<auth token>` with your Codegen API key.
 
-Under the `Settings` > `Feature` > `MCP Servers` section, click "Add New MCP Server" and add the following:
+### For Cursor/Windsurf/VSCode Forks
 
-- **Server Name**: codegen-mcp
-- **Command**: `codegen`
-- **Arguments**: `["mcp"]`
-
-### For Cursor
-
-To configure the Codegen MCP server in Cursor:
-
-1. Open Cursor Settings (Cmd/Ctrl + ,)
-2. Navigate to `Features` > `Model Context Protocol`
-3. Click "Add Server" and configure:
-   - **Server Name**: `codegen-mcp`
-   - **Command**: `codegen`
-   - **Arguments**: `["mcp"]`
-   - **Working Directory**: `<path to your project>` (optional)
-
-Alternatively, you can add the configuration directly to your Cursor settings file:
+Add the following configuration to your settings:
 
 ```json
 {
   "mcp.servers": {
-    "codegen": {
-      "command": "codegen",
-      "args": ["mcp"],
-      "cwd": "<path to your project>"
+    "codegen-remote": {
+      "transport": "http",
+      "url": "https://mcp.codegen.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer <auth token>"
+      }
     }
   }
 }
 ```
 
-## Usage
+Replace `<auth token>` with your Codegen API key.
 
-### Starting the Server
+### For VSCode with MCP Extension
 
-Start the MCP server using the Codegen CLI:
+If you're using VSCode with an MCP extension, add this to your settings.json:
 
-```bash
-# Start with stdio transport (default)
-codegen mcp
-
-# Start with HTTP transport on a specific port
-codegen mcp --transport http --port 8080
-
-# Start with custom host and port
-codegen mcp --transport http --host 0.0.0.0 --port 3000
+```json
+{
+  "mcp.servers": [
+    {
+      "name": "codegen-remote",
+      "transport": "http",
+      "url": "https://mcp.codegen.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer <auth token>"
+      }
+    }
+  ]
+}
 ```
 
-The server will display the transport method and port information when it starts:
-
-```
-🚀 Starting Codegen MCP server...
-📡 Using stdio transport
-🚀 MCP server running on stdio transport
-```
-
-### Environment Variables
-
-Configure the MCP server using these environment variables:
-
-- `CODEGEN_API_KEY`: Your Codegen API key for authentication
-- `CODEGEN_API_BASE_URL`: Base URL for the Codegen API (defaults to `https://api.codegen.com`)
-
-## Available Tools
-
-The MCP server provides the following tools for AI agents:
-
-### Agent Management
-
-- **create_agent_run**: Create a new agent run in your organization
-- **get_agent_run**: Get details of a specific agent run
-
-### Organization Management
-
-- **get_organizations**: List organizations you have access to
-- **get_users**: List users in an organization
-- **get_user**: Get details of a specific user
-
-## Transport Options
-
-The MCP server supports two transport methods:
-
-### stdio (Default)
-
-- Best for most AI agents and IDE integrations
-- Direct communication through standard input/output
-- No network configuration required
-
-### HTTP
-
-- Useful for web-based integrations
-- Requires specifying host and port
-- Currently falls back to stdio (HTTP support coming soon)
+Replace `<auth token>` with your Codegen API key.
 
 ## Authentication
 
-The MCP server uses your Codegen API key for authentication. You can obtain your API key from the [Codegen dashboard](https://codegen.com/settings).
+The remote MCP server uses your Codegen API key for authentication. You can obtain your API key from the [Codegen dashboard](https://codegen.com/settings).
 
-Set your API key as an environment variable:
+## Available Tools
 
-```bash
-export CODEGEN_API_KEY="your-api-key-here"
-```
-
-## Troubleshooting
-
-### Common Issues
-
-**Server won't start**
-
-- Ensure the Codegen CLI is properly installed
-- Check that your API key is set correctly
-- Verify network connectivity to the Codegen API
-
-**Authentication errors**
-
-- Verify your API key is valid and not expired
-- Check that the API key has the necessary permissions
-- Ensure the `CODEGEN_API_KEY` environment variable is set
-
-**Connection issues**
-
-- For stdio transport, ensure your AI agent supports MCP
-- For HTTP transport, check firewall settings and port availability
-- Verify the host and port configuration
+The remote MCP server provides the following tools for AI agents:
 
 ### Getting Help
 
-If you encounter issues with the MCP server:
+If you encounter issues with the remote MCP server:
 
 1. Check the [Codegen documentation](https://docs.codegen.com)
 2. Join our [community Slack](https://community.codegen.com)
 3. Report issues on [GitHub](https://github.com/codegen-sh/codegen)
 
-## Examples
-
-### Creating an Agent Run
-
-```python
-# Example of how an AI agent might use the MCP server
-# This would be handled automatically by your AI agent
-
-{
-  "tool": "create_agent_run",
-  "arguments": {
-    "org_id": 123,
-    "prompt": "Review the latest pull request and suggest improvements",
-    "repo_name": "my-project",
-    "branch_name": "feature-branch"
-  }
-}
-```
-
-### Getting Organization Information
-
-```python
-{
-  "tool": "get_organizations",
-  "arguments": {
-    "page": 1,
-    "limit": 10
-  }
-}
-```
-
-The MCP server makes it easy to integrate Codegen's powerful AI development capabilities into your existing AI agent workflows.
+The remote MCP server makes it easy to integrate Codegen's powerful AI development capabilities into your existing AI agent workflows without the need to run a local server.

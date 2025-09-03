@@ -87,9 +87,3 @@ class RestAPI:
         except requests.RequestException as e:
             msg = f"Network error: {e!s}"
             raise ServerError(msg)
-
-    def identify(self) -> Identity:
-        """Get user identity information."""
-        # TODO: Implement actual API call to identity endpoint
-        # For now, return a mock identity with active status
-        return Identity(auth_context=AuthContext(status="active"))

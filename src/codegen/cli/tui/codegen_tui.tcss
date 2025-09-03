@@ -1,0 +1,74 @@
+/* Codegen TUI Styles */
+
+Screen {
+    background: $background;
+}
+
+Header {
+    dock: top;
+    height: 3;
+    background: $primary;
+    color: $text;
+}
+
+Footer {
+    dock: bottom;
+    height: 3;
+    background: $primary;
+    color: $text;
+}
+
+.title {
+    text-style: bold;
+    margin: 1;
+    color: $primary;
+    text-align: center;
+}
+
+.help {
+    margin-bottom: 1;
+    color: $text-muted;
+    text-align: center;
+}
+
+.warning-message {
+    text-align: center;
+    margin: 2;
+    padding: 2;
+    background: $warning;
+    color: $text;
+    text-style: bold;
+}
+
+DataTable {
+    height: 1fr;
+    margin-top: 1;
+}
+
+DataTable > .datatable--header {
+    text-style: bold;
+    background: $primary;
+    color: $text;
+}
+
+DataTable > .datatable--odd-row {
+    background: $surface;
+}
+
+DataTable > .datatable--even-row {
+    background: $background;
+}
+
+DataTable > .datatable--cursor {
+    background: $accent;
+    color: $text;
+}
+
+#auth-warning {
+    height: 100%;
+    align: center middle;
+}
+
+Vertical {
+    height: 100%;
+}

@@ -4,17 +4,26 @@ import rich
 import typer
 from rich.table import Table
 
+from codegen.cli.commands.config.telemetry import telemetry_app
 from codegen.configs.constants import ENV_FILENAME, GLOBAL_ENV_FILE
 from codegen.configs.user_config import UserConfig
+from codegen.shared.logging.get_logger import get_logger
 from codegen.shared.path import get_git_root_path
+
+# Initialize logger for config commands
+logger = get_logger(__name__)
 
 # Create a Typer app for the config command
 config_command = typer.Typer(help="Manage codegen configuration.")
+
+# Add telemetry subcommands
+config_command.add_typer(telemetry_app, name="telemetry")
 
 
 @config_command.command(name="list")
 def list_config():
     """List current configuration values."""
+    logger.info("Config list command invoked", extra={"operation": "config.list", "command": "codegen config list"})
 
     def flatten_dict(data: dict, prefix: str = "") -> dict:
         items = {}
@@ -79,12 +88,16 @@ def list_config():
 @config_command.command(name="get")
 def get_config(key: str = typer.Argument(..., help="Configuration key to get")):
     """Get a configuration value."""
+    logger.info("Config get command invoked", extra={"operation": "config.get", "key": key, "command": f"codegen config get {key}"})
+
     config = _get_user_config()
     if not config.has_key(key):
+        logger.warning("Config key not found", extra={"operation": "config.get", "key": key, "error_type": "key_not_found"})
         rich.print(f"[red]Error: Configuration key '{key}' not found[/red]")
         return
 
     value = config.get(key)
+    # Don't log debug info for successful value retrieval - focus on user actions
 
     rich.print(f"[cyan]{key}[/cyan]=[magenta]{value}[/magenta]")
 
