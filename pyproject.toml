@@ -35,28 +35,22 @@ dependencies = [
   "sentry-sdk==2.29.1",
   "humanize>=4.10.0",
 ]
-
 # renovate: datasource=python-version depName=python
 license = { text = "Apache-2.0" }
 classifiers = [
   "Development Status :: 4 - Beta",
-
   "Environment :: Console",
   "Environment :: MacOS X",
-
   "Intended Audience :: Developers",
   "Intended Audience :: Information Technology",
-
   "License :: OSI Approved",
   "License :: OSI Approved :: Apache Software License",
-
   "Operating System :: OS Independent",
-
+  "Operating System :: Microsoft :: Windows",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
-
   "Topic :: Software Development",
   "Topic :: Software Development :: Libraries :: Python Modules",
   "Topic :: Software Development :: Code Generators",
@@ -75,7 +69,6 @@ keywords = [
 [project.scripts]
 codegen = "codegen.cli.cli:main"
 cg = "codegen.cli.cli:main"
-
 [project.optional-dependencies]
 types = []
 [tool.uv]
@@ -115,17 +108,14 @@ dev-dependencies = [
   "pytest-lsp>=1.0.0b1",
   "codegen-api-client>=1.0.0",
 ]
-
 [tool.uv.workspace]
 exclude = ["codegen-examples"]
-
 
 [tool.coverage.run]
 branch = true
 concurrency = ["multiprocessing", "thread"]
 parallel = true
 sigterm = true
-
 [tool.coverage.report]
 skip_covered = true
 skip_empty = true
@@ -141,7 +131,6 @@ exclude_also = [
   # Don't complain about abstract methods, they aren't run:
   "@(abc\\.)?abstractmethod",
 ]
-
 [tool.coverage.html]
 show_contexts = true
 [tool.coverage.json]
@@ -154,7 +143,6 @@ enableExperimentalFeatures = true
 pythonpath = "."
 norecursedirs = "repos expected"
 # addopts = -v --cov=app --cov-report=term
-
 addopts = "--dist=loadgroup --junitxml=build/test-results/test/TEST.xml --strict-config --import-mode=importlib --cov-context=test --cov-config=pyproject.toml -p no:doctest"
 filterwarnings = """
     ignore::DeprecationWarning:botocore.*:
@@ -172,7 +160,6 @@ asyncio_default_fixture_loop_scope = "function"
 requires = ["hatchling>=1.26.3", "hatch-vcs>=0.4.0", "setuptools-scm>=8.0.0"]
 build-backend = "hatchling.build"
 
-
 [tool.deptry]
 extend_exclude = [".*/eval/test_files/.*.py", ".*conftest.py"]
 pep621_dev_dependency_groups = ["types"]
@@ -183,7 +170,6 @@ DEP002 = [
 ]
 DEP003 = []
 DEP004 = "pytest"
-
 [tool.deptry.package_module_name_map]
 PyGithub = ["github"]
 GitPython = ["git"]
@@ -191,7 +177,6 @@ python-dotenv = ["dotenv"]
 pydantic-settings = ["pydantic_settings"]
 datamodel-code-generator = ["datamodel_code_generator"]
 sentry-sdk = ["sentry_sdk"]
-
 
 [tool.semantic_release]
 assets = []
@@ -204,7 +189,6 @@ allow_zero_version = true
 repo_dir = "."
 no_git_verify = false
 tag_format = "v{version}"
-
 [tool.semantic_release.branches.develop]
 match = "develop"
 prerelease_token = "rc"
