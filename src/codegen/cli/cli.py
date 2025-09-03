@@ -2,7 +2,28 @@ import atexit
 
 import typer
 from rich.traceback import install
+import sys
 
+# Import compatibility module first
+from codegen.compat import *
+
+# Only import TUI if not on Windows
+if sys.platform != "win32":
+    from codegen.cli.commands.tui.main import tui
+else:
+
+    def tui():
+        """Placeholder TUI for Windows."""
+        print(
+            "TUI is not available on Windows. Use 'codegen --help' for available commands."
+        )
+
+    # Import tui_command for Windows
+    from codegen.cli.commands.tui.main import tui_command as tui
+
+
+# Import compatibility module first
+from codegen.compat import *
 from codegen import __version__
 from codegen.cli.commands.agent.main import agent
 from codegen.cli.commands.agents.main import agents_app
@@ -51,23 +72,36 @@ except ImportError:
 def version_callback(value: bool):
     """Print version and exit."""
     if value:
-        logger.info("Version command invoked", extra={"operation": "cli.version", "version": __version__})
+        logger.info(
+            "Version command invoked",
+            extra={"operation": "cli.version", "version": __version__},
+        )
         print(__version__)
         raise typer.Exit()
 
 
 # Create the main Typer app
-main = typer.Typer(name="codegen", help="Codegen - the Operating System for Code Agents.", rich_markup_mode="rich")
+main = typer.Typer(
+    name="codegen",
+    help="Codegen - the Operating System for Code Agents.",
+    rich_markup_mode="rich",
+)
 
 # Add individual commands to the main app (logging now handled within each command)
 main.command("agent", help="Create a new agent run with a prompt.")(agent)
-main.command("claude", help="Run Claude Code with OpenTelemetry monitoring and logging.")(claude)
+main.command(
+    "claude", help="Run Claude Code with OpenTelemetry monitoring and logging."
+)(claude)
 main.command("init", help="Initialize or update the Codegen folder.")(init)
 main.command("login", help="Store authentication token.")(login)
 main.command("logout", help="Clear stored authentication token.")(logout)
 main.command("org", help="Manage and switch between organizations.")(org)
-main.command("repo", help="Manage repository configuration and environment variables.")(repo)
-main.command("style-debug", help="Debug command to visualize CLI styling (spinners, etc).")(style_debug)
+main.command("repo", help="Manage repository configuration and environment variables.")(
+    repo
+)
+main.command(
+    "style-debug", help="Debug command to visualize CLI styling (spinners, etc)."
+)(style_debug)
 main.command("tools", help="List available tools from the Codegen API.")(tools)
 main.command("tui", help="Launch the interactive TUI interface.")(tui)
 main.command("update", help="Update Codegen to the latest or specified version")(update)
@@ -80,17 +114,40 @@ main.add_typer(profile_app, name="profile")
 
 
 @main.callback(invoke_without_command=True)
-def main_callback(ctx: typer.Context, version: bool = typer.Option(False, "--version", callback=version_callback, is_eager=True, help="Show version and exit")):
+def main_callback(
+    ctx: typer.Context,
+    version: bool = typer.Option(
+        False,
+        "--version",
+        callback=version_callback,
+        is_eager=True,
+        help="Show version and exit",
+    ),
+):
     """Codegen - the Operating System for Code Agents"""
     if ctx.invoked_subcommand is None:
         # No subcommand provided, launch TUI
-        logger.info("CLI launched without subcommand - starting TUI", extra={"operation": "cli.main", "action": "default_tui_launch", "command": "codegen"})
+        logger.info(
+            "CLI launched without subcommand - starting TUI",
+            extra={
+                "operation": "cli.main",
+                "action": "default_tui_launch",
+                "command": "codegen",
+            },
+        )
         from codegen.cli.tui.app import run_tui
 
         run_tui()
     else:
         # Log when a subcommand is being invoked
-        logger.debug("CLI main callback with subcommand", extra={"operation": "cli.main", "subcommand": ctx.invoked_subcommand, "command": f"codegen {ctx.invoked_subcommand}"})
+        logger.debug(
+            "CLI main callback with subcommand",
+            extra={
+                "operation": "cli.main",
+                "subcommand": ctx.invoked_subcommand,
+                "command": f"codegen {ctx.invoked_subcommand}",
+            },
+        )
 
 
 if __name__ == "__main__":

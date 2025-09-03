@@ -3,6 +3,13 @@ from functools import cached_property
 from pathlib import Path
 
 import giturlparse
+
+# To:
+import sys
+
+# Add the installed packages to the path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+
 from git import Repo
 from git.remote import Remote
 
@@ -74,7 +81,9 @@ class LocalGitRepo:
         if access_token is not None:
             repo_config = RepoConfig.from_repo_path(repo_path=str(self.repo_path))
             repo_config.full_name = self.full_name
-            remote_git = GitRepoClient(repo_config=repo_config, access_token=access_token)
+            remote_git = GitRepoClient(
+                repo_config=repo_config, access_token=access_token
+            )
             if (language := remote_git.repo.language) is not None:
                 return language.upper()
 

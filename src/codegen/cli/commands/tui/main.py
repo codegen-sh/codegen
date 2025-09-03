@@ -1,12 +1,33 @@
-"""TUI command for the Codegen CLI."""
+# C:\Programs\codegen\src\codegen\cli\commands\tui\main.py
+import sys
+import os
 
-from codegen.cli.tui.app import run_tui
+# Add the src directory to the path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+
+# Import compatibility module first
+from codegen.compat import *
+
+# Try to import the original TUI, fallback to Windows version
+try:
+    from codegen.cli.tui.app import run_tui
+except (ImportError, ModuleNotFoundError):
+    # Try to import the Windows TUI
+    try:
+        from codegen.cli.tui.windows_app import run_tui
+    except (ImportError, ModuleNotFoundError):
+        # If both fail, create a simple fallback
+        def run_tui():
+            print(
+                "TUI is not available on this platform. Use 'codegen --help' for available commands."
+            )
 
 
 def tui():
-    """Launch the Codegen TUI interface."""
+    """Run the TUI interface."""
     run_tui()
 
 
-if __name__ == "__main__":
-    tui()
+def tui_command():
+    """Run the TUI interface."""
+    run_tui()
