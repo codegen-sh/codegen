@@ -1,5 +1,5 @@
 import sys
-from typing import Iterable
+from collections.abc import Iterable
 
 
 def inplace_print(lines: Iterable[str], prev_lines_rendered: int) -> int:

@@ -1,20 +1,18 @@
 """Claude Code session log watcher implementation."""
 
-import time
 import threading
-from pathlib import Path
-from typing import Optional, Callable, Dict, Any
+import time
+from typing import Any, Callable, Optional
 
-from .quiet_console import console
-
-from .claude_log_utils import get_claude_session_log_path, parse_jsonl_line, read_existing_log_lines, validate_log_entry, format_log_for_api
+from .claude_log_utils import format_log_for_api, get_claude_session_log_path, parse_jsonl_line, read_existing_log_lines, validate_log_entry
 from .claude_session_api import send_claude_session_log
+from .quiet_console import console
 
 
 class ClaudeLogWatcher:
     """Watches Claude Code session log files for new entries and sends them to the API."""
 
-    def __init__(self, session_id: str, org_id: Optional[int] = None, poll_interval: float = 1.0, on_log_entry: Optional[Callable[[Dict[str, Any]], None]] = None):
+    def __init__(self, session_id: str, org_id: Optional[int] = None, poll_interval: float = 1.0, on_log_entry: Optional[Callable[[dict[str, Any]], None]] = None):
         """Initialize the log watcher.
 
         Args:
@@ -106,7 +104,7 @@ class ClaudeLogWatcher:
         except Exception as e:
             console.print(f"⚠️  Error reading log file: {e}", style="yellow")
 
-    def _read_new_lines(self, start_line: int, end_line: int) -> list[Dict[str, Any]]:
+    def _read_new_lines(self, start_line: int, end_line: int) -> list[dict[str, Any]]:
         """Read new lines from the log file.
 
         Args:
@@ -119,7 +117,7 @@ class ClaudeLogWatcher:
         entries = []
 
         try:
-            with open(self.log_path, "r", encoding="utf-8") as f:
+            with open(self.log_path, encoding="utf-8") as f:
                 lines = f.readlines()
 
                 # Read only the new lines
@@ -135,7 +133,7 @@ class ClaudeLogWatcher:
 
         return entries
 
-    def _process_log_entry(self, log_entry: Dict[str, Any]) -> None:
+    def _process_log_entry(self, log_entry: dict[str, Any]) -> None:
         """Process a single log entry.
 
         Args:
@@ -161,7 +159,7 @@ class ClaudeLogWatcher:
         # Send to API
         self._send_log_entry(formatted_entry)
 
-    def _send_log_entry(self, log_entry: Dict[str, Any]) -> None:
+    def _send_log_entry(self, log_entry: dict[str, Any]) -> None:
         """Send a log entry to the API.
 
         Args:
@@ -181,7 +179,7 @@ class ClaudeLogWatcher:
             self.total_send_failures += 1
             console.print(f"⚠️  Failed to send log entry: {e}", style="yellow")
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get watcher statistics.
 
         Returns:
@@ -204,9 +202,9 @@ class ClaudeLogWatcherManager:
     """Manages multiple log watchers for different sessions."""
 
     def __init__(self):
-        self.watchers: Dict[str, ClaudeLogWatcher] = {}
+        self.watchers: dict[str, ClaudeLogWatcher] = {}
 
-    def start_watcher(self, session_id: str, org_id: Optional[int] = None, poll_interval: float = 1.0, on_log_entry: Optional[Callable[[Dict[str, Any]], None]] = None) -> bool:
+    def start_watcher(self, session_id: str, org_id: Optional[int] = None, poll_interval: float = 1.0, on_log_entry: Optional[Callable[[dict[str, Any]], None]] = None) -> bool:
         """Start a log watcher for a session.
 
         Args:
@@ -252,7 +250,7 @@ class ClaudeLogWatcherManager:
         """
         return list(self.watchers.keys())
 
-    def get_watcher_stats(self, session_id: str) -> Optional[Dict[str, Any]]:
+    def get_watcher_stats(self, session_id: str) -> Optional[dict[str, Any]]:
         """Get stats for a specific watcher.
 
         Args:
@@ -265,7 +263,7 @@ class ClaudeLogWatcherManager:
             return self.watchers[session_id].get_stats()
         return None
 
-    def get_all_stats(self) -> Dict[str, Dict[str, Any]]:
+    def get_all_stats(self) -> dict[str, dict[str, Any]]:
         """Get stats for all active watchers.
 
         Returns:

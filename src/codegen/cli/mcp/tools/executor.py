@@ -1,8 +1,3 @@
-import json
-import requests
-
-from codegen.cli.api.endpoints import API_ENDPOINT
-
 import requests
 
 from codegen.cli.api.endpoints import API_ENDPOINT

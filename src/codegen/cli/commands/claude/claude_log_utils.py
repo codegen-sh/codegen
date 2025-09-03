@@ -4,7 +4,7 @@ import json
 import os
 import re
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any, Optional
 
 
 def get_hyphenated_cwd() -> str:
@@ -39,7 +39,7 @@ def get_claude_session_log_path(session_id: str) -> Path:
     return log_file
 
 
-def parse_jsonl_line(line: str) -> Optional[Dict[str, Any]]:
+def parse_jsonl_line(line: str) -> Optional[dict[str, Any]]:
     """Parse a single line from a JSONL file.
 
     Args:
@@ -85,13 +85,13 @@ def read_existing_log_lines(log_path: Path) -> int:
         return 0
 
     try:
-        with open(log_path, "r", encoding="utf-8") as f:
+        with open(log_path, encoding="utf-8") as f:
             return sum(1 for _ in f)
     except (OSError, UnicodeDecodeError):
         return 0
 
 
-def validate_log_entry(log_entry: Dict[str, Any]) -> bool:
+def validate_log_entry(log_entry: dict[str, Any]) -> bool:
     """Validate a log entry before sending to API.
 
     Args:
@@ -112,7 +112,7 @@ def validate_log_entry(log_entry: Dict[str, Any]) -> bool:
     return True
 
 
-def format_log_for_api(log_entry: Dict[str, Any]) -> Dict[str, Any]:
+def format_log_for_api(log_entry: dict[str, Any]) -> dict[str, Any]:
     """Format a log entry for sending to the API.
 
     Args:

@@ -601,14 +601,14 @@ class MinimalTUI:
                 )
                 print("\n✅ Pull completed successfully!")
             else:
-                logger.error(
+                logger.exception(
                     "Local pull failed via typer exit",
                     extra={"operation": "tui.pull_branch", "agent_id": agent_id, "org_id": self.org_id, "duration_ms": duration_ms, "exit_code": e.exit_code, "success": False},
                 )
                 print(f"\n❌ Pull failed (exit code: {e.exit_code})")
         except ValueError:
             duration_ms = (time.time() - start_time) * 1000
-            logger.error(
+            logger.exception(
                 "Invalid agent ID for pull",
                 extra={"operation": "tui.pull_branch", "agent_id": agent_id, "org_id": getattr(self, "org_id", None), "duration_ms": duration_ms, "error_type": "invalid_agent_id"},
             )
@@ -885,7 +885,7 @@ class MinimalTUI:
                 webbrowser.open(me_url)
                 # Debug details not needed for successful browser opens
             except Exception as e:
-                logger.error("Failed to open kanban in browser", extra={"operation": "tui.open_kanban", "error": str(e)})
+                logger.exception("Failed to open kanban in browser", extra={"operation": "tui.open_kanban", "error": str(e)})
                 print(f"\n❌ Failed to open browser: {e}")
                 input("Press Enter to continue...")
 
@@ -982,7 +982,7 @@ class MinimalTUI:
                     # Debug details not needed for successful browser opens
                     # No pause - seamless flow back to collapsed state
                 except Exception as e:
-                    logger.error("Failed to open PR in browser", extra={"operation": "tui.open_pr", "agent_id": agent_id, "error": str(e)})
+                    logger.exception("Failed to open PR in browser", extra={"operation": "tui.open_pr", "agent_id": agent_id, "error": str(e)})
                     print(f"\n❌ Failed to open PR: {e}")
                     input("Press Enter to continue...")  # Only pause on errors
             elif selected_option == "pull locally":
@@ -995,7 +995,7 @@ class MinimalTUI:
                     # Debug details not needed for successful browser opens
                     # No pause - let it flow back naturally to collapsed state
                 except Exception as e:
-                    logger.error("Failed to open trace in browser", extra={"operation": "tui.open_trace", "agent_id": agent_id, "error": str(e)})
+                    logger.exception("Failed to open trace in browser", extra={"operation": "tui.open_trace", "agent_id": agent_id, "error": str(e)})
                     print(f"\n❌ Failed to open browser: {e}")
                     input("Press Enter to continue...")  # Only pause on errors
 

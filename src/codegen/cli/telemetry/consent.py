@@ -1,8 +1,5 @@
 """Telemetry consent management for the CLI."""
 
-import uuid
-from pathlib import Path
-
 import rich
 import typer
 

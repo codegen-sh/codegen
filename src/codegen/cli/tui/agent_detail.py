@@ -3,18 +3,18 @@
 import asyncio
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import requests
 from textual.app import ComposeResult
 from textual.binding import Binding
-from textual.containers import Container, Vertical, Horizontal
+from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
-from textual.widgets import Button, Footer, Header, Static, DataTable
+from textual.widgets import Button, DataTable, Footer, Header, Static
 
+from codegen.cli.api.endpoints import API_ENDPOINT
 from codegen.cli.auth.token_manager import get_current_token
 from codegen.cli.utils.org import resolve_org_id
-from codegen.cli.api.endpoints import API_ENDPOINT
 from codegen.git.repo_operator.local_git_repo import LocalGitRepo
 
 
@@ -29,11 +29,11 @@ class AgentDetailTUI(Screen):
         Binding("w", "open_web", "Open Web", show=True),
     ]
 
-    def __init__(self, agent_run: Dict[str, Any], org_id: int | None = None):
+    def __init__(self, agent_run: dict[str, Any], org_id: int | None = None):
         super().__init__()
         self.agent_run = agent_run
         self.org_id = org_id or resolve_org_id()
-        self.agent_data: Dict[str, Any] | None = None
+        self.agent_data: dict[str, Any] | None = None
         self.is_loading = False
 
     def compose(self) -> ComposeResult:
@@ -257,6 +257,7 @@ class AgentDetailTUI(Screen):
 
         try:
             import webbrowser
+
             webbrowser.open(web_url)
             self.notify(f"🌐 Opened {web_url}")
         except Exception as e:
@@ -283,7 +284,7 @@ class JSONViewerTUI(Screen):
         Binding("escape,q", "back", "Back", show=True),
     ]
 
-    def __init__(self, data: Dict[str, Any]):
+    def __init__(self, data: dict[str, Any]):
         super().__init__()
         self.data = data
 

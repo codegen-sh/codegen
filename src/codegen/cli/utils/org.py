@@ -10,7 +10,6 @@ from codegen.cli.auth.token_manager import (
     get_cached_organizations,
     get_current_org_id,
     get_current_token,
-    get_org_name_from_cache,
     is_org_id_cached,
 )
 from codegen.cli.commands.claude.quiet_console import console

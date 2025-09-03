@@ -8,14 +8,7 @@ from textual.containers import Container, Vertical
 from textual.screen import Screen
 from textual.widgets import DataTable, Footer, Header, Static
 
-from codegen.cli.auth.token_manager import get_cached_repositories, get_current_token
-from codegen.cli.utils.repo import (
-    get_current_repo_id,
-    set_repo_env_variable,
-    update_env_file_with_repo,
-    ensure_repositories_cached
-)
-from codegen.cli.utils.org import resolve_org_id
+from codegen.cli.utils.repo import ensure_repositories_cached, get_current_repo_id
 
 
 class RepoSelectorTUI(Screen):
@@ -37,10 +30,7 @@ class RepoSelectorTUI(Screen):
         yield Header()
 
         if not self.repositories:
-            yield Container(
-                Static("⚠️  No repositories found. Fetching repositories...", classes="warning-message"),
-                id="no-repos-warning"
-            )
+            yield Container(Static("⚠️  No repositories found. Fetching repositories...", classes="warning-message"), id="no-repos-warning")
         else:
             with Vertical():
                 yield Static("🗂️ Select Your Repository", classes="title")
@@ -61,10 +51,7 @@ class RepoSelectorTUI(Screen):
 
                 yield table
 
-                yield Static(
-                    "\n💡 Selecting a repository will update your CODEGEN_REPO_ID environment variable.",
-                    classes="help"
-                )
+                yield Static("\n💡 Selecting a repository will update your CODEGEN_REPO_ID environment variable.", classes="help")
 
         yield Footer()
 
@@ -112,7 +99,7 @@ class RepoSelectorTUI(Screen):
             self.notify("✓ Updated .env file with CODEGEN_REPO_ID")
         else:
             self.notify(f"✓ Set repository: {repo_name} (ID: {repo_id})")
-            self.notify("ℹ  Add 'export CODEGEN_REPO_ID={repo_id}' to your shell for persistence")
+            self.notify("i  Add 'export CODEGEN_REPO_ID={repo_id}' to your shell for persistence")
 
         # Wait a moment for user to see the notifications, then exit
         self.set_timer(2.0, self._close_screen)
@@ -128,7 +115,7 @@ class RepoSelectorTUI(Screen):
 
             # Read existing .env file if it exists
             if os.path.exists(env_file_path):
-                with open(env_file_path, "r") as f:
+                with open(env_file_path) as f:
                     lines = f.readlines()
 
             # Update or add the key
@@ -140,8 +127,8 @@ class RepoSelectorTUI(Screen):
 
             # If key wasn't found, add it
             if not key_updated:
-                if lines and not lines[-1].endswith('\n'):
-                    lines.append('\n')
+                if lines and not lines[-1].endswith("\n"):
+                    lines.append("\n")
                 lines.append(f"{key_to_update}={repo_id}\n")
 
             # Write back to file
@@ -155,7 +142,7 @@ class RepoSelectorTUI(Screen):
 
     def _close_screen(self) -> None:
         """Close the screen."""
-        if hasattr(self.app, 'pop_screen'):
+        if hasattr(self.app, "pop_screen"):
             self.app.pop_screen()
         else:
             self.app.exit()
@@ -186,10 +173,7 @@ class RepoSelectorApp(App):
         yield Header()
 
         if not self.repositories:
-            yield Container(
-                Static("⚠️  No repositories found. Fetching repositories...", classes="warning-message"),
-                id="no-repos-warning"
-            )
+            yield Container(Static("⚠️  No repositories found. Fetching repositories...", classes="warning-message"), id="no-repos-warning")
         else:
             with Vertical():
                 yield Static("🗂️ Select Your Repository", classes="title")
@@ -210,10 +194,7 @@ class RepoSelectorApp(App):
 
                 yield table
 
-                yield Static(
-                    "\n💡 Selecting a repository will update your CODEGEN_REPO_ID environment variable.",
-                    classes="help"
-                )
+                yield Static("\n💡 Selecting a repository will update your CODEGEN_REPO_ID environment variable.", classes="help")
 
         yield Footer()
 
@@ -261,7 +242,7 @@ class RepoSelectorApp(App):
             self.notify("✓ Updated .env file with CODEGEN_REPO_ID")
         else:
             self.notify(f"✓ Set repository: {repo_name} (ID: {repo_id})")
-            self.notify("ℹ  Add 'export CODEGEN_REPO_ID={repo_id}' to your shell for persistence")
+            self.notify("i  Add 'export CODEGEN_REPO_ID={repo_id}' to your shell for persistence")
 
         # Wait a moment for user to see the notifications, then exit
         self.set_timer(2.0, self.exit)
@@ -277,7 +258,7 @@ class RepoSelectorApp(App):
 
             # Read existing .env file if it exists
             if os.path.exists(env_file_path):
-                with open(env_file_path, "r") as f:
+                with open(env_file_path) as f:
                     lines = f.readlines()
 
             # Update or add the key
@@ -289,8 +270,8 @@ class RepoSelectorApp(App):
 
             # If key wasn't found, add it
             if not key_updated:
-                if lines and not lines[-1].endswith('\n'):
-                    lines.append('\n')
+                if lines and not lines[-1].endswith("\n"):
+                    lines.append("\n")
                 lines.append(f"{key_to_update}={repo_id}\n")
 
             # Write back to file

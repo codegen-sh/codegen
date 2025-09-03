@@ -290,7 +290,7 @@ def _run_claude_interactive(resolved_org_id: int, no_mcp: bool | None) -> None:
             console.print("✅ Claude Code finished successfully", style="green")
 
     except FileNotFoundError:
-        logger.error(
+        logger.exception(
             "Claude Code executable not found",
             extra={"operation": "claude.interactive", "org_id": resolved_org_id, "claude_session_id": session_id, "error_type": "claude_executable_not_found", **_get_session_context()},
         )

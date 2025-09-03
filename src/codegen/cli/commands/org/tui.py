@@ -31,10 +31,7 @@ class OrgSelectorTUI(Screen):
         yield Header()
 
         if not self.organizations:
-            yield Container(
-                Static("⚠️  No organizations found. Please run 'codegen login' first.", classes="warning-message"),
-                id="no-orgs-warning"
-            )
+            yield Container(Static("⚠️  No organizations found. Please run 'codegen login' first.", classes="warning-message"), id="no-orgs-warning")
         else:
             with Vertical():
                 yield Static("🏢 Select Your Organization", classes="title")
@@ -55,10 +52,7 @@ class OrgSelectorTUI(Screen):
 
                 yield table
 
-                yield Static(
-                    "\n💡 Selecting an organization will update your CODEGEN_ORG_ID environment variable.",
-                    classes="help"
-                )
+                yield Static("\n💡 Selecting an organization will update your CODEGEN_ORG_ID environment variable.", classes="help")
 
         yield Footer()
 
@@ -115,7 +109,7 @@ class OrgSelectorTUI(Screen):
             self.notify("✓ Updated .env file with CODEGEN_ORG_ID")
         else:
             self.notify(f"✓ Set organization: {org_name} (ID: {org_id})")
-            self.notify("ℹ  Add 'export CODEGEN_ORG_ID={org_id}' to your shell for persistence")
+            self.notify("i  Add 'export CODEGEN_ORG_ID={org_id}' to your shell for persistence")
 
         # Wait a moment for user to see the notifications, then close
         self.set_timer(2.0, self._close_screen)
@@ -135,8 +129,8 @@ class OrgSelectorTUI(Screen):
 
             # Ensure all lines end with newline
             for i, line in enumerate(lines):
-                if not line.endswith('\n'):
-                    lines[i] = line + '\n'
+                if not line.endswith("\n"):
+                    lines[i] = line + "\n"
 
             # Update existing CODEGEN_ORG_ID or note that we need to add it
             for i, line in enumerate(lines):
@@ -193,10 +187,7 @@ class OrgSelectorApp(App):
         yield Header()
 
         if not self.organizations:
-            yield Container(
-                Static("⚠️  No organizations found. Please run 'codegen login' first.", classes="warning-message"),
-                id="no-orgs-warning"
-            )
+            yield Container(Static("⚠️  No organizations found. Please run 'codegen login' first.", classes="warning-message"), id="no-orgs-warning")
         else:
             with Vertical():
                 yield Static("🏢 Select Your Organization", classes="title")
@@ -217,10 +208,7 @@ class OrgSelectorApp(App):
 
                 yield table
 
-                yield Static(
-                    "\n💡 Selecting an organization will update your CODEGEN_ORG_ID environment variable.",
-                    classes="help"
-                )
+                yield Static("\n💡 Selecting an organization will update your CODEGEN_ORG_ID environment variable.", classes="help")
 
         yield Footer()
 
@@ -277,7 +265,7 @@ class OrgSelectorApp(App):
             self.notify("✓ Updated .env file with CODEGEN_ORG_ID")
         else:
             self.notify(f"✓ Set organization: {org_name} (ID: {org_id})")
-            self.notify("ℹ  Add 'export CODEGEN_ORG_ID={org_id}' to your shell for persistence")
+            self.notify("i  Add 'export CODEGEN_ORG_ID={org_id}' to your shell for persistence")
 
         # Wait a moment for user to see the notifications, then exit
         self.set_timer(2.0, self.exit)
@@ -297,8 +285,8 @@ class OrgSelectorApp(App):
 
             # Ensure all lines end with newline
             for i, line in enumerate(lines):
-                if not line.endswith('\n'):
-                    lines[i] = line + '\n'
+                if not line.endswith("\n"):
+                    lines[i] = line + "\n"
 
             # Update existing CODEGEN_ORG_ID or note that we need to add it
             for i, line in enumerate(lines):

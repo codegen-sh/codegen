@@ -80,7 +80,7 @@ def _set_default_organization(org_id: int, cached_orgs: list[dict]) -> None:
         _update_env_file(env_file_path, "CODEGEN_ORG_ID", str(org_id))
         console.print(f"[green]✓ Updated {env_file_path} with CODEGEN_ORG_ID={org_id}[/green]")
     else:
-        console.print(f"[yellow]Info:[/yellow] No .env file found. Set environment variable manually:")
+        console.print("[yellow]Info:[/yellow] No .env file found. Set environment variable manually:")
         console.print(f"[cyan]export CODEGEN_ORG_ID={org_id}[/cyan]")
 
     console.print(f"[green]✓ Default organization set to:[/green] {org_found['name']} ({org_id})")
@@ -100,8 +100,8 @@ def _update_env_file(file_path: str, key: str, value: str) -> None:
 
     # Ensure all lines end with newline
     for i, line in enumerate(lines):
-        if not line.endswith('\n'):
-            lines[i] = line + '\n'
+        if not line.endswith("\n"):
+            lines[i] = line + "\n"
 
     # Update existing key or note if we need to add it
     for i, line in enumerate(lines):

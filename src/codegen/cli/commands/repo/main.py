@@ -4,15 +4,8 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from codegen.cli.utils.repo import (
-    get_current_repo_id,
-    get_repo_env_status,
-    set_repo_env_variable,
-    update_env_file_with_repo,
-    clear_repo_env_variables,
-    ensure_repositories_cached
-)
 from codegen.cli.auth.token_manager import get_current_token
+from codegen.cli.utils.repo import clear_repo_env_variables, ensure_repositories_cached, get_current_repo_id, get_repo_env_status, set_repo_env_variable, update_env_file_with_repo
 
 console = Console()
 
@@ -24,7 +17,6 @@ def repo(
     list_repos: bool = typer.Option(False, "--list-repos", "-lr", help="List available repositories"),
 ):
     """Manage repository configuration and environment variables."""
-
     # Handle list repositories mode
     if list_repos:
         _list_repositories()
@@ -122,7 +114,7 @@ def _set_default_repository(repo_id: int) -> None:
             console.print("[green]✓[/green] Updated .env file with CODEGEN_REPO_ID")
         else:
             console.print(f"[green]✓[/green] Set repository ID to: [cyan]{repo_id}[/cyan]")
-            console.print("[yellow]ℹ[/yellow] Could not update .env file. Add 'export CODEGEN_REPO_ID={repo_id}' to your shell for persistence")
+            console.print("[yellow]i[/yellow] Could not update .env file. Add 'export CODEGEN_REPO_ID={repo_id}' to your shell for persistence")
 
     except Exception as e:
         console.print(f"[red]Error:[/red] Failed to set default repository: {e}")
@@ -136,7 +128,7 @@ def _clear_repo_config() -> None:
         console.print("[green]✓[/green] Cleared repository configuration from environment variables")
 
         # Note: We don't automatically clear the .env file to avoid data loss
-        console.print("[yellow]ℹ[/yellow] To permanently remove from .env file, manually delete the CODEGEN_REPO_ID line")
+        console.print("[yellow]i[/yellow] To permanently remove from .env file, manually delete the CODEGEN_REPO_ID line")
 
     except Exception as e:
         console.print(f"[red]Error:[/red] Failed to clear repository configuration: {e}")

@@ -1,7 +1,7 @@
 """Repository utilities for managing repository ID resolution and environment variables."""
 
 import os
-from typing import Dict, List, Any
+from typing import Any
 
 from rich.console import Console
 
@@ -47,7 +47,7 @@ def get_current_repo_id() -> int | None:
     return resolve_repo_id()
 
 
-def get_repo_env_status() -> Dict[str, str]:
+def get_repo_env_status() -> dict[str, str]:
     """Get the status of repository-related environment variables."""
     return {
         "CODEGEN_REPO_ID": os.environ.get("CODEGEN_REPO_ID", "Not set"),
@@ -90,7 +90,7 @@ def update_env_file_with_repo(repo_id: int, env_file_path: str = ".env") -> bool
 
         # Read existing .env file if it exists
         if os.path.exists(env_file_path):
-            with open(env_file_path, "r") as f:
+            with open(env_file_path) as f:
                 lines = f.readlines()
 
         # Update or add the key
@@ -102,8 +102,8 @@ def update_env_file_with_repo(repo_id: int, env_file_path: str = ".env") -> bool
 
         # If key wasn't found, add it
         if not key_updated:
-            if lines and not lines[-1].endswith('\n'):
-                lines.append('\n')
+            if lines and not lines[-1].endswith("\n"):
+                lines.append("\n")
             lines.append(f"{key_to_update}={repo_id}\n")
 
         # Write back to file
@@ -117,7 +117,7 @@ def update_env_file_with_repo(repo_id: int, env_file_path: str = ".env") -> bool
         return False
 
 
-def get_repo_display_info() -> List[Dict[str, str]]:
+def get_repo_display_info() -> list[dict[str, str]]:
     """Get repository information for display in TUI."""
     repo_id = get_current_repo_id()
     env_status = get_repo_env_status()
@@ -126,30 +126,18 @@ def get_repo_display_info() -> List[Dict[str, str]]:
 
     # Current repository ID
     if repo_id:
-        info.append({
-            "label": "Current Repository ID",
-            "value": str(repo_id),
-            "status": "active"
-        })
+        info.append({"label": "Current Repository ID", "value": str(repo_id), "status": "active"})
     else:
-        info.append({
-            "label": "Current Repository ID",
-            "value": "Not configured",
-            "status": "inactive"
-        })
+        info.append({"label": "Current Repository ID", "value": "Not configured", "status": "inactive"})
 
     # Environment variables status
     for var_name, value in env_status.items():
-        info.append({
-            "label": f"{var_name}",
-            "value": value,
-            "status": "active" if value != "Not set" else "inactive"
-        })
+        info.append({"label": f"{var_name}", "value": value, "status": "active" if value != "Not set" else "inactive"})
 
     return info
 
 
-def fetch_repositories_for_org(org_id: int) -> List[Dict[str, Any]]:
+def fetch_repositories_for_org(org_id: int) -> list[dict[str, Any]]:
     """Fetch repositories for an organization.
 
     Args:
@@ -160,6 +148,7 @@ def fetch_repositories_for_org(org_id: int) -> List[Dict[str, Any]]:
     """
     try:
         import requests
+
         from codegen.cli.api.endpoints import API_ENDPOINT
         from codegen.cli.auth.token_manager import get_current_token
 
@@ -185,7 +174,7 @@ def fetch_repositories_for_org(org_id: int) -> List[Dict[str, Any]]:
         return get_mock_repositories()
 
 
-def get_mock_repositories() -> List[Dict[str, Any]]:
+def get_mock_repositories() -> list[dict[str, Any]]:
     """Get mock repository data for demonstration.
 
     Returns:
@@ -203,7 +192,7 @@ def get_mock_repositories() -> List[Dict[str, Any]]:
     ]
 
 
-def ensure_repositories_cached(org_id: int | None = None) -> List[Dict[str, Any]]:
+def ensure_repositories_cached(org_id: int | None = None) -> list[dict[str, Any]]:
     """Ensure repositories are cached for the given organization.
 
     Args:
@@ -212,7 +201,7 @@ def ensure_repositories_cached(org_id: int | None = None) -> List[Dict[str, Any]
     Returns:
         List of cached repositories
     """
-    from codegen.cli.auth.token_manager import get_cached_repositories, cache_repositories
+    from codegen.cli.auth.token_manager import cache_repositories, get_cached_repositories
     from codegen.cli.utils.org import resolve_org_id
 
     # Get cached repositories first

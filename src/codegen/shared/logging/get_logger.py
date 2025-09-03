@@ -63,8 +63,8 @@ def _get_telemetry_config():
 
     try:
         # Use non-prompting config loader to avoid consent prompts during logging setup
-        from codegen.configs.models.telemetry import TelemetryConfig
         from codegen.configs.constants import GLOBAL_ENV_FILE
+        from codegen.configs.models.telemetry import TelemetryConfig
 
         _telemetry_config = TelemetryConfig(env_filepath=GLOBAL_ENV_FILE)
     except ImportError:

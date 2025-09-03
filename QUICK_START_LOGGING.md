@@ -3,8 +3,8 @@
 ## ⚡ TL;DR - 3 Step Process
 
 1. **Import the logger**: `from codegen.shared.logging.get_logger import get_logger`
-2. **Add `extra={}` to your log calls**: `logger.info("message", extra={"key": "value"})`
-3. **Enable telemetry**: `codegen config telemetry enable`
+1. **Add `extra={}` to your log calls**: `logger.info("message", extra={"key": "value"})`
+1. **Enable telemetry**: `codegen config telemetry enable`
 
 **That's it!** Your logs automatically go to Grafana Cloud when telemetry is enabled.
 
@@ -22,11 +22,14 @@ from codegen.shared.logging.get_logger import get_logger
 logger = get_logger(__name__)
 
 # Find any existing console.print() or error handling and add:
-logger.info("Operation completed", extra={
-    "operation": "command_name",
-    "org_id": org_id,  # if available
-    "success": True
-})
+logger.info(
+    "Operation completed",
+    extra={
+        "operation": "command_name",
+        "org_id": org_id,  # if available
+        "success": True,
+    },
+)
 ```
 
 ### 2. Test the Integration Right Now
@@ -48,57 +51,42 @@ codegen config telemetry status
 ## 📝 Copy-Paste Patterns
 
 ### Pattern 1: Operation Start/End
+
 ```python
 logger = get_logger(__name__)
 
 # At start of function
-logger.info("Operation started", extra={
-    "operation": "command.subcommand",
-    "user_input": relevant_input
-})
+logger.info("Operation started", extra={"operation": "command.subcommand", "user_input": relevant_input})
 
 # At end of function
-logger.info("Operation completed", extra={
-    "operation": "command.subcommand",
-    "success": True
-})
+logger.info("Operation completed", extra={"operation": "command.subcommand", "success": True})
 ```
 
 ### Pattern 2: Error Handling
+
 ```python
 try:
     # your existing code
     pass
 except SomeSpecificError as e:
-    logger.error("Specific error occurred", extra={
-        "operation": "command.subcommand",
-        "error_type": "specific_error",
-        "error_details": str(e)
-    }, exc_info=True)
+    logger.error("Specific error occurred", extra={"operation": "command.subcommand", "error_type": "specific_error", "error_details": str(e)}, exc_info=True)
     # your existing error handling
 ```
 
 ### Pattern 3: API Calls
+
 ```python
 # Before API call
-logger.info("Making API request", extra={
-    "operation": "api.request",
-    "endpoint": "agent/run",
-    "org_id": org_id
-})
+logger.info("Making API request", extra={"operation": "api.request", "endpoint": "agent/run", "org_id": org_id})
 
 # After successful API call
-logger.info("API request successful", extra={
-    "operation": "api.request",
-    "endpoint": "agent/run",
-    "response_id": response.get("id"),
-    "status_code": response.status_code
-})
+logger.info("API request successful", extra={"operation": "api.request", "endpoint": "agent/run", "response_id": response.get("id"), "status_code": response.status_code})
 ```
 
 ## 🎯 What to Log (Priority Order)
 
 ### 🔥 High Priority (Add These First)
+
 - **Operation start/end**: When commands begin/complete
 - **API calls**: Requests to your backend
 - **Authentication events**: Login/logout/token issues
@@ -106,11 +94,13 @@ logger.info("API request successful", extra={
 - **User actions**: Commands run, options selected
 
 ### ⭐ Medium Priority
+
 - **Performance**: Duration of operations
 - **State changes**: Status updates, configuration changes
 - **External tools**: Claude CLI detection, git operations
 
 ### 💡 Low Priority (Nice to Have)
+
 - **Debug info**: Internal state, validation steps
 - **User behavior**: Which features are used most
 
@@ -163,15 +153,19 @@ def create(prompt: str, org_id: int | None = None, ...):
 
 logger = get_logger(__name__)
 
+
 def _run_claude_interactive(resolved_org_id: int, no_mcp: bool | None) -> None:
     session_id = generate_session_id()
 
     # ADD: Log session start
-    logger.info("Claude session started", extra={
-        "operation": "claude.session_start",
-        "session_id": session_id[:8],  # Short version for privacy
-        "org_id": resolved_org_id
-    })
+    logger.info(
+        "Claude session started",
+        extra={
+            "operation": "claude.session_start",
+            "session_id": session_id[:8],  # Short version for privacy
+            "org_id": resolved_org_id,
+        },
+    )
 
     # Your existing code...
 
@@ -180,20 +174,13 @@ def _run_claude_interactive(resolved_org_id: int, no_mcp: bool | None) -> None:
         returncode = process.wait()
 
         # ADD: Log session end
-        logger.info("Claude session completed", extra={
-            "operation": "claude.session_complete",
-            "session_id": session_id[:8],
-            "exit_code": returncode,
-            "status": "COMPLETE" if returncode == 0 else "ERROR"
-        })
+        logger.info(
+            "Claude session completed", extra={"operation": "claude.session_complete", "session_id": session_id[:8], "exit_code": returncode, "status": "COMPLETE" if returncode == 0 else "ERROR"}
+        )
 
     except Exception as e:
         # ADD: Log session error
-        logger.error("Claude session failed", extra={
-            "operation": "claude.session_error",
-            "session_id": session_id[:8],
-            "error": str(e)
-        })
+        logger.error("Claude session failed", extra={"operation": "claude.session_error", "session_id": session_id[:8], "error": str(e)})
 ```
 
 ## 🧪 Verification
@@ -201,9 +188,9 @@ def _run_claude_interactive(resolved_org_id: int, no_mcp: bool | None) -> None:
 After making changes:
 
 1. **Run the command**: Execute your enhanced CLI command
-2. **Check telemetry status**: `codegen config telemetry status`
-3. **Look for logs in Grafana Cloud**: Search for your operation names
-4. **Test with telemetry disabled**: `codegen config telemetry disable` - should still work normally
+1. **Check telemetry status**: `codegen config telemetry status`
+1. **Look for logs in Grafana Cloud**: Search for your operation names
+1. **Test with telemetry disabled**: `codegen config telemetry disable` - should still work normally
 
 ## 🚀 Progressive Enhancement
 

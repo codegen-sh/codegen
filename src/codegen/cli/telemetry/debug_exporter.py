@@ -7,7 +7,7 @@ for easy inspection and debugging of CLI telemetry.
 import json
 import os
 from collections.abc import Sequence
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 from opentelemetry.sdk.trace import ReadableSpan
@@ -33,7 +33,7 @@ class DebugFileSpanExporter(SpanExporter):
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
         # Create a session file for this CLI run
-        self.session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.session_id = datetime.now(tz=timezone.utc).strftime("%Y%m%d_%H%M%S")
         self.session_file = self.output_dir / f"session_{self.session_id}.jsonl"
 
         # Write session header
@@ -42,7 +42,7 @@ class DebugFileSpanExporter(SpanExporter):
                 json.dumps(
                     {
                         "type": "session_start",
-                        "timestamp": datetime.now().isoformat(),
+                        "timestamp": datetime.now(tz=timezone.utc).isoformat(),
                         "pid": os.getpid(),
                     }
                 )
@@ -110,7 +110,7 @@ class DebugFileSpanExporter(SpanExporter):
                     json.dumps(
                         {
                             "type": "session_end",
-                            "timestamp": datetime.now().isoformat(),
+                            "timestamp": datetime.now(tz=timezone.utc).isoformat(),
                         }
                     )
                     + "\n"
