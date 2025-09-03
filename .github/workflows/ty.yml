@@ -49,7 +49,7 @@ jobs:
               src_files+=("${file}")
             fi
           done
-          
+
           # Only run type checking if there are source files to check
           if [ ${#src_files[@]} -gt 0 ]; then
             echo "Running ty on source files: ${src_files[*]}"
