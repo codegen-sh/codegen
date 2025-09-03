@@ -82,3 +82,30 @@ class LocalGitRepo:
 
     def has_remote(self) -> bool:
         return bool(self.git_cli.remotes)
+        
+    def add_remote(self, name: str, url: str) -> None:
+        """Add a new remote to the repository.
+        
+        Args:
+            name: The name of the remote
+            url: The URL of the remote
+        """
+        self.git_cli.create_remote(name, url)
+        
+    def fetch_remote(self, remote_name: str) -> None:
+        """Fetch from a remote.
+        
+        Args:
+            remote_name: The name of the remote to fetch from
+        """
+        remote = self.git_cli.remote(remote_name)
+        remote.fetch()
+        
+    def checkout_branch(self, ref: str, branch_name: str) -> None:
+        """Checkout a branch, creating it if it doesn't exist.
+        
+        Args:
+            ref: The reference to checkout from (e.g., 'origin/main')
+            branch_name: The name of the branch to create or checkout
+        """
+        self.git_cli.git.checkout(ref, b=branch_name)
