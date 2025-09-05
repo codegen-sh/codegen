@@ -1,5 +1,4 @@
-"""
-Core SDK modules for code analysis and manipulation.
+"""Core SDK modules for code analysis and manipulation.
 
 This module provides the fundamental classes for working with codebases,
 functions, and other code elements.
