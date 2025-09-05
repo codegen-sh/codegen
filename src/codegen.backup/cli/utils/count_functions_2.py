@@ -1,0 +1,1 @@
+NumberType = int | float
