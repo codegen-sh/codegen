@@ -34,6 +34,25 @@ dependencies = [
   "psutil>=5.8.0",
   "sentry-sdk==2.29.1",
   "humanize>=4.10.0",
+  # SDK dependencies for code analysis and manipulation
+  "tree-sitter>=0.21.0",
+  "rustworkx>=0.15.0",
+  "networkx>=3.0",
+  "plotly>=5.0.0",
+  "openai>=1.0.0",
+  "dicttoxml>=1.7.0",
+  "xmltodict>=0.13.0",
+  "dataclasses-json>=0.6.0",
+  "tabulate>=0.9.0",
+  # Tree-sitter language parsers
+  "tree-sitter-python>=0.21.0",
+  "tree-sitter-javascript>=0.21.0",
+  "tree-sitter-typescript>=0.21.0",
+  "tree-sitter-java>=0.21.0",
+  "tree-sitter-go>=0.21.0",
+  "tree-sitter-rust>=0.21.0",
+  "tree-sitter-cpp>=0.22.0",
+  "tree-sitter-c>=0.21.0",
 ]
 # renovate: datasource=python-version depName=python
 license = { text = "Apache-2.0" }
@@ -69,8 +88,46 @@ keywords = [
 [project.scripts]
 codegen = "codegen.cli.cli:main"
 cg = "codegen.cli.cli:main"
+# SDK-specific entry points
+codegen-sdk = "codegen.sdk.cli.main:main"
+gs = "codegen.sdk.cli.main:main"
+graph-sitter = "codegen.sdk.cli.main:main"
 [project.optional-dependencies]
 types = []
+sdk = [
+  # Additional SDK features
+  "tree-sitter-python>=0.21.0",
+  "tree-sitter-javascript>=0.21.0", 
+  "tree-sitter-typescript>=0.21.0",
+  "tree-sitter-java>=0.21.0",
+  "tree-sitter-go>=0.21.0",
+  "tree-sitter-rust>=0.21.0",
+  "tree-sitter-cpp>=0.22.0",
+  "tree-sitter-c>=0.21.0",
+  "tree-sitter-bash>=0.21.0",
+  "tree-sitter-json>=0.21.0",
+  "tree-sitter-yaml>=0.6.0",
+  "tree-sitter-html>=0.20.0",
+  "tree-sitter-css>=0.21.0",
+]
+ai = [
+  # AI-powered features
+  "openai>=1.0.0",
+  "anthropic>=0.25.0",
+  "transformers>=4.30.0",
+  "torch>=2.0.0",
+]
+visualization = [
+  # Advanced visualization features
+  "plotly>=5.0.0",
+  "matplotlib>=3.7.0",
+  "seaborn>=0.12.0",
+  "graphviz>=0.20.0",
+]
+all = [
+  # All optional features
+  "codegen[sdk,ai,visualization]",
+]
 [tool.uv]
 cache-keys = [{ git = { commit = true, tags = true } }]
 dev-dependencies = [
@@ -157,8 +214,40 @@ tmp_path_retention_policy = "failed"
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 [build-system]
-requires = ["hatchling>=1.26.3", "hatch-vcs>=0.4.0", "setuptools-scm>=8.0.0"]
+requires = [
+  "hatchling>=1.26.3", 
+  "hatch-vcs>=0.4.0", 
+  "setuptools-scm>=8.0.0",
+  # Build dependencies for SDK
+  "Cython>=3.0.0",
+  "setuptools>=65.0.0",
+  "wheel>=0.40.0",
+  "tree-sitter>=0.21.0",
+]
 build-backend = "hatchling.build"
+
+[tool.hatch.build]
+# Include all necessary files for both packages
+include = [
+  "src/codegen/**/*.py",
+  "src/codegen/**/*.pyx", 
+  "src/codegen/**/*.pxd",
+  "src/codegen/sdk/**/*.so",
+  "src/codegen/sdk/**/*.dll",
+  "src/codegen/sdk/**/*.dylib",
+  "src/codegen/sdk/system-prompt.txt",
+  "src/codegen/sdk/py.typed",
+]
+exclude = [
+  "src/codegen/**/__pycache__",
+  "src/codegen/**/*.pyc",
+  "src/codegen/**/test_*",
+  "src/codegen/**/tests/",
+]
+
+[tool.hatch.build.hooks.custom]
+# Custom build hook for compiling Cython modules and tree-sitter parsers
+path = "build_hooks.py"
 
 [tool.deptry]
 extend_exclude = [".*/eval/test_files/.*.py", ".*conftest.py"]

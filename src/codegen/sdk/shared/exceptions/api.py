@@ -1,0 +1,2 @@
+class APINotApplicableForLanguageError(Exception):
+    pass
