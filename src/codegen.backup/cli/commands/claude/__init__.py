@@ -1,2 +1,0 @@
-"""Claude Code integration commands."""
-

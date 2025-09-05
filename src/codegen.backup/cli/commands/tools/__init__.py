@@ -1,1 +1,0 @@
-"""Tools command module."""

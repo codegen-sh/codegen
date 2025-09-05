@@ -8,7 +8,7 @@ separate file for manual exports.
 from codegen.agents.agent import Agent
 from codegen.sdk.core.codebase import Codebase
 from codegen.sdk.core.function import Function
-from codegen.shared.enums.programming_language import ProgrammingLanguage
+from codegen.sdk.shared.enums.programming_language import ProgrammingLanguage
 
 __all__ = [
     "Agent",
