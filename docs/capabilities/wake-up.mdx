@@ -26,6 +26,14 @@ Wake up activates when:
 - **Test Failures:** Unit tests, integration tests, or automated test suites fail
 - **Code Quality Issues:** Static analysis tools report violations or warnings
 
+<Info>
+  **Immediate Response:** Codegen starts working as soon as the first check fails - it doesn't wait for all checks to complete.
+</Info>
+
+<Info>
+  **Single Agent Per Commit:** All failed checks from the same commit are handled by one agent, ensuring consistent fixes across all failures.
+</Info>
+
 ## The Auto-Fix Process
 
 When Codegen wakes up to fix a failing PR, it follows this process:
