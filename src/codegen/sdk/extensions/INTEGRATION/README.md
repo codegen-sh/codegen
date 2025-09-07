@@ -44,6 +44,8 @@ reveal_symbol_fn.py
 tool_output_types.py
 tools.py
 view_file.py
+README.md 
+
 
 Second View:
 codegen/src/codegen/sdk/extensions/autogenlib
@@ -76,7 +78,12 @@ settings.py
 
 
 Design separate deployable package structure for all components
+codegen/src/codegen/sdk/extensions/lsp/lsp_diagnostics.py (all diagnostics from lsp server about codebase files)
+codegen/src/codegen/sdk/extensions/autogenlib/auto_resolve.py (provide error contexts to api to create error resolutions and apply them)- requires API KEY
+codegen/src/codegen/sdk/extensions/autogenlib/enhance_context.py (enhance error contexts)
+codegen/src/codegen/sdk/configs/models/codebase_enhanced.py (to include lsp_diagnostics=true, error_auto_resolve=true , doc_gen=true (created md documentation).
 Create framework to integrate all tools/ directory capabilities
 Create integration layer for SolidLSP language servers and diagnostics
 Integrate AutogenLib for enhanced context analysis capabilities
-Design multi-source context aggregation pipeline for error analysis / context / resolution / document creation / 
+Design multi-source context aggregation pipeline for error analysis / context enhancment / enhanced automatic error resolution / document creation / 
+
