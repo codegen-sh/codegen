@@ -3,14 +3,13 @@ Additional parameters:
 https://github.com/Zeeeepa/codegen/blob/develop/src/codegen/sdk/configs/models/codebase.py (To extend this). wtih:
 
 
-lsp_diagnostics=true   (from extensions/lsp/solidlsp) + (codegen/src/codegen/sdk/extensions/tools) + (codegen/src/codegen/sdk/extensions/autogenlib)
+diagnostics=true   (from extensions/lsp/solidlsp) + (codegen/src/codegen/sdk/extensions/tools) + (codegen/src/codegen/sdk/extensions/autogenlib)
 error_auto_resolve=true   (from full context - to more effectively resolve errors, type mismatches and other errors/ issues - CORE TOOLS ARE IN (codegen/src/codegen/sdk/extensions/tools))
 doc_gen=true   (codegen/src/codegen/sdk/extensions/tools) - to create .md documentation of all files and their parameters/ usages / etc. 
 
-
-
-lsp_diagnostics = 
-
+diagnostics=true → Unified diagnostic aggregation across all components  from lsp_diagnostics.py (to create in codegen/src/codegen/sdk/extensions/lsp/solidlsp) + from codegen/src/codegen/sdk/extensions/tools/codebase_analysis.py + 
+error_auto_resolve=true → AI-powered resolution using SolidLSP + autogenlib + graph-sitter
+doc_gen=true → Comprehensive documentation generation integration
 
 Package Deployment Structure
 5 Separate Packages:
@@ -86,4 +85,5 @@ Create framework to integrate all tools/ directory capabilities
 Create integration layer for SolidLSP language servers and diagnostics
 Integrate AutogenLib for enhanced context analysis capabilities
 Design multi-source context aggregation pipeline for error analysis / context enhancment / enhanced automatic error resolution / document creation / 
+
 
