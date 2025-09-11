@@ -114,7 +114,7 @@ def _set_default_repository(repo_id: int) -> None:
             console.print("[green]✓[/green] Updated .env file with CODEGEN_REPO_ID")
         else:
             console.print(f"[green]✓[/green] Set repository ID to: [cyan]{repo_id}[/cyan]")
-            console.print("[yellow]ℹ[/yellow] Could not update .env file. Add 'export CODEGEN_REPO_ID={repo_id}' to your shell for persistence")
+            console.print("[yellow]i[/yellow] Could not update .env file. Add 'export CODEGEN_REPO_ID={repo_id}' to your shell for persistence")
 
     except Exception as e:
         console.print(f"[red]Error:[/red] Failed to set default repository: {e}")
@@ -128,7 +128,7 @@ def _clear_repo_config() -> None:
         console.print("[green]✓[/green] Cleared repository configuration from environment variables")
 
         # Note: We don't automatically clear the .env file to avoid data loss
-        console.print("[yellow]ℹ[/yellow] To permanently remove from .env file, manually delete the CODEGEN_REPO_ID line")
+        console.print("[yellow]i[/yellow] To permanently remove from .env file, manually delete the CODEGEN_REPO_ID line")
 
     except Exception as e:
         console.print(f"[red]Error:[/red] Failed to clear repository configuration: {e}")
