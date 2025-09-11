@@ -8,9 +8,9 @@ import sys
 import traceback
 from typing import Any
 
-from codegen.shared.logging.get_logger import get_logger
-from codegen.cli.telemetry.otel_setup import get_session_uuid, get_otel_logging_handler
 from codegen.cli.telemetry.consent import ensure_telemetry_consent
+from codegen.cli.telemetry.otel_setup import get_otel_logging_handler, get_session_uuid
+from codegen.shared.logging.get_logger import get_logger
 
 # Initialize logger for exception handling
 logger = get_logger(__name__)

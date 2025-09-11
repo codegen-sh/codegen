@@ -5,11 +5,12 @@ import uuid
 from typing import Optional
 
 import requests
-from .quiet_console import console
 
 from codegen.cli.api.endpoints import API_ENDPOINT
 from codegen.cli.auth.token_manager import get_current_token
 from codegen.cli.utils.org import resolve_org_id
+
+from .quiet_console import console
 
 
 class ClaudeSessionAPIError(Exception):

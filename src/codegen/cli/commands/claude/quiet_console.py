@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import io
 import os
+
 from rich.console import Console
 
 
@@ -30,4 +31,3 @@ def _create_console() -> Console:
 
 # Shared console used across Claude CLI modules
 console = _create_console()
-

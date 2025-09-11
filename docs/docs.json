@@ -60,7 +60,7 @@
           {
             "group": "Settings",
             "pages": [
-              "settings/repo-rules", 
+              "settings/repo-rules",
               "settings/model-configuration",
               "settings/team-roles",
               "settings/agent-permissions"

@@ -1,12 +1,9 @@
 """Telemetry configuration commands."""
 
 import json
-from pathlib import Path
 
 import typer
 from rich.console import Console
-from rich.panel import Panel
-from rich.syntax import Syntax
 from rich.table import Table
 
 from codegen.cli.telemetry import update_telemetry_consent

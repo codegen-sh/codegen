@@ -29,37 +29,31 @@ class OrgSelectorTUI(Screen):
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
         yield Header()
-        
+
         if not self.organizations:
-            yield Container(
-                Static("⚠️  No organizations found. Please run 'codegen login' first.", classes="warning-message"), 
-                id="no-orgs-warning"
-            )
+            yield Container(Static("⚠️  No organizations found. Please run 'codegen login' first.", classes="warning-message"), id="no-orgs-warning")
         else:
             with Vertical():
                 yield Static("🏢 Select Your Organization", classes="title")
                 yield Static("Use ↑↓ to navigate, Enter to select, Q/Esc to quit", classes="help")
-                
+
                 table = DataTable(id="orgs-table", cursor_type="row")
                 table.add_columns("Current", "ID", "Organization Name")
-                
+
                 # Get the actual current org ID (checks environment variables first)
                 actual_current_org_id = resolve_org_id()
-                
+
                 for org in self.organizations:
                     org_id = org["id"]
                     org_name = org["name"]
                     is_current = "●" if org_id == actual_current_org_id else " "
-                    
+
                     table.add_row(is_current, str(org_id), org_name, key=str(org_id))
-                
+
                 yield table
-                
-                yield Static(
-                    "\n💡 Selecting an organization will update your CODEGEN_ORG_ID environment variable.", 
-                    classes="help"
-                )
-        
+
+                yield Static("\n💡 Selecting an organization will update your CODEGEN_ORG_ID environment variable.", classes="help")
+
         yield Footer()
 
     def on_mount(self) -> None:
@@ -89,7 +83,7 @@ class OrgSelectorTUI(Screen):
 
         try:
             table = self.query_one("#orgs-table", DataTable)
-            
+
             if table.cursor_row is not None and table.cursor_row < len(self.organizations):
                 # Get the selected organization directly from the cursor position
                 selected_org = self.organizations[table.cursor_row]
@@ -106,24 +100,24 @@ class OrgSelectorTUI(Screen):
         """Set the selected organization as default."""
         # Set environment variable
         os.environ["CODEGEN_ORG_ID"] = str(org_id)
-        
+
         # Try to update .env file
         env_updated = self._update_env_file(org_id)
-        
+
         if env_updated:
             self.notify(f"✓ Set default organization: {org_name} (ID: {org_id})")
             self.notify("✓ Updated .env file with CODEGEN_ORG_ID")
         else:
             self.notify(f"✓ Set organization: {org_name} (ID: {org_id})")
             self.notify("ℹ  Add 'export CODEGEN_ORG_ID={org_id}' to your shell for persistence")
-        
+
         # Wait a moment for user to see the notifications, then close
         self.set_timer(2.0, self._close_screen)
 
     def _update_env_file(self, org_id: int) -> bool:
         """Update the .env file with the new organization ID."""
         env_file_path = ".env"
-        
+
         try:
             lines = []
             key_found = False
@@ -135,8 +129,8 @@ class OrgSelectorTUI(Screen):
 
             # Ensure all lines end with newline
             for i, line in enumerate(lines):
-                if not line.endswith('\n'):
-                    lines[i] = line + '\n'
+                if not line.endswith("\n"):
+                    lines[i] = line + "\n"
 
             # Update existing CODEGEN_ORG_ID or note that we need to add it
             for i, line in enumerate(lines):
@@ -152,9 +146,9 @@ class OrgSelectorTUI(Screen):
             # Write back to file
             with open(env_file_path, "w") as f:
                 f.writelines(lines)
-            
+
             return True
-            
+
         except Exception:
             return False
 
@@ -174,7 +168,7 @@ class OrgSelectorTUI(Screen):
 
 class OrgSelectorApp(App):
     """Standalone app wrapper for the organization selector."""
-    
+
     CSS_PATH = "../../tui/codegen_theme.tcss"  # Use custom Codegen theme
     TITLE = "Organization Selector - Codegen CLI"
     BINDINGS = [
@@ -191,37 +185,31 @@ class OrgSelectorApp(App):
     def compose(self) -> ComposeResult:
         """Create child widgets for the app."""
         yield Header()
-        
+
         if not self.organizations:
-            yield Container(
-                Static("⚠️  No organizations found. Please run 'codegen login' first.", classes="warning-message"), 
-                id="no-orgs-warning"
-            )
+            yield Container(Static("⚠️  No organizations found. Please run 'codegen login' first.", classes="warning-message"), id="no-orgs-warning")
         else:
             with Vertical():
                 yield Static("🏢 Select Your Organization", classes="title")
                 yield Static("Use ↑↓ to navigate, Enter to select, Q/Esc to quit", classes="help")
-                
+
                 table = DataTable(id="orgs-table", cursor_type="row")
                 table.add_columns("Current", "ID", "Organization Name")
-                
+
                 # Get the actual current org ID (checks environment variables first)
                 actual_current_org_id = resolve_org_id()
-                
+
                 for org in self.organizations:
                     org_id = org["id"]
                     org_name = org["name"]
                     is_current = "●" if org_id == actual_current_org_id else " "
-                    
+
                     table.add_row(is_current, str(org_id), org_name, key=str(org_id))
-                
+
                 yield table
-                
-                yield Static(
-                    "\n💡 Selecting an organization will update your CODEGEN_ORG_ID environment variable.", 
-                    classes="help"
-                )
-        
+
+                yield Static("\n💡 Selecting an organization will update your CODEGEN_ORG_ID environment variable.", classes="help")
+
         yield Footer()
 
     def on_mount(self) -> None:
@@ -251,7 +239,7 @@ class OrgSelectorApp(App):
 
         try:
             table = self.query_one("#orgs-table", DataTable)
-            
+
             if table.cursor_row is not None and table.cursor_row < len(self.organizations):
                 # Get the selected organization directly from the cursor position
                 selected_org = self.organizations[table.cursor_row]
@@ -268,24 +256,24 @@ class OrgSelectorApp(App):
         """Set the selected organization as default."""
         # Set environment variable
         os.environ["CODEGEN_ORG_ID"] = str(org_id)
-        
+
         # Try to update .env file
         env_updated = self._update_env_file(org_id)
-        
+
         if env_updated:
             self.notify(f"✓ Set default organization: {org_name} (ID: {org_id})")
             self.notify("✓ Updated .env file with CODEGEN_ORG_ID")
         else:
             self.notify(f"✓ Set organization: {org_name} (ID: {org_id})")
             self.notify("ℹ  Add 'export CODEGEN_ORG_ID={org_id}' to your shell for persistence")
-        
+
         # Wait a moment for user to see the notifications, then exit
         self.set_timer(2.0, self.exit)
 
     def _update_env_file(self, org_id: int) -> bool:
         """Update the .env file with the new organization ID."""
         env_file_path = ".env"
-        
+
         try:
             lines = []
             key_found = False
@@ -297,8 +285,8 @@ class OrgSelectorApp(App):
 
             # Ensure all lines end with newline
             for i, line in enumerate(lines):
-                if not line.endswith('\n'):
-                    lines[i] = line + '\n'
+                if not line.endswith("\n"):
+                    lines[i] = line + "\n"
 
             # Update existing CODEGEN_ORG_ID or note that we need to add it
             for i, line in enumerate(lines):
@@ -314,9 +302,9 @@ class OrgSelectorApp(App):
             # Write back to file
             with open(env_file_path, "w") as f:
                 f.writelines(lines)
-            
+
             return True
-            
+
         except Exception:
             return False
 
