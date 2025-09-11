@@ -109,7 +109,7 @@ class OrgSelectorTUI(Screen):
             self.notify("✓ Updated .env file with CODEGEN_ORG_ID")
         else:
             self.notify(f"✓ Set organization: {org_name} (ID: {org_id})")
-            self.notify("ℹ  Add 'export CODEGEN_ORG_ID={org_id}' to your shell for persistence")
+            self.notify("i  Add 'export CODEGEN_ORG_ID={org_id}' to your shell for persistence")
 
         # Wait a moment for user to see the notifications, then close
         self.set_timer(2.0, self._close_screen)
@@ -265,7 +265,7 @@ class OrgSelectorApp(App):
             self.notify("✓ Updated .env file with CODEGEN_ORG_ID")
         else:
             self.notify(f"✓ Set organization: {org_name} (ID: {org_id})")
-            self.notify("ℹ  Add 'export CODEGEN_ORG_ID={org_id}' to your shell for persistence")
+            self.notify("i  Add 'export CODEGEN_ORG_ID={org_id}' to your shell for persistence")
 
         # Wait a moment for user to see the notifications, then exit
         self.set_timer(2.0, self.exit)

@@ -99,7 +99,7 @@ class RepoSelectorTUI(Screen):
             self.notify("✓ Updated .env file with CODEGEN_REPO_ID")
         else:
             self.notify(f"✓ Set repository: {repo_name} (ID: {repo_id})")
-            self.notify("ℹ  Add 'export CODEGEN_REPO_ID={repo_id}' to your shell for persistence")
+            self.notify("i  Add 'export CODEGEN_REPO_ID={repo_id}' to your shell for persistence")
 
         # Wait a moment for user to see the notifications, then exit
         self.set_timer(2.0, self._close_screen)
@@ -242,7 +242,7 @@ class RepoSelectorApp(App):
             self.notify("✓ Updated .env file with CODEGEN_REPO_ID")
         else:
             self.notify(f"✓ Set repository: {repo_name} (ID: {repo_id})")
-            self.notify("ℹ  Add 'export CODEGEN_REPO_ID={repo_id}' to your shell for persistence")
+            self.notify("i  Add 'export CODEGEN_REPO_ID={repo_id}' to your shell for persistence")
 
         # Wait a moment for user to see the notifications, then exit
         self.set_timer(2.0, self.exit)
