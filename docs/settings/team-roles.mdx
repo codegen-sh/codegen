@@ -1,0 +1,111 @@
+---
+title: "Team Member Roles"
+sidebarTitle: "Team Roles"
+icon: "users"
+---
+
+Team member roles control what actions users can perform within your Codegen organization. The role system uses a hierarchical permission model to ensure proper access control while allowing teams to delegate responsibilities appropriately.
+
+## Role Hierarchy
+
+There are **three roles** in the system with a hierarchical structure where higher roles inherit all permissions from lower roles:
+
+`MEMBER` < `MANAGER` < `ADMIN`
+
+## Role Definitions
+
+### 🔴 **ADMIN** (Highest Level)
+
+Admins have **full administrative access** to the organization and can perform all actions:
+
+- **Manage billing** and subscription settings
+- **Delete repositories** (only admins can do this)
+- **Change user roles** (promote/demote team members)
+- **Manage integrations** (GitHub, Linear, Slack, etc.)
+- **Access organization settings**
+- **View cost breakdowns and analytics**
+- **Invite users to the organization**
+
+### 🟡 **MANAGER** (Middle Level)
+
+Managers have operational permissions but lack administrative controls:
+
+- **Manage integrations** (GitHub, Linear, Slack, etc.)
+- **View and manage organization integrations**
+- **Cannot** access billing information
+- **Cannot** manage user roles
+- **Cannot** delete repositories
+
+### 🟢 **MEMBER** (Basic Level)
+
+Members have basic permissions for day-to-day work:
+
+- **View agent traces and runs**
+- **Use main application features** (creating agents, viewing repos, etc.)
+- **View their own profile and settings**
+- **Cannot** manage integrations
+- **Cannot** access billing information
+- **Cannot** manage other users
+- **Cannot** delete repositories
+
+## Permission Matrix
+
+| Feature | Member | Manager | Admin |
+|---------|--------|---------|-------|
+| View repositories | ✅ | ✅ | ✅ |
+| Create and run agents | ✅ | ✅ | ✅ |
+| View agent traces | ✅ | ✅ | ✅ |
+| Manage integrations | ❌ | ✅ | ✅ |
+| Delete repositories | ❌ | ❌ | ✅ |
+| Access billing | ❌ | ❌ | ✅ |
+| Change user roles | ❌ | ❌ | ✅ |
+| Organization settings | Limited | Limited | Full |
+| Invite users | ❌ | ❌ | ✅ |
+
+## Managing Team Roles
+
+### Default Role Assignment
+
+- New team members are assigned the **MEMBER** role by default
+- This ensures new users have basic access without administrative privileges
+
+### Changing Roles
+
+Only **ADMIN** users can promote or demote other team members:
+
+1. Navigate to your organization's team management page
+2. Find the user whose role you want to change
+3. Select the new role from the dropdown
+4. Confirm the change
+
+### Role Restrictions
+
+- You cannot assign a role higher than your own
+- The system prevents privilege escalation attacks
+- At least one ADMIN must remain in each organization
+
+## Best Practices
+
+### Security Considerations
+
+- **Principle of Least Privilege**: Assign the minimum role necessary for each team member's responsibilities
+- **Regular Audits**: Periodically review team member roles and adjust as needed
+- **Onboarding**: Start new team members as MEMBER and promote as they gain experience
+
+### Role Assignment Guidelines
+
+- **MEMBER**: Developers, contractors, or team members who primarily work with code and agents
+- **MANAGER**: Team leads, project managers, or senior developers who need to manage integrations
+- **ADMIN**: Organization owners, DevOps engineers, or senior leadership who need full control
+
+### Workflow Integration
+
+- Consider your team's structure when assigning roles
+- Ensure critical functions (billing, user management) are accessible to multiple admins
+- Document role assignments and responsibilities for your team
+
+## Related Documentation
+
+- [Agent Permissions](/settings/agent-permissions) - Configure what actions agents can perform
+- [Organization Rules](/settings/organization-rules) - Set organization-wide rules
+- [Repository Rules](/settings/repo-rules) - Configure repository-specific behavior
