@@ -66,8 +66,8 @@ try:
     from solidlsp.ls_config import Language  # For LSP language enum
 
     # Import documentation generation
-    from graph_sitter.generate_docs_json import generate_docs_json
-    from graph_sitter.mdx_docs_generation import (
+    from graph_sitter.extensions.tools.generate_docs_json import generate_docs_json
+    from graph_sitter.extensions.tools.mdx_docs_generation import (
         render_mdx_page_for_class,
     )  # Import specific functions
 
