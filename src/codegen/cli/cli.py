@@ -12,6 +12,7 @@ from codegen.cli.commands.init.main import init
 from codegen.cli.commands.integrations.main import integrations_app
 from codegen.cli.commands.login.main import login
 from codegen.cli.commands.logout.main import logout
+from codegen.cli.commands.mcp.main import mcp
 from codegen.cli.commands.org.main import org
 from codegen.cli.commands.profile.main import profile_app
 from codegen.cli.commands.repo.main import repo
@@ -65,6 +66,7 @@ main.command("claude", help="Run Claude Code with OpenTelemetry monitoring and l
 main.command("init", help="Initialize or update the Codegen folder.")(init)
 main.command("login", help="Store authentication token.")(login)
 main.command("logout", help="Clear stored authentication token.")(logout)
+main.command("mcp", help="Start the Codegen MCP server.")(mcp)
 main.command("org", help="Manage and switch between organizations.")(org)
 main.command("repo", help="Manage repository configuration and environment variables.")(repo)
 main.command("style-debug", help="Debug command to visualize CLI styling (spinners, etc).")(style_debug)

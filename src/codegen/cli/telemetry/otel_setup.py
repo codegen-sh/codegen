@@ -293,8 +293,9 @@ def shutdown_otel_logging():
     if _logger_provider is not None:
         try:
             # Type checker workaround: assert that provider is not None after the check
-            assert _logger_provider is not None
-            _logger_provider.shutdown()
+            provider = _logger_provider
+            assert provider is not None
+            provider.shutdown()
         except Exception:
             pass  # Ignore shutdown errors
         _logger_provider = None

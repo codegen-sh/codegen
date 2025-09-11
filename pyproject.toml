@@ -25,6 +25,7 @@ dependencies = [
   "unidiff>=0.7.5",
   "datamodel-code-generator>=0.26.5",
   "fastmcp>=2.9.0",
+  "mcp-python>=0.1.4",
   # OpenTelemetry logging dependencies
   "opentelemetry-api>=1.26.0",
   "opentelemetry-sdk>=1.26.0",

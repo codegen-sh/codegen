@@ -116,7 +116,7 @@ def _determine_language_by_git_file_count(folder_path: str) -> ProgrammingLangua
     """
     from codegen.git.repo_operator.repo_operator import RepoOperator
     from codegen.git.schemas.repo_config import RepoConfig
-    
+
     try:
         from codegen.sdk.codebase.codebase_context import GLOBAL_FILE_IGNORE_LIST
         from codegen.sdk.python import PyFile
