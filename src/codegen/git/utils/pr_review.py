@@ -129,7 +129,11 @@ class CodegenPR:
     @property
     def modified_symbols(self) -> list[str]:
         # Import SourceFile locally to avoid circular dependencies
-        from codegen.sdk.core.file import SourceFile
+        try:
+            from codegen.sdk.core.file import SourceFile
+        except ImportError:
+            # If SDK is not available, return empty list
+            return []
 
         all_modified = []
         for file in self.modified_files:

@@ -39,7 +39,7 @@ def test_error_handling_no_token():
     with pytest.raises(TypeError, match="missing 1 required positional argument: 'token'"):
         from codegen.agents.agent import Agent
 
-        Agent()  # No token provided
+        Agent()  # type: ignore[missing-argument] # No token provided
 
 
 def test_basic_initialization_variations():

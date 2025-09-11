@@ -46,13 +46,20 @@ def _determine_language_by_file_count(folder_path: str) -> ProgrammingLanguage:
         ProgrammingLanguage: The dominant programming language, or OTHER if no matching files found
         or if less than MIN_LANGUAGE_RATIO of files match the dominant language
     """
-    from codegen.sdk.python import PyFile
-    from codegen.sdk.typescript.file import TSFile
+    try:
+        from codegen.sdk.python import PyFile
+        from codegen.sdk.typescript.file import TSFile
 
-    EXTENSIONS = {
-        ProgrammingLanguage.PYTHON: PyFile.get_extensions(),
-        ProgrammingLanguage.TYPESCRIPT: TSFile.get_extensions(),
-    }
+        EXTENSIONS = {
+            ProgrammingLanguage.PYTHON: PyFile.get_extensions(),
+            ProgrammingLanguage.TYPESCRIPT: TSFile.get_extensions(),
+        }
+    except ImportError:
+        # Fallback to basic extensions if SDK modules are not available
+        EXTENSIONS = {
+            ProgrammingLanguage.PYTHON: [".py", ".pyx", ".pyi"],
+            ProgrammingLanguage.TYPESCRIPT: [".ts", ".tsx", ".js", ".jsx"],
+        }
 
     folder = Path(folder_path)
     if not folder.exists() or not folder.is_dir():
@@ -109,14 +116,23 @@ def _determine_language_by_git_file_count(folder_path: str) -> ProgrammingLangua
     """
     from codegen.git.repo_operator.repo_operator import RepoOperator
     from codegen.git.schemas.repo_config import RepoConfig
-    from codegen.sdk.codebase.codebase_context import GLOBAL_FILE_IGNORE_LIST
-    from codegen.sdk.python import PyFile
-    from codegen.sdk.typescript.file import TSFile
+    
+    try:
+        from codegen.sdk.codebase.codebase_context import GLOBAL_FILE_IGNORE_LIST
+        from codegen.sdk.python import PyFile
+        from codegen.sdk.typescript.file import TSFile
 
-    EXTENSIONS = {
-        ProgrammingLanguage.PYTHON: PyFile.get_extensions(),
-        ProgrammingLanguage.TYPESCRIPT: TSFile.get_extensions(),
-    }
+        EXTENSIONS = {
+            ProgrammingLanguage.PYTHON: PyFile.get_extensions(),
+            ProgrammingLanguage.TYPESCRIPT: TSFile.get_extensions(),
+        }
+    except ImportError:
+        # Fallback to basic extensions and ignore list if SDK modules are not available
+        GLOBAL_FILE_IGNORE_LIST = []
+        EXTENSIONS = {
+            ProgrammingLanguage.PYTHON: [".py", ".pyx", ".pyi"],
+            ProgrammingLanguage.TYPESCRIPT: [".ts", ".tsx", ".js", ".jsx"],
+        }
 
     folder = Path(folder_path)
     if not folder.exists() or not folder.is_dir():

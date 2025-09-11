@@ -20,7 +20,8 @@ try:
     from codegen.cli.commands.claude.claude_session_api import create_claude_session
     from codegen.cli.utils.org import resolve_org_id
 except ImportError:
-    create_claude_session = None
+    create_claude_session: None = None
+    resolve_org_id: None = None
 
 
 def main():
@@ -64,7 +65,7 @@ def main():
 
         # Create session via API if available
         agent_run_id = None
-        if org_id:
+        if org_id and create_claude_session is not None:
             agent_run_id = create_claude_session(session_id, org_id)
 
         # Prepare session data

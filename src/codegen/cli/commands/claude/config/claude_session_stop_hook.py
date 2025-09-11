@@ -19,7 +19,7 @@ sys.path.insert(0, str(codegen_cli_dir))
 try:
     from codegen.cli.commands.claude.claude_session_api import update_claude_session_status
 except ImportError:
-    update_claude_session_status = None
+    update_claude_session_status: None = None
 
 
 def read_session_file() -> dict:

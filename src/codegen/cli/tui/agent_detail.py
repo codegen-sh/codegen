@@ -227,18 +227,23 @@ class AgentDetailTUI(Screen):
 
         try:
             current_repo = LocalGitRepo(Path.cwd())
+            git_cli = current_repo.git_cli
 
             # Add remote if it doesn't exist
             remote_name = "codegen-pr"
             try:
-                current_repo.add_remote(remote_name, repo_clone_url)
+                git_cli.create_remote(remote_name, repo_clone_url)
             except Exception:
                 # Remote might already exist
                 pass
 
             # Fetch and checkout the branch
-            current_repo.fetch_remote(remote_name)
-            current_repo.checkout_branch(f"{remote_name}/{branch_name}", branch_name)
+            git_cli.remote(remote_name).fetch()
+            try:
+                git_cli.git.checkout("-b", branch_name, f"{remote_name}/{branch_name}")
+            except Exception:
+                # Branch might already exist, just checkout
+                git_cli.git.checkout(branch_name)
 
             status_text.update(f"✅ Successfully checked out branch: {branch_name}")
             self.notify(f"✅ Switched to branch: {branch_name}")
