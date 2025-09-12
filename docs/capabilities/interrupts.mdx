@@ -1,6 +1,6 @@
 ---
 title: "Interrupts"
-description: "How Codegen handles real-time interrupts from Slack and Linear while working"
+description: "How Codegen handles real-time interrupts from Slack, Linear, and ClickUp while working"
 icon: "bolt"
 iconType: "solid"
 ---
@@ -11,7 +11,7 @@ Codegen supports **real-time interrupts** that allow users to send additional me
 
 ## How Interrupts Work
 
-When Codegen is actively processing a request, users can send follow-up messages through supported channels (Slack, Linear) that will be immediately delivered to the running agent as "interrupt messages."
+When Codegen is actively processing a request, users can send follow-up messages through supported channels (Slack, Linear, ClickUp) that will be immediately delivered to the running agent as "interrupt messages."
 
 ### Key Features
 
@@ -67,6 +67,28 @@ Codegen: Working on the authentication fix...
 Codegen: I see you've added 2FA requirements - incorporating that now!
 ```
 
+### ClickUp Interrupts
+
+In ClickUp, interrupts work through:
+
+1. **Adding comments** to the task Codegen is working on
+2. **Updating the task description** with additional requirements
+3. **Changing task priority or tags** (triggers re-evaluation)
+
+<Info>
+  **Note**: Codegen will respond automatically to your comments in ClickUp unless
+  another user is tagged in the same comment.
+</Info>
+
+**Example:**
+
+```
+Task: Implement user authentication
+Codegen: Working on the authentication implementation...
+[User adds comment]: "Please also add password reset functionality"
+Codegen: I see you've added password reset requirements - incorporating that now!
+```
+
 ## Best Practices
 
 ### For Users
@@ -80,6 +102,7 @@ Codegen: I see you've added 2FA requirements - incorporating that now!
 - **Provide context**: Explain how the new information relates to the original request
 - **Use @mentions in Slack**: Always mention @codegen in Slack channels (not needed in DMs)
 - **No mentions needed in Linear**: Codegen responds automatically unless other users are tagged
+- **No mentions needed in ClickUp**: Codegen responds automatically unless other users are tagged
 
 ### Common Use Cases
 
@@ -104,7 +127,7 @@ If your interrupt isn't acknowledged:
 1. **Check the channel**: Ensure you're messaging in the same thread/issue
 2. **Wait briefly**: The agent may be in the middle of a long operation
 3. **Use @mentions in Slack**: Make sure you mentioned @codegen (required in channels, not DMs)
-4. **Check for other tags in Linear**: If you tagged other users, Codegen won't respond automatically
+4. **Check for other tags in Linear/ClickUp**: If you tagged other users, Codegen won't respond automatically
 5. **Check agent status**: The agent may have completed or encountered an error
 
 ### Message Not Incorporated
@@ -143,8 +166,22 @@ Codegen: I see you've added filter requirements - implementing date and category
 Codegen: Adding sorting options to the search as well! 📊
 ```
 
+### ClickUp Task Example
+
+```
+ClickUp Task: "Build API integration"
+Codegen: Working on the API integration...
+
+[User adds comment]: "Please add rate limiting"
+Codegen: I see you've added rate limiting requirements - implementing that now!
+
+[User adds comment]: "Also add error handling for network failures"
+Codegen: Adding robust error handling for network failures as well! 🛡️
+```
+
 ## Related Features
 
 - [Wake-up Triggers](/capabilities/wake-up) - How to initially trigger Codegen
 - [Slack Integration](/integrations/slack) - Complete Slack setup and usage
 - [Linear Integration](/integrations/linear) - Complete Linear setup and usage
+- [ClickUp Integration](/integrations/clickup) - Complete ClickUp setup and usage

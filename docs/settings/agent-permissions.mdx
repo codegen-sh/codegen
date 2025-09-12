@@ -54,6 +54,24 @@ This setting automates the workflow by updating issue status when the agent begi
 - **Default**: Disabled
 - **Use Case**: Enable for automatic issue tracking and improved project visibility
 
+### Enable ClickUp Self-Assign
+
+**Allow the codegen agent to self-assign ClickUp tasks, enabling it to spin off other agents.**
+
+When enabled, the agent can assign itself to ClickUp tasks and potentially delegate work to other agent instances for parallel processing.
+
+- **Default**: Enabled
+- **Use Case**: Disable if you prefer manual task assignment or want to limit agent autonomy
+
+### Enable ClickUp Auto State Change
+
+**When enabled, the agent will automatically move ClickUp tasks to 'In Progress' state when self-assigning them.**
+
+This setting automates the workflow by updating task status when the agent begins work, providing better visibility into what the agent is actively working on.
+
+- **Default**: Disabled
+- **Use Case**: Enable for automatic task tracking and improved project visibility
+
 ## Best Practices
 
 ### Security Considerations
@@ -65,6 +83,7 @@ This setting automates the workflow by updating issue status when the agent begi
 ### Workflow Integration
 
 - Enable Linear Auto State Change if your team relies on Linear for project tracking
+- Enable ClickUp Auto State Change if your team relies on ClickUp for task management
 - Coordinate permission settings with your existing CI/CD and review processes
 - Consider your team's preferred level of automation when configuring these settings
 
@@ -72,5 +91,5 @@ This setting automates the workflow by updating issue status when the agent begi
 
 - [Repository Rules](/settings/repo-rules) - Configure repository-specific behavior
 - [Linear Integration](/integrations/linear) - Set up Linear workspace integration
+- [ClickUp Integration](/integrations/clickup) - Set up ClickUp workspace integration
 - [Model Configuration](/settings/model-configuration) - Configure LLM settings
-

@@ -1,0 +1,82 @@
+---
+title: "ClickUp Integration"
+sidebarTitle: "ClickUp"
+icon: "list-check"
+---
+
+ClickUp is designed to streamline project management and task tracking for teams of humans and agents working together. It provides a flexible and powerful way to organize work, track progress, and collaborate on complex tasks. Codegen can help automate task creation, provide updates, and implement solutions directly linked to your ClickUp workspace. We recommend using Codegen to handle initial exploration and implementation of tasks, breaking down complex work into manageable pieces.
+
+<img src="/images/clickup.png" className="rounded-lg" />
+
+## Installation
+
+Connect your ClickUp workspace to Codegen to enable agent interactions.
+
+<Card
+  title="Connect ClickUp Workspace"
+  icon="list-check"
+  href="https://app.clickup.com/api"
+>
+  Authorize Codegen to access your ClickUp workspace via the API settings.
+</Card>
+
+<Note>
+  API access allows agents to interact with tasks and projects according to
+  your permissions in ClickUp.
+</Note>
+
+## Capabilities
+
+The ClickUp integration provides comprehensive project management capabilities:
+
+- **Create and update tasks automatically** - Generate new tasks and update existing ones based on development needs
+- **Track development progress** - Monitor and report on the status of ongoing work
+- **Link code changes to tasks** - Connect GitHub pull requests and commits directly to ClickUp tasks
+- **Sync status updates** - Keep task statuses current as work progresses through different stages
+- **Multi Agent Systems:** Create subtasks and assign child agents to break down complex tasks into manageable pieces. [Learn more](#multi-agent-systems).
+
+## Permissions
+
+The Codegen ClickUp integration requires the following permissions:
+
+- **Create tasks for your workspace** - Generate new tasks and tickets as needed
+- **Create task comments and discussions** - Provide updates, ask questions, and facilitate collaboration
+- **Read access to your workspace data** - Access existing tasks, projects, and team information
+- **Write access to update tasks and projects** - Modify task status, assignees, and project details
+- **Assign tasks to team members** - Route work to appropriate team members
+- **Receive realtime updates about workspace changes** - Stay synchronized with workspace activity
+
+## How Agents Use ClickUp
+
+Agents use the ClickUp integration to streamline project management:
+
+- **Track Work:** Automatically update the status of tasks they are working on.
+- **Link Code:** Connect implemented changes (GitHub PRs) directly to the relevant ClickUp task.
+- **Provide Updates:** Post comments on tasks with progress reports, results, or questions.
+- **Create Tasks:** Generate new tasks for follow-up work, bugs discovered, or sub-tasks.
+
+## Multi Agent Systems
+
+### Overview
+
+Once you've enabled ClickUp self-assign in the settings [page](https://www.codegen.com/settings/permissions), a codegen agent that has been assigned to a ClickUp task (or has been tagged in one) can spawn child agents
+by creating subtasks and assigning itself to those subtasks. For each subtask that codegen assigns to itself, a child agent will be spawned and tasked with completing the subtask. Once the child agents are
+finished with their tasks, they will notify their parent by sending it a message. The parent will then incorporate the child's work into its own as appropriate.
+
+### Best Practices
+
+#### Triggering the Child Agents
+
+If you'd like to have codegen break up a ClickUp task into smaller tasks and assign them to child agents, you should instruct it to do so in the
+description of the original task.
+
+#### Shared Context
+
+Before creating subtasks and assigning them to child agents, the parent agent will produce scaffolding in the form of a git branch and include details
+of this branch in the description of the subtasks. The child agents will then work off of this scaffolding branch. If you have specific scaffolding requirements
+or context you'd like the child agents to share, please include them in the description of the parent task.
+
+#### Availability
+
+This feature is only available on the Team Plan.
+
