@@ -27,6 +27,7 @@ from codegen.cli.commands.claude.quiet_console import console
 from codegen.cli.commands.claude.utils import resolve_claude_path
 from codegen.cli.rich.spinners import create_spinner
 from codegen.cli.utils.org import resolve_org_id
+from codegen.cli.utils.repo import resolve_repo_id
 from codegen.shared.logging.get_logger import get_logger
 
 # Initialize logger
@@ -218,7 +219,11 @@ def _run_claude_interactive(resolved_org_id: int, no_mcp: bool | None) -> None:
 
     # If MCP endpoint provided, register MCP server via Claude CLI before launch
     if not no_mcp:
-        add_codegen_mcp_server()
+        # Resolve repository ID if available
+        repo_id = resolve_repo_id()
+        if repo_id:
+            console.print(f"🎯 Repository ID: {repo_id}", style="dim")
+        add_codegen_mcp_server(org_id=resolved_org_id, repo_id=repo_id)
 
     console.print("🔵 Starting Claude Code session...", style="blue")
 
