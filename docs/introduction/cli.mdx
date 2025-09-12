@@ -43,7 +43,7 @@ codegen login
 - `--id INT` Agent run ID to fetch or pull
 - `--json` Output raw JSON response when fetching (flag)
 - `--org-id INT` Organization ID (defaults to CODEGEN_API_TOKEN/REPOSITORY_ORG_ID or auto-detect)
-- `--model TEXT` Model to use for this agent run (optional)
+- `--model TEXT` Model to use for this agent run (optional, see [Available Models](#available-models) below)
 - `--repo-id INT` Repository ID to use for this agent run (optional)
 
 **Positional Actions:**
@@ -115,6 +115,49 @@ codegen login
 **Options:**
 - `--org-id INT` Organization ID (defaults to CODEGEN_ORG_ID or auto-detect)
 - `--json` Output raw JSON response (flag)
+
+---
+
+## Available Models
+
+The `--model` parameter accepts the following model identifiers:
+
+### OpenAI Models
+- `gpt-4o` - GPT-4 Omni model
+- `gpt-4.1` - GPT-4.1 model
+- `gpt-4.5` - GPT-4.5 model
+- `gpt-5` - GPT-5 model with reasoning capabilities
+- `o1` - OpenAI O1 reasoning model
+- `o3` - OpenAI O3 reasoning model
+- `o4` - OpenAI O4 reasoning model
+- `deepseek-chat` - DeepSeek Chat model
+
+### Anthropic Models
+- `claude-3-7-sonnet` - Claude 3.7 Sonnet
+- `claude-3-5-sonnet` - Claude 3.5 Sonnet
+
+### xAI Models
+- `grok-2` - Grok 2 model
+- `grok-3` - Grok 3 model
+- `grok-3-fast` - Grok 3 Fast variant
+- `grok-3-mini` - Grok 3 Mini variant
+- `grok-3-mini-fast` - Grok 3 Mini Fast variant
+- `grok-4` - Grok 4 model
+- `grok-code-fast` - Grok Code Fast model
+- `grok-code-fast-1` - Grok Code Fast 1 model
+- `grok-code-fast-1-0825` - Grok Code Fast 1 (August 25 version)
+
+### Google Models
+- `gemini-1.5-pro` - Gemini 1.5 Pro
+- `gemini-2.5` - Gemini 2.5
+
+**Example Usage:**
+```bash
+codegen agent --prompt "Fix the login bug" --model "claude-3-5-sonnet"
+codegen agent --prompt "Refactor this code" --model "gpt-4o"
+```
+
+**Note:** If no model is specified, your organization's default model will be used.
 
 ---
 
