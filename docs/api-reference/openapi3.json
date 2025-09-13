@@ -1043,6 +1043,108 @@
         }
       }
     },
+    "/v1/organizations/{org_id}/repos/check-suite-settings": {
+      "get": {
+        "tags": [
+          "repositories",
+          "check-suite-settings"
+        ],
+        "summary": "Get Check Suite Settings",
+        "description": "Get check suite settings for a repository.",
+        "operationId": "get_check_suite_settings_v1_organizations__org_id__repos_check_suite_settings_get",
+        "parameters": [
+          {
+            "name": "repo_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "description": "Repository ID",
+              "title": "Repo Id"
+            },
+            "description": "Repository ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckSuiteSettingsResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "repositories",
+          "check-suite-settings"
+        ],
+        "summary": "Update Check Suite Settings",
+        "description": "Update check suite settings for a repository.",
+        "operationId": "update_check_suite_settings_v1_organizations__org_id__repos_check_suite_settings_put",
+        "parameters": [
+          {
+            "name": "repo_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "description": "Repository ID",
+              "title": "Repo Id"
+            },
+            "description": "Repository ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckSuiteSettingsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Update Check Suite Settings V1 Organizations  Org Id  Repos Check Suite Settings Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/organizations/{org_id}/prs/{pr_id}": {
       "patch": {
         "tags": [
@@ -2079,6 +2181,141 @@
           "SETUP_COMMANDS"
         ],
         "title": "ApiAgentRunSourceType"
+      },
+      "CheckSuiteSettingsRequest": {
+        "properties": {
+          "check_retry_count": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 10.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Check Retry Count",
+            "description": "Global retry count for failed checks"
+          },
+          "ignored_checks": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ignored Checks",
+            "description": "List of check names to ignore"
+          },
+          "check_retry_counts": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "integer"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Check Retry Counts",
+            "description": "Per-check retry counts"
+          },
+          "custom_prompts": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Prompts",
+            "description": "Custom prompts per check"
+          },
+          "high_priority_apps": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "High Priority Apps",
+            "description": "Apps that trigger immediate processing on failure"
+          }
+        },
+        "type": "object",
+        "title": "CheckSuiteSettingsRequest",
+        "description": "Request model for updating check suite settings."
+      },
+      "CheckSuiteSettingsResponse": {
+        "properties": {
+          "check_retry_count": {
+            "type": "integer",
+            "title": "Check Retry Count"
+          },
+          "ignored_checks": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Ignored Checks"
+          },
+          "check_retry_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Check Retry Counts"
+          },
+          "custom_prompts": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Custom Prompts"
+          },
+          "high_priority_apps": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "High Priority Apps"
+          },
+          "available_check_suite_names": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Available Check Suite Names"
+          }
+        },
+        "type": "object",
+        "required": [
+          "check_retry_count",
+          "ignored_checks",
+          "check_retry_counts",
+          "custom_prompts",
+          "high_priority_apps",
+          "available_check_suite_names"
+        ],
+        "title": "CheckSuiteSettingsResponse",
+        "description": "Response model for check suite settings."
       },
       "CreateAgentRunInput": {
         "properties": {
