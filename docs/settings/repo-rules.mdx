@@ -8,13 +8,14 @@ Agent Rules in Codegen act as persistent instructions or "system prompts" for th
 
 ## Rule Hierarchy
 
-Codegen supports a hierarchical rule system with two levels:
+Codegen supports a hierarchical rule system with three levels:
 
-1. **Organization Rules** - Apply to all repositories within your organization
-2. **Repository Rules** - Apply to a specific repository and override organization rules when conflicts exist
+1. **User Rules** - Personal preferences that apply to all your work across organizations
+2. **Organization Rules** - Apply to all repositories within your organization  
+3. **Repository Rules** - Apply to a specific repository and override higher-level rules when conflicts exist
 
 <Note>
-  **Rule Precedence**: Repository rules take precedence over organization rules when conflicts exist. This allows you to set organization-wide defaults while customizing specific repositories as needed.
+  **Rule Precedence**: Repository rules take precedence over organization rules, which take precedence over user rules when conflicts exist. This allows you to set personal defaults, organization-wide standards, and repository-specific customizations.
 </Note>
 
 ## Types of Rules
@@ -36,15 +37,34 @@ Rules automatically discovered from files in your repository (repository level o
 When an agent is assigned a task, all applicable rules are automatically included in the agent's context as "Mandatory User Rules." The agent sees these rules alongside the actual task or prompt it receives, ensuring consistent behavior.
 
 **Rule Resolution Process:**
-1. **Organization Rules** are loaded first (if configured for your organization)
-2. **Repository Rules** are loaded next (if configured for the specific repository)
-3. **Repository rules override organization rules** when conflicts exist
-4. **Automatic rule files** are discovered and included (repository level only)
-5. All rules are combined and presented to the agent as mandatory constraints
+1. **User Rules** are loaded first (if configured in your personal settings)
+2. **Organization Rules** are loaded next (if configured for your organization)
+3. **Repository Rules** are loaded next (if configured for the specific repository)
+4. **Higher-level rules override lower-level rules** when conflicts exist (Repository > Organization > User)
+5. **Automatic rule files** are discovered and included (repository level only)
+6. All rules are combined and presented to the agent as mandatory constraints
 
-For example, if your organization has a rule "Use TypeScript for all new code" and a specific repository has a rule "Use JavaScript for this legacy project," the repository rule takes precedence for that specific repository.
+For example, if you have a user rule "Always use semicolons in JavaScript," your organization has a rule "Use TypeScript for all new code," and a specific repository has a rule "Use JavaScript for this legacy project," the repository rule takes precedence, followed by the organization rule, then your personal user rule.
 
 ## Configuring Agent Rules
+
+### User Rules
+
+User rules are personal preferences that apply to all your work across organizations. These are perfect for setting your individual coding style, preferred tools, or workflow preferences.
+
+**To configure user rules:**
+1. Navigate to your personal settings in the Codegen web interface
+2. Look for the "User Rules" or "Personal Agent Rules" section
+3. Enter your personal preferences and coding standards
+4. Click "Save" to apply them across all organizations and repositories you work with
+
+<Tip>
+  User rules are ideal for personal preferences like "Always include detailed commit messages," "Prefer functional programming patterns," or "Use specific linting configurations."
+</Tip>
+
+<Note>
+  **Coming Soon**: User-level rules are currently being implemented and will be available in an upcoming release. The infrastructure is in place, and this feature will allow you to set personal coding preferences that follow you across all organizations.
+</Note>
 
 ### Organization Rules
 
@@ -148,6 +168,20 @@ When rules are discovered, they are displayed in the AgentTrace under the `SetAc
 
 Agent rules are flexible and can be used for various purposes across different levels:
 
+### User-Level Rules Examples
+
+Perfect for personal preferences that should apply across all your work:
+
+- **Personal Coding Style:**
+  - "I prefer functional programming patterns over object-oriented when possible."
+  - "Always include detailed JSDoc comments for functions with more than 2 parameters."
+- **Workflow Preferences:**
+  - "Include performance considerations in code reviews for any loops or database queries."
+  - "Prefer explicit error handling over try-catch blocks when the error is expected."
+- **Tool Preferences:**
+  - "Use my preferred linting configuration and code formatting style."
+  - "Always suggest using TypeScript strict mode for new projects."
+
 ### Organization-Level Rules Examples
 
 Perfect for organization-wide standards that should apply to all repositories:
@@ -178,16 +212,17 @@ Perfect for repository-specific requirements that may override organization defa
 
 ### Rule Hierarchy in Action
 
-Here's how organization and repository rules work together:
+Here's how user, organization, and repository rules work together:
 
+**User Rule:** "I prefer detailed error messages with context"  
 **Organization Rule:** "Use TypeScript for all new code"  
 **Repository Rule:** "This legacy project uses JavaScript - do not convert existing files"  
-**Result:** The agent will use JavaScript for this specific repository while using TypeScript for all other repositories in the organization.
+**Result:** The agent will use JavaScript for this specific repository (repository rule wins), but will still include detailed error messages (user rule applies) since there's no conflict.
 
 <Tip>
   Keep your rules concise and clear. Overly complex or numerous rules might confuse the agent or lead to suboptimal performance. Focus on the most critical guidelines for your organization and repositories.
 </Tip>
 
 <Note>
-  All agent rules (organization, repository, and automatic rule files) are applied *in addition* to any global prompting strategies or agent capabilities. They provide a hierarchical layer of instruction that helps ensure consistent behavior across your organization and codebases.
+  All agent rules (user, organization, repository, and automatic rule files) are applied *in addition* to any global prompting strategies or agent capabilities. They provide a hierarchical layer of instruction that helps ensure consistent behavior across your personal work, organization, and codebases.
 </Note>{" "}
