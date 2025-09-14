@@ -29,7 +29,8 @@
             "group": "Capabilities",
             "pages": [
               "capabilities/capabilities",
-              "capabilities/checks-autofixer"
+              "capabilities/checks-autofixer",
+              "capabilities/pr-review"
             ]
           },
           {
@@ -38,11 +39,11 @@
               "integrations/github",
               "integrations/slack",
               "integrations/linear",
-              "integrations/clickup",
-              "integrations/monday",
-              "integrations/jira",
               "integrations/notion",
               "integrations/figma",
+              "integrations/jira",
+              "integrations/clickup",
+              "integrations/monday",
               "integrations/sentry",
               "integrations/circleci",
               "integrations/web-search",
@@ -126,7 +127,7 @@
   "seo": {
     "metatags": {
       "og:site_name": "Codegen",
-      "og:title": "Codegen - Run Code Agents at Scale",
+      "og:title": "Codegen - The SWE that Never Sleeps",
       "og:description": "Code agents accessible via API, Slack, Linear, Github, and more.",
       "og:url": "https://docs.codegen.com",
       "og:locale": "en_US",
