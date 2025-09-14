@@ -1,0 +1,159 @@
+---
+title: "Claude Code"
+sidebarTitle: "Claude Code"
+icon: "code"
+---
+
+Claude Code is an enhanced agent implementation that leverages Anthropic's Claude Code SDK to provide superior coding capabilities. When enabled, your Codegen agents run within the Claude Code harness by default, offering improved code understanding, generation, and debugging capabilities.
+
+## What is Claude Code?
+
+Claude Code is Anthropic's specialized coding environment that provides:
+
+- **Enhanced Code Understanding**: Better comprehension of complex codebases and architectural patterns
+- **Advanced Tool Integration**: Seamless integration with development tools through MCP (Model Context Protocol)
+- **Improved Code Generation**: More accurate and contextually appropriate code suggestions
+- **Better Error Handling**: Enhanced debugging and error resolution capabilities
+- **Validation Hooks**: Built-in validation to ensure proper tool usage and workflow completion
+
+## Enabling Claude Code
+
+Claude Code can be enabled at the organization level through your model configuration settings:
+
+1. Navigate to [**codegen.com/settings/model**](https://codegen.com/settings/model)
+2. Locate the "Claude Code Mode" section
+3. Toggle the setting to "Enabled"
+4. Select your preferred Claude Code model (typically Claude 4 Sonnet)
+
+<Frame caption="Claude Code configuration in model settings">
+  <img src="/images/claude-code-settings.png" alt="Claude Code Settings UI" />
+</Frame>
+
+## How It Works
+
+When Claude Code is enabled, Codegen automatically:
+
+1. **Agent Selection**: Uses the Claude Code agent implementation instead of the default LangGraph agent
+2. **Tool Integration**: Provides access to all Codegen tools through MCP (Model Context Protocol)
+3. **Sandbox Environment**: Runs within a specialized Modal sandbox with Claude Code SDK
+4. **Validation**: Applies configurable hooks to ensure proper workflow completion
+
+## Key Features
+
+### MCP Integration
+
+Claude Code agents automatically use MCP (Model Context Protocol) for tool integration, providing:
+
+- Standardized tool interfaces
+- Better error handling and validation
+- Consistent tool behavior across different environments
+- Enhanced debugging capabilities
+
+### Validation Hooks
+
+Claude Code supports validation hooks that ensure agents complete required actions:
+
+- **Message Validation**: Ensures agents send appropriate messages before completing tasks
+- **PR Creation Validation**: Verifies that pull requests are created when required
+- **Custom Validations**: Organization-specific validation rules can be configured
+
+### Enhanced Capabilities
+
+- **Better Code Analysis**: Improved understanding of code structure and dependencies
+- **Contextual Awareness**: Better retention of conversation context across long interactions
+- **Tool Coordination**: More effective coordination between different development tools
+- **Error Recovery**: Enhanced ability to recover from and resolve errors
+
+## Supported Channels
+
+Claude Code is available across all Codegen integration channels:
+
+- **Slack**: Enhanced responses and code assistance in Slack channels
+- **GitHub**: Improved PR reviews, issue resolution, and code suggestions
+- **API**: Full Claude Code capabilities available through the Codegen API
+- **Linear**: Better integration with Linear workflows and issue management
+
+## Model Selection
+
+When Claude Code is enabled, you can choose from available Claude models:
+
+- **Claude 4 Sonnet** (Recommended): Best balance of performance and cost
+- **Claude 4 Opus**: Maximum capability for complex tasks
+- **Claude 4 Haiku**: Faster responses for simpler tasks
+
+<Tip>
+  Claude 4 Sonnet is recommended for most use cases as it provides excellent
+  performance while maintaining cost efficiency. Our prompts and workflows are
+  optimized for this model.
+</Tip>
+
+## User Preferences
+
+Individual users can override the organization-wide Claude Code setting through their personal preferences, allowing for:
+
+- **Per-user enablement**: Users can opt into Claude Code even if not enabled organization-wide
+- **Per-user disabling**: Users can opt out of Claude Code if they prefer the standard agent
+- **Flexible adoption**: Teams can gradually adopt Claude Code at their own pace
+
+## Best Practices
+
+### When to Use Claude Code
+
+Claude Code is particularly effective for:
+
+- **Complex Refactoring**: Large-scale code changes and architectural improvements
+- **Debugging**: Investigating and resolving complex bugs
+- **Code Reviews**: Comprehensive analysis of pull requests
+- **Documentation**: Generating and updating technical documentation
+- **Integration Work**: Connecting different systems and APIs
+
+### Configuration Tips
+
+- **Start with Organization-wide**: Enable Claude Code at the organization level for consistent experience
+- **Monitor Performance**: Track agent performance and user feedback during initial rollout
+- **Customize Validations**: Configure validation hooks based on your team's workflow requirements
+- **Model Selection**: Use Claude 4 Sonnet unless you have specific needs for other models
+
+## Troubleshooting
+
+### Common Issues
+
+**Claude Code not activating:**
+- Verify the setting is enabled in organization model configuration
+- Check that feature flags are properly configured for your organization
+- Ensure users have the appropriate permissions
+
+**Tool integration problems:**
+- MCP integration is automatic with Claude Code - no additional configuration needed
+- Check sandbox logs for any MCP server startup issues
+- Verify that required tools are available in your organization's configuration
+
+**Performance concerns:**
+- Claude Code may have slightly different response times compared to standard agents
+- Monitor usage patterns and adjust model selection if needed
+- Consider user preferences for performance-sensitive workflows
+
+### Getting Help
+
+If you encounter issues with Claude Code:
+
+1. Check the agent run logs for detailed error information
+2. Verify your organization's model configuration settings
+3. Contact support with specific error messages and agent run IDs
+
+<Note>
+  Claude Code is a premium feature that may require specific plan levels or
+  feature flag enablement. Contact your Codegen representative if you don't
+  see the Claude Code options in your settings.
+</Note>
+
+## Migration from Standard Agents
+
+Switching to Claude Code is seamless:
+
+- **No workflow changes**: Existing integrations and workflows continue to work
+- **Same tool access**: All existing Codegen tools remain available
+- **Backward compatibility**: Can switch back to standard agents at any time
+- **Gradual rollout**: Enable for specific users or channels as needed
+
+The transition to Claude Code enhances your existing Codegen experience without requiring changes to how you interact with the platform.
