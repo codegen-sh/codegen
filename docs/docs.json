@@ -27,11 +27,11 @@
             "group": "Capabilities",
             "pages": [
               "capabilities/capabilities",
-              "introduction/api",
-              "introduction/cli",
               "capabilities/checks-autofixer",
               "capabilities/pr-review",
-              "capabilities/analytics"
+              "capabilities/analytics",
+              "introduction/cli",
+              "introduction/sdk"
             ]
           },
           {
@@ -39,7 +39,9 @@
             "pages": [
               "settings/settings",
               "settings/repo-rules",
-              "settings/model-configuration"
+              "settings/model-configuration",
+              "settings/agent-behavior",
+              "settings/agent-permissions"
             ]
           },
           {

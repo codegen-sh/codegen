@@ -6,6 +6,12 @@ icon: "gear"
 
 Configure Codegen to work perfectly with your development workflow. Customize agent behavior, model selection, and repository-specific rules to optimize performance across your entire organization.
 
+<video
+  controls
+  src="https://res.cloudinary.com/dbikr6pew/video/upload/v1757886203/enterprise-configurability_agrhcn.mp4"
+  className="w-full aspect-[3456/2160] rounded-sm"
+/>
+
 ## Repository Configuration
 
 <CardGroup cols={2}>
@@ -16,6 +22,28 @@ Configure Codegen to work perfectly with your development workflow. Customize ag
   >
     Set repository-specific rules and coding standards that agents automatically
     follow when working on your codebase.
+  </Card>
+</CardGroup>
+
+## Agent Configuration
+
+<CardGroup cols={2}>
+  <Card
+    title="Agent Behavior"
+    icon="robot"
+    href="/settings/agent-behavior"
+  >
+    Configure how agents interact with users and approach code modifications to
+    match your workflow preferences.
+  </Card>
+
+  <Card
+    title="Agent Permissions"
+    icon="shield-check"
+    href="/settings/agent-permissions"
+  >
+    Control what actions agents are allowed to perform, including PR creation,
+    rules detection, and security policies.
   </Card>
 </CardGroup>
 
@@ -37,6 +65,8 @@ Configure Codegen to work perfectly with your development workflow. Customize ag
 Settings are organized into repository-level and organization-level configurations:
 
 - **Repository Rules** apply to specific repositories and help agents understand your coding standards and project-specific requirements
+- **Agent Behavior** controls how agents interact with users and approach code modifications
+- **Agent Permissions** defines what actions agents are allowed to perform across your organization
 - **Model Configuration** applies globally to your organization and controls which AI models power your agents
 
 <Tip>
