@@ -30,7 +30,8 @@
               "introduction/api",
               "introduction/cli",
               "capabilities/checks-autofixer",
-              "capabilities/pr-review"
+              "capabilities/pr-review",
+              "capabilities/analytics"
             ]
           },
           {
