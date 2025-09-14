@@ -36,6 +36,7 @@
           {
             "group": "Integrations",
             "pages": [
+              "integrations/integrations",
               "integrations/github",
               "integrations/slack",
               "integrations/linear",
@@ -48,10 +49,7 @@
               "integrations/circleci",
               "integrations/web-search",
               "integrations/postgres",
-              {
-                "group": "integrations/mcp",
-                "name": "Remote MCP Server"
-              }
+              "integrations/mcp-servers"
             ]
           },
           {
