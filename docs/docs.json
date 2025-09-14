@@ -40,6 +40,7 @@
               "settings/settings",
               "settings/repo-rules",
               "settings/model-configuration",
+              "settings/claude-code",
               "settings/agent-behavior",
               "settings/agent-permissions",
               "settings/team-roles"
