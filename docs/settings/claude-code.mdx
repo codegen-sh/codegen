@@ -4,7 +4,18 @@ sidebarTitle: "Claude Code"
 icon: "code"
 ---
 
-Claude Code is an enhanced agent implementation that leverages Anthropic's Claude Code SDK to provide superior coding capabilities. When enabled, your Codegen agents run within the Claude Code harness by default, offering improved code understanding, generation, and debugging capabilities.
+Users can configure Codegen to run Claude Code as the main agent loop. For some organizations and tasks, this can lead to improved agent performance.
+
+<Card
+  title="Use Claude Code on Codegen"
+  icon="brain-circuit"
+  href="https://codegen.com/settings/model"
+>
+  Enable Claude Code mode in your model configuration settings to enhance agent
+  capabilities.
+</Card>
+
+<Note>OpenAI Codex and Gemini CLI support are coming soon.</Note>
 
 ## What is Claude Code?
 
@@ -25,18 +36,14 @@ Claude Code can be enabled at the organization level through your model configur
 3. Toggle the setting to "Enabled"
 4. Select your preferred Claude Code model (typically Claude 4 Sonnet)
 
-<Frame caption="Claude Code configuration in model settings">
-  <img src="/images/claude-code-settings.png" alt="Claude Code Settings UI" />
-</Frame>
-
 ## How It Works
 
 When Claude Code is enabled, Codegen automatically:
 
-1. **Agent Selection**: Uses the Claude Code agent implementation instead of the default LangGraph agent
-2. **Tool Integration**: Provides access to all Codegen tools through MCP (Model Context Protocol)
-3. **Sandbox Environment**: Runs within a specialized Modal sandbox with Claude Code SDK
-4. **Validation**: Applies configurable hooks to ensure proper workflow completion
+1. **Sandbox Execution**: Runs Claude Code in a secure **[sandbox environment](/sandboxes/overview)** for safe code execution and testing
+2. **MCP Integration**: Provides access to all your **[integrations](/integrations/integrations)** through MCP (Model Context Protocol) for seamless tool coordination
+3. **Enhanced Logging**: Captures detailed logs using Claude Code hooks, which are displayed in the agent UI on codegen.com for full transparency and debugging
+4. **Full Feature Compatibility**: Manages interactions with Slack, Linear, and other project management tools, while maintaining the complete PR lifecycle including **[automatic check fixing](/capabilities/checks-autofixer)** and code reviews
 
 ## Key Features
 
@@ -119,16 +126,19 @@ Claude Code is particularly effective for:
 ### Common Issues
 
 **Claude Code not activating:**
+
 - Verify the setting is enabled in organization model configuration
 - Check that feature flags are properly configured for your organization
 - Ensure users have the appropriate permissions
 
 **Tool integration problems:**
+
 - MCP integration is automatic with Claude Code - no additional configuration needed
 - Check sandbox logs for any MCP server startup issues
 - Verify that required tools are available in your organization's configuration
 
 **Performance concerns:**
+
 - Claude Code may have slightly different response times compared to standard agents
 - Monitor usage patterns and adjust model selection if needed
 - Consider user preferences for performance-sensitive workflows
@@ -143,8 +153,8 @@ If you encounter issues with Claude Code:
 
 <Note>
   Claude Code is a premium feature that may require specific plan levels or
-  feature flag enablement. Contact your Codegen representative if you don't
-  see the Claude Code options in your settings.
+  feature flag enablement. Contact your Codegen representative if you don't see
+  the Claude Code options in your settings.
 </Note>
 
 ## Migration from Standard Agents
