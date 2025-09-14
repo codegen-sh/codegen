@@ -61,18 +61,9 @@ Codegen automatically searches for the following types of rule files in your rep
 
 ### Example Rule Files
 
-Here are examples of how you might structure automatic rule files in your repository:
+Here are examples of how you might structure agent rules in your repository:
 
-**`.cursorrules` example:**
-
-```
-Use TypeScript for all new code
-Follow the existing code style in the repository
-Always add JSDoc comments for public functions
-Prefer functional components over class components in React
-```
-
-**`.cursor/rules/backend.mdc` example:**
+**`AGENTS.md` example:**
 
 ```markdown
 # Backend Development Rules
@@ -157,26 +148,3 @@ Perfect for repository-specific requirements that may override organization defa
 - **Build and Deployment:**
   - "Run `npm run build` before committing to ensure the build passes."
   - "This repository deploys automatically on merge to main - ensure all tests pass."
-
-### Rule Hierarchy in Action
-
-Here's how user, organization, and repository rules work together:
-
-**User Rule:** "I prefer detailed error messages with context"  
-**Organization Rule:** "Use TypeScript for all new code"  
-**Repository Rule:** "This legacy project uses JavaScript - do not convert existing files"  
-**Result:** The agent will use JavaScript for this specific repository (repository rule wins), but will still include detailed error messages (user rule applies) since there's no conflict.
-
-<Tip>
-  Keep your rules concise and clear. Overly complex or numerous rules might
-  confuse the agent or lead to suboptimal performance. Focus on the most
-  critical guidelines for your organization and repositories.
-</Tip>
-
-<Note>
-  All agent rules (user, organization, repository, and automatic rule files) are
-  applied *in addition* to any global prompting strategies or agent
-  capabilities. They provide a hierarchical layer of instruction that helps
-  ensure consistent behavior across your personal work, organization, and
-  codebases.
-</Note>{" "}
