@@ -4,96 +4,27 @@ sidebarTitle: "Agent Rules"
 icon: "shield-check"
 ---
 
-Agent Rules in Codegen act as persistent instructions or "system prompts" for the AI agent, guiding its behavior by enforcing coding standards, conventions, and preferences. These rules are automatically included in the agent's context during each task to ensure consistent behavior across your organization and repositories.
-
-## Rule Hierarchy
-
-Codegen supports a hierarchical rule system with three levels:
-
-1. **User Rules** - Personal preferences that apply to all your work across organizations
-2. **Organization Rules** - Apply to all repositories within your organization  
-3. **Repository Rules** - Apply to a specific repository and override higher-level rules when conflicts exist
-
-<Note>
-  **Rule Precedence**: Repository rules take precedence over organization rules, which take precedence over user rules when conflicts exist. This allows you to set personal defaults, organization-wide standards, and repository-specific customizations.
-</Note>
-
-## Types of Rules
-
-Each level supports two types of rule configuration:
-
-### Manual Rules
-Rules configured directly through the Codegen web interface at [codegen.com/repos](https://codegen.com/repos) (for repository rules) or organization settings (for organization rules).
-
-### Automatic Rule File Detection  
-Rules automatically discovered from files in your repository (repository level only).
-
-<Frame caption="Update repo rules at codegen.com/repos">
-  <img src="/images/repo-rules.png" />
-</Frame>
+Agent rules are text prompts that provide instructions to AI agents about coding standards, conventions, and preferences. These text-based rules are automatically injected into the agent's context during each task.
 
 ## How Agent Rules Work
 
-When an agent is assigned a task, all applicable rules are automatically included in the agent's context as "Mandatory User Rules." The agent sees these rules alongside the actual task or prompt it receives, ensuring consistent behavior.
+When an agent starts working, it receives all applicable rules as text prompts in its context:
 
-**Rule Resolution Process:**
-1. **User Rules** are loaded first (if configured in your personal settings)
-2. **Organization Rules** are loaded next (if configured for your organization)
-3. **Repository Rules** are loaded next (if configured for the specific repository)
-4. **Higher-level rules override lower-level rules** when conflicts exist (Repository > Organization > User)
-5. **Automatic rule files** are discovered and included (repository level only)
-6. All rules are combined and presented to the agent as mandatory constraints
+1. **[User Rules](https://codegen.com/settings/personal-prompts)** - Your personal coding preferences and style
+2. **[Organization Rules](https://codegen.com/settings/organization-rules)** - Organization-wide standards and conventions
+3. **[Repository Rules](https://codegen.com/repos)** - Project-specific requirements and guidelines
 
-For example, if you have a user rule "Always use semicolons in JavaScript," your organization has a rule "Use TypeScript for all new code," and a specific repository has a rule "Use JavaScript for this legacy project," the repository rule takes precedence, followed by the organization rule, then your personal user rule.
-
-## Configuring Agent Rules
-
-### User Rules
-
-User rules are personal preferences that apply to all your work across organizations. These are perfect for setting your individual coding style, preferred tools, or workflow preferences.
-
-**To configure user rules:**
-1. Navigate to your personal settings in the Codegen web interface
-2. Look for the "User Rules" or "Personal Agent Rules" section
-3. Enter your personal preferences and coding standards
-4. Click "Save" to apply them across all organizations and repositories you work with
-
-<Tip>
-  User rules are ideal for personal preferences like "Always include detailed commit messages," "Prefer functional programming patterns," or "Use specific linting configurations."
-</Tip>
+The agent is instructed to prefer **User > Repository > Organization** rules when there are conflicts, but these are guidance rather than hard constraints. The agent considers all rules as context when making decisions.
 
 <Note>
-  **Coming Soon**: User-level rules are currently being implemented and will be available in an upcoming release. The infrastructure is in place, and this feature will allow you to set personal coding preferences that follow you across all organizations.
+  Rules are text prompts, not strict settings. Agents use them as guidance
+  alongside the specific task you've given them.
 </Note>
 
-### Organization Rules
-
-Organization rules apply to all repositories within your organization and serve as default behavior guidelines.
-
-**To configure organization rules:**
-1. Navigate to your organization settings in the Codegen web interface
-2. Look for the "Organization Rules" section
-3. Enter your organization-wide rules in the text area
-4. Click "Save" to apply them to all repositories in your organization
-
 <Tip>
-  Organization rules are perfect for setting coding standards, commit message conventions, or testing requirements that should apply across all your repositories.
+  Codegen automatically detects `AGENTS.md` and other rules files. [Learn
+  more](#automatic-rule-file-detection)
 </Tip>
-
-### Repository Rules
-
-Repository rules apply to a specific repository and override any conflicting organization rules.
-
-**To configure repository rules:**
-1. Navigate to [codegen.com/repos](https://codegen.com/repos)
-2. Select the repository for which you want to set rules
-3. Look for the "Repository Rules" section in the repository's settings
-4. Enter your repository-specific rules in the text area
-5. Click "Save" to apply them
-
-<Frame caption="Update repo rules at codegen.com/repos">
-  <img src="/images/repo-rules.png" />
-</Frame>
 
 ## Automatic Rule File Detection
 
@@ -103,18 +34,29 @@ In addition to manual repository rules, Codegen automatically discovers and incl
 
 Codegen automatically searches for the following types of rule files in your repository:
 
+<Note>
+  You can customize which rule file patterns to match by configuring glob
+  patterns in your repository settings at
+  [codegen.com/repos](https://codegen.com/repos) (select your repository, then
+  configure rule file patterns).
+</Note>
+
+- **`AGENTS.md`** - preferred default. [Learn more](https://agents.md)
+- **`CLAUDE.md`** - Claude assistant rules
 - **`.cursorrules`** - Cursor AI editor rules
-- **`.clinerules`** - Cline AI assistant rules  
+- **`.clinerules`** - Cline AI assistant rules
 - **`.windsurfrules`** - Windsurf AI editor rules
-- **`**/*.mdc`** - Markdown files with `.mdc` extension anywhere in the repository
-- **`.cursor/rules/**/*.mdc`** - Markdown files in the `.cursor/rules/` directory structure
+- **`**/\*.mdc`** - Markdown files with `.mdc` extension anywhere in the repository
+- **`.cursor/rules/**/\*.mdc`** - Markdown files in the `.cursor/rules/` directory structure
 - **`CLAUDE.md`**, **`AGENTS.md`**, **`AGENT.md`** - top-level docs commonly used to instruct AI agents
 
 ### How Automatic Detection Works
 
 1. **File Discovery**: When you switch to a repository, Codegen uses `ripgrep` to search for files matching the supported patterns
 2. **Content Extraction**: The content of discovered files is read and processed
+
 - **New**: The content is encoded to preserve formatting during transport, then decoded before being presented to the agent
+
 3. **Size Limitation (25k global budget)**: All rule files combined are truncated to fit within a 25,000 character global budget to ensure optimal performance
 4. **Context Integration**: The rule content is automatically included in the agent's context alongside any manual repository rules
 
@@ -123,6 +65,7 @@ Codegen automatically searches for the following types of rule files in your rep
 Here are examples of how you might structure automatic rule files in your repository:
 
 **`.cursorrules` example:**
+
 ```
 Use TypeScript for all new code
 Follow the existing code style in the repository
@@ -131,15 +74,18 @@ Prefer functional components over class components in React
 ```
 
 **`.cursor/rules/backend.mdc` example:**
+
 ```markdown
 # Backend Development Rules
 
 ## Database
+
 - Use Prisma for database operations
 - Always use transactions for multi-step operations
 - Include proper error handling for all database calls
 
 ## API Design
+
 - Follow REST conventions
 - Use proper HTTP status codes
 - Include request/response validation
@@ -157,11 +103,14 @@ When rules are discovered, they are displayed in the AgentTrace under the `SetAc
 - **Editor Integration**: Many AI-powered editors already support these file formats
 
 <Tip>
-  Automatic rule files work alongside manual repository rules. Both types of rules are combined and provided to the agent for maximum context.
+  Automatic rule files work alongside manual repository rules. Both types of
+  rules are combined and provided to the agent for maximum context.
 </Tip>
 
 <Warning>
-  If your rule files exceed the global 25,000 character budget, they will be truncated per-file and/or at the aggregate level. Keep rule files concise or split them into focused files.
+  If your rule files exceed the global 25,000 character budget, they will be
+  truncated per-file and/or at the aggregate level. Keep rule files concise or
+  split them into focused files.
 </Warning>
 
 ## Common Use Cases and Examples
@@ -220,9 +169,15 @@ Here's how user, organization, and repository rules work together:
 **Result:** The agent will use JavaScript for this specific repository (repository rule wins), but will still include detailed error messages (user rule applies) since there's no conflict.
 
 <Tip>
-  Keep your rules concise and clear. Overly complex or numerous rules might confuse the agent or lead to suboptimal performance. Focus on the most critical guidelines for your organization and repositories.
+  Keep your rules concise and clear. Overly complex or numerous rules might
+  confuse the agent or lead to suboptimal performance. Focus on the most
+  critical guidelines for your organization and repositories.
 </Tip>
 
 <Note>
-  All agent rules (user, organization, repository, and automatic rule files) are applied *in addition* to any global prompting strategies or agent capabilities. They provide a hierarchical layer of instruction that helps ensure consistent behavior across your personal work, organization, and codebases.
+  All agent rules (user, organization, repository, and automatic rule files) are
+  applied *in addition* to any global prompting strategies or agent
+  capabilities. They provide a hierarchical layer of instruction that helps
+  ensure consistent behavior across your personal work, organization, and
+  codebases.
 </Note>{" "}
