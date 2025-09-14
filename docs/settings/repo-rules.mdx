@@ -1,38 +1,79 @@
 ---
-title: "Repository Rules"
-sidebarTitle: "Repo Rules"
+title: "Agent Rules"
+sidebarTitle: "Agent Rules"
 icon: "shield-check"
 ---
 
-Repository Rules in Codegen act as a persistent set of instructions or a "system prompt" for the AI agent whenever it operates on a specific repository. These rules guide the agent's behavior by enforcing coding standards and repository-specific conventions through automated reminders to the language model (LLM) during each task.
+Agent Rules in Codegen act as persistent instructions or "system prompts" for the AI agent, guiding its behavior by enforcing coding standards, conventions, and preferences. These rules are automatically included in the agent's context during each task to ensure consistent behavior across your organization and repositories.
 
-Codegen supports two types of repository rules:
-1. **Manual Repository Rules** - configured through the web interface
-2. **Automatic Rule File Detection** - automatically discovered from your repository files
+## Rule Hierarchy
+
+Codegen supports a hierarchical rule system with two levels:
+
+1. **Organization Rules** - Apply to all repositories within your organization
+2. **Repository Rules** - Apply to a specific repository and override organization rules when conflicts exist
+
+<Note>
+  **Rule Precedence**: Repository rules take precedence over organization rules when conflicts exist. This allows you to set organization-wide defaults while customizing specific repositories as needed.
+</Note>
+
+## Types of Rules
+
+Each level supports two types of rule configuration:
+
+### Manual Rules
+Rules configured directly through the Codegen web interface at [codegen.com/repos](https://codegen.com/repos) (for repository rules) or organization settings (for organization rules).
+
+### Automatic Rule File Detection  
+Rules automatically discovered from files in your repository (repository level only).
 
 <Frame caption="Update repo rules at codegen.com/repos">
   <img src="/images/repo-rules.png" />
 </Frame>
 
-## How Repository Rules Work
+## How Agent Rules Work
 
-When an agent is assigned a task on a repository with defined rules, those rules are automatically prepended or made available to the LLM as part of its context. This means the agent "sees" these rules alongside the actual task or prompt it receives.
+When an agent is assigned a task, all applicable rules are automatically included in the agent's context as "Mandatory User Rules." The agent sees these rules alongside the actual task or prompt it receives, ensuring consistent behavior.
 
-For example, if you have a rule like "Always use tabs for indentation," the agent will be reminded of this preference before it starts writing or modifying code in that repository.
+**Rule Resolution Process:**
+1. **Organization Rules** are loaded first (if configured for your organization)
+2. **Repository Rules** are loaded next (if configured for the specific repository)
+3. **Repository rules override organization rules** when conflicts exist
+4. **Automatic rule files** are discovered and included (repository level only)
+5. All rules are combined and presented to the agent as mandatory constraints
 
-## Accessing and Configuring Repository Rules
+For example, if your organization has a rule "Use TypeScript for all new code" and a specific repository has a rule "Use JavaScript for this legacy project," the repository rule takes precedence for that specific repository.
 
-You can typically find and configure Repository Rules within the settings page for each specific repository in the Codegen web UI.
+## Configuring Agent Rules
 
-1.  Navigate to [codegen.com/repos](https://codegen.com/repos).
-2.  Select the repository for which you want to set rules.
-3.  Look for a section titled "Repository rules" or similar in the repository's settings.
+### Organization Rules
+
+Organization rules apply to all repositories within your organization and serve as default behavior guidelines.
+
+**To configure organization rules:**
+1. Navigate to your organization settings in the Codegen web interface
+2. Look for the "Organization Rules" section
+3. Enter your organization-wide rules in the text area
+4. Click "Save" to apply them to all repositories in your organization
+
+<Tip>
+  Organization rules are perfect for setting coding standards, commit message conventions, or testing requirements that should apply across all your repositories.
+</Tip>
+
+### Repository Rules
+
+Repository rules apply to a specific repository and override any conflicting organization rules.
+
+**To configure repository rules:**
+1. Navigate to [codegen.com/repos](https://codegen.com/repos)
+2. Select the repository for which you want to set rules
+3. Look for the "Repository Rules" section in the repository's settings
+4. Enter your repository-specific rules in the text area
+5. Click "Save" to apply them
 
 <Frame caption="Update repo rules at codegen.com/repos">
   <img src="/images/repo-rules.png" />
 </Frame>
-
-In the text area provided (as shown in the image), you can specify any rules you want the agent to follow for this repository. Click "Save" to apply them.
 
 ## Automatic Rule File Detection
 
@@ -105,30 +146,48 @@ When rules are discovered, they are displayed in the AgentTrace under the `SetAc
 
 ## Common Use Cases and Examples
 
-Repository rules are flexible and can be used for various purposes:
+Agent rules are flexible and can be used for various purposes across different levels:
 
-- **Enforcing Linting/Formatting:**
-  - "Remember to run the linter with `npm run lint` before committing."
-  - "Ensure all Python code follows PEP 8 guidelines. Use `black` for formatting."
-- **Specifying Commit Message Conventions:**
+### Organization-Level Rules Examples
+
+Perfect for organization-wide standards that should apply to all repositories:
+
+- **Coding Standards:**
+  - "All code must follow our organization's style guide. Use Prettier for JavaScript/TypeScript formatting."
+  - "All API endpoints must include proper error handling and logging."
+- **Security Requirements:**
+  - "Never commit API keys, passwords, or other secrets to the repository."
+  - "All database queries must use parameterized statements to prevent SQL injection."
+- **Process Requirements:**
   - "All commit messages must follow the Conventional Commits specification."
-  - "Prefix commit messages with the related Linear issue ID (e.g., `ENG-123: ...`)."
-- **Highlighting Project-Specific Information:**
-  - "This repository uses TypeScript. All new backend code should be in the `/server/src` directory."
+  - "Every PR must include tests for new functionality."
+
+### Repository-Level Rules Examples
+
+Perfect for repository-specific requirements that may override organization defaults:
+
+- **Technology-Specific Rules:**
+  - "This is a Python project. Use `black` for formatting and `pytest` for testing."
+  - "This legacy repository uses JavaScript instead of our organization's TypeScript standard."
+- **Project-Specific Information:**
+  - "All new backend code should be in the `/server/src` directory."
   - "Avoid using deprecated function `old_function()`. Use `new_function()` instead."
-- **Code Style Preferences:**
-  - "Don't write super long strings, as this will break pre-commit. Do triple-quoted strings with newlines, non-indented, instead!" (As seen in your example image)
-  - "Prefer functional components over class components in React."
-- **Reminders for Testing:**
-  - "Ensure all new features have corresponding unit tests."
-  - "Run integration tests with `npm run test:integration` after significant changes."
+- **Build and Deployment:**
+  - "Run `npm run build` before committing to ensure the build passes."
+  - "This repository deploys automatically on merge to main - ensure all tests pass."
+
+### Rule Hierarchy in Action
+
+Here's how organization and repository rules work together:
+
+**Organization Rule:** "Use TypeScript for all new code"  
+**Repository Rule:** "This legacy project uses JavaScript - do not convert existing files"  
+**Result:** The agent will use JavaScript for this specific repository while using TypeScript for all other repositories in the organization.
 
 <Tip>
-  Keep your repository rules concise and clear. Overly complex or numerous rules
-  might confuse the agent or lead to suboptimal performance. Focus on the most
-  critical guidelines for each repository.
+  Keep your rules concise and clear. Overly complex or numerous rules might confuse the agent or lead to suboptimal performance. Focus on the most critical guidelines for your organization and repositories.
 </Tip>
 
 <Note>
-  Both manual repository rules and automatic rule files are applied *in addition* to any global prompting strategies or agent capabilities. They provide a repository-specific layer of instruction that helps ensure consistent behavior across your codebase.
+  All agent rules (organization, repository, and automatic rule files) are applied *in addition* to any global prompting strategies or agent capabilities. They provide a hierarchical layer of instruction that helps ensure consistent behavior across your organization and codebases.
 </Note>{" "}
