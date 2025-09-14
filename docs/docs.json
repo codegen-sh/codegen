@@ -27,7 +27,10 @@
           },
           {
             "group": "Capabilities",
-            "pages": ["capabilities/capabilities", "capabilities/wake-up"]
+            "pages": [
+              "capabilities/capabilities",
+              "capabilities/checks-autofixer"
+            ]
           },
           {
             "group": "Integrations",
@@ -35,8 +38,12 @@
               "integrations/github",
               "integrations/slack",
               "integrations/linear",
+              "integrations/clickup",
+              "integrations/monday",
+              "integrations/jira",
               "integrations/notion",
               "integrations/figma",
+              "integrations/sentry",
               "integrations/circleci",
               "integrations/web-search",
               "integrations/postgres",
@@ -119,7 +126,7 @@
   "seo": {
     "metatags": {
       "og:site_name": "Codegen",
-      "og:title": "Codegen - The SWE that Never Sleeps",
+      "og:title": "Codegen - Run Code Agents at Scale",
       "og:description": "Code agents accessible via API, Slack, Linear, Github, and more.",
       "og:url": "https://docs.codegen.com",
       "og:locale": "en_US",

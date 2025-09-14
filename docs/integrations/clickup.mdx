@@ -1,0 +1,74 @@
+---
+title: "ClickUp Integration"
+sidebarTitle: "ClickUp"
+icon: "mouse-pointer"
+---
+
+import { COMMUNITY_SLACK_URL } from "/snippets/links.mdx";
+
+Integrate Codegen with your ClickUp workspace to enable AI-powered task creation and project management. Codegen can create tasks, update statuses, manage dependencies, and coordinate development workflows across your team.
+
+## Installation
+
+Connect your ClickUp workspace to Codegen to enable agent interactions.
+
+<Card
+  title="Connect ClickUp Workspace"
+  icon="mouse-pointer-2"
+  href="https://codegen.com/integrations/clickup"
+>
+  Authorize Codegen to access your ClickUp workspace and project data.
+</Card>
+
+<Note>
+  The ClickUp integration is currently in <b>beta</b>. Please reach out in the{" "}
+  <a href={COMMUNITY_SLACK_URL}>community</a> to have it enabled for your
+  Codegen account.
+</Note>
+
+## Capabilities
+
+The ClickUp integration provides comprehensive task management capabilities:
+
+- **Create tasks in your workspace** - Generate new tasks automatically based on development needs and project requirements
+- **Update existing tasks and status** - Modify task details, progress, and completion status as work advances
+- **Read workspace structure and data** - Access project hierarchies, spaces, folders, and lists to understand organization
+- **Add comments to tasks and discussions** - Provide updates, ask questions, and facilitate team collaboration
+- **Assign tasks to team members** - Route work to appropriate developers and coordinate team workload
+- **Access custom fields and properties** - Work with specialized data fields and project-specific information
+- **Read and update task dependencies** - Manage task relationships and project workflow dependencies
+- **View workspace members and teams** - Access team structure for proper task assignment and collaboration
+
+## Permissions
+
+The Codegen ClickUp integration requires the following permissions:
+
+- **Create tasks in your workspace** - Generate new tasks and to-do items as needed
+- **Update existing tasks and status** - Modify task progress, completion status, and details
+- **Read workspace structure and data** - Access project organization, spaces, and folder structures
+- **Add comments to tasks and discussions** - Provide updates and facilitate collaboration
+- **Assign tasks to team members** - Route work to appropriate team members
+- **Access custom fields and properties** - Work with specialized project data and configurations
+- **Read and update task dependencies** - Manage workflow relationships between tasks
+- **View workspace members and teams** - Access team information for proper task management
+
+## How Agents Use ClickUp
+
+Agents leverage the ClickUp integration to:
+
+- **Track Work:** Automatically update the status of tasks they are working on
+- **Create Tasks:** Generate new tasks for follow-up work, bugs discovered, or sub-tasks
+- **Link Development:** Connect implemented changes and GitHub PRs directly to relevant ClickUp tasks
+- **Provide Updates:** Add comments to tasks with progress reports, results, or questions
+- **Manage Dependencies:** Update task relationships as development work progresses
+- **Coordinate Teams:** Assign and reassign tasks based on workload and expertise
+
+<Warning>
+  **Data Access Notice:** Workspace content can be surfaced in agent runs by any
+  of your Codegen account members. Do not connect sensitive workspaces.
+</Warning>
+
+<Note>
+  The ClickUp integration requires feature flag access. Contact your team
+  administrator to enable this integration.
+</Note>
