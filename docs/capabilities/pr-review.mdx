@@ -4,122 +4,50 @@ sidebarTitle: "PR Review"
 icon: "eye"
 ---
 
-Codegen agents automatically review your pull requests, providing intelligent feedback, suggestions, and code analysis to improve code quality and catch issues before they reach production.
-
-This intelligent system analyzes code changes, identifies potential problems, and provides actionable feedback to help maintain high code quality standards.
+Codegen provides a configurable AI code review feature similar to CodeRabbit, Graphite, or Greptile as a first-class feature.
 
 <Card
   title="Configure PR Reviews"
   icon="eye"
   href="https://codegen.com/settings/review"
 >
-  Configure PR review settings at the organization level or customize per
-  repository. Set review criteria, feedback preferences, and integration
-  options.
+  Set up PR review at the organization level, then customize per repository.
 </Card>
 
+## How It Works
+
+When you open a PR or push new commits, Codegen agents analyze the changes and provide:
+
+- **Inline comments** on specific lines with actionable feedback
+- **Security scanning** for vulnerabilities and unsafe patterns
+- **Code quality** suggestions for maintainability and best practices
+- **Architectural feedback** on design patterns and structure
+
+## Configuration
+
+Configure PR reviews at two levels:
+
+### Organization Settings
+
+Set global defaults and organization-wide review rules at [Organization Settings → PR Review](https://codegen.com/settings/review).
+
+### Repository Settings
+
+Override settings and add repository-specific rules at **Repository Settings → Review**.
+
+Repository rules are combined with organization rules for comprehensive coverage. You can:
+
+- Enable/disable PR reviews for the repository
+- Add custom review guidelines specific to the codebase
+- Define language-specific requirements
+- Set repository-specific coding standards
+
 <Tip>
-  The PR Review Agent provides comprehensive code analysis including security
-  vulnerabilities, performance issues, code style violations, and logical
-  errors.
+  Start with organization-level settings, then customize individual repositories
+  as needed.
 </Tip>
 
-## How PR Review Works
-
-Codegen automatically reviews your pull requests with intelligent analysis:
-
-- **Automatic Triggering:** Monitors new pull requests and code changes in real-time
-- **Comprehensive Analysis:** Reviews code for bugs, security issues, performance problems, and style violations
-- **Contextual Feedback:** Provides specific, actionable suggestions with line-by-line comments
-- **Integration Aware:** Understands your codebase patterns, dependencies, and architectural decisions
-
-## What Triggers PR Review
-
-PR review activates when:
-
-- **New Pull Requests:** Any new PR opened in monitored repositories
-- **Code Updates:** New commits pushed to existing pull request branches
-- **Review Requests:** Manual review requests through GitHub or other integrations
-- **Scheduled Reviews:** Periodic reviews of long-running or draft pull requests
-
-## The Review Process
-
-When Codegen reviews a pull request, it follows this comprehensive process:
-
-1. **Code Analysis:** Deep analysis of all changed files and their context
-2. **Pattern Recognition:** Identifies common issues, anti-patterns, and potential bugs
-3. **Security Scanning:** Checks for security vulnerabilities and sensitive data exposure
-4. **Performance Review:** Analyzes code for performance bottlenecks and optimization opportunities
-5. **Style Compliance:** Ensures code follows established style guides and best practices
-6. **Contextual Feedback:** Generates specific, actionable comments and suggestions
-
-## Review Categories
-
-The PR Review Agent analyzes multiple aspects of your code:
-
-### Code Quality
-
-- **Logic Errors:** Identifies potential bugs and logical inconsistencies
-- **Code Complexity:** Highlights overly complex functions that need refactoring
-- **Maintainability:** Suggests improvements for code readability and maintainability
-- **Best Practices:** Ensures adherence to language and framework best practices
-
-### Security Analysis
-
-- **Vulnerability Detection:** Scans for common security vulnerabilities (SQL injection, XSS, etc.)
-- **Sensitive Data:** Identifies potential exposure of secrets, API keys, or personal data
-- **Access Control:** Reviews authentication and authorization implementations
-- **Dependency Security:** Checks for known vulnerabilities in dependencies
-
-### Performance Optimization
-
-- **Algorithmic Efficiency:** Identifies inefficient algorithms and data structures
-- **Resource Usage:** Reviews memory usage, database queries, and API calls
-- **Caching Opportunities:** Suggests areas where caching could improve performance
-- **Scalability Concerns:** Highlights potential bottlenecks for high-traffic scenarios
-
-## Configuration Options
-
-The PR Review Agent can be configured at multiple levels:
-
-### Organization Level
-
-- **Global settings** - Configure default review behavior for all repositories
-- **Review criteria** - Set standards for code quality, security, and performance
-- **Access via** - Organization Settings → PR Review
-
-### Repository Level
-
-- **Per-repo customization** - Tailor review settings for specific repositories
-- **Language-specific rules** - Configure rules based on programming languages used
-- **Integration preferences** - Choose how and where review feedback is delivered
-- **Access via** - Repository Settings → PR Review
-
-### Team Preferences
-
-- **Review thoroughness** - Adjust detail level from basic to comprehensive
-- **Feedback style** - Choose between concise suggestions or detailed explanations
-- **Priority focus** - Emphasize security, performance, or code quality based on team needs
-
-## GitHub Integration
-
-The PR review system integrates seamlessly with GitHub:
-
-- **Inline Comments:** Provides specific feedback on individual lines of code
-- **Review Summaries:** Creates comprehensive review summaries with overall assessment
-- **Status Checks:** Integrates with GitHub's review system and status checks
-- **Approval Workflow:** Can be configured to require addressing feedback before merging
-
-## Benefits
-
-- **Improved Code Quality:** Consistent, thorough reviews catch issues early in the development process
-- **Knowledge Sharing:** Reviews help team members learn best practices and coding standards
-- **Security Enhancement:** Automated security scanning reduces vulnerability risks
-- **Faster Reviews:** Reduces time spent on manual code reviews while maintaining quality
-- **Continuous Learning:** The system learns from your codebase and improves over time
-
 <Note>
-  PR Review Agent only activates for repositories where Codegen has read access
-  and the feature is enabled. It respects your repository permissions and review
-  workflows.
+  PR reviews require read access to your repository. Enable the feature at both
+  organization and repository levels to activate reviews.
 </Note>
