@@ -1,76 +1,159 @@
 ---
 title: "Agent Permissions"
 sidebarTitle: "Agent Permissions"
-icon: "user-shield"
+icon: "shield-check"
 ---
 
-Agent Permissions allow you to configure what actions the AI agent is allowed to perform across your organization. These settings provide fine-grained control over the agent's capabilities, ensuring it operates within your team's preferred workflows and security boundaries.
+Configure what actions the AI agent is allowed to perform across your organization. These permission settings provide fine-grained control over agent capabilities to ensure they operate within your security and workflow requirements.
 
-## Accessing Agent Permissions
-
-Agent Permission settings are applied globally for your entire organization. You can access and modify these settings by navigating to:
-
-[**codegen.com/settings/permissions**](https://codegen.com/settings/permissions)
-
-<Frame caption="Agent Permissions UI at codegen.com/settings/permissions">
-  <img src="/images/agent-permissions.png" alt="Agent Permissions Configuration" />
-</Frame>
-
-## Available Permission Settings
+## Available Permissions
 
 ### Enable PR Creation
 
-**Control whether the codegen agent is able to create pull requests in your repositories in response to user requests.**
+Control whether the codegen agent is able to create pull requests in your repositories in response to user requests.
 
-When enabled, the agent can automatically create pull requests when implementing features, fixing bugs, or making other code changes. When disabled, the agent will make changes locally but won't create PRs, requiring manual PR creation.
+**When enabled:**
 
-- **Default**: Enabled
-- **Use Case**: Disable if you prefer manual PR creation or have strict PR workflows
+- Agents can create new pull requests with code changes
+- PRs include detailed descriptions and context
+- Automatic linking to related issues and discussions
+- Supports your standard code review workflow
+
+**When disabled:**
+
+- Agents can still analyze code and provide suggestions
+- Code changes are proposed but not committed
+- Manual PR creation required for implementing changes
+- Useful for read-only or advisory agent roles
 
 ### Enable Rules Detection
 
-**Allow the agent to automatically detect and apply rules from .cursorrules and .windsurfrules files in your repositories.**
+Allow the agent to automatically detect and apply rules from various rule files in your repositories.
 
-This setting enables the agent to automatically discover and follow coding standards, style guides, and other rules defined in your repository's configuration files.
+**Supported rule file formats:**
 
-- **Default**: Enabled
-- **Use Case**: Disable if you want to manually control rule application or don't use these rule files
+- `.cursorrules` - Cursor AI editor rules
+- `.cursor/rules/*.mdc` - Structured rule files in Cursor directory
+- `.windsurfrules` - Windsurf AI editor rules
+- `CLAUDE.md` - Claude-specific instructions
+- `AGENTS.md` - General agent instructions
+- `AGENT.md` - Agent-specific rules
 
-### Enable Linear Self-Assign
+**When enabled:**
 
-**Allow the codegen agent to self-assign Linear issues, enabling it to spin off other agents.**
+- Agents automatically discover and apply repository-specific rules
+- Rules are version-controlled alongside your code
+- Consistent behavior across team members and environments
+- Supports existing AI editor workflows
 
-When enabled, the agent can assign itself to Linear issues and potentially delegate work to other agent instances for parallel processing.
+**When disabled:**
 
-- **Default**: Enabled
-- **Use Case**: Disable if you prefer manual issue assignment or want to limit agent autonomy
+- Only manually configured repository rules are applied
+- No automatic file-based rule detection
+- Simpler rule management through web interface only
 
-### Enable Linear Auto State Change
+### Enforce Organization-wide Signed Commits
 
-**When enabled, the agent will automatically move Linear issues to 'Started' state when self-assigning them.**
+When enabled, **ALL** repositories in this organization will be required to use signed commits via GitHub's API. Individual repositories cannot override this security policy.
 
-This setting automates the workflow by updating issue status when the agent begins work, providing better visibility into what the agent is actively working on.
+**Security benefits:**
 
-- **Default**: Disabled
-- **Use Case**: Enable for automatic issue tracking and improved project visibility
+- Cryptographic verification of commit authenticity
+- Enhanced audit trail for code changes
+- Compliance with security policies requiring commit signing
+- Protection against commit impersonation
+
+**Important considerations:**
+
+- This is an organization-wide enforcement policy
+- Individual repositories cannot disable this requirement
+- Ensures consistent security posture across all projects
+- May require additional setup for team members' GPG keys
+
+<Warning>
+  Enabling organization-wide signed commits affects all repositories and cannot
+  be overridden at the repository level. Ensure your team is prepared for this
+  requirement before enabling.
+</Warning>
+
+## Configuration
+
+Agent permissions are configured at the organization level and provide security boundaries for all agent operations within your organization.
+
+Access your agent permissions at:
+
+<Card
+  title="Configure Agent Permissions"
+  icon="shield-check"
+  href="https://codegen.com/settings/permissions"
+>
+  Control what actions agents are allowed to perform in your organization.
+</Card>
+
+## Permission Combinations
+
+### Development Teams
+
+```
+✅ Enable PR Creation
+✅ Enable Rules Detection
+❌ Enforce Signed Commits (unless required)
+```
+
+Standard setup for most development teams wanting full agent capabilities.
+
+### Security-Conscious Organizations
+
+```
+✅ Enable PR Creation
+✅ Enable Rules Detection
+✅ Enforce Signed Commits
+```
+
+Maximum security with full agent functionality and commit verification.
+
+### Read-Only Advisory Mode
+
+```
+❌ Enable PR Creation
+✅ Enable Rules Detection
+❌ Enforce Signed Commits
+```
+
+Agents provide analysis and suggestions without making direct code changes.
+
+### Compliance-First Approach
+
+```
+✅ Enable PR Creation
+❌ Enable Rules Detection
+✅ Enforce Signed Commits
+```
+
+Strict control with manual rule management and required commit signing.
 
 ## Best Practices
 
-### Security Considerations
+**Start Conservative:**
 
-- Review permission settings regularly to ensure they align with your team's security policies
-- Consider disabling PR creation in production environments if you require manual review processes
-- Monitor agent activity when enabling self-assignment features
+- Begin with limited permissions and expand as trust builds
+- Enable rules detection to leverage existing team practices
+- Consider PR creation permissions based on repository criticality
 
-### Workflow Integration
+**Security Considerations:**
 
-- Enable Linear Auto State Change if your team relies on Linear for project tracking
-- Coordinate permission settings with your existing CI/CD and review processes
-- Consider your team's preferred level of automation when configuring these settings
+- Enable signed commits for organizations with compliance requirements
+- Review agent-created PRs before merging, especially initially
+- Monitor agent activity through analytics and audit logs
 
-## Related Documentation
+**Team Alignment:**
 
-- [Repository Rules](/settings/repo-rules) - Configure repository-specific behavior
-- [Linear Integration](/integrations/linear) - Set up Linear workspace integration
-- [Model Configuration](/settings/model-configuration) - Configure LLM settings
+- Ensure team understands which permissions are enabled
+- Provide training on rule file formats if using rules detection
+- Establish clear processes for agent-created PRs
 
+<Note>
+  Permission settings provide essential guardrails for agent operations while
+  maintaining the flexibility to customize based on your organization's security
+  and workflow requirements.
+</Note>

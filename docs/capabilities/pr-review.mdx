@@ -1,0 +1,53 @@
+---
+title: "PR Review Agent"
+sidebarTitle: "PR Review"
+icon: "eye"
+---
+
+Codegen provides a configurable AI code review feature similar to CodeRabbit, Graphite, or Greptile as a first-class feature.
+
+<Card
+  title="Configure PR Reviews"
+  icon="eye"
+  href="https://codegen.com/settings/review"
+>
+  Set up PR review at the organization level, then customize per repository.
+</Card>
+
+## How It Works
+
+When you open a PR or push new commits, Codegen agents analyze the changes and provide:
+
+- **Inline comments** on specific lines with actionable feedback
+- **Security scanning** for vulnerabilities and unsafe patterns
+- **Code quality** suggestions for maintainability and best practices
+- **Architectural feedback** on design patterns and structure
+
+## Configuration
+
+Configure PR reviews at two levels:
+
+### Organization Settings
+
+Set global defaults and organization-wide review rules at [Organization Settings → PR Review](https://codegen.com/settings/review).
+
+### Repository Settings
+
+Override settings and add repository-specific rules at **Repository Settings → Review**.
+
+Repository rules are combined with organization rules for comprehensive coverage. You can:
+
+- Enable/disable PR reviews for the repository
+- Add custom review guidelines specific to the codebase
+- Define language-specific requirements
+- Set repository-specific coding standards
+
+<Tip>
+  Start with organization-level settings, then customize individual repositories
+  as needed.
+</Tip>
+
+<Note>
+  PR reviews require read access to your repository. Enable the feature at both
+  organization and repository levels to activate reviews.
+</Note>

@@ -6,7 +6,11 @@ icon: "slack"
 
 Connect Codegen to your Slack workspace to enable seamless communication between agents and your team.
 
-<img src="/images/slack.png" className="rounded-lg" />
+<video
+  controls
+  src="https://res.cloudinary.com/dbikr6pew/video/upload/v1757886194/slack-happy-path_yjtx1c.mp4"
+  className="w-full aspect-[3456/2160] rounded-sm"
+/>
 
 Slack is the most fluid way to communicate with Codegen. Simply tag @codegen in any channel to collaborate directly and give it tasks that leverage all your other integrations. As an agent, Codegen can seamlessly work across platforms—from GitHub to Linear to your databases—all initiated from Slack. We recommend Slack as the lowest barrier entry point for all users.
 
@@ -85,15 +89,18 @@ Codegen only responds when tagged or messaged directly. Use these approaches to 
 The Codegen Slack integration requires the following permissions to function effectively:
 
 ### Core Messaging Permissions
+
 - **View messages that mention @codegen** - To respond to direct mentions and requests
 - **Read message history in public and private channels** - To understand context and conversation flow
 - **Read direct messages and group chats** (`mpim:read`) - To enable private conversations with the agent in group DMs and multi-person direct messages
 - **Send messages** - To communicate responses and provide updates
 
 ### Enhanced Communication Features
+
 - **View and react with emojis** - To acknowledge messages and provide feedback through reactions
 
 ### User and Workspace Access
+
 - **View workspace members and email addresses** (`users:read.email`) - Used to map Slack user accounts to Codegen accounts for proper authentication and permission management. This ensures that when a user interacts with Codegen via Slack, their actions are properly attributed to their Codegen account and repository permissions
 - **Access shared files and attachments** - To review and work with shared content like code snippets, images, and documents
 - **Access basic channel information** - To operate appropriately within different channel contexts
