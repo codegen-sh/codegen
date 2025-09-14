@@ -17,8 +17,6 @@
             "group": "Overview",
             "pages": [
               "introduction/overview",
-              "introduction/api",
-              "introduction/cli",
               "introduction/prompting",
               "introduction/community",
               "introduction/about",
@@ -29,8 +27,18 @@
             "group": "Capabilities",
             "pages": [
               "capabilities/capabilities",
+              "introduction/api",
+              "introduction/cli",
               "capabilities/checks-autofixer",
               "capabilities/pr-review"
+            ]
+          },
+          {
+            "group": "Settings",
+            "pages": [
+              "settings/settings",
+              "settings/repo-rules",
+              "settings/model-configuration"
             ]
           },
           {
@@ -62,10 +70,6 @@
               "sandboxes/editor",
               "sandboxes/web-preview"
             ]
-          },
-          {
-            "group": "Settings",
-            "pages": ["settings/repo-rules", "settings/model-configuration"]
           }
         ]
       },
