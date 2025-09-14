@@ -6,6 +6,14 @@ icon: "shield-check"
 
 Configure what actions the AI agent is allowed to perform across your organization. These permission settings provide fine-grained control over agent capabilities to ensure they operate within your security and workflow requirements.
 
+<Card
+  title="Configure Agent Permissions"
+  icon="shield-check"
+  href="https://codegen.com/settings/permissions"
+>
+  Control what actions agents are allowed to perform in your organization.
+</Card>
+
 ## Available Permissions
 
 ### Enable PR Creation
@@ -28,7 +36,7 @@ Control whether the codegen agent is able to create pull requests in your reposi
 
 ### Enable Rules Detection
 
-Allow the agent to automatically detect and apply rules from various rule files in your repositories.
+Allow the agent to automatically detect and apply rules from various rule files in your repositories. You can also configure manual repository rules at [codegen.com/settings/repo-rules](http://localhost:3001/settings/repo-rules).
 
 **Supported rule file formats:**
 
@@ -89,48 +97,6 @@ Access your agent permissions at:
 >
   Control what actions agents are allowed to perform in your organization.
 </Card>
-
-## Permission Combinations
-
-### Development Teams
-
-```
-✅ Enable PR Creation
-✅ Enable Rules Detection
-❌ Enforce Signed Commits (unless required)
-```
-
-Standard setup for most development teams wanting full agent capabilities.
-
-### Security-Conscious Organizations
-
-```
-✅ Enable PR Creation
-✅ Enable Rules Detection
-✅ Enforce Signed Commits
-```
-
-Maximum security with full agent functionality and commit verification.
-
-### Read-Only Advisory Mode
-
-```
-❌ Enable PR Creation
-✅ Enable Rules Detection
-❌ Enforce Signed Commits
-```
-
-Agents provide analysis and suggestions without making direct code changes.
-
-### Compliance-First Approach
-
-```
-✅ Enable PR Creation
-❌ Enable Rules Detection
-✅ Enforce Signed Commits
-```
-
-Strict control with manual rule management and required commit signing.
 
 ## Best Practices
 

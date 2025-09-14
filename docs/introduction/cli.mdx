@@ -5,9 +5,16 @@ icon: "terminal"
 iconType: "solid"
 ---
 
-# Codegen CLI Manual
+The `codegen` CLI allows users to run and interact with agents from the terminal.
 
-Welcome to the Codegen CLI documentation. This guide covers all available commands and their usage patterns.
+<iframe
+  className="w-full aspect-video rounded-xl"
+  src="https://youtube.com/embed/sQ2XOonma0w"
+  title="YouTube video player"
+  frameBorder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+  allowFullScreen
+></iframe>
 
 ## Installation
 
@@ -34,11 +41,13 @@ codegen login
 **Description:** Create a new agent run with a prompt, fetch an existing agent run by ID, or pull PR branch.
 
 **Usage Patterns:**
+
 - **Create run:** `codegen agent --prompt "Your prompt"`
 - **Get run JSON:** `codegen agent --id 123 --json`
 - **Pull PR branch:** `codegen agent --id 123 pull`
 
 **Options:**
+
 - `--prompt, -p TEXT` The prompt to send to the agent (mutually exclusive with --id unless using create)
 - `--id INT` Agent run ID to fetch or pull
 - `--json` Output raw JSON response when fetching (flag)
@@ -47,6 +56,7 @@ codegen login
 - `--repo-id INT` Repository ID to use for this agent run (optional)
 
 **Positional Actions:**
+
 - `pull` Pull the PR branch associated with an agent run (requires --id)
 
 ---
@@ -56,10 +66,12 @@ codegen login
 **Description:** List and manage agent runs.
 
 **Usage Patterns:**
+
 - **List runs:** `codegen agents list`
 - **Get run details:** `codegen agents get 123`
 
 **Options:**
+
 - `--org-id INT` Organization ID (defaults to CODEGEN_ORG_ID/REPOSITORY_ORG_ID or auto-detect)
 - `--limit INT` Maximum number of runs to return (default: 10)
 - `--json` Output raw JSON response (flag)
@@ -71,10 +83,12 @@ codegen login
 **Description:** Store authentication token.
 
 **Usage Patterns:**
+
 - **Interactive login:** `codegen login`
 - **Token login:** `codegen login --token YOUR_API_TOKEN`
 
 **Options:**
+
 - `--token TEXT` API token to store
 - `--no-verify` Skip token verification (flag)
 
@@ -85,6 +99,7 @@ codegen login
 **Description:** Clear stored authentication token.
 
 **Usage Pattern:**
+
 - `codegen logout`
 
 ---
@@ -94,11 +109,13 @@ codegen login
 **Description:** Manage and switch between organizations.
 
 **Usage Patterns:**
+
 - **List organizations:** `codegen org list`
 - **Switch organization:** `codegen org switch ORG_ID`
 - **Get current organization:** `codegen org current`
 
 **Options:**
+
 - `--json` Output raw JSON response (flag)
 
 ---
@@ -108,11 +125,13 @@ codegen login
 **Description:** Manage repository configuration and environment variables.
 
 **Usage Patterns:**
+
 - **List repositories:** `codegen repo list`
 - **Configure repository:** `codegen repo config REPO_NAME`
 - **Get repository details:** `codegen repo get REPO_ID`
 
 **Options:**
+
 - `--org-id INT` Organization ID (defaults to CODEGEN_ORG_ID or auto-detect)
 - `--json` Output raw JSON response (flag)
 

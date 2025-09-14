@@ -1,0 +1,91 @@
+---
+title: "Team & User Roles"
+sidebarTitle: "Team Roles"
+icon: "users"
+---
+
+Manage your team members and control access to organization features through a hierarchical role system.
+
+<Card
+  title="Manage Team Members"
+  icon="users"
+  href="https://codegen.com/users/members"
+>
+  Add, remove, and manage roles for team members in your organization.
+</Card>
+
+## User Roles
+
+Codegen uses three distinct roles to ensure proper access control while allowing teams to delegate responsibilities appropriately.
+
+| Feature               | Member  | Manager | Admin |
+| --------------------- | :-----: | :-----: | :---: |
+| View repositories     |   ✅    |   ✅    |  ✅   |
+| Use agents            |   ✅    |   ✅    |  ✅   |
+| Manage integrations   |   ❌    |   ✅    |  ✅   |
+| Delete repositories   |   ❌    |   ❌    |  ✅   |
+| Access billing        |   ❌    |   ❌    |  ✅   |
+| Change user roles     |   ❌    |   ❌    |  ✅   |
+| Organization settings | Limited | Limited | Full  |
+
+### 🔴 ADMIN (Highest Level)
+
+Full administrative access to the organization with complete control over all features and settings.
+
+**Permissions:**
+
+- Full administrative access to the organization
+- Delete repositories (only admins can do this)
+- Manage billing and subscription settings
+- Change user roles (promote/demote team members)
+- Manage integrations (GitHub, Linear, etc.)
+- Access to all features and settings
+- Organization-wide configuration control
+
+### 🟡 MANAGER (Middle Level)
+
+Operational permissions for day-to-day management without administrative controls.
+
+**Permissions:**
+
+- Manage integrations (GitHub, Linear, etc.)
+- Most operational permissions
+- View and work with all repositories
+- Configure agent settings and behaviors
+
+**Restrictions:**
+
+- Cannot delete repositories
+- Cannot access billing settings
+- Cannot change user roles
+- Limited organization settings access
+
+### 🟢 MEMBER (Basic Level)
+
+Basic access for individual contributors with limited administrative permissions.
+
+**Permissions:**
+
+- View and work with repositories
+- Use agents and integrations
+- Basic read/write access to projects
+
+**Restrictions:**
+
+- Cannot manage integrations
+- Cannot delete repositories
+- Cannot access billing
+- Cannot change user roles
+- Restricted administrative access
+
+## Role Management
+
+- **New team members** are assigned the **MEMBER** role by default
+- **Only ADMIN users** can promote or demote other team members
+- **Privilege escalation prevention** - you cannot give someone a higher role than your own
+
+<Note>
+  Role permissions apply across all Codegen features including agent
+  interactions, integrations, and organizational settings. Changes to roles take
+  effect immediately.
+</Note>
