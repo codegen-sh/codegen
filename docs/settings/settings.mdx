@@ -12,20 +12,7 @@ Configure Codegen to work perfectly with your development workflow. Customize ag
   className="w-full aspect-[3456/2160] rounded-sm"
 />
 
-## Repository Configuration
-
-<CardGroup cols={2}>
-  <Card
-    title="Repository Rules"
-    icon="shield-check"
-    href="/settings/repo-rules"
-  >
-    Set repository-specific rules and coding standards that agents automatically
-    follow when working on your codebase.
-  </Card>
-</CardGroup>
-
-## Agent Configuration
+## Agent & Repository Settings
 
 <CardGroup cols={2}>
   <Card
@@ -47,23 +34,28 @@ Configure Codegen to work perfectly with your development workflow. Customize ag
   </Card>
 </CardGroup>
 
-## Team Management
+## Organization Settings
 
 <CardGroup cols={2}>
+  <Card
+    title="Repository Rules"
+    icon="shield-check"
+    href="/settings/repo-rules"
+  >
+    Set repository-specific rules and coding standards that agents automatically
+    follow when working on your codebase.
+  </Card>
+
   <Card title="Team & User Roles" icon="users" href="/settings/team-roles">
     Manage team members and control access through hierarchical role permissions
     for admins, managers, and members.
   </Card>
 </CardGroup>
 
-## Global Configuration
+## Model Configuration
 
-<CardGroup cols={2}>
-  <Card
-    title="Model Configuration"
-    icon="brain-circuit"
-    href="/settings/model-configuration"
-  >
+<CardGroup cols={1}>
+  <Card title="LLM Choice and API Keys" href="/settings/model-configuration">
     Choose your preferred LLM provider and model, configure custom API keys, and
     optimize performance settings.
   </Card>
@@ -71,13 +63,11 @@ Configure Codegen to work perfectly with your development workflow. Customize ag
 
 ## Getting Started
 
-Settings are organized into repository-level and organization-level configurations:
+Settings are organized into logical groups for easy configuration:
 
-- **Repository Rules** apply to specific repositories and help agents understand your coding standards and project-specific requirements
-- **Agent Behavior** controls how agents interact with users and approach code modifications
-- **Agent Permissions** defines what actions agents are allowed to perform across your organization
-- **Team & User Roles** manages team member access through hierarchical permissions (Member, Manager, Admin)
-- **Model Configuration** applies globally to your organization and controls which AI models power your agents
+- **Agent & Repository Settings** - Core agent behavior and permissions that define how agents work
+- **Organization Settings** - Repository rules and team management for organizational control
+- **Model Configuration** - AI model selection and API key configuration for performance optimization
 
 <Tip>
   Start by configuring repository rules for your most active repositories, then

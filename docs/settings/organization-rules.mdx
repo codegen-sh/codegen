@@ -41,6 +41,7 @@ To configure Organization Rules:
 Here are some common examples of Organization Rules:
 
 ### Git Workflow Standards
+
 ```
 Always use git add . when staging changes for commit
 Never use git push --force under any circumstances
@@ -48,6 +49,7 @@ Always create descriptive commit messages following conventional commit format
 ```
 
 ### Code Quality Standards
+
 ```
 Always include comprehensive error handling in new functions
 Follow the existing code style and formatting conventions
@@ -56,6 +58,7 @@ Include JSDoc comments for all public functions
 ```
 
 ### Security Guidelines
+
 ```
 Never commit sensitive information like API keys or passwords
 Always validate user input before processing
@@ -63,6 +66,7 @@ Use environment variables for configuration values
 ```
 
 ### Documentation Requirements
+
 ```
 Update README files when adding new features
 Include inline comments for complex logic
@@ -72,21 +76,25 @@ Document any breaking changes in commit messages
 ## Best Practices
 
 ### Keep Rules Clear and Specific
+
 - Write rules that are easy to understand and follow
 - Be specific about what you want the agent to do or avoid
 - Use clear, actionable language
 
 ### Avoid Conflicting Rules
+
 - Ensure Organization Rules don't contradict each other
 - Consider how they might interact with Repository Rules
 - Test rules with different types of tasks
 
 ### Regular Review and Updates
+
 - Periodically review your Organization Rules for relevance
 - Update rules as your organization's practices evolve
 - Remove outdated or unnecessary rules
 
 ### Balance Global vs Repository-Specific Rules
+
 - Use Organization Rules for truly universal standards
 - Reserve Repository Rules for project-specific requirements
 - Avoid duplicating rules between levels
@@ -94,6 +102,7 @@ Document any breaking changes in commit messages
 ## Troubleshooting
 
 ### Rules Not Being Applied
+
 If your Organization Rules don't seem to be working:
 
 1. **Check Rule Syntax**: Ensure your rules are clearly written and unambiguous
@@ -102,6 +111,7 @@ If your Organization Rules don't seem to be working:
 4. **Rule Conflicts**: Look for contradictory instructions that might confuse the agent
 
 ### Agent Behavior Issues
+
 If the agent isn't following your rules as expected:
 
 1. **Simplify Rules**: Break complex rules into smaller, more specific instructions
@@ -112,7 +122,6 @@ If the agent isn't following your rules as expected:
 
 - **[Repository Rules](/settings/repo-rules)**: Set repository-specific rules that can override Organization Rules
 - **[Agent Permissions](/settings/agent-permissions)**: Control what actions the agent can perform
-- **[Model Configuration](/settings/model-configuration)**: Configure which AI model the agent uses
+- **[Model Choice](/settings/model-configuration)**: Configure which AI model the agent uses
 
 Organization Rules provide a powerful way to maintain consistency across your entire organization while still allowing flexibility for individual repositories. Use them to establish your organization's coding culture and ensure all agent interactions align with your standards.
-

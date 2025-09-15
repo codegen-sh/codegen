@@ -4,7 +4,7 @@ sidebarTitle: "Python SDK"
 icon: "python"
 ---
 
-The [Codegen SDK](https://github.com/codegen-sh/codegen-sdk) enables developers to programmatically interact with [Codegen](https://codegen.com) SWE agents via API.
+The [Codegen SDK](https://github.com/codegen-sh/codegen-sdk) is a thin pythonic wrapper around the **[Codegen API](/api-reference/overview)** with all the same capabilities for creating and managing AI agents programmatically.
 
 <Tip>
   Go to [developer settings](https://codegen.sh/token) to generate an API token
@@ -29,29 +29,13 @@ if task.status == "completed":
     print(task.result)  # Result often contains code, summaries, or links
 ```
 
-<Note>
-  Codegen agents can research code, create PRs, modify Linear tickets, and more.
-</Note>
-
 ## Installation
 
-Install the SDK using pip or uv:
+Install the [codegen](https://pypi.org/project/codegen/) package from PyPI:
 
 ```bash
-pip install codegen
-# or
 uv pip install codegen
 ```
-
-## What can I do with the Codegen SDK?
-
-The Codegen SDK is your gateway to programmatically interacting with your AI Software Engineer. You can use it to:
-
-- **Automate development tasks**: Assign tasks like implementing features, fixing bugs, writing tests, or improving documentation to the agent.
-- **Integrate AI into your workflows**: Trigger agent tasks from your CI/CD pipelines, scripts, or other development tools.
-- **Provide context and guidance**: Supply the agent with specific instructions, relevant code snippets, or background information to ensure it performs tasks according to your requirements.
-
-Essentially, the SDK allows you to leverage Codegen's AI capabilities wherever you can run Python code.
 
 ## Get Started
 
