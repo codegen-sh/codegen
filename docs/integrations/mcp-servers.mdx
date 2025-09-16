@@ -1,0 +1,82 @@
+---
+title: "MCP Servers"
+sidebarTitle: "MCP Servers"
+icon: "server"
+---
+
+Connect external tools and services to enhance your AI agent capabilities through Model Context Protocol (MCP) servers. Codegen allows you to connect arbitrary MCP servers that we will run and manage for your agents.
+
+## Installation
+
+Configure MCP servers to extend your agent capabilities with custom tools and services.
+
+<Card
+  title="Configure MCP Servers"
+  icon="server"
+  href="https://codegen.com/integrations/mcp"
+>
+  Connect custom MCP servers to enhance your agent workflows.
+</Card>
+
+## Capabilities
+
+The MCP integration provides comprehensive extensibility for your agents:
+
+- **Connect custom tools and services** - Integrate any MCP-compatible server to extend agent functionality
+- **Extend agent capabilities** - Add specialized tools, APIs, and data sources to your development workflow
+- **Managed execution** - Codegen runs and manages your MCP servers, handling infrastructure and reliability
+- **Secure integration** - Connect external services while maintaining security and access controls
+- **Repository-specific configuration** - Configure different MCP servers for different repositories and projects
+- **Real-time connectivity** - Agents can interact with MCP servers in real-time during task execution
+
+## How It Works
+
+Codegen's MCP server integration allows you to:
+
+1. **Configure MCP Servers** - Add MCP server configurations through the Codegen interface
+2. **Repository Integration** - Associate MCP servers with specific repositories for targeted functionality
+3. **Agent Access** - Agents automatically discover and use available MCP server tools during execution
+4. **Managed Infrastructure** - Codegen handles server deployment, scaling, and maintenance
+
+## Supported MCP Servers
+
+You can connect any MCP-compatible server, including:
+
+- **Database connectors** - Connect to PostgreSQL, MySQL, MongoDB, and other databases
+- **API integrations** - Access REST APIs, GraphQL endpoints, and web services
+- **Development tools** - Integrate with testing frameworks, deployment tools, and CI/CD systems
+- **Custom business logic** - Add company-specific tools and workflows
+- **External services** - Connect to cloud services, monitoring tools, and third-party platforms
+
+## Configuration
+
+MCP servers are configured per repository using a JSON configuration file. The configuration includes:
+
+- **Server details** - URL, authentication, and connection parameters
+- **Tool mapping** - Define which tools are available to agents
+- **Access controls** - Specify permissions and security settings
+- **Environment variables** - Configure server-specific settings and secrets
+
+## Permissions
+
+The Codegen MCP integration requires the following permissions:
+
+- **Connect to external MCP servers** - Establish connections to your configured servers
+- **Execute custom tool functions** - Run tools and commands provided by MCP servers
+- **Access server-provided resources** - Read and write data through MCP server interfaces
+- **Manage server configurations** - Update and modify MCP server settings
+
+## How Agents Use MCP Servers
+
+Agents leverage MCP servers to:
+
+- **Extend Functionality:** Access tools and capabilities beyond built-in agent features
+- **Connect External Systems:** Interact with databases, APIs, and services specific to your workflow
+- **Custom Workflows:** Execute company-specific processes and business logic
+- **Data Integration:** Access and manipulate data from various sources and formats
+- **Specialized Tools:** Use domain-specific tools for testing, deployment, monitoring, and more
+
+<Note>
+  MCP server integration allows for powerful extensibility but requires careful
+  configuration to ensure security and proper access controls.
+</Note>

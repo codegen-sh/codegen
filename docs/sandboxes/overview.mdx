@@ -4,7 +4,28 @@ sidebarTitle: "Overview"
 icon: "box"
 ---
 
-Codegen agents operate within secure, isolated sandbox environments where they can safely execute code, install dependencies, and run commands without affecting your local machine or production systems.
+Codegen agents operate within secure, isolated sandbox environments where they can safely execute code and run commands without affecting your local machine or production systems.
+
+<Frame>
+  <video
+    controls
+    src="https://res.cloudinary.com/dbikr6pew/video/upload/v1757979569/Sandbox_Configuration_uf9xt6.mp4"
+    className="aspect-[3312/2160]"
+  />
+</Frame>
+
+<Tip>
+  Codegen's sandbox environments are highly configurable and built for
+  enterprise workloads
+</Tip>
+
+<Card
+  title="Configure Sandbox Environments"
+  icon="code"
+  href="https://codegen.com/repos"
+>
+  Select VM resources, install dependencies, securely upload secrets and more.
+</Card>
 
 ## Capabilities
 
@@ -29,5 +50,35 @@ Agents utilize sandboxes for a variety of tasks:
 Sandboxes are typically configured per-agent run or defined within your Codegen settings. You often don't need to manage them directly, but advanced configurations might allow specifying Docker images or environment variables.
 
 <Note>
-  Sandboxes maintain file system persistence between agent interactions within the same context. For example, when continuing a conversation across different Slack messages or Linear comments, the sandbox state is preserved, allowing agents to seamlessly continue their work without losing context or having to reinstall dependencies.
-</Note>{" "}
+  Sandboxes maintain file system persistence between agent interactions within
+  the same context. For example, when continuing a conversation across different
+  Slack messages or Linear comments, the sandbox state is preserved, allowing
+  agents to seamlessly continue their work without losing context or having to
+  reinstall dependencies.
+</Note>
+
+## Sandbox Configuration
+
+<CardGroup cols={2}>
+  <Card title="Setup Commands" icon="terminal" href="/sandboxes/setup-commands">
+    Configure custom setup commands that run when initializing your sandbox
+    environment.
+  </Card>
+  <Card title="Repository Secrets" icon="key" href="/sandboxes/secrets">
+    Manage environment variables and secrets securely injected into your
+    sandbox.
+  </Card>
+  <Card title="Image Snapshots" icon="camera" href="/sandboxes/image-snapshots">
+    Learn how Codegen creates filesystem snapshots for faster initialization.
+  </Card>
+  <Card title="Web Preview" icon="browser" href="/sandboxes/web-preview">
+    Start development servers and view your running applications through
+    Codegen.
+  </Card>
+  <Card title="Base Image" icon="docker" href="/sandboxes/base-image">
+    Explore the comprehensive Docker image that powers Codegen sandboxes.
+  </Card>
+  <Card title="Remote Editor" icon="laptop-code" href="/sandboxes/editor">
+    Access a VSCode editor connected directly to your sandbox environment.
+  </Card>
+</CardGroup>

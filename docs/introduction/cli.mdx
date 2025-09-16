@@ -5,118 +5,72 @@ icon: "terminal"
 iconType: "solid"
 ---
 
-# Codegen CLI Manual
+The `codegen` CLI is your terminal interface to Codegen agents. Use it to view agents, pull their work, create new agents, and run Claude Code with full telemetry and monitoring.
 
-Welcome to the Codegen CLI documentation. This guide covers all available commands and their usage patterns.
+<Frame>
+  <video
+    controls
+    src="https://res.cloudinary.com/dbikr6pew/video/upload/v1757974837/CLI_pzot3r.mp4"
+    allowFullScreen
+    className="aspect-[3840/2160]"
+  />
+</Frame>
 
-## Installation
+It also wraps your local Claude Code, surfaces traces in the web UI for remote telemetry and analytics, and provides access to your Codegen integrations via MCP injection.
+
+## Installation & Setup
 
 ```bash
 uv tool install codegen
 ```
 
-## Initialization
+The CLI uses your API token for authentication. Get your token and organization ID from the **[authentication guide](/api-reference/authentication)**.
 
 ```bash
 codegen login
 ```
 
-## CLI Reference
+## Key Commands
 
-### `codegen` (root)
+### `codegen`
 
-**Description:** Launches the interactive TUI if no subcommand is provided.
-
----
-
-### `codegen agent`
-
-**Description:** Create a new agent run with a prompt, fetch an existing agent run by ID, or pull PR branch.
-
-**Usage Patterns:**
-- **Create run:** `codegen agent --prompt "Your prompt"`
-- **Get run JSON:** `codegen agent --id 123 --json`
-- **Pull PR branch:** `codegen agent --id 123 pull`
-
-**Options:**
-- `--prompt, -p TEXT` The prompt to send to the agent (mutually exclusive with --id unless using create)
-- `--id INT` Agent run ID to fetch or pull
-- `--json` Output raw JSON response when fetching (flag)
-- `--org-id INT` Organization ID (defaults to CODEGEN_API_TOKEN/REPOSITORY_ORG_ID or auto-detect)
-- `--model TEXT` Model to use for this agent run (optional)
-- `--repo-id INT` Repository ID to use for this agent run (optional)
-
-**Positional Actions:**
-- `pull` Pull the PR branch associated with an agent run (requires --id)
-
----
-
-### `codegen agents`
-
-**Description:** List and manage agent runs.
-
-**Usage Patterns:**
-- **List runs:** `codegen agents list`
-- **Get run details:** `codegen agents get 123`
-
-**Options:**
-- `--org-id INT` Organization ID (defaults to CODEGEN_ORG_ID/REPOSITORY_ORG_ID or auto-detect)
-- `--limit INT` Maximum number of runs to return (default: 10)
-- `--json` Output raw JSON response (flag)
-
----
+Launches the interactive terminal UI (TUI) for browsing agents, viewing runs, and managing your Codegen workflow from the terminal.
 
 ### `codegen login`
 
-**Description:** Store authentication token.
+Store your API token for authentication. Supports both interactive login and direct token input.
 
-**Usage Patterns:**
-- **Interactive login:** `codegen login`
-- **Token login:** `codegen login --token YOUR_API_TOKEN`
+```bash
+# Interactive login
+codegen login
 
-**Options:**
-- `--token TEXT` API token to store
-- `--no-verify` Skip token verification (flag)
+# Direct token login
+codegen login --token YOUR_API_TOKEN
+```
 
----
+## What You Can Do
 
-### `codegen logout`
+- **View and manage agents** - List agent runs, check status, and see detailed execution logs
+- **Pull agent work** - Download branches and code changes created by agents directly to your local environment
+- **Create new agents** - Trigger agent runs from the command line with custom prompts
+- **Run Claude Code** - Execute Claude Code with OpenTelemetry monitoring and comprehensive logging
+- **Manage organizations** - Switch between organizations and configure repositories
 
-**Description:** Clear stored authentication token.
+<Note>
+  The CLI provides the same capabilities as the web UI and API, optimized for
+  terminal-based workflows and automation.
+</Note>
 
-**Usage Pattern:**
-- `codegen logout`
+## Full Demo
 
----
-
-### `codegen org`
-
-**Description:** Manage and switch between organizations.
-
-**Usage Patterns:**
-- **List organizations:** `codegen org list`
-- **Switch organization:** `codegen org switch ORG_ID`
-- **Get current organization:** `codegen org current`
-
-**Options:**
-- `--json` Output raw JSON response (flag)
-
----
-
-### `codegen repo`
-
-**Description:** Manage repository configuration and environment variables.
-
-**Usage Patterns:**
-- **List repositories:** `codegen repo list`
-- **Configure repository:** `codegen repo config REPO_NAME`
-- **Get repository details:** `codegen repo get REPO_ID`
-
-**Options:**
-- `--org-id INT` Organization ID (defaults to CODEGEN_ORG_ID or auto-detect)
-- `--json` Output raw JSON response (flag)
-
----
+<iframe
+  className="w-full aspect-video rounded-xl"
+  src="https://youtube.com/embed/sQ2XOonma0w"
+  title="YouTube video player"
+  frameBorder="0"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+  allowFullScreen
+></iframe>
 
 ## Get Started
 
@@ -128,12 +82,6 @@ import {
 <CardGroup cols={2}>
   <Card title="Create Account" icon="user-plus" href="https://codegen.sh/login">
     Sign up for a free account and get your API token.
-  </Card>
-  <Card title="Join our Slack" icon="slack" href={COMMUNITY_SLACK_URL}>
-    Get help and connect with the Codegen community.
-  </Card>
-  <Card title="Tutorials" icon="diagram-project" href="/tutorials/at-a-glance">
-    Learn how to use Codegen for common code transformation tasks.
   </Card>
   <Card title="View on GitHub" icon="github" href={CODEGEN_SDK_GITHUB_URL}>
     Star us on GitHub and contribute to the project.

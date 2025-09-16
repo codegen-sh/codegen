@@ -1,0 +1,53 @@
+---
+title: "Authentication"
+sidebarTitle: "Authentication"
+icon: "key"
+---
+
+All Codegen API endpoints require authentication using Bearer tokens. You'll need both an API token and your organization ID to get started.
+
+## Get Your Credentials
+
+<Card
+  title="Get API Token & Organization ID"
+  icon="key"
+  href="https://codegen.com/token"
+>
+  Visit the developer settings to generate your API token and find your
+  organization ID.
+</Card>
+
+## Required Information
+
+### API Token
+
+Your personal API token authenticates all requests to the Codegen API. This token is tied to your user account and inherits your permissions within organizations.
+
+### Organization ID
+
+Most API endpoints require an organization ID to specify which organization's resources you want to access. You can find your organization ID in the developer settings.
+
+## Using Your Credentials
+
+### REST API
+
+Include your API token in the Authorization header for all requests:
+
+```bash
+curl -H "Authorization: Bearer YOUR_API_TOKEN" \
+  "https://api.codegen.com/v1/organizations/YOUR_ORG_ID/agent/run"
+```
+
+### Python SDK
+
+The Python SDK makes authentication simple:
+
+```python
+from codegen import Agent
+
+# Initialize with your credentials
+agent = Agent(org_id="YOUR_ORG_ID", token="YOUR_API_TOKEN")
+
+# The SDK handles authentication automatically
+task = agent.run(prompt="Fix the bug in user authentication")
+```

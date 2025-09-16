@@ -1,0 +1,108 @@
+---
+title: "Check Suite Auto-fixer"
+sidebarTitle: "Checks Auto-fixer"
+icon: "bell"
+---
+
+When GitHub checks fail on a Codegen PR, Codegen agents will automatically "wake up", analyze the failure, and push fix commits.
+
+<video
+  controls
+  src="https://res.cloudinary.com/dbikr6pew/video/upload/v1757875834/4-fixing-checks_aagrki.mp4"
+  className="w-full aspect-[3456/2160] rounded-sm"
+/>
+
+This intelligent system monitors CI status and proactively resolves issues without manual intervention.
+
+<Card
+  title="Configure Check Suite Auto-fixer"
+  icon="rocket"
+  href="https://codegen.com/settings/checks-autofixer"
+>
+  Configure globally at the organization level or customize settings per
+  repository. Enterprise plans can adjust retry limits for optimal performance.
+</Card>
+
+<Tip>
+  Codegen will try to fix broken checks 3 times before "tapping out" by default.
+  Enterprise customers can customize the retry count per check or per
+  repository.
+</Tip>
+
+## How Checks Auto-Fixer Works
+
+Codegen continuously monitors your pull requests and automatically responds to check failures:
+
+- **Automatic Detection:** Monitors GitHub check runs and CI status in real-time
+- **Intelligent Analysis:** Analyzes build logs, test failures, and error messages to understand root causes
+- **Targeted Fixes:** Generates specific code changes to resolve the identified issues
+- **Persistent Retry:** Will attempt to fix issues up to 3 times per PR
+
+## What Triggers Auto-Fixing
+
+Check auto-fixing activates when:
+
+- **CI Checks Fail:** Any GitHub check run reports a failure status
+- **Build Errors:** Compilation, linting, or build process failures
+- **Test Failures:** Unit tests, integration tests, or automated test suites fail
+- **Code Quality Issues:** Static analysis tools report violations or warnings
+
+## The Auto-Fix Process
+
+When Codegen auto-fixes a failing PR, it follows this process:
+
+1. **Detect Failure:** Monitor check status and identify when builds break
+2. **Analyze Logs:** Grep through CI logs to understand specific failure points
+3. **Generate Solution:** Create targeted code changes to resolve identified issues
+4. **Apply Fix:** Automatically commit fixes to the same PR branch
+5. **Re-validate:** Monitor the new check run to ensure the fix was successful
+
+## Retry Logic
+
+Codegen implements intelligent retry behavior:
+
+- **Default: 3 attempts** per PR to resolve failing checks
+- **Enterprise customization** - Enterprise customers can configure retry limits:
+  - Set global defaults at the organization level
+  - Override per repository in repository settings
+  - Customize retry counts per individual check type
+- **Progressive analysis** - each retry incorporates learnings from previous attempts
+- **Failure escalation** - when retry limit is reached, the issue is flagged for human review
+
+## Configuration Options
+
+The Checks Auto-Fixer can be configured at multiple levels:
+
+### Organization Level
+
+- **Global settings** - Configure default behavior for all repositories
+- **Available to all plans** - Enable/disable the feature organization-wide
+- **Access via** - Organization Settings → Checks Auto-Fixer
+
+### Repository Level
+
+- **Per-repo overrides** - Customize settings for specific repositories
+- **Individual check control** - Enable/disable monitoring per check type
+- **Custom instructions** - Provide specific guidance for handling each check
+- **Access via** - Repository Settings → Checks Auto-Fixer
+
+### Enterprise Features
+
+- **Custom retry limits** - Set retry counts globally, per repository, or per check type
+- **Advanced monitoring** - Granular control over which checks to monitor
+- **Priority handling** - Configure high-priority checks for immediate processing
+
+## GitHub Integration
+
+The auto-fix system integrates deeply with GitHub:
+
+- **Check Run Annotations:** Creates detailed feedback with line-specific suggestions
+- **PR Comments:** Adds contextual suggestions and explanations
+- **Auto-Fix Actions:** Provides one-click fix buttons in the GitHub UI
+- **Status Updates:** Real-time updates on fix progress and results
+
+<Note>
+  Checks Auto-Fixer only activates for repositories where Codegen has write
+  access and the feature is enabled. It respects your repository permissions and
+  team workflows.
+</Note>

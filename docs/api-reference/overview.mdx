@@ -1,0 +1,132 @@
+---
+title: "Codegen API"
+sidebarTitle: "Overview"
+icon: "code"
+---
+
+The Codegen API provides programmatic access to create and manage AI agents, enabling you to integrate Codegen's capabilities into your own applications and workflows.
+
+## What You Can Do
+
+**[Create and manage AI agents](/api-reference/agents/create-agent-run)** that can write code, fix bugs, and handle development tasks across your repositories with full programmatic control over their execution and monitoring. **[Access your organization data](/api-reference/organizations/get-organizations)** including users, repositories, integrations, and **[programmatically retrieve detailed agent traces](/api-reference/agent-run-logs)** for analysis and debugging.
+
+<Note>
+  All agents created through the API are fully configurable and viewable in the
+  Codegen web UI at codegen.com, allowing seamless integration between
+  programmatic and manual workflows.
+</Note>
+
+<Tip>
+  Not seeing a capability you want? Get in touch! Join our [community
+  Slack](https://community.codegen.com) or email us at support@codegen.com.
+</Tip>
+
+## Authentication
+
+All API endpoints require authentication using Bearer tokens and your organization ID.
+
+<Card
+  title="Authentication Guide"
+  icon="key"
+  href="/api-reference/authentication"
+>
+  Get your API token and organization ID to start using the Codegen API.
+</Card>
+
+## Rate Limits
+
+The API includes rate limiting to ensure fair usage:
+
+- **Standard endpoints**: 60 requests per 30 seconds
+- **Agent creation**: 10 requests per minute
+- **Setup commands**: 5 requests per minute
+- **Log analysis**: 5 requests per minute
+
+## Getting Started
+
+### 1. Create Your First Agent Run
+
+```bash
+curl -X POST "https://api.codegen.com/v1/organizations/{org_id}/agent/run" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Add error handling to the user authentication function",
+    "repo_id": 123
+  }'
+```
+
+### 2. Check Agent Status
+
+```bash
+curl "https://api.codegen.com/v1/organizations/{org_id}/agent/run/{agent_run_id}" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### 3. Resume with Follow-up
+
+```bash
+curl -X POST "https://api.codegen.com/v1/organizations/{org_id}/agent/run/resume" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_run_id": 456,
+    "prompt": "Also add unit tests for the error handling"
+  }'
+```
+
+## Use Cases
+
+**Automated Workflows**
+
+- Trigger agents from CI/CD pipelines when builds fail
+- Create agents in response to issue tracking system events
+- Automate code reviews and quality checks
+
+**Custom Integrations**
+
+- Build Codegen into your existing development tools
+- Create custom dashboards for agent activity
+- Integrate with internal systems and workflows
+
+**Batch Operations**
+
+- Process multiple repositories with consistent changes
+- Generate setup commands for new projects
+- Analyze logs across multiple sandbox environments
+
+## Explore the API
+
+<Card
+  title="Browse API Endpoints"
+  icon="list"
+  href="/api-reference/agents/create-agent-run"
+>
+  Explore all available endpoints with detailed schemas and examples.
+</Card>
+
+<Card
+  title="Programmatically Retrieve Agent Traces"
+  icon="list"
+  href="/api-reference/agent-run-logs"
+>
+  Learn how to retrieve and analyze detailed agent execution logs.
+</Card>
+
+## SDKs and Tools
+
+For easier integration, we recommend using our Python SDK which provides a simple wrapper around the API:
+
+<Card title="Python SDK" icon="python" href="/introduction/sdk">
+  Use the Codegen Python SDK for a pythonic interface to create and manage
+  agents programmatically.
+</Card>
+
+**Also available:**
+
+- **[CLI Tool](/introduction/cli)** - Command-line interface for common API operations
+
+<Note>
+  The API is RESTful and returns JSON responses. All endpoints support standard
+  HTTP status codes and include detailed error messages for troubleshooting.
+</Note>

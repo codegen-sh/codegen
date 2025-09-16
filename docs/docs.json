@@ -17,9 +17,8 @@
             "group": "Overview",
             "pages": [
               "introduction/overview",
-              "introduction/api",
-              "introduction/cli",
               "introduction/prompting",
+              "introduction/support",
               "introduction/community",
               "introduction/about",
               "introduction/faq"
@@ -27,23 +26,44 @@
           },
           {
             "group": "Capabilities",
-            "pages": ["capabilities/capabilities", "capabilities/wake-up"]
+            "pages": [
+              "capabilities/capabilities",
+              "capabilities/checks-autofixer",
+              "capabilities/pr-review",
+              "capabilities/analytics",
+              "introduction/cli",
+              "introduction/sdk"
+            ]
+          },
+          {
+            "group": "Settings",
+            "pages": [
+              "settings/settings",
+              "settings/repo-rules",
+              "settings/model-configuration",
+              "settings/claude-code",
+              "settings/agent-behavior",
+              "settings/agent-permissions",
+              "settings/team-roles"
+            ]
           },
           {
             "group": "Integrations",
             "pages": [
+              "integrations/integrations",
               "integrations/github",
               "integrations/slack",
               "integrations/linear",
               "integrations/notion",
               "integrations/figma",
+              "integrations/jira",
+              "integrations/clickup",
+              "integrations/monday",
+              "integrations/sentry",
               "integrations/circleci",
               "integrations/web-search",
               "integrations/postgres",
-              {
-                "group": "integrations/mcp",
-                "name": "Remote MCP Server"
-              }
+              "integrations/mcp-servers"
             ]
           },
           {
@@ -56,10 +76,6 @@
               "sandboxes/editor",
               "sandboxes/web-preview"
             ]
-          },
-          {
-            "group": "Settings",
-            "pages": ["settings/repo-rules", "settings/model-configuration"]
           }
         ]
       },
@@ -67,33 +83,19 @@
         "tab": "API Reference",
         "groups": [
           {
+            "group": "Guides",
+            "pages": [
+              "api-reference/overview",
+              "api-reference/authentication",
+              "api-reference/agent-run-logs"
+            ]
+          },
+          {
             "group": "Endpoints",
             "openapi": {
               "source": "/api-reference/openapi3.json",
               "directory": "api-reference"
             }
-          },
-          {
-            "group": "Guides",
-            "pages": ["api-reference/agent-run-logs"]
-          }
-        ]
-      },
-      {
-        "tab": "Blog",
-        "groups": [
-          {
-            "group": "Blog",
-            "pages": ["blog/posts", "blog/devin", "blog/act-via-code"]
-          }
-        ]
-      },
-      {
-        "tab": "Changelog",
-        "groups": [
-          {
-            "group": "Changelog",
-            "pages": ["changelog/changelog"]
           }
         ]
       }
