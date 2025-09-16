@@ -1,0 +1,168 @@
+---
+title: "Trufflehog Secret Scanning"
+sidebarTitle: "Trufflehog Integration"
+icon: "shield-check"
+---
+
+Codegen integrates [Trufflehog](https://github.com/trufflesecurity/trufflehog), an open-source secret scanning tool, to automatically detect and prevent sensitive information from being committed to your repositories. This security layer protects against accidental exposure of API keys, passwords, tokens, and other secrets.
+
+<Card
+  title="Configure Repository Settings"
+  icon="gear"
+  href="https://codegen.com/repos"
+>
+  Manage Trufflehog scanning and other security settings for your repositories.
+</Card>
+
+## How It Works
+
+Trufflehog scanning operates at two key points in the development workflow:
+
+### Pre-Push Hook Scanning
+
+When you push code to a repository, Trufflehog automatically scans all modified and added files for potential secrets before the push completes.
+
+**The scanning process:**
+
+1. **File Detection** - Identifies all files that have been added, modified, or changed in the push
+2. **Pattern Filtering** - Applies `.trufflehogignore` patterns to exclude files that shouldn't be scanned
+3. **Secret Scanning** - Runs Trufflehog with comprehensive detection rules for verified, unknown, and unverified secrets
+4. **Push Control** - Blocks the push if potential secrets are detected, allowing you to review and remediate
+
+### Agent Commit Scanning
+
+When Codegen agents create commits using the signed commit feature, Trufflehog scans all files before the commit is created.
+
+**Agent scanning includes:**
+
+- **Automatic Detection** - Scans all files being committed without manual intervention
+- **Configurable Bypass** - Agents can skip scanning for confirmed false positives using the `skip_trufflehog` parameter
+- **Error Reporting** - Provides detailed feedback about detected secrets with remediation guidance
+
+## Configuration
+
+### Ignore Patterns
+
+Create a `.trufflehogignore` file in your repository root to exclude files from scanning:
+
+```gitignore
+# Documentation and configuration files
+*.md
+*.txt
+docs/
+README*
+
+# Test fixtures and mock data
+test/fixtures/
+**/mocks/
+*.test.js
+
+# Build artifacts
+dist/
+build/
+node_modules/
+```
+
+The ignore file supports:
+
+- **Glob patterns** for matching file paths
+- **Regular expressions** for complex matching rules
+- **Comments** using `#` for documentation
+- **Directory exclusions** with trailing slashes
+
+### Scanning Scope
+
+Trufflehog scans for multiple types of secrets:
+
+- **API Keys** - AWS, Google Cloud, Azure, and hundreds of other services
+- **Database Credentials** - Connection strings, passwords, and authentication tokens
+- **Private Keys** - SSH keys, SSL certificates, and cryptographic material
+- **Authentication Tokens** - JWT tokens, OAuth secrets, and session identifiers
+
+## Working with Detections
+
+### When Trufflehog Blocks a Push
+
+If Trufflehog detects potential secrets during a push, you'll see output similar to:
+
+```bash
+❌ Trufflehog found potential secrets or issues. Aborting push.
+```
+
+**To resolve:**
+
+1. **Review the detected secrets** - Examine the flagged content carefully
+2. **Remove actual secrets** - Replace real credentials with environment variables or configuration
+3. **Update ignore patterns** - Add false positives to `.trufflehogignore` if appropriate
+4. **Bypass if necessary** - Use `git push --no-verify` only for confirmed false positives
+
+### Agent Commit Handling
+
+When agents encounter Trufflehog detections, they receive detailed error messages:
+
+```
+🔒 TruffleHog security scan failed - potential secrets detected:
+[Detection details]
+
+Please review and remove any secrets before committing.
+To skip this check (not recommended), set skip_trufflehog=true
+```
+
+Agents can bypass scanning using the `skip_trufflehog=true` parameter, but this should only be used for confirmed false positives.
+
+## Best Practices
+
+### Repository Setup
+
+- **Add `.trufflehogignore` early** - Configure ignore patterns when setting up repositories
+- **Document exceptions** - Comment ignore patterns to explain why files are excluded
+- **Regular reviews** - Periodically audit ignore patterns to ensure they're still appropriate
+
+### Secret Management
+
+- **Use environment variables** - Store secrets in environment variables or secure configuration systems
+- **Implement secret rotation** - Regularly rotate API keys and credentials
+- **Monitor for exposure** - Set up alerts for any secrets that might be accidentally committed
+
+### Team Workflow
+
+- **Educate developers** - Ensure team members understand how Trufflehog works and why it's important
+- **Handle false positives** - Establish clear processes for dealing with false positive detections
+- **Emergency procedures** - Have plans for handling actual secret exposures if they occur
+
+<Warning>
+  Never use `--no-verify` or `skip_trufflehog=true` to bypass real secret
+  detections. These options should only be used for confirmed false positives
+  after careful review.
+</Warning>
+
+## Troubleshooting
+
+### Common Issues
+
+**High false positive rate:**
+- Review and update `.trufflehogignore` patterns
+- Consider excluding test files, documentation, or configuration templates
+
+**Scanning performance:**
+- Large repositories may experience slower push times
+- Consider excluding build artifacts and generated files
+
+**Agent commit failures:**
+- Review the specific detection details in error messages
+- Update code to use proper secret management practices
+- Use `skip_trufflehog=true` only for confirmed false positives
+
+### Getting Help
+
+If you encounter persistent issues with Trufflehog scanning:
+
+1. **Check ignore patterns** - Verify `.trufflehogignore` syntax and coverage
+2. **Review detection details** - Examine the specific content flagged by Trufflehog
+3. **Contact support** - Reach out to Codegen support for assistance with configuration
+
+<Note>
+  Trufflehog integration helps maintain security best practices by preventing
+  accidental secret exposure, but it should be part of a comprehensive security
+  strategy that includes proper secret management and regular security reviews.
+</Note>
