@@ -1,0 +1,92 @@
+---
+title: "Agent Behavior"
+sidebarTitle: "Agent Behavior"
+icon: "robot"
+---
+
+Configure the types of behaviors you'd like the AI agent to exhibit. These settings control how agents interact with users and approach code modifications to ensure they align with your team's workflow preferences.
+
+<Card
+  title="Configure Agent Behavior"
+  icon="robot"
+  href="https://codegen.com/settings/behavioral"
+>
+  Customize how agents interact with your team and approach code modifications.
+</Card>
+
+## Available Behaviors
+
+### Propose Plan
+
+Control whether the codegen agent should propose a detailed implementation plan to the user before executing **all** code modifications, regardless of size or complexity.
+
+**When enabled:**
+
+- Agents will present a structured plan showing each implementation step
+- Users can review the proposed approach before any code changes are made
+- Plans include confidence levels, relevant files, and detailed descriptions
+- Provides transparency into the agent's decision-making process
+
+**When disabled:**
+
+- Agents proceed directly with code modifications
+- Faster execution for straightforward tasks
+- Users can still request plans explicitly when needed
+
+<Tip>
+  Enable this setting if you prefer to review and approve implementation
+  approaches before code changes are made, especially for critical or complex
+  repositories.
+</Tip>
+
+### Require Explicit GitHub Mentions
+
+Control whether the codegen agent should only respond to GitHub comments that explicitly mention `@codegen` or `@codegen-sh`.
+
+**When enabled:**
+
+- Agent only responds to comments containing explicit mentions
+- Provides precise control over when agents activate
+- Reduces unwanted agent responses on general discussions
+- Recommended for busy repositories with frequent comments
+
+**When disabled:**
+
+- Agent may respond to relevant comments without explicit mentions
+- More proactive agent engagement
+- Convenient for smaller teams with focused discussions
+
+<Warning>
+  In busy repositories, disabling explicit mentions may result in agents
+  responding to unintended comments. Consider your team's communication patterns
+  when configuring this setting.
+</Warning>
+
+## Configuration
+
+These behavior settings are configured at the organization level and apply to all repositories within your organization. Individual repository settings may override some behaviors where supported.
+
+## Best Practices
+
+**For New Teams:**
+
+- Start with "Propose Plan" enabled to understand how agents approach problems
+- Use explicit GitHub mentions initially to control agent activation
+- Gradually adjust settings as your team becomes comfortable with agent behavior
+
+**For Experienced Teams:**
+
+- Disable "Propose Plan" for routine tasks to increase velocity
+- Consider allowing non-explicit mentions in trusted repositories
+- Customize settings based on repository criticality and team preferences
+
+**For Large Organizations:**
+
+- Enable explicit mentions to prevent noise in high-traffic repositories
+- Use "Propose Plan" for production or critical infrastructure repositories
+- Consider different settings for different types of repositories
+
+<Note>
+  Agent behavior settings help ensure that AI assistance integrates smoothly
+  with your existing development workflows and team communication patterns.
+</Note>

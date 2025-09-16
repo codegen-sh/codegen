@@ -10,33 +10,63 @@ Integrate Codegen with your Jira workspace to allow agents to interact with issu
 
 <img src="/images/jira.png" className="rounded-lg" />
 
+## Installation
+
+Connect your Jira workspace to Codegen to enable agent interactions.
+
+<Card
+  title="Connect Jira Workspace"
+  icon="jira"
+  href="https://codegen.com/integrations/jira"
+>
+  Authorize Codegen to access your Jira workspace and project data.
+</Card>
+
 <Note>
-  The Jira integration is currently in <b>beta</b>. Please reach out in the <a href={COMMUNITY_SLACK_URL}>community</a> to have it enabled for your Codegen account.
+  The Jira integration is currently in <b>beta</b>. Please reach out in the{" "}
+  <a href={COMMUNITY_SLACK_URL}>community</a> to have it enabled for your
+  Codegen account.
 </Note>
 
 ## Step-by-Step Setup Guide
 
 Follow these steps to successfully connect Codegen to your Jira workspace:
 
-### 1. Create a Dedicated Jira User for Codegen
+### 1. Enable User-Installed Apps in Jira
+
+- In your Jira workspace, ensure that **user-installed apps** are enabled.
+- Make sure the setting to allow user-installed apps is enabled. This is required for the Codegen integration to work properly.
+
+<Note>
+  If you don't have admin access to enable user-installed apps, contact your
+  Jira administrator to enable this setting before proceeding.
+</Note>
+
+### 2. Create a Dedicated Jira User for Codegen
+
 - In your Jira workspace, create a new user account specifically for Codegen.
 - **Email:** Use an address with `codegen` in it, like `yourname+codegen@company_domain.com` or `codegen@company_domain.com`.
 - **Name:** Set the user's name to **Codegen**. This makes it easy to identify actions performed by Codegen in Jira.
 
-### 2. Authorize Codegen with the New Jira User
+### 3. Authorize Codegen with the New Jira User
+
 - Log in to Jira as the new Codegen user.
 - Go to [Codegen's Jira Integration page](https://codegen.com/integrations/jira).
 - Click **Connect Jira Workspace** and complete the OAuth flow **using the Codegen Jira user** you just created.
 
 <Warning>
-  Make sure you are logged in as the Codegen Jira user when authorizing access. This is to ensure Codegen acts on behalf of the new user and not your personal account.
+  Make sure you are logged in as the Codegen Jira user when authorizing access.
+  This is to ensure Codegen acts on behalf of the new user and not your personal
+  account.
 </Warning>
 
-### 3. Switch Back to Your Own Jira Account
+### 4. Switch Back to Your Own Jira Account
+
 - After connecting, log out of the Codegen Jira user in Jira.
 - Log back in with your personal Jira account.
 
-### 4. Use Codegen in Your Workflow
+### 5. Use Codegen in Your Workflow
+
 - On any Jira ticket, `@mention` the Codegen user (e.g., `@Codegen`) to assign or notify Codegen about the issue.
 - Codegen will interact with the ticket, update statuses, add comments, and link PRs as needed.
 
@@ -55,4 +85,3 @@ Agents use the Jira integration to streamline project management:
 - **Link Code:** Connect implemented changes (GitHub PRs) directly to the relevant Jira issue.
 - **Provide Updates:** Post comments on issues with progress reports, results, or questions.
 - **Create Tasks:** Generate new issues for follow-up work, bugs discovered, or sub-tasks.
-

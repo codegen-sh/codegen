@@ -1,0 +1,63 @@
+---
+title: "Sentry Integration"
+sidebarTitle: "Sentry"
+icon: "triangle"
+---
+
+import { COMMUNITY_SLACK_URL } from "/snippets/links.mdx";
+
+Integrate Codegen with your Sentry workspace to enable AI-powered error tracking with automated root cause analysis. Codegen can analyze errors, investigate issues, and provide intelligent insights to help resolve production problems faster.
+
+## Installation
+
+Connect your Sentry organization to Codegen to enable agent interactions with error tracking data.
+
+<Card
+  title="Connect Sentry Organization"
+  icon="triangle"
+  href="https://codegen.com/integrations/sentry"
+>
+  Authorize Codegen to access your Sentry organization and error data.
+</Card>
+
+<Note>
+  The Sentry integration is currently in <b>beta</b>. Please reach out in the{" "}
+  <a href={COMMUNITY_SLACK_URL}>community</a> to have it enabled for your
+  Codegen account.
+</Note>
+
+## Capabilities
+
+The Sentry integration provides comprehensive error tracking and analysis capabilities:
+
+- **Automated root cause analysis** - Analyze error patterns and stack traces to identify underlying issues
+- **Error investigation** - Deep dive into error contexts, user impact, and related code changes
+- **Issue prioritization** - Help identify critical errors that need immediate attention
+- **Performance monitoring** - Analyze performance issues and bottlenecks in your applications
+- **Release tracking** - Connect errors to specific deployments and code changes
+- **Team coordination** - Assign issues to appropriate team members based on expertise and ownership
+
+## Permissions
+
+The Codegen Sentry integration requires the following permissions:
+
+- **Read organization information** - Access organization settings and configuration
+- **Read/Write project information** - Access project details and modify project settings
+- **Read/Write team information** - Access team structure and manage team assignments
+- **Read/Write event information** - Analyze error events and update issue status
+
+## How Agents Use Sentry
+
+Agents leverage the Sentry integration to:
+
+- **Analyze Errors:** Examine error patterns, stack traces, and user impact to understand root causes
+- **Investigate Issues:** Deep dive into error contexts, related code changes, and deployment history
+- **Provide Insights:** Generate intelligent analysis and recommendations for error resolution
+- **Track Progress:** Update issue status and resolution progress as fixes are implemented
+- **Link Development:** Connect error fixes to GitHub PRs and code changes
+- **Prioritize Work:** Help identify critical errors that require immediate attention
+
+<Note>
+  The Sentry integration requires feature flag access. Contact your team
+  administrator to enable this integration.
+</Note>

@@ -5,14 +5,14 @@ icon: "robot"
 iconType: "solid"
 ---
 
-Codegen provides intelligent AI agents designed to seamlessly integrate into your existing developer workflows.
-
-Think of it as an AI coworker that can understand and solve coding challenges, access your codebase instantly, and interact directly with your development tools.
+[Codegen](https://codegen.com) helps you run frontier code agents at scale. It provides the necessary building blocks (sandboxes, integrations, telemetry) for successful enterprise code agent deployments across thousands of teams today.
 
 <Tip>
   Focus on higher-level tasks and leverage Codegen agents to do the low-level
   labor of software engineering.
 </Tip>
+
+Think of it as an AI coworker that can understand and solve coding challenges, access your codebase instantly, and interact directly with your development tools.
 
 ## What Can Codegen Agents Do?
 
@@ -23,37 +23,29 @@ Codegen agents come equipped with a versatile set of tools and capabilities:
     Analyze requirements, implement features, fix bugs, write tests, and improve
     documentation based on your prompts.
   </Card>
-  <Card
-    title="Seamless GitHub Integration"
-    icon="github"
-    href="/integrations/github"
-  >
-    Review PRs, suggest changes, comment on issues, create branches, commit
-    code, and manage repositories.
-  </Card>
-  <Card
-    title="Linear Task Management"
-    icon="file-lines"
-    href="/integrations/linear"
-  >
-    Update ticket statuses, add comments, link PRs to issues, and create new
-    tasks based on findings.
-  </Card>
-  <Card title="Slack Communication" icon="slack" href="/integrations/slack">
+  <Card title="Chat in Slack" icon="slack" href="/integrations/slack">
     Send notifications, ask for clarification, report progress, and interact
     directly with your team in Slack channels.
   </Card>
-  <Card
-    title="Code Execution Sandbox"
-    icon="box"
-    href="/integrations/sandboxes"
-  >
+  <Card title="Manage Tickets" icon="file-lines" href="/integrations/linear">
+    Update statuses, add comments, link PRs to issues, and create new tasks.
+    Support for Jira, Linear, Clickup and Monday.com.
+  </Card>
+  <Card title="Auto-Fix Broken Tests" icon="github" href="/integrations/github">
+    Review PRs, suggest changes, comment on issues, create branches, commit
+    code, and manage repositories.
+  </Card>
+  <Card title="Safely Execute Code" icon="box" href="/integrations/sandboxes">
     Safely run code, install dependencies, and test changes in an isolated
     environment.
   </Card>
-  <Card title="Web Search" icon="globe" href="/integrations/web-search">
-    Access up-to-date information, research libraries, and find documentation
-    online.
+  <Card
+    title="Integrate with Your Dev Stack"
+    icon="plug"
+    href="/integrations/integrations"
+  >
+    Connect with Slack, Linear, Figma, databases, and extend capabilities with
+    custom MCP tools.
   </Card>
 </CardGroup>
 
@@ -91,21 +83,48 @@ Integrating Codegen into your workflow is designed to be quick and easy:
   </Card>
 </CardGroup>
 
-## Enterprise-Grade Security
+## Security & Compliance
 
-Codegen is SOC 2 Type II certified, ensuring your code and data are handled with the highest standards for security, privacy, and compliance.
+Codegen is [SOC 2 Type I & II certified](https://codegen.com/security/soc2) and performs regular pen tests, ensuring your code and data are handled with the highest standards for security, privacy, and compliance.
 
-## Ready to Start?
+Learn more about our security practices here.
 
 <CardGroup cols={2}>
-  <Card title="Install Now" icon="download" href="https://codegen.sh/install">
-    Codegen is free to install. Get started in just a few clicks.
-  </Card>
   <Card
-    title="Explore Tutorials"
-    icon="diagram-project"
-    href="/tutorials/at-a-glance"
+    title="Security Overview"
+    icon="shield"
+    href="https://codegen.com/security"
   >
-    Learn how to use Codegen for common code transformation tasks.
+    Details on Codegen's security practices and more
+  </Card>
+  <Card title="Trust Center" icon="shield" href="https://trust.codegen.com/">
+    View SOC-2 documents and pen test results
+  </Card>
+</CardGroup>
+
+## Install Now
+
+Create an account via Github OAuth and install our [Github application](https://github.com/apps/codegen-sh) to get started.
+
+<CardGroup cols={1}>
+  <Card title="Codegen.com" href="https://codegen.com/login">
+    Codegen's Github app is free to install. Get started in just a few clicks.
+  </Card>
+</CardGroup>
+
+## Learn More
+
+<CardGroup cols={2}>
+  <Card
+    title="Join the Community"
+    icon="people-group"
+    href="/introduction/community"
+  >
+    Connect with other developers, get help, and share your experiences in our
+    active Slack workspace.
+  </Card>
+  <Card title="About Codegen" icon="building" href="/introduction/about">
+    Learn about our mission to build fully-autonomous software engineering and
+    meet the team.
   </Card>
 </CardGroup>

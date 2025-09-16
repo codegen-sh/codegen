@@ -6,7 +6,7 @@ from codegen.cli.commands.claude.quiet_console import console
 from codegen.cli.commands.claude.utils import resolve_claude_path
 
 
-def add_codegen_mcp_server():
+def add_codegen_mcp_server(org_id: int | None = None, repo_id: int | None = None):
     console.print("🔧 Configuring MCP server 'codegen-tools'...", style="blue")
     try:
         token = get_current_token()
@@ -19,18 +19,31 @@ def add_codegen_mcp_server():
             console.print("⚠️  'claude' CLI not found to add MCP server", style="yellow")
             return
 
+        # Build the command with required headers
+        cmd = [
+            claude_path,
+            "mcp",
+            "add",
+            "--transport",
+            "http",
+            "codegen-tools",
+            MCP_SERVER_ENDPOINT,
+            "--header",
+            f"Authorization: Bearer {token}",
+        ]
+
+        # Add organization ID header if available
+        if org_id is not None:
+            cmd.extend(["--header", f"x-organization-id: {org_id}"])
+            console.print(f"  Adding organization ID: {org_id}", style="dim")
+
+        # Add repository ID header if available
+        if repo_id is not None:
+            cmd.extend(["--header", f"x-repo-id: {repo_id}"])
+            console.print(f"  Adding repository ID: {repo_id}", style="dim")
+
         add_result = subprocess.run(
-            [
-                claude_path,
-                "mcp",
-                "add",
-                "--transport",
-                "http",
-                "codegen-tools",
-                MCP_SERVER_ENDPOINT,
-                "--header",
-                f"Authorization: Bearer {token}",
-            ],
+            cmd,
             capture_output=True,
             text=True,
             timeout=15,

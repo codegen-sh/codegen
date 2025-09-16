@@ -23,10 +23,17 @@ The remote MCP server provides:
 To configure the remote Codegen MCP server in Claude Code:
 
 ```bash
-claude mcp add --transport http codegen-tools https://mcp.codegen.com/mcp/ --header "Authorization: Bearer <auth token>"
+claude mcp add --transport http codegen-tools https://mcp.codegen.com/mcp/ \
+  --header "Authorization: Bearer <auth token>" \
+  --header "x-organization-id: <org-id>" \
+  --header "x-repo-id: <repo-id>"
 ```
 
-Replace `<auth token>` with your Codegen API key.
+Replace:
+
+- `<auth token>` with your Codegen API key
+- `<org-id>` with your organization ID (optional, automatically added when using `codegen claude`)
+- `<repo-id>` with your repository ID (optional, automatically added when using `codegen claude`)
 
 ### For Cursor/Windsurf/VSCode Forks
 
@@ -39,14 +46,20 @@ Add the following configuration to your settings:
       "transport": "http",
       "url": "https://mcp.codegen.com/mcp/",
       "headers": {
-        "Authorization": "Bearer <auth token>"
+        "Authorization": "Bearer <auth token>",
+        "x-organization-id": "<org-id>",
+        "x-repo-id": "<repo-id>"
       }
     }
   }
 }
 ```
 
-Replace `<auth token>` with your Codegen API key.
+Replace:
+
+- `<auth token>` with your Codegen API key
+- `<org-id>` with your organization ID (optional)
+- `<repo-id>` with your repository ID (optional)
 
 ### For VSCode with MCP Extension
 
@@ -60,14 +73,20 @@ If you're using VSCode with an MCP extension, add this to your settings.json:
       "transport": "http",
       "url": "https://mcp.codegen.com/mcp/",
       "headers": {
-        "Authorization": "Bearer <auth token>"
+        "Authorization": "Bearer <auth token>",
+        "x-organization-id": "<org-id>",
+        "x-repo-id": "<repo-id>"
       }
     }
   ]
 }
 ```
 
-Replace `<auth token>` with your Codegen API key.
+Replace:
+
+- `<auth token>` with your Codegen API key
+- `<org-id>` with your organization ID (optional)
+- `<repo-id>` with your repository ID (optional)
 
 ## Authentication
 
