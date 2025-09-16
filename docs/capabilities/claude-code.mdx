@@ -31,7 +31,7 @@ When you run Claude through `codegen`, you get:
   machine.
 </Note>
 
-## MCP Server Integration
+## Connect Claude Code to Codegen Tools
 
 Claude Code running through Codegen automatically gains access to all your connected integrations via MCP (Model Context Protocol). This transforms Claude from a coding assistant into a full development platform orchestrator.
 
@@ -51,29 +51,9 @@ No additional setup required - if it's connected to Codegen, Claude can use it.
   command.
 </Tip>
 
-## Background Terminal Agents
+## Run Background Agents from your Terminal
 
 Keep your terminal free while Claude handles long-running tasks. Background agents run asynchronously, perfect for automation that doesn't need constant supervision.
-
-```bash
-# Start a background agent to handle PR reviews
-codegen agent create --background "Review all open PRs and suggest improvements"
-
-# Continue working while the agent runs
-# Check status anytime at codegen.com/agents
-```
-
-Common use cases for background agents:
-
-- Automated code reviews on new PRs
-- Continuous monitoring of test suites
-- Documentation generation from code changes
-- Dependency updates and security patches
-
-<Note>
-  Background agents support scheduling with flags like `--repeat-daily` or
-  `--repeat-weekly`, turning one-off tasks into automated workflows.
-</Note>
 
 ## Remote Sandbox Execution
 
@@ -124,155 +104,6 @@ Your session immediately appears in the cloud with full integration access.
   The first time you run `codegen claude`, it will download the Claude Code
   binary. Subsequent runs start instantly.
 </Tip>
-
-### Enable Organization-Wide
-
-For teams ready to standardize on Claude Code:
-
-1. Navigate to [Model Settings](https://codegen.com/settings/model)
-2. Enable "Claude Code Mode"
-3. Select Claude 4 Sonnet (recommended)
-4. All agents now run with Claude Code capabilities
-
-## Real-World Workflows
-
-### Continuous PR Monitoring
-
-Set up automated review cycles that run in the background:
-
-```bash
-# Daily PR reviews with actionable feedback
-codegen agent create --background --repeat-daily \
-  "Review new PRs in myrepo and suggest improvements"
-```
-
-The agent runs daily, reviewing PRs and posting suggestions directly to GitHub.
-
-### Local Development with Team Visibility
-
-Perfect for pair programming or mentoring sessions:
-
-```bash
-# Start a traced Claude session
-codegen claude
-
-# Your team can follow along at codegen.com/agents
-# All integrations available through MCP
-```
-
-Team members can observe your AI interactions in real-time, learning from your prompting patterns and problem-solving approaches.
-
-### Hybrid Workflow
-
-Start locally, deploy to cloud when ready:
-
-```bash
-# Prototype locally with Claude
-codegen claude "Build a new API endpoint for user profiles"
-
-# Happy with the approach? Deploy to sandbox
-codegen agent create "Implement the user profile API we discussed"
-```
-
-<Note>
-  Context from your local Claude sessions carries over to cloud agents,
-  maintaining continuity across environments.
-</Note>
-
-## Advanced Configuration
-
-### Custom MCP Servers
-
-Extend Claude's capabilities with your own tools:
-
-```bash
-# Configure custom MCP server
-codegen mcp add my-tool https://my-mcp-server.com
-
-# Now available in all Claude sessions
-codegen claude "Use my-tool to generate test data"
-```
-
-### Session Management
-
-Powerful commands for working with Claude sessions:
-
-```bash
-# List recent sessions
-codegen sessions list
-
-# Resume a previous session
-codegen sessions resume <session-id>
-
-# Export session for sharing
-codegen sessions export <session-id> > session.md
-```
-
-## Best Practices
-
-### When to Run Locally vs Remote
-
-**Run locally when:**
-
-- Prototyping and experimenting
-- Working with sensitive code
-- Need immediate feedback
-- Debugging specific issues
-
-**Run in sandboxes when:**
-
-- Executing long-running tasks
-- Need consistent environments
-- Collaborating with team
-- Running automated workflows
-
-### Effective Background Agents
-
-Keep background agents focused:
-
-- Single responsibility per agent
-- Clear success criteria
-- Reasonable time bounds
-- Proper error handling
-
-<Tip>
-  Use descriptive names for background agents - they appear in your dashboard
-  and help teammates understand what's running.
-</Tip>
-
-### Integration Patterns
-
-Leverage MCP for complex workflows:
-
-```bash
-# Agent that coordinates across tools
-codegen agent create "When tests fail on PR #123, \
-  create a Linear ticket and notify #eng-team on Slack"
-```
-
-## Monitoring and Debugging
-
-All Claude Code sessions include comprehensive telemetry:
-
-- **Execution traces** showing every tool invocation
-- **Token usage** per request and response
-- **Error logs** with full stack traces
-- **Performance metrics** for optimization
-
-Access logs at [codegen.com/agents](https://codegen.com/agents) or via CLI:
-
-```bash
-# View recent agent runs
-codegen agents list
-
-# Stream logs for active agent
-codegen agents logs <agent-id> --follow
-```
-
-<Note>
-  Logs are retained for 30 days and can be exported for compliance or analysis
-  purposes.
-</Note>
 
 ## Analytics and Insights
 
