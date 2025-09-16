@@ -44,7 +44,8 @@
               "settings/claude-code",
               "settings/agent-behavior",
               "settings/agent-permissions",
-              "settings/team-roles"
+              "settings/team-roles",
+              "settings/trufflehog-integration"
             ]
           },
           {
