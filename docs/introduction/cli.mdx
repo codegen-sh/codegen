@@ -48,6 +48,24 @@ codegen login
 codegen login --token YOUR_API_TOKEN
 ```
 
+### `codegen update`
+
+Keep your CLI up to date with the latest features and improvements. The CLI automatically checks for updates daily and notifies you when new versions are available.
+
+```bash
+# Update to latest version
+codegen update
+
+# Check for updates without installing
+codegen update --check
+
+# Update to a specific version
+codegen update --version 1.2.3
+
+# Preview changes without updating
+codegen update --dry-run
+```
+
 ## What You Can Do
 
 - **View and manage agents** - List agent runs, check status, and see detailed execution logs
@@ -55,6 +73,7 @@ codegen login --token YOUR_API_TOKEN
 - **Create new agents** - Trigger agent runs from the command line with custom prompts
 - **Run Claude Code** - Execute Claude Code with OpenTelemetry monitoring and comprehensive logging
 - **Manage organizations** - Switch between organizations and configure repositories
+- **Stay up to date** - Built-in self-update system with automatic update notifications
 
 <Note>
   The CLI provides the same capabilities as the web UI and API, optimized for
