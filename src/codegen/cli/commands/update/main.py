@@ -39,8 +39,6 @@ def update(
     list_: bool = typer.Option(False, "--list", "-l", help="List all supported versions"),
     version: str | None = typer.Option(None, "--version", "-v", help="Update to a specific version"),
     check: bool = typer.Option(False, "--check", help="Check for available updates without installing"),
-    dry_run: bool = typer.Option(False, "--dry-run", help="Show what would be updated without making changes"),
-    force: bool = typer.Option(False, "--force", "-f", help="Force update check even if recently checked"),
     legacy: bool = typer.Option(False, "--legacy", help="Use legacy update method (simple pip upgrade)"),
 ):
     """Update Codegen CLI to the latest or specified version.
@@ -61,7 +59,7 @@ def update(
 
     # Handle different actions
     if check or list_:
-        result = manager.check_for_updates(force=force)
+        result = manager.check_for_updates(force=True)
 
         if result.update_available:
             console.print(f"\n[cyan]Update available: {result.current_version} → {result.latest_version}[/cyan]")
