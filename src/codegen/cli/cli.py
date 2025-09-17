@@ -15,8 +15,6 @@ from codegen.cli.commands.logout.main import logout
 from codegen.cli.commands.org.main import org
 from codegen.cli.commands.profile.main import profile_app
 from codegen.cli.commands.repo.main import repo
-from codegen.cli.commands.style_debug.main import style_debug
-from codegen.cli.commands.tools.main import tools
 from codegen.cli.commands.tui.main import tui
 from codegen.cli.commands.update.main import update
 from codegen.shared.logging.get_logger import get_logger
@@ -79,8 +77,6 @@ main.command("login", help="Store authentication token.")(login)
 main.command("logout", help="Clear stored authentication token.")(logout)
 main.command("org", help="Manage and switch between organizations.")(org)
 main.command("repo", help="Manage repository configuration and environment variables.")(repo)
-main.command("style-debug", help="Debug command to visualize CLI styling (spinners, etc).")(style_debug)
-main.command("tools", help="List available tools from the Codegen API.")(tools)
 main.command("tui", help="Launch the interactive TUI interface.")(tui)
 main.command("update", help="Update Codegen to the latest or specified version")(update)
 
