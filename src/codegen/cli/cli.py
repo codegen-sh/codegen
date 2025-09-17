@@ -61,12 +61,12 @@ main = typer.Typer(name="codegen", help="Codegen - the Operating System for Code
 
 # Check for updates on startup (non-blocking)
 try:
-    from codegen.cli.commands.update import check_for_updates_on_startup
-
-    # Only check on actual command runs, not completions
+    # Only check when no arguments are passed (just "codegen" to launch TUI)
     import sys
 
-    if not any(arg in sys.argv for arg in ["--help", "-h", "completion", "--version"]):
+    from codegen.cli.commands.update import check_for_updates_on_startup
+
+    if len(sys.argv) == 1:
         check_for_updates_on_startup()
 except ImportError:
     pass  # Update check dependencies not available
