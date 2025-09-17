@@ -79,21 +79,25 @@ Remote execution benefits:
 
 ### Local Claude with Cloud Benefits
 
-Get up and running in three simple steps:
+Get up and running in four simple steps:
 
-1. Install the Codegen CLI:
+1. Install Claude Code on your host machine:
+
+   Follow the [Claude Code installation guide](https://claude.ai/code) to install Claude Code locally.
+
+2. Install the Codegen CLI:
 
    ```bash
    uv tool install codegen
    ```
 
-2. Authenticate with your account:
+3. Authenticate with your account:
 
    ```bash
    codegen login
    ```
 
-3. Run Claude with full telemetry:
+4. Run Claude with full telemetry:
    ```bash
    codegen claude "Help me refactor this authentication module"
    ```
@@ -101,6 +105,7 @@ Get up and running in three simple steps:
 Your session immediately appears in the cloud with full integration access.
 
 <Tip>
+  **Prerequisites**: Claude Code must be installed on your host machine before running `codegen claude`. 
   The first time you run `codegen claude`, it will download the Claude Code
   binary. Subsequent runs start instantly.
 </Tip>
