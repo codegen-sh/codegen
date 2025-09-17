@@ -47,7 +47,6 @@ def update(
         codegen update                    # Update to latest version
         codegen update --check            # Check for updates
         codegen update --version 1.2.3    # Update to specific version
-        codegen update --dry-run          # Preview update without making changes
     """
     # Handle legacy mode
     if legacy:
@@ -74,7 +73,7 @@ def update(
                 console.print(f"  {ver_info.version}{marker}")
     else:
         # Perform update
-        if not manager.perform_update(target_version=version, dry_run=dry_run):
+        if not manager.perform_update(target_version=version):
             raise typer.Exit(1)
 
 
