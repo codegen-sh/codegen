@@ -23,7 +23,7 @@ console = Console()
 
 # Update configuration
 UPDATE_CHECK_FILE = Path.home() / ".codegen" / "update_check.json"
-UPDATE_CHECK_INTERVAL = timedelta(hours=24)  # Check for updates once per day
+UPDATE_CHECK_INTERVAL = timedelta(hours=12)  # Check for updates once per day
 
 
 class InstallMethod(Enum):
@@ -219,7 +219,7 @@ class UpdateManager:
         with open(UPDATE_CHECK_FILE, "w") as f:
             json.dump({"last_check": datetime.now().isoformat()}, f)
 
-    def perform_update(self, target_version: Optional[str] = None, dry_run: bool = False) -> bool:
+    def perform_update(self, target_version: Optional[str] = None, dry_run: bool = False, skip_confirmation: bool = False) -> bool:
         """Perform the update to a specific version or latest."""
         current_version = self._get_current_version()
 
@@ -248,8 +248,8 @@ class UpdateManager:
         if dry_run:
             return True
 
-        # Confirm update
-        if not self._confirm_update():
+        # Confirm update (skip if already confirmed)
+        if not skip_confirmation and not self._confirm_update():
             self.console.print("[yellow]Update cancelled[/yellow]")
             return False
 
@@ -382,15 +382,23 @@ class UpdateManager:
 
 
 def check_for_updates_on_startup() -> None:
-    """Check for updates on CLI startup (non-blocking)."""
+    """Check for updates on CLI startup with blocking prompt."""
     try:
         # Only check if we haven't checked recently
         manager = UpdateManager()
-        result = manager.check_for_updates(force=False)
+        result = manager.check_for_updates(force=True)
 
         if result.update_available:
-            console.print(f"\n[cyan]ℹ️  A new version of Codegen CLI is available: {result.latest_version}[/cyan]")
-            console.print("[dim]Run 'codegen update' to upgrade[/dim]\n")
+            console.print(f"\n[cyan]ℹ️  A new version of Codegen CLI is available: {result.current_version} → {result.latest_version}[/cyan]")
+
+            if manager.perform_update():
+                console.print("\n[green]✓ Update completed successfully![/green]")
+                console.print("[yellow]Please restart your terminal or run a new codegen command to use the updated version.[/yellow]\n")
+                # Exit after successful update
+                sys.exit(0)
+            else:
+                console.print("\n[red]Update failed. Please try running 'codegen update' manually.[/red]\n")
+
     except Exception:
         # Silently ignore update check failures on startup
         pass

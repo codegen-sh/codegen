@@ -9,7 +9,8 @@ from packaging.version import Version
 from rich.console import Console
 
 import codegen
-from .updater import UpdateManager, check_for_updates_on_startup
+
+from .updater import UpdateManager
 
 console = Console()
 
