@@ -1,0 +1,98 @@
+---
+title: "Triggering Codegen"
+sidebarTitle: "Triggering Agents"
+icon: "play"
+---
+
+Codegen is designed to work where you work. Trigger agents from your existing tools and they'll respond right where the conversation started.
+
+## Trigger Methods
+
+### From Your Tools
+
+- **[Slack](/integrations/slack)** - Mention `@codegen` in any channel or DM
+- **[Linear](/integrations/linear)** - Assign issues to Codegen or mention in comments
+- **[Jira](/integrations/jira)** - Assign issues to Codegen or `@mention` in comments
+- **[ClickUp](/integrations/clickup)** - Assign tasks to Codegen or mention in comments
+- **[Monday.com](/integrations/monday)** - Assign items to Codegen or mention in comments
+- **[GitHub](/integrations/github)** - Comment on PRs or issues with `@codegen-agent`
+
+### From Codegen
+
+- **[Web UI](https://codegen.com/new)** - Start a new agent run directly from the dashboard
+- **[CLI](/introduction/cli)** - Run `codegen agent create "your task"` from your terminal
+- **[API](/api-reference/agents/create-agent-run)** - Trigger programmatically for automated workflows
+
+## How Agent Context Works
+
+### One Agent Per Context
+
+Each context gets its own dedicated agent:
+
+- **Slack** - Each thread is a separate agent. Follow-up messages in the same thread route to the same agent
+- **Linear/Jira/ClickUp/Monday** - Each ticket is a separate agent. All comments on that ticket go to the same agent
+- **GitHub** - Each issue or PR is a separate agent. All comments stay with the same agent
+
+### Shared Context with PRs
+
+When an agent creates a PR:
+
+- The agent **always monitors its own PR** and responds to comments
+- Agents triggered from tickets (Linear, Jira, etc.) share context between the ticket and any PRs they create
+- Follow-up requests on either the ticket or PR route to the same agent
+- **Automatically fixes broken tests** - When CI checks fail, the agent wakes up and pushes fix commits
+
+<Note>
+  This means you can start a conversation in Linear, have the agent create a PR,
+  then continue the discussion on either platform - it's all the same agent with
+  full context.
+</Note>
+
+<Tip>
+  Follow-up messages always go to the same agent. Whether you're continuing a
+  Slack thread, commenting on a ticket, or reviewing a PR - the agent maintains
+  full conversation history.
+</Tip>
+
+Learn more about automatic test fixing in the **[Checks Auto-fixer](/capabilities/checks-autofixer)** documentation.
+
+## All Agents Created Equal
+
+No matter where you trigger from, your request:
+
+1. Routes to a dedicated agent for that context
+2. Runs in secure [sandboxes](/sandboxes/overview)
+3. Has access to all your [integrations](/integrations/integrations)
+4. Creates trackable runs visible at [codegen.com/agents](https://codegen.com/agents)
+
+## Automatic Triggers
+
+Codegen supports certain automated triggers as first-class citizens. These activate without manual intervention to maintain code quality:
+
+- **[Checks Auto-fixer](/capabilities/checks-autofixer)** - Automatically fixes failing CI checks on agent PRs
+- **[PR Review](/capabilities/pr-review)** - Provides instant code review feedback on all PRs
+
+<Note>
+  These automations work alongside manual triggers. An agent fixing broken tests
+  can still respond to comments on its PR or the original ticket that triggered
+  it.
+</Note>
+
+## Learn More
+
+<CardGroup cols={2}>
+  <Card
+    title="Configure Integrations"
+    icon="plug"
+    href="/integrations/integrations"
+  >
+    Set up GitHub, Slack, and other tools
+  </Card>
+
+  <Card title="CLI Documentation" icon="terminal" href="/introduction/cli">
+    Trigger agents from your terminal
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/overview">
+    Build custom workflows and automations
+  </Card>
+</CardGroup>
