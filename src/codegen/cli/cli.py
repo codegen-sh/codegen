@@ -59,6 +59,18 @@ def version_callback(value: bool):
 # Create the main Typer app
 main = typer.Typer(name="codegen", help="Codegen - the Operating System for Code Agents.", rich_markup_mode="rich")
 
+# Check for updates on startup (non-blocking)
+try:
+    from codegen.cli.commands.update import check_for_updates_on_startup
+
+    # Only check on actual command runs, not completions
+    import sys
+
+    if not any(arg in sys.argv for arg in ["--help", "-h", "completion", "--version"]):
+        check_for_updates_on_startup()
+except ImportError:
+    pass  # Update check dependencies not available
+
 # Add individual commands to the main app (logging now handled within each command)
 main.command("agent", help="Create a new agent run with a prompt.")(agent)
 main.command("claude", help="Run Claude Code with OpenTelemetry monitoring and logging.")(claude)

@@ -31,10 +31,31 @@ if task.status == "completed":
 
 ## Installation
 
-Install the [codegen](https://pypi.org/project/codegen/) package from PyPI:
+Install the [codegen](https://pypi.org/project/codegen/) package from PyPI using your preferred package manager:
 
 ```bash
+# Using pip
+pip install codegen
+
+# Using pipx (for CLI usage)
+pipx install codegen
+
+# Using uv
 uv pip install codegen
+# or
+uv tool install codegen
+```
+
+### Keeping Up to Date
+
+The CLI includes a built-in self-update system that checks for updates daily:
+
+```bash
+# Update to latest version
+codegen update
+
+# Check for updates
+codegen update --check
 ```
 
 ## Get Started
