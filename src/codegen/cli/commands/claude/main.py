@@ -379,7 +379,7 @@ def claude(
             t_console.print("\n[yellow]Claude Code CLI is not installed or cannot be found.[/yellow]")
             t_console.print("\n[bold]To install Claude Code:[/bold]")
             t_console.print("  • Install globally: [cyan]npm install -g @anthropic-ai/claude-code[/cyan]")
-            t_console.print("  • Or run: [cyan]claude //migrate-installer[/cyan] for local installation")
+            t_console.print("  • Or run: [cyan]claude /migrate-installer[/cyan] for local installation")
             t_console.print("\n[dim]If you migrated a local install, ensure ~/.claude/local/claude exists[/dim]")
             t_console.print("[dim]or add it to your PATH.[/dim]")
             raise typer.Exit(1)
