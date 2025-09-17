@@ -570,9 +570,26 @@ class MinimalTUI:
 
     def _display_claude_tab(self):
         """Display the Claude Code interface tab."""
-        print("  \033[37m→ Run Claude Code\033[0m")
-        print()
-        print("Press Enter to launch Claude Code with session tracking.")
+        # Check if Claude Code is installed
+        from codegen.cli.commands.claude.utils import resolve_claude_path
+
+        claude_path = resolve_claude_path()
+        if not claude_path:
+            # Display error message when Claude is not installed
+            print("  \033[31m✗ Claude Code Not Installed\033[0m")
+            print()
+            print("\033[33m⚠ Claude Code CLI is not installed or cannot be found.\033[0m")
+            print()
+            print("To install Claude Code:")
+            print("  • Install globally: \033[36mnpm install -g @anthropic-ai/claude-code\033[0m")
+            print("  • Or run: \033[36mclaude /migrate-installer\033[0m for local installation")
+            print()
+            print("Once installed, restart this CLI to use Claude Code.")
+        else:
+            print("  \033[37m→ Run Claude Code\033[0m")
+            print()
+            print("Press Enter to launch Claude Code with session tracking.")
+
         # The claude tab main content area should be a fixed 10 lines
         self._pad_to_lines(7)
 
@@ -892,6 +909,15 @@ class MinimalTUI:
     def _handle_claude_tab_keypress(self, key: str):
         """Handle keypresses in the claude tab."""
         if key == "\r" or key == "\n":  # Enter - run Claude Code
+            # Check if Claude is installed before attempting to run
+            from codegen.cli.commands.claude.utils import resolve_claude_path
+
+            claude_path = resolve_claude_path()
+            if not claude_path:
+                # Claude is not installed, don't try to launch
+                logger.warning("Attempted to launch Claude Code but it's not installed", extra={"operation": "tui.launch_claude", "error": "not_installed"})
+                return
+
             self._run_claude_code()
 
     def _run_claude_code(self):
