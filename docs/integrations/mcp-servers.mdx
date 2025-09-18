@@ -57,6 +57,18 @@ MCP servers are configured per repository using a JSON configuration file. The c
 - **Access controls** - Specify permissions and security settings
 - **Environment variables** - Configure server-specific settings and secrets
 
+### Server Naming Requirements
+
+MCP server names must follow strict naming conventions to ensure compatibility:
+
+- **Allowed characters**: Only alphanumeric characters (a-z, A-Z, 0-9), hyphens (-), and underscores (_)
+- **Length limit**: Maximum 128 characters
+- **Pattern**: Must match the regex `^[a-zA-Z0-9_-]{1,128}$`
+
+<Warning>
+  Server names containing dots (.), spaces, or other special characters will cause connection failures. For example, `awslabs.aws-documentation-mcp-server` should be renamed to `awslabs-aws-documentation-mcp-server`.
+</Warning>
+
 ## Permissions
 
 The Codegen MCP integration requires the following permissions:
