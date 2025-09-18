@@ -118,9 +118,18 @@ The Codegen Slack integration requires the following permissions to function eff
 - **Data Retention:** Outside of the LLM API interactions, message content is retained by Codegen solely for the purpose of displaying it within the Codegen user interface.
 - **Metadata from Private Channels:** When messages from private Slack channels are processed, Codegen does not expose private metadata, such as the original author's name or username, in the Codegen web app. Private channel names are anonymized and displayed as "Private channel" to non-members.
 
+**Data Scope and Context:**
+
+- **Thread Context:** When Codegen is mentioned inside a thread, it will pull context from the entire thread, including the messages sent and media shared within that thread.
+- **Single Message Context:** When Codegen is mentioned outside of a thread, it will only be scoped to the specific message in which it is mentioned.
+
 **User Permissions and Access Control:**
 
 Codegen's actions on connected repositories are governed by the permissions of the user who initiated the interaction via Slack. The bot itself does not have independent permissions to repositories. Access to repositories and the ability to trigger actions are determined by the Codegen user's authenticated account and their associated repository permissions. We recommend configuring channel access carefully during installation to ensure the Codegen integration for Slack is only present in channels where its use is appropriate.
+
+**Audit Trail:**
+
+Administrators can access a comprehensive audit trail through the [Recents page](https://codegen.com/recents) in the Codegen web app. This provides detailed logs of when and by whom Codegen was invoked in Slack, with filtering capabilities by integration, user, and other parameters.
 
 **Privacy Policy:**
 
