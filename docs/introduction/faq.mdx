@@ -53,4 +53,27 @@ iconType: "solid"
     issues](https://github.com/codegen-sh/codegen-sdk) for bug reports or SDK
     feature requests 3. Reach out to us on [Twitter](https://x.com/codegen)
   </Accordion>
+  <Accordion title="How do I work with multiple repositories in my organization?" icon="folder-tree">
+    If your organization has multiple repositories, here are some tips to get started effectively:
+    
+    **Repository Access & Discovery:**
+    - Visit [codegen.com/repos](https://codegen.com/repos) to see all repositories you have access to
+    - Use the "Configure GitHub" button to manage repository permissions
+    - Codegen agents can work across any repository where the GitHub App is installed
+    
+    **Best Practices:**
+    - **Start Small**: Begin with 1-2 key repositories to get familiar with Codegen's workflow
+    - **Repository-Specific Rules**: Use [Repository Rules](/settings/repo-rules) to set coding standards and preferences for each repo
+    - **Clear Context**: When requesting work, specify which repository you want the agent to work on (e.g., "@codegen in the frontend repo, please...")
+    - **Team Coordination**: Use [Team Roles](/settings/team-roles) to manage access and permissions across your organization
+    
+    **Navigation Tips:**
+    - Agents automatically detect which repository context is needed based on your requests
+    - You can explicitly mention repository names in Slack, Linear, or API calls
+    - Repository settings and rules are inherited from your organization but can be customized per repo
+    
+    <Tip>
+      For large organizations with many repositories, consider setting up organization-wide rules first, then customizing specific repositories as needed.
+    </Tip>
+  </Accordion>
 </AccordionGroup>
