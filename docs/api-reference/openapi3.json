@@ -3023,6 +3023,30 @@
           "agent_run_id": {
             "type": "integer",
             "title": "Agent Run Id"
+          },
+          "before_card_order_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Before Card Order Id",
+            "description": "Kanban order key of the card that should come before this agent run in the CANCELLED column"
+          },
+          "after_card_order_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "After Card Order Id",
+            "description": "Kanban order key of the card that should come after this agent run in the CANCELLED column"
           }
         },
         "type": "object",
