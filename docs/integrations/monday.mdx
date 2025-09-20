@@ -4,7 +4,15 @@ sidebarTitle: "Monday.com"
 icon: "fan"
 ---
 
-Integrate Codegen with your Monday.com workspace to enable AI-powered project management with intelligent task automation. Codegen can create and update items, manage boards, and keep your team synchronized across development workflows.
+import { COMMUNITY_SLACK_URL } from "/snippets/links.mdx";
+
+Integrate Codegen with your Monday.com workspace to allow agents to interact with items, manage boards, and keep your team updated.
+
+<video
+  controls
+  src="https://res.cloudinary.com/dbikr6pew/video/upload/v1757886194/monday-demo_placeholder.mp4"
+  className="w-full aspect-[3456/2160] rounded-sm"
+/>
 
 ## Installation
 
@@ -18,39 +26,29 @@ Connect your Monday.com workspace to Codegen to enable agent interactions.
   Authorize Codegen to access your Monday.com workspace and project boards.
 </Card>
 
+<Note>
+  The Monday.com integration is currently in <b>beta</b>. Please reach out in
+  the <a href={COMMUNITY_SLACK_URL}>community</a> to have it enabled for your
+  Codegen account.
+</Note>
+
+## Use Codegen in Your Workflow
+
+- On any Monday.com item, `@mention` the Codegen user (e.g., `@Codegen`) to assign or notify Codegen about the task.
+- Codegen will interact with the item, update status, add updates, and link PRs as needed.
+
 ## Capabilities
 
-The Monday.com integration provides comprehensive project management capabilities:
+The Monday.com integration provides read and write access, enabling agents to manage tasks effectively:
 
-- **Create and update items** - Generate new tasks and update existing ones based on development needs
-- **Read and update items** - Access and modify task details, status, and progress information
-- **Manage boards and columns** - Organize work across different project boards and customize workflows
-- **Team coordination** - Assign tasks to team members and manage workload distribution
-- **Status synchronization** - Keep project status current as work progresses through different stages
-- **Automated reporting** - Generate progress reports and project insights based on development activity
-
-## Permissions
-
-The Codegen Monday.com integration requires the following permissions:
-
-- **Read and update items** - Access and modify task details and progress information
-- **Read and update boards** - Manage project boards and organizational structure
-- **Read and update columns** - Customize workflows and data fields
-- **Read and update groups** - Organize tasks into logical groupings
-- **Read and update users** - Access team member information for task assignment
-- **Read and update workspaces** - Manage workspace-level settings and permissions
+- **Read Access:** Fetch item details, read updates, view board status, list team members.
+- **Write Access:** Update item status (e.g., to "Working on it", "Done"), add updates, link GitHub PRs to items, create new items, assign tasks.
 
 ## How Agents Use Monday.com
 
-Agents leverage the Monday.com integration to:
+Agents use the Monday.com integration to streamline project management:
 
-- **Track Work:** Automatically update the status of items they are working on
-- **Create Tasks:** Generate new items for follow-up work, bugs discovered, or sub-tasks
-- **Provide Updates:** Add updates to items with progress reports, results, or questions
-- **Link Development:** Connect implemented changes and code work directly to relevant Monday.com items
-- **Manage Workflows:** Update item status as work progresses through different development stages
-
-<Note>
-  The Monday.com integration requires feature flag access. Contact your team
-  administrator to enable this integration.
-</Note>
+- **Track Work:** Automatically update the status of items they are working on.
+- **Link Code:** Connect implemented changes (GitHub PRs) directly to the relevant Monday.com item.
+- **Provide Updates:** Post updates on items with progress reports, results, or questions.
+- **Create Tasks:** Generate new items for follow-up work, bugs discovered, or sub-tasks.
