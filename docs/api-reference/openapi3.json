@@ -2374,6 +2374,22 @@
             ],
             "title": "Model",
             "description": "Model to use for this agent run (optional, uses org default if not specified)"
+          },
+          "agent_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "codegen",
+                  "claude_code"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agent Type",
+            "description": "Type of agent to use for this agent run (optional, uses org default if not specified)"
           }
         },
         "type": "object",
