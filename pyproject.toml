@@ -98,7 +98,7 @@ dev-dependencies = [
   "pre-commit-uv>=4.1.4",
   "austin-dist>=3.7.0",
   "uv>=0.4.25",
-  "deptry>=0.22.0",
+
   "sybil[pytest]>=9.0.0",
   "jsbeautifier<2.0.0,>=1.15.1",
   "inflection<1.0.0,>=0.5.1",
@@ -173,21 +173,7 @@ requires = ["hatchling>=1.26.3", "hatch-vcs>=0.4.0", "setuptools-scm>=8.0.0"]
 build-backend = "hatchling.build"
 
 
-[tool.deptry]
-extend_exclude = [".*/eval/test_files/.*.py", ".*conftest.py"]
-pep621_dev_dependency_groups = ["types"]
-[tool.deptry.per_rule_ignores]
-DEP002 = [
-  "hatch-vcs", # Used for version management during build
-  "hatchling", # Used for building
-]
-DEP003 = []
-DEP004 = "pytest"
 
-[tool.deptry.package_module_name_map]
-PyGithub = ["github"]
-GitPython = ["git"]
-python-dotenv = ["dotenv"]
 pydantic-settings = ["pydantic_settings"]
 datamodel-code-generator = ["datamodel_code_generator"]
 sentry-sdk = ["sentry_sdk"]
