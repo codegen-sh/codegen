@@ -5,6 +5,11 @@ icon: "terminal"
 iconType: "solid"
 ---
 
+import {
+  COMMUNITY_SLACK_URL,
+  CODEGEN_SDK_GITHUB_URL,
+} from "/snippets/links.mdx";
+
 The `codegen` CLI is your terminal interface to Codegen agents. Use it to view agents, pull their work, create new agents, and run Claude Code with full telemetry and monitoring.
 
 <Frame>
@@ -93,14 +98,12 @@ codegen update --dry-run
 
 ## Get Started
 
-import {
-  COMMUNITY_SLACK_URL,
-  CODEGEN_SDK_GITHUB_URL,
-} from "/snippets/links.mdx";
-
 <CardGroup cols={2}>
   <Card title="Create Account" icon="user-plus" href="https://codegen.sh/login">
     Sign up for a free account and get your API token.
+  </Card>
+  <Card title="Join the Community" icon="people-group" href={COMMUNITY_SLACK_URL}>
+    Chat with the team, share feedback, and get help in Slack.
   </Card>
   <Card title="View on GitHub" icon="github" href={CODEGEN_SDK_GITHUB_URL}>
     Star us on GitHub and contribute to the project.
