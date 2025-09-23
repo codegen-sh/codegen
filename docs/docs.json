@@ -34,7 +34,8 @@
               "capabilities/claude-code",
               "capabilities/analytics",
               "introduction/cli",
-              "introduction/sdk"
+              "introduction/sdk",
+              "settings/on-prem-deployment"
             ]
           },
           {
@@ -46,8 +47,7 @@
               "settings/agent-behavior",
               "settings/agent-permissions",
               "settings/team-roles",
-              "settings/trufflehog-integration",
-              "settings/on-prem-deployment"
+              "settings/trufflehog-integration"
             ]
           },
           {
