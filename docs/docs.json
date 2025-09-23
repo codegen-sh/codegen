@@ -46,7 +46,8 @@
               "settings/agent-behavior",
               "settings/agent-permissions",
               "settings/team-roles",
-              "settings/trufflehog-integration"
+              "settings/trufflehog-integration",
+              "settings/on-prem-deployment"
             ]
           },
           {
