@@ -25,6 +25,7 @@ The following environment variables are typically available within Codegen sandb
 | `NPM_CONFIG_YES`                  | `"true"`                                      | Configures npm to automatically answer "yes" to prompts.                                                                                    |
 | `PIP_NO_INPUT`                    | `"1"`                                         | Instructs pip (Python's package installer) to operate in non-interactive mode.                                                              |
 | `YARN_ENABLE_IMMUTABLE_INSTALLS`  | `"false"`                                     | Disables Yarn's "immutable installs" feature, allowing `yarn install` to modify the lockfile.                                               |
+| `CG_PREVIEW_URL`                  | _Dynamic (preview URL)_                       | Contains the URL where the web preview will be served. This is automatically set when Web Preview is configured.                            |
 
 <Note>
   The values for variables like `NVM_DIR`, `PATH`, `NVM_BIN`, and `NODE_VERSION`

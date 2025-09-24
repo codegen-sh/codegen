@@ -1628,6 +1628,79 @@
         }
       }
     },
+    "/v1/organizations/{org_id}/cli/rules": {
+      "get": {
+        "tags": [
+          "cli-rules",
+          "cli-rules",
+          "cli-rules"
+        ],
+        "summary": "Get Cli Rules",
+        "description": "Get organization and user rules for CLI applications.\n\nThis endpoint is designed for CLI applications that need to fetch both organization-specific\nrules and user-specific custom prompts that are used in prompts. This includes:\n\n- Organization rules: Same as MCP organization_rules prompt and agent prompt builders\n- User custom prompt: Same as MCP user_custom_prompt and agent prompt builders\n\nReturns the rules and prompts that should be followed by AI agents.\n\nRate limit: 30 requests per minute.",
+        "operationId": "get_cli_rules_v1_organizations__org_id__cli_rules_get",
+        "parameters": [
+          {
+            "name": "org_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Org Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CLIRulesResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIRateLimitErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PermissionsErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/alpha/organizations/{org_id}/agent/run/{agent_run_id}/logs": {
       "get": {
         "tags": [
@@ -2182,6 +2255,39 @@
         ],
         "title": "ApiAgentRunSourceType"
       },
+      "CLIRulesResponse": {
+        "properties": {
+          "organization_rules": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organization Rules"
+          },
+          "user_custom_prompt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Custom Prompt"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organization_rules",
+          "user_custom_prompt"
+        ],
+        "title": "CLIRulesResponse",
+        "description": "Response model for CLI rules containing organization and user rules."
+      },
       "CheckSuiteSettingsRequest": {
         "properties": {
           "check_retry_count": {
@@ -2374,6 +2480,22 @@
             ],
             "title": "Model",
             "description": "Model to use for this agent run (optional, uses org default if not specified)"
+          },
+          "agent_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "codegen",
+                  "claude_code"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agent Type",
+            "description": "Type of agent to use for this agent run (optional, uses org default if not specified)"
           }
         },
         "type": "object",
@@ -3023,6 +3145,30 @@
           "agent_run_id": {
             "type": "integer",
             "title": "Agent Run Id"
+          },
+          "before_card_order_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Before Card Order Id",
+            "description": "Kanban order key of the card that should come before this agent run in the CANCELLED column"
+          },
+          "after_card_order_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "After Card Order Id",
+            "description": "Kanban order key of the card that should come after this agent run in the CANCELLED column"
           }
         },
         "type": "object",

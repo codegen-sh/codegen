@@ -34,7 +34,8 @@
               "capabilities/claude-code",
               "capabilities/analytics",
               "introduction/cli",
-              "introduction/sdk"
+              "introduction/sdk",
+              "settings/on-prem-deployment"
             ]
           },
           {
