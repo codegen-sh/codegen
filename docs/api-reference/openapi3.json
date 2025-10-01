@@ -1701,6 +1701,59 @@
         }
       }
     },
+    "/v1/slack-connect/generate-token": {
+      "post": {
+        "tags": [
+          "slack-connect",
+          "slack-connect"
+        ],
+        "summary": "Generate Slack Connect Token Endpoint",
+        "description": "Generate a temporary token for Slack account connection.\n\nThis token:\n- Expires in 10 minutes\n- Can only be used once\n- Must be sent to the Codegen bot in a DM with format: \"Connect my account: {token}\"",
+        "operationId": "generate_slack_connect_token_endpoint_v1_slack_connect_generate_token_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateTokenRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerateTokenResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/alpha/organizations/{org_id}/agent/run/{agent_run_id}/logs": {
       "get": {
         "tags": [
@@ -2622,6 +2675,42 @@
         ],
         "title": "GenerateSetupCommandsInput",
         "description": "Input for generating setup commands."
+      },
+      "GenerateTokenRequest": {
+        "properties": {
+          "org_id": {
+            "type": "integer",
+            "title": "Org Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "org_id"
+        ],
+        "title": "GenerateTokenRequest"
+      },
+      "GenerateTokenResponse": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "expires_in_minutes": {
+            "type": "integer",
+            "title": "Expires In Minutes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "message",
+          "expires_in_minutes"
+        ],
+        "title": "GenerateTokenResponse"
       },
       "GithubPullRequestResponse": {
         "properties": {
