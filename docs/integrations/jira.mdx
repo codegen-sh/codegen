@@ -60,6 +60,54 @@ Follow these steps to successfully connect Codegen to your Jira workspace:
   account.
 </Warning>
 
+## Setup & Authorization
+
+When connecting Codegen to your Jira workspace, you may encounter an authorization screen from Atlassian that requires additional setup. Here's what to expect and how to resolve common authorization issues:
+
+### OAuth Authorization Process
+
+During the OAuth flow, Atlassian will display an authorization screen showing:
+
+1. **App Information**: Details about Codegen requesting access to your Jira account
+2. **Permissions Requested**: A list of specific permissions Codegen needs (see below)
+3. **Authorization Options**: Buttons to approve or deny access
+
+### Site Admin Authorization Requirement
+
+**Common Issue**: You may see a message stating that a site administrator needs to authorize Codegen before you can proceed.
+
+**Resolution Steps**:
+1. **Contact Your Jira Administrator**: Reach out to your Jira site administrator and ask them to:
+   - Log in to your Jira instance as an administrator
+   - Navigate to the same OAuth authorization URL
+   - Review and approve Codegen's access request
+   
+2. **Administrator Approval Process**: Your admin will see the same authorization screen and can approve Codegen for your entire organization
+
+3. **Retry Authorization**: Once your administrator has approved Codegen, return to the authorization flow and complete the process
+
+### Permissions Requested by Codegen
+
+Codegen requests the following permissions from your Jira workspace:
+
+- **`jira-webhook`**: Allows Codegen to receive notifications about issue updates, comments, and status changes
+- **`jira-user`**: Enables Codegen to read user information and perform actions on behalf of the authorized user
+- **`jira-work`**: Grants access to read and write issue data, including creating, updating, and commenting on issues
+
+### Privacy & Data Access
+
+**What Codegen Can Access**:
+- Issue details, comments, and status information
+- Project information and team member lists
+- User profile information for the authorized account
+
+**What Codegen Cannot Access**:
+- Personal information beyond what's necessary for Jira integration
+- Data from other Atlassian products unless explicitly authorized
+- Administrative settings or sensitive configuration data
+
+**Data Usage**: Codegen only uses this data to perform the specific actions you request, such as updating issue status, adding comments, or linking GitHub PRs to Jira issues.
+
 ### 4. Switch Back to Your Own Jira Account
 
 - After connecting, log out of the Codegen Jira user in Jira.
