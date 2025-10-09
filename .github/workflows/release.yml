@@ -34,7 +34,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: echo "$GITHUB_CONTEXT"
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
           ref: ${{ inputs.release-tag || github.event.pull_request.head.ref || github.ref }}
@@ -72,7 +72,7 @@ jobs:
     permissions:
       contents: write # grants permission to create a release on github
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup backend
         uses: ./.github/actions/setup-environment

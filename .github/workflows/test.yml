@@ -34,7 +34,7 @@ jobs:
     needs: access-check
     runs-on: ubuntu-latest-8
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
@@ -76,7 +76,7 @@ jobs:
       cancel-in-progress: true
     name: "Codemod tests ${{matrix.size}}: Sync Graph=${{matrix.sync_graph}}"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -105,7 +105,7 @@ jobs:
     needs: access-check
     runs-on: ubuntu-latest-16
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
