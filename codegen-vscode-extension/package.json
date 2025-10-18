@@ -1,0 +1,126 @@
+{
+	"name": "codegen-vscode-extension",
+	"displayName": "Codegen",
+	"description": "VSCode extension for Codegen - AI-powered code generation and assistance",
+	"version": "0.1.0",
+	"engines": {
+		"vscode": "^1.78.0"
+	},
+	"categories": ["Programming Languages", "Machine Learning", "Other"],
+	"activationEvents": ["onStartupFinished"],
+	"main": "./dist/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "codegen.askQuestion",
+				"title": "Ask Codegen a Question",
+				"category": "Codegen"
+			},
+			{
+				"command": "codegen.generateCode",
+				"title": "Generate Code with Codegen",
+				"category": "Codegen"
+			},
+			{
+				"command": "codegen.explainCode",
+				"title": "Explain Selected Code",
+				"category": "Codegen"
+			},
+			{
+				"command": "codegen.improveCode",
+				"title": "Improve Selected Code",
+				"category": "Codegen"
+			},
+			{
+				"command": "codegen.fixCode",
+				"title": "Fix Selected Code",
+				"category": "Codegen"
+			}
+		],
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "codegen-sidebar",
+					"title": "Codegen",
+					"icon": "media/codegen-icon.svg"
+				}
+			]
+		},
+		"views": {
+			"codegen-sidebar": [
+				{
+					"type": "webview",
+					"id": "codegen.chatView",
+					"name": "Codegen Chat"
+				}
+			]
+		},
+		"configuration": {
+			"title": "Codegen",
+			"properties": {
+				"codegen.apiKey": {
+					"type": "string",
+					"default": "",
+					"description": "API key for Codegen services"
+				},
+				"codegen.endpoint": {
+					"type": "string",
+					"default": "https://api.codegen.sh",
+					"description": "Endpoint for Codegen API"
+				}
+			}
+		},
+		"menus": {
+			"editor/context": [
+				{
+					"command": "codegen.explainCode",
+					"when": "editorHasSelection",
+					"group": "codegen"
+				},
+				{
+					"command": "codegen.improveCode",
+					"when": "editorHasSelection",
+					"group": "codegen"
+				},
+				{
+					"command": "codegen.fixCode",
+					"when": "editorHasSelection",
+					"group": "codegen"
+				},
+				{
+					"command": "codegen.generateCode",
+					"group": "codegen"
+				}
+			]
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run package",
+		"compile": "webpack",
+		"watch": "webpack --watch",
+		"package": "webpack --mode production --devtool source-map --config ./webpack.config.js",
+		"compile-tests": "tsc -p . --outDir out",
+		"watch-tests": "tsc -p . -w --outDir out",
+		"lint": "eslint src --ext ts",
+		"test": "node ./out/test/runTest.js"
+	},
+	"devDependencies": {
+		"@types/glob": "^8.1.0",
+		"@types/mocha": "^10.0.1",
+		"@types/node": "16.x",
+		"@types/vscode": "^1.78.0",
+		"@typescript-eslint/eslint-plugin": "^5.59.1",
+		"@typescript-eslint/parser": "^5.59.1",
+		"@vscode/test-electron": "^2.3.0",
+		"eslint": "^8.39.0",
+		"glob": "^8.1.0",
+		"mocha": "^10.2.0",
+		"ts-loader": "^9.4.2",
+		"typescript": "^5.0.4",
+		"webpack": "^5.81.0",
+		"webpack-cli": "^5.0.2"
+	},
+	"dependencies": {
+		"axios": "^1.4.0"
+	}
+}
