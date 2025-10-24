@@ -20,7 +20,7 @@ from codegen.configs.models.secrets import SecretsConfig
 from codegen.git.clients.git_repo_client import GitRepoClient
 from codegen.git.configs.constants import CODEGEN_BOT_EMAIL, CODEGEN_BOT_NAME
 from codegen.git.repo_operator.local_git_repo import LocalGitRepo
-from codegen.git.schemas.enums import CheckoutResult, FetchResult, RepoVisibility, SetupOption
+from codegen.git.schemas.enums import CheckoutResult, FetchResult, SetupOption
 from codegen.git.schemas.repo_config import RepoConfig
 from codegen.git.utils.clone import clone_or_pull_repo, clone_repo, pull_repo
 from codegen.git.utils.clone_url import add_access_token_to_url, get_authenticated_clone_url_for_repo_config, get_clone_url_for_repo_config, url_to_github
@@ -85,11 +85,14 @@ class RepoOperator:
 
     @property
     def repo_path(self) -> str:
-        return os.path.join(self.base_dir, self.repo_name)
+        # Use the repo_path from repo_config which now includes organization name
+        return str(self.repo_config.repo_path)
 
     @property
     def remote_git_repo(self) -> GitRepoClient:
-        if not self.access_token and self.repo_config.visibility != RepoVisibility.PUBLIC:
+        # Check if we have an access token for non-public repos
+        if not self.access_token:
+            # Since visibility is no longer in RepoConfig, we'll assume we need a token
             msg = "Must initialize with access_token to get remote"
             raise ValueError(msg)
 
@@ -142,7 +145,7 @@ class RepoOperator:
         email_level = None
         levels = ["system", "global", "user", "repository"]
         for level in levels:
-            with git_cli.config_reader(level) as reader:
+            with git_cli.config_reader(level) as reader:  # type: ignore
                 if reader.has_option("user", "name") and not username:
                     username = username or reader.get("user", "name")
                     user_level = user_level or level
@@ -209,8 +212,9 @@ class RepoOperator:
     # SET UP
     ####################################################################################################################
     def setup_repo_dir(self, setup_option: SetupOption = SetupOption.PULL_OR_CLONE, shallow: bool = True) -> None:
-        os.makedirs(self.base_dir, exist_ok=True)
-        os.chdir(self.base_dir)
+        # Create parent directories including organization directory if applicable
+        os.makedirs(os.path.dirname(self.repo_path), exist_ok=True)
+        os.chdir(os.path.dirname(self.repo_path))
         if setup_option is SetupOption.CLONE:
             # if repo exists delete, then clone, else clone
             clone_repo(shallow=shallow, repo_path=self.repo_path, clone_url=self.clone_url)
@@ -479,7 +483,7 @@ class RepoOperator:
 
     def _get_username_email(self) -> tuple[str, str] | None:
         for level in ["user", "global", "system"]:
-            with self.git_cli.config_reader(level) as reader:
+            with self.git_cli.config_reader(level) as reader:  # type: ignore
                 if reader.has_section("user"):
                     user, email = reader.get_value("user", "name"), reader.get_value("user", "email")
                     if isinstance(user, str) and isinstance(email, str) and user != CODEGEN_BOT_NAME and email != CODEGEN_BOT_EMAIL:
