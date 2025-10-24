@@ -54,6 +54,26 @@ After installing the integration from the Slack Marketplace, configure the bot b
 - **Invite the Codegen bot**: Type `/invite @codegen` in any channel where you want Codegen to participate.
 - (Optional) **Create a dedicated channel**: Some Codegen users find creating a channel like `#codegen` helpful for general agent interactions and to encourage experimentation.
 
+### Private Channel Access Control (Enterprise Feature)
+
+<Note>
+  This feature is available exclusively for Enterprise customers.
+</Note>
+
+Enterprise organizations can control whether Codegen responds to mentions in private channels and direct messages. This setting provides additional privacy control for sensitive discussions.
+
+**How it works:**
+- When disabled, Codegen will not respond to @mentions in private channels or direct messages
+- Instead, it will show a message directing users to the settings page to enable this feature
+- This setting applies organization-wide and affects all private channels and DMs
+
+**To configure this setting:**
+1. Navigate to your [Slack integration settings](https://codegen.com/integrations/slack)
+2. Look for the "Private Channel Access" option in the behavioral settings
+3. Toggle the setting based on your organization's privacy requirements
+
+This feature helps organizations maintain strict control over where AI agents can be invoked, ensuring sensitive discussions remain private when needed.
+
 ## What Triggers Slack Messages from Codegen
 
 These triggers kick off new Codegen requests:
