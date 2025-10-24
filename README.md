@@ -24,6 +24,27 @@
 
 The Codegen SDK provides a programmatic interface to code agents provided by [Codegen](https://codegen.com).
 
+## Quick Start
+
+1. **Install the SDK**:
+
+   ```bash
+   pip install codegen
+   ```
+
+1. **Get your API credentials** at [codegen.com/developer](https://codegen.com/developer)
+
+1. **Run your first agent**:
+
+   ```python
+   from codegen.agents.agent import Agent
+
+   agent = Agent(org_id="YOUR_ORG_ID", token="YOUR_API_TOKEN")
+   task = agent.run(prompt="Add a hello world function to my codebase")
+   ```
+
+## Example Usage
+
 ```python
 from codegen.agents.agent import Agent
 
