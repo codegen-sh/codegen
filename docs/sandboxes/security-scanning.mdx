@@ -1,0 +1,173 @@
+---
+title: "Security Scanning with TruffleHog"
+description: "Learn how Codegen uses TruffleHog to prevent secrets from being committed to your repositories"
+---
+
+## Overview
+
+Codegen uses [TruffleHog](https://github.com/trufflesecurity/trufflehog), an open-source secret scanning tool, to automatically detect and prevent secrets from being committed to your repositories. This helps protect sensitive information like API keys, passwords, and tokens from accidentally being exposed in your codebase.
+
+## How TruffleHog Works in Codegen
+
+TruffleHog is integrated into Codegen's workflow in two key areas:
+
+### 1. Pre-Push Hooks
+
+When agents push code to your repositories, a pre-push hook automatically scans all modified files for potential secrets before the push is allowed to proceed.
+
+**What happens during a push:**
+- 🔍 Scans only added/modified files (not the entire repository)
+- 📝 Respects `.trufflehogignore` patterns to avoid false positives
+- ❌ Blocks the push if potential secrets are detected
+- ✅ Allows the push to proceed if no secrets are found
+
+### 2. Signed Commits
+
+For repositories that require signed commits, TruffleHog scans files before creating commits via GitHub's API.
+
+**Security scanning during signed commits:**
+- 🛡️ Scans all files being committed
+- 🚨 Blocks commit creation if secrets are detected
+- ⚠️ Can be bypassed with `skip_trufflehog=true` (only for confirmed false positives)
+
+## Configuration
+
+### .trufflehogignore File
+
+You can create a `.trufflehogignore` file in your repository root to specify files or patterns that should be excluded from scanning. This is useful for avoiding false positives from files that contain hash-like strings or other patterns that might be mistaken for secrets.
+
+**Example .trufflehogignore:**
+```
+# Package manager lock files (contain hashes that look like secrets)
+yarn.lock
+package-lock.json
+poetry.lock
+
+# Build artifacts
+dist/
+build/
+*.min.js
+
+# Test fixtures with mock data
+test/fixtures/
+**/*test*.json
+```
+
+**Pattern matching:**
+- Supports regex patterns
+- Comments start with `#`
+- Empty lines are ignored
+- Whitespace is automatically trimmed
+
+### Scan Configuration
+
+TruffleHog is configured to scan for multiple types of results:
+- `verified` - Secrets that have been verified as active
+- `unknown` - Potential secrets that couldn't be verified
+- `unverified` - Potential secrets that failed verification
+- `filtered_unverified` - Unverified secrets that match certain patterns
+
+## When Scans Fail
+
+If TruffleHog detects potential secrets, you'll see an error message like:
+
+```
+🔒 TruffleHog security scan failed - potential secrets detected:
+[Details about detected secrets]
+
+Please review and remove any secrets before committing.
+```
+
+### Resolving Secret Detection
+
+1. **Review the detected secrets** - Check if they are real secrets or false positives
+2. **Remove real secrets** - Replace with environment variables or configuration files
+3. **Add false positives to .trufflehogignore** - If the detection is incorrect
+
+### Bypassing Scans (Use with Caution)
+
+For signed commits only, you can bypass TruffleHog scanning by setting `skip_trufflehog=true`. **This should only be used for confirmed false positives.**
+
+```python
+# Only use this for confirmed false positives!
+create_signed_commit(
+    commit_message="Fix documentation typo",
+    branch_name="fix-docs",
+    skip_trufflehog=True  # ⚠️ Use with extreme caution
+)
+```
+
+<Warning>
+**Never use `skip_trufflehog=true` to bypass real secret detection.** This defeats the security purpose and could expose sensitive information.
+</Warning>
+
+## Best Practices
+
+### Preventing Secrets in Code
+
+1. **Use environment variables** for sensitive configuration
+2. **Store secrets in secure vaults** (AWS Secrets Manager, Azure Key Vault, etc.)
+3. **Use configuration files** that are excluded from version control
+4. **Implement proper secret rotation** for any exposed secrets
+
+### Managing False Positives
+
+1. **Add patterns to .trufflehogignore** for known false positives
+2. **Use specific patterns** rather than broad exclusions
+3. **Document why patterns are excluded** with comments
+4. **Regularly review ignore patterns** to ensure they're still needed
+
+### Repository Security
+
+1. **Enable signed commits** for additional security
+2. **Review TruffleHog scan results** when they occur
+3. **Train team members** on secret management best practices
+4. **Monitor for secret exposure** in your repositories
+
+## Troubleshooting
+
+### Common Issues
+
+**Scan timeout:**
+- Large files or many files can cause timeouts
+- Consider adding large files to `.trufflehogignore`
+
+**False positives:**
+- Hash values in lock files often trigger false positives
+- Add specific file patterns to `.trufflehogignore`
+
+**Scan failures:**
+- Check that TruffleHog is properly installed in the sandbox
+- Verify file permissions and accessibility
+
+### Getting Help
+
+If you encounter issues with TruffleHog scanning:
+1. Check the scan output for specific error details
+2. Review your `.trufflehogignore` patterns
+3. Contact support if the issue persists
+
+## Technical Details
+
+### Installation
+
+TruffleHog is automatically installed in Codegen sandboxes via Homebrew:
+```bash
+brew install trufflehog
+```
+
+### Command Line Usage
+
+The typical TruffleHog command used by Codegen:
+```bash
+trufflehog filesystem [files...] \
+  --results=verified,unknown,unverified,filtered_unverified \
+  --fail \
+  -x .trufflehogignore
+```
+
+### Integration Points
+
+- **Pre-push hooks**: `scripts/pre-push.sh`
+- **Signed commits**: `create_signed_commit` tool
+- **Sandbox setup**: Dockerfile installation scripts
