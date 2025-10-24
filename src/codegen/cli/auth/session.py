@@ -24,14 +24,14 @@ class CodegenSession:
     def __init__(self, repo_path: Path, git_token: str | None = None) -> None:
         if not repo_path.exists():
             rich.print(f"\n[bold red]Error:[/bold red] Path to git repo does not exist at {repo_path}")
-            raise typer.Abort()
+            raise typer.Exit(1)
 
         # Check if it's a valid git repository
         try:
             LocalGitRepo(repo_path=repo_path)
         except Exception:
             rich.print(f"\n[bold red]Error:[/bold red] Path {repo_path} is not a valid git repository")
-            raise typer.Abort()
+            raise typer.Exit(1)
 
         self.repo_path = repo_path
         self.local_git = LocalGitRepo(repo_path=repo_path)
@@ -87,7 +87,7 @@ class CodegenSession:
         except BadCredentialsException:
             rich.print(format_command(f"\n[bold red]Error:[/bold red] Invalid GitHub token={git_token} for repo={self.local_git.full_name}"))
             rich.print("[white]Please provide a valid GitHub token for this repository.[/white]")
-            raise typer.Abort()
+            raise typer.Exit(1)
 
     def __str__(self) -> str:
         return f"CodegenSession(user={self.config.repository.user_name}, repo={self.config.repository.name})"
