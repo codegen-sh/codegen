@@ -62,14 +62,6 @@ repos:
           - tomli
         files: "docs/.*/.*.mdx"
 
-  - repo: https://github.com/fpgmaas/deptry.git
-    rev: "0.23.0"
-    hooks:
-      - id: deptry
-        pass_filenames: false
-        always_run: true
-        entry: bash -c "uv run --frozen --all-extras --dev deptry src --ignore DEP001 --extend-exclude 'codegen-examples/.*'"
-
   - repo: https://github.com/renovatebot/pre-commit-hooks
     rev: 39.169.3
     hooks:
