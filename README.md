@@ -53,13 +53,32 @@ if task.status == "completed":
 
 ## Installation and Usage
 
-Install the SDK using pip or uv:
+Install the SDK using pip, pipx, or uv:
 
 ```bash
 pip install codegen
 # or
-uv pip install codegen
+pipx install codegen
+# or
+uv tool install codegen
 ```
+
+### Keeping Up to Date
+
+The Codegen CLI includes a built-in self-update system:
+
+```bash
+# Update to the latest version
+codegen update
+
+# Check for available updates
+codegen update --check
+
+# Update to a specific version
+codegen update --version 1.2.3
+```
+
+The CLI automatically checks for updates daily and notifies you when a new version is available.
 
 Get started at [codegen.com](https://codegen.com) and get your API token at [codegen.com/token](https://codegen.com/token).
 

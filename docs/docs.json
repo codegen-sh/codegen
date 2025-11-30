@@ -17,22 +17,26 @@
             "group": "Overview",
             "pages": [
               "introduction/overview",
-              "introduction/prompting",
+              "introduction/use-cases",
               "introduction/support",
               "introduction/community",
               "introduction/about",
+              "introduction/prompting",
               "introduction/faq"
             ]
           },
           {
-            "group": "Capabilities",
+            "group": "Guides",
             "pages": [
               "capabilities/capabilities",
+              "capabilities/triggering-codegen",
               "capabilities/checks-autofixer",
               "capabilities/pr-review",
+              "capabilities/claude-code",
               "capabilities/analytics",
               "introduction/cli",
-              "introduction/sdk"
+              "introduction/sdk",
+              "settings/on-prem-deployment"
             ]
           },
           {
@@ -41,10 +45,10 @@
               "settings/settings",
               "settings/repo-rules",
               "settings/model-configuration",
-              "settings/claude-code",
               "settings/agent-behavior",
               "settings/agent-permissions",
-              "settings/team-roles"
+              "settings/team-roles",
+              "settings/trufflehog-integration"
             ]
           },
           {

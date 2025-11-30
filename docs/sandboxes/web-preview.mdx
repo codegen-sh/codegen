@@ -57,6 +57,13 @@ bundle exec rails server -b 127.0.0.1 -p 3000
   Variables](./environment-variables).
 </Tip>
 
+<Tip>
+  The `CG_PREVIEW_URL` environment variable is automatically set and contains
+  the URL where your web preview will be accessible. Use this in your
+  application code when you need to reference the preview URL programmatically
+  (e.g., for CORS configuration, webhooks, or generating absolute URLs).
+</Tip>
+
 <Note>
   The web preview is intended for development and debugging purposes. The server
   is typically only accessible while the agent run is active or for a short

@@ -5,6 +5,14 @@ icon: "robot"
 iconType: "solid"
 ---
 
+<Frame>
+  <video
+    controls
+    src="https://res.cloudinary.com/dbikr6pew/video/upload/v1758569401/Product_Demo_Video_x5kvaa.mp4"
+    className="aspect-[1920/1080]"
+  />
+</Frame>
+
 [Codegen](https://codegen.com) helps you run frontier code agents at scale. It provides the necessary building blocks (sandboxes, integrations, telemetry) for successful enterprise code agent deployments across thousands of teams today.
 
 <Tip>
@@ -31,13 +39,17 @@ Codegen agents come equipped with a versatile set of tools and capabilities:
     Update statuses, add comments, link PRs to issues, and create new tasks.
     Support for Jira, Linear, Clickup and Monday.com.
   </Card>
-  <Card title="Auto-Fix Broken Tests" icon="github" href="/integrations/github">
+  <Card
+    title="Auto-Fix Broken Tests"
+    icon="github"
+    href="/capabilities/checks-autofixer"
+  >
     Review PRs, suggest changes, comment on issues, create branches, commit
     code, and manage repositories.
   </Card>
-  <Card title="Safely Execute Code" icon="box" href="/integrations/sandboxes">
-    Safely run code, install dependencies, and test changes in an isolated
-    environment.
+  <Card title="Safely Execute Code" icon="box" href="/sandboxes/overview">
+    Safely run code, install dependencies, and test changes in robust isolated
+    environments
   </Card>
   <Card
     title="Integrate with Your Dev Stack"
@@ -46,6 +58,18 @@ Codegen agents come equipped with a versatile set of tools and capabilities:
   >
     Connect with Slack, Linear, Figma, databases, and extend capabilities with
     custom MCP tools.
+  </Card>
+  <Card title="Leave PR Reviews" icon="plug" href="/capabilities/pr-review">
+    Connect with Slack, Linear, Figma, databases, and extend capabilities with
+    custom MCP tools.
+  </Card>
+  <Card
+    title="Claude Code Integration"
+    icon="code"
+    href="/capabilities/claude-code"
+  >
+    Log local Claude Code instances to the cloud and provision MCP servers
+    across your org.
   </Card>
 </CardGroup>
 

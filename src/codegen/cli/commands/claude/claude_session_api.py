@@ -5,11 +5,12 @@ import uuid
 from typing import Optional
 
 import requests
-from .quiet_console import console
 
 from codegen.cli.api.endpoints import API_ENDPOINT
 from codegen.cli.auth.token_manager import get_current_token
 from codegen.cli.utils.org import resolve_org_id
+
+from .quiet_console import console
 
 
 class ClaudeSessionAPIError(Exception):
@@ -190,6 +191,61 @@ def send_claude_session_log(session_id: str, log_entry: dict, org_id: Optional[i
     except Exception as e:
         console.print(f"⚠️  Unexpected error sending log entry: {e}", style="yellow")
         return False
+
+
+def get_cli_rules(org_id: Optional[int] = None) -> Optional[dict]:
+    """Fetch CLI rules from the API endpoint.
+
+    Args:
+        org_id: Organization ID (will be resolved if None)
+
+    Returns:
+        Dictionary containing organization_rules and user_custom_prompt, or None if failed
+    """
+    try:
+        # Resolve org_id
+        resolved_org_id = resolve_org_id(org_id)
+        if resolved_org_id is None:
+            console.print("⚠️  Could not resolve organization ID for CLI rules", style="yellow")
+            return None
+
+        # Get authentication token
+        token = get_current_token()
+        if not token:
+            console.print("⚠️  No authentication token found for CLI rules", style="yellow")
+            return None
+
+        # Prepare API request
+        url = f"{API_ENDPOINT.rstrip('/')}/v1/organizations/{resolved_org_id}/cli/rules"
+        headers = {"Authorization": f"Bearer {token}"}
+
+        # Make API request
+        response = requests.get(url, headers=headers, timeout=30)
+
+        if response.status_code == 200:
+            try:
+                result = response.json()
+                return result
+            except json.JSONDecodeError as e:
+                console.print(f"⚠️  Invalid response format from CLI rules: {e}", style="yellow")
+                return None
+        else:
+            error_msg = f"HTTP {response.status_code}"
+            try:
+                error_detail = response.json().get("detail", response.text)
+                error_msg = f"{error_msg}: {error_detail}"
+            except Exception:
+                error_msg = f"{error_msg}: {response.text}"
+
+            console.print(f"⚠️  Failed to fetch CLI rules: {error_msg}", style="yellow")
+            return None
+
+    except requests.RequestException as e:
+        console.print(f"⚠️  Network error fetching CLI rules: {e}", style="yellow")
+        return None
+    except Exception as e:
+        console.print(f"⚠️  Unexpected error fetching CLI rules: {e}", style="yellow")
+        return None
 
 
 def write_session_hook_data(session_id: str, org_id: Optional[int] = None) -> str:

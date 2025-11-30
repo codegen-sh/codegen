@@ -6,8 +6,13 @@ import requests
 import rich
 import typer
 from packaging.version import Version
+from rich.console import Console
 
 import codegen
+
+from .updater import UpdateManager
+
+console = Console()
 
 
 def fetch_pypi_releases(package: str) -> list[str]:
@@ -31,18 +36,49 @@ def install_package(package: str, *args: str) -> None:
 
 
 def update(
-    list_: bool = typer.Option(False, "--list", "-l", help="List all supported versions of the codegen"),
-    version: str | None = typer.Option(None, "--version", "-v", help="Update to a specific version of the codegen"),
+    list_: bool = typer.Option(False, "--list", "-l", help="List all supported versions"),
+    version: str | None = typer.Option(None, "--version", "-v", help="Update to a specific version"),
+    check: bool = typer.Option(False, "--check", help="Check for available updates without installing"),
+    legacy: bool = typer.Option(False, "--legacy", help="Use legacy update method (simple pip upgrade)"),
 ):
-    """Update Codegen to the latest or specified version
+    """Update Codegen CLI to the latest or specified version.
 
-    --list: List all supported versions of the codegen
-    --version: Update to a specific version of the codegen
+    Examples:
+        codegen update                    # Update to latest version
+        codegen update --check            # Check for updates
+        codegen update --version 1.2.3    # Update to specific version
     """
-    if list_ and version:
-        rich.print("[red]Error:[/red] Cannot specify both --list and --version")
-        raise typer.Exit(1)
+    # Handle legacy mode
+    if legacy:
+        _legacy_update(list_, version)
+        return
 
+    # Use new update manager
+    manager = UpdateManager()
+
+    # Handle different actions
+    if check or list_:
+        result = manager.check_for_updates(force=True)
+
+        if result.update_available:
+            console.print(f"\n[cyan]Update available: {result.current_version} → {result.latest_version}[/cyan]")
+            console.print("[dim]Run 'codegen update' to upgrade[/dim]\n")
+        else:
+            console.print("[green]You're on the latest version![/green]")
+
+        if list_ and result.versions:
+            console.print("\n[bold]Available versions:[/bold]")
+            for ver_info in result.versions[:10]:
+                marker = " (current)" if ver_info.version == result.current_version else ""
+                console.print(f"  {ver_info.version}{marker}")
+    else:
+        # Perform update
+        if not manager.perform_update(target_version=version):
+            raise typer.Exit(1)
+
+
+def _legacy_update(list_: bool, version: str | None):
+    """Legacy update method using simple pip upgrade."""
     package_name = codegen.__package__ or "codegen"
     package_info = distribution(package_name)
     current_version = Version(package_info.version)

@@ -1540,6 +1540,162 @@
         }
       }
     },
+    "/v1/mcp-providers": {
+      "get": {
+        "tags": [
+          "organizations",
+          "organizations"
+        ],
+        "summary": "Get Mcp Providers",
+        "description": "Get all MCP providers from oauth_providers table.\n\nReturns only providers with is_mcp=True.",
+        "operationId": "get_mcp_providers_v1_mcp_providers_get",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OAuthProviderResponse"
+                  },
+                  "title": "Response Get Mcp Providers V1 Mcp Providers Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/oauth/tokens/status": {
+      "get": {
+        "tags": [
+          "organizations",
+          "organizations"
+        ],
+        "summary": "Get Oauth Token Status",
+        "description": "Get list of providers that have active OAuth tokens for the current user and organization.\n\nReturns a list of provider names that are connected.",
+        "operationId": "get_oauth_token_status_v1_oauth_tokens_status_get",
+        "parameters": [
+          {
+            "name": "org_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Org Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/oauth/tokens/revoke": {
+      "post": {
+        "tags": [
+          "organizations",
+          "organizations"
+        ],
+        "summary": "Revoke Oauth Token",
+        "description": "Revoke/disconnect an OAuth token for a specific provider.\n\nMarks ALL tokens as inactive (is_active=False) for the current user and organization.",
+        "operationId": "revoke_oauth_token_v1_oauth_tokens_revoke_post",
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Provider"
+            }
+          },
+          {
+            "name": "org_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Org Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/organizations/{org_id}/sandbox/{sandbox_id}/analyze-logs": {
       "post": {
         "tags": [
@@ -1614,6 +1770,132 @@
           },
           "400": {
             "description": "No logs available for analysis"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/organizations/{org_id}/cli/rules": {
+      "get": {
+        "tags": [
+          "cli-rules",
+          "cli-rules",
+          "cli-rules"
+        ],
+        "summary": "Get Cli Rules",
+        "description": "Get organization and user rules for CLI applications.\n\nThis endpoint is designed for CLI applications that need to fetch both organization-specific\nrules and user-specific custom prompts that are used in prompts. This includes:\n\n- Organization rules: Same as MCP organization_rules prompt and agent prompt builders\n- User custom prompt: Same as MCP user_custom_prompt and agent prompt builders\n\nReturns the rules and prompts that should be followed by AI agents.\n\nRate limit: 30 requests per minute.",
+        "operationId": "get_cli_rules_v1_organizations__org_id__cli_rules_get",
+        "parameters": [
+          {
+            "name": "org_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Org Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CLIRulesResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIRateLimitErrorResponse"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PermissionsErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/slack-connect/generate-token": {
+      "post": {
+        "tags": [
+          "slack-connect",
+          "slack-connect"
+        ],
+        "summary": "Generate Slack Connect Token Endpoint",
+        "description": "Generate a temporary token for Slack account connection.\n\nThis token:\n- Expires in 10 minutes\n- Can only be used once\n- Must be sent to the Codegen bot in a DM with format: \"Connect my account: {token}\"",
+        "operationId": "generate_slack_connect_token_endpoint_v1_slack_connect_generate_token_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateTokenRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerateTokenResponse"
+                }
+              }
+            }
           },
           "422": {
             "description": "Validation Error",
@@ -2182,6 +2464,39 @@
         ],
         "title": "ApiAgentRunSourceType"
       },
+      "CLIRulesResponse": {
+        "properties": {
+          "organization_rules": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organization Rules"
+          },
+          "user_custom_prompt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Custom Prompt"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organization_rules",
+          "user_custom_prompt"
+        ],
+        "title": "CLIRulesResponse",
+        "description": "Response model for CLI rules containing organization and user rules."
+      },
       "CheckSuiteSettingsRequest": {
         "properties": {
           "check_retry_count": {
@@ -2374,6 +2689,22 @@
             ],
             "title": "Model",
             "description": "Model to use for this agent run (optional, uses org default if not specified)"
+          },
+          "agent_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "codegen",
+                  "claude_code"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Agent Type",
+            "description": "Type of agent to use for this agent run (optional, uses org default if not specified)"
           }
         },
         "type": "object",
@@ -2500,6 +2831,42 @@
         ],
         "title": "GenerateSetupCommandsInput",
         "description": "Input for generating setup commands."
+      },
+      "GenerateTokenRequest": {
+        "properties": {
+          "org_id": {
+            "type": "integer",
+            "title": "Org Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "org_id"
+        ],
+        "title": "GenerateTokenRequest"
+      },
+      "GenerateTokenResponse": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "expires_in_minutes": {
+            "type": "integer",
+            "title": "Expires In Minutes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "message",
+          "expires_in_minutes"
+        ],
+        "title": "GenerateTokenResponse"
       },
       "GithubPullRequestResponse": {
         "properties": {
@@ -2638,6 +3005,72 @@
         },
         "type": "object",
         "title": "NoReposFoundInOrgErrorResponse"
+      },
+      "OAuthProviderResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "issuer": {
+            "type": "string",
+            "title": "Issuer"
+          },
+          "authorization_endpoint": {
+            "type": "string",
+            "title": "Authorization Endpoint"
+          },
+          "token_endpoint": {
+            "type": "string",
+            "title": "Token Endpoint"
+          },
+          "default_scopes": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Scopes"
+          },
+          "is_mcp": {
+            "type": "boolean",
+            "title": "Is Mcp"
+          },
+          "meta": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meta"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "issuer",
+          "authorization_endpoint",
+          "token_endpoint",
+          "default_scopes",
+          "is_mcp"
+        ],
+        "title": "OAuthProviderResponse",
+        "description": "Response model for OAuth provider data."
       },
       "OrganizationIntegrationsResponse": {
         "properties": {
@@ -3023,6 +3456,30 @@
           "agent_run_id": {
             "type": "integer",
             "title": "Agent Run Id"
+          },
+          "before_card_order_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Before Card Order Id",
+            "description": "Kanban order key of the card that should come before this agent run in the CANCELLED column"
+          },
+          "after_card_order_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "After Card Order Id",
+            "description": "Kanban order key of the card that should come after this agent run in the CANCELLED column"
           }
         },
         "type": "object",

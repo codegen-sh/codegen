@@ -1,14 +1,22 @@
 ---
 title: "PR Review Agent"
 sidebarTitle: "PR Review"
-icon: "eye"
+icon: "microscope"
 ---
 
-Codegen provides a configurable AI code review feature similar to CodeRabbit, Graphite, or Greptile as a first-class feature.
+Codegen provides AI code review as a first-class supported feature.
+
+<Frame>
+  <video
+    controls
+    src="https://res.cloudinary.com/dbikr6pew/video/upload/v1757981307/Reviews_lufat8.mp4"
+    className="aspect-[3584/2160]"
+  />
+</Frame>
 
 <Card
   title="Configure PR Reviews"
-  icon="eye"
+  icon="microscope"
   href="https://codegen.com/settings/review"
 >
   Set up PR review at the organization level, then customize per repository.
@@ -16,7 +24,9 @@ Codegen provides a configurable AI code review feature similar to CodeRabbit, Gr
 
 ## How It Works
 
-When you open a PR or push new commits, Codegen agents analyze the changes and provide:
+When PR review is enabled on a repo, a Codegen agent will spin up to leave a detailed review.
+
+This includes:
 
 - **Inline comments** on specific lines with actionable feedback
 - **Security scanning** for vulnerabilities and unsafe patterns

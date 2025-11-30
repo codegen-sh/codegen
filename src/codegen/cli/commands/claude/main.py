@@ -19,6 +19,7 @@ from codegen.cli.commands.claude.claude_log_watcher import ClaudeLogWatcherManag
 from codegen.cli.commands.claude.claude_session_api import (
     create_claude_session,
     generate_session_id,
+    get_cli_rules,
     update_claude_session_status,
 )
 from codegen.cli.commands.claude.config.mcp_setup import add_codegen_mcp_server, cleanup_codegen_mcp_server
@@ -184,22 +185,15 @@ def _run_claude_interactive(resolved_org_id: int, no_mcp: bool | None) -> None:
     # Initialize log watcher manager
     log_watcher_manager = ClaudeLogWatcherManager()
 
-    # Resolve Claude CLI path and test accessibility
+    # Resolve Claude CLI path (we already checked it exists in the main claude() function)
     claude_path = resolve_claude_path()
     if not claude_path:
+        # This should not happen since we check earlier, but handle it just in case
         logger.error(
-            "Claude CLI not found",
+            "Claude CLI not found in interactive mode",
             extra={"operation": "claude.interactive", "org_id": resolved_org_id, "claude_session_id": session_id, "error_type": "claude_cli_not_found", **_get_session_context()},
         )
         console.print("❌ Claude Code CLI not found.", style="red")
-        console.print(
-            "💡 If you migrated a local install, ensure `~/.claude/local/claude` exists, or add it to PATH.",
-            style="dim",
-        )
-        console.print(
-            "💡 Otherwise install globally via npm (e.g., `npm i -g claude`) or run `claude /migrate`.",
-            style="dim",
-        )
         update_claude_session_status(session_id, "ERROR", resolved_org_id)
         raise typer.Exit(1)
 
@@ -228,13 +222,46 @@ def _run_claude_interactive(resolved_org_id: int, no_mcp: bool | None) -> None:
     console.print("🔵 Starting Claude Code session...", style="blue")
 
     try:
+        # Fetch CLI rules for system prompt
+        console.print("📋 Fetching CLI rules...", style="blue")
+        cli_rules = get_cli_rules(resolved_org_id)
+
+        # Build Claude command
+        claude_cmd = [claude_path, "--session-id", session_id]
+
+        # Add system prompt if CLI rules were fetched successfully
+        if cli_rules:
+            system_prompt_parts = []
+
+            # Add organization rules if available
+            if cli_rules.get("organization_rules"):
+                system_prompt_parts.append("Organization Rules:")
+                system_prompt_parts.append(cli_rules["organization_rules"])
+
+            # Add user custom prompt if available
+            if cli_rules.get("user_custom_prompt"):
+                if system_prompt_parts:  # Add separator if we already have org rules
+                    system_prompt_parts.append("\n")
+                system_prompt_parts.append("User Custom Prompt:")
+                system_prompt_parts.append(cli_rules["user_custom_prompt"])
+
+            # Combine all parts into system prompt
+            if system_prompt_parts:
+                system_prompt = "\n".join(system_prompt_parts)
+                claude_cmd.extend(["--append-system-prompt", system_prompt])
+                console.print("✅ Added CLI rules to system prompt", style="green")
+            else:
+                console.print("⚠️  CLI rules response was empty", style="yellow")
+        else:
+            console.print("⚠️  Could not fetch CLI rules, continuing without system prompt", style="yellow")
+
         # Launch Claude Code with our session ID
         console.print(f"🚀 Launching Claude Code with session ID: {session_id[:8]}...", style="blue")
 
         url = get_codegen_url(session_id)
         console.print(f"\n🔵 Codegen URL: {url}\n", style="bold blue")
 
-        process = subprocess.Popen([claude_path, "--session-id", session_id])
+        process = subprocess.Popen(claude_cmd)
 
         # Start log watcher for the session
         console.print("📋 Starting log watcher...", style="blue")
@@ -295,7 +322,7 @@ def _run_claude_interactive(resolved_org_id: int, no_mcp: bool | None) -> None:
             console.print("✅ Claude Code finished successfully", style="green")
 
     except FileNotFoundError:
-        logger.error(
+        logger.exception(
             "Claude Code executable not found",
             extra={"operation": "claude.interactive", "org_id": resolved_org_id, "claude_session_id": session_id, "error_type": "claude_executable_not_found", **_get_session_context()},
         )
@@ -372,6 +399,24 @@ def claude(
             **_get_session_context(),
         },
     )
+
+    # Check if Claude is installed for interactive mode (not needed for background mode)
+    if background is None:
+        claude_path = resolve_claude_path()
+        if not claude_path:
+            logger.error(
+                "Claude CLI not found",
+                extra={"operation": "claude.command", "error_type": "claude_cli_not_found", **_get_session_context()},
+            )
+            # Use t_console (the visible console) for error messages instead of the quiet console
+            t_console.print("\n[red bold]❌ Claude Code Not Installed[/red bold]")
+            t_console.print("\n[yellow]Claude Code CLI is not installed or cannot be found.[/yellow]")
+            t_console.print("\n[bold]To install Claude Code:[/bold]")
+            t_console.print("  • Install globally: [cyan]npm install -g @anthropic-ai/claude-code[/cyan]")
+            t_console.print("  • Or run: [cyan]claude /migrate-installer[/cyan] for local installation")
+            t_console.print("\n[dim]If you migrated a local install, ensure ~/.claude/local/claude exists[/dim]")
+            t_console.print("[dim]or add it to your PATH.[/dim]")
+            raise typer.Exit(1)
 
     # Resolve org_id early for session management
     resolved_org_id = resolve_org_id(org_id)

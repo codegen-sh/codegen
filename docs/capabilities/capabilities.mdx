@@ -1,6 +1,6 @@
 ---
-title: "Agent Capabilities"
-sidebarTitle: "Overview"
+title: "How Codegen Agents Work"
+sidebarTitle: "How it Works"
 icon: "gear"
 iconType: "solid"
 ---
@@ -28,7 +28,7 @@ graph TD
     A3[GitHub issue comment] --> A
 ```
 
-### 1. Trigger `@codegen` from Your Tools
+### 1. Users Trigger `@codegen` to Perform Tasks
 
 Agents activate seamlessly from the platforms you already use:
 
@@ -40,7 +40,7 @@ Agents activate seamlessly from the platforms you already use:
 - **[GitHub](/integrations/github)** - Comment on issues or PRs to request changes
 - **[API](http://localhost:3001/api-reference/agents/create-agent-run)** - Programmatically trigger agents for automated workflows
 
-### 2. Work in Secure Sandboxes
+### 2. `@codegen` Performs Work in Secure Sandboxes
 
 Once triggered, agents work in **[isolated sandbox environments](/sandboxes/overview)** where they can:
 
@@ -49,7 +49,7 @@ Once triggered, agents work in **[isolated sandbox environments](/sandboxes/over
 - Make changes and validate them before committing
 - Access your repository context while maintaining security
 
-### 3. Create and Manage Pull Requests
+### 3. Users Receive Completed Pull-Requests
 
 Agents create **[GitHub pull requests](/integrations/github)** with:
 
@@ -58,7 +58,7 @@ Agents create **[GitHub pull requests](/integrations/github)** with:
 - Clean, tested code ready for review
 - Proper commit messages following your conventions
 
-### 4. Monitor and Auto-fix Issues
+### 4. Agents Monitor and Auto-fix PR Issues
 
 The **[Checks Auto-fixer](/capabilities/checks-autofixer)** ensures quality by:
 
@@ -67,7 +67,7 @@ The **[Checks Auto-fixer](/capabilities/checks-autofixer)** ensures quality by:
 - Pushing targeted fixes to resolve issues
 - Retrying up to 3 times before escalating to humans
 
-### 5. Respond to Follow-ups
+### 5. Agents Respond to Follow-ups
 
 Agents remain active to handle questions and refinements:
 

@@ -1,0 +1,134 @@
+---
+title: "Claude Code Integration"
+sidebarTitle: "Claude Code"
+icon: "code"
+---
+
+Claude Code brings the power of Anthropic's coding assistant directly into your development workflow through Codegen. Whether you're running Claude locally or in the cloud, Codegen provides the infrastructure to enhance your AI coding experience with telemetry, integrations, and seamless deployment options.
+
+<Frame>
+  <video
+    controls
+    src="https://res.cloudinary.com/dbikr6pew/video/upload/v1757996504/Claude_Code_Integration_coe5sm.mp4"
+    className="aspect-[3340/2160]"
+  />
+</Frame>
+
+## Cloud Logging for Local Sessions
+
+Every local Claude Code session is automatically logged to the cloud through the Codegen CLI. This seamless integration means your local development gains enterprise-grade observability without any extra configuration.
+
+When you run Claude through `codegen`, you get:
+
+- **Persistent history** across all your local Claude sessions
+- **Searchable conversations** accessible from any device
+- **Team visibility** into AI-assisted development patterns
+- **Audit trails** for compliance and debugging
+
+<Note>
+  Sessions appear instantly at [codegen.com/agents](https://codegen.com/agents),
+  making it easy to share context with teammates or continue work from another
+  machine.
+</Note>
+
+## Connect Claude Code to Codegen Tools
+
+Claude Code running through Codegen automatically gains access to all your connected integrations via MCP (Model Context Protocol). This transforms Claude from a coding assistant into a full development platform orchestrator.
+
+Your existing Codegen integrations work seamlessly:
+
+- **Slack** - Send updates and coordinate with your team
+- **Linear/Jira** - Update tickets and track progress
+- **GitHub** - Create PRs and manage repositories
+- **Databases** - Query and modify data safely
+- **Custom tools** - Any MCP server you've configured
+
+No additional setup required - if it's connected to Codegen, Claude can use it.
+
+<Tip>
+  MCP integration means Claude can perform complex workflows like "When tests
+  fail, create a Linear ticket and notify the team on Slack" - all in a single
+  command.
+</Tip>
+
+## Run Background Agents from your Terminal
+
+Keep your terminal free while Claude handles long-running tasks. Background agents run asynchronously, perfect for automation that doesn't need constant supervision.
+
+## Remote Sandbox Execution
+
+Configure Claude Code as your default agent to run in Codegen's secure cloud sandboxes. This provides consistent, scalable environments for all your AI-assisted development.
+
+<Card
+  title="Set Claude Code as Default"
+  icon="toggle-on"
+  href="https://codegen.com/settings/model"
+>
+  Enable Claude Code mode to run all agents in secure sandboxes with full
+  integration support.
+</Card>
+
+Remote execution benefits:
+
+- **Consistent environments** across your team
+- **Pre-configured tools** and dependencies
+- **Scalable compute** for resource-intensive tasks
+- **Security isolation** from your local machine
+
+## Getting Started
+
+### Local Claude with Cloud Benefits
+
+Get up and running in three simple steps:
+
+1. Install the Codegen CLI:
+
+   ```bash
+   uv tool install codegen
+   ```
+
+2. Authenticate with your account:
+
+   ```bash
+   codegen login
+   ```
+
+3. Run Claude with full telemetry:
+   ```bash
+   codegen claude "Help me refactor this authentication module"
+   ```
+
+Your session immediately appears in the cloud with full integration access.
+
+<Tip>
+  To use claude with codegen, ensure you have claude installed and available on your system.
+</Tip>
+
+## Analytics and Insights
+
+Transform your Claude Code usage into actionable intelligence. The analytics dashboard provides deep insights into how AI is transforming your development workflow.
+
+Track key metrics:
+
+- **Token usage** to understand costs and optimize prompts
+- **Task completion rates** and success patterns
+- **Integration usage** showing which tools Claude uses most
+- **Team adoption** identifying power users and best practices
+
+Access detailed analytics at [codegen.com/analytics](https://codegen.com/analytics).
+
+<Tip>
+  Use analytics to identify repetitive tasks that could be automated with
+  background agents, maximizing your team's productivity gains.
+</Tip>
+
+## What's Next
+
+Claude Code integration is just the beginning. We're actively working on:
+
+- OpenAI Codex support for GPT-4 workflows
+- Gemini CLI integration for Google's models
+- Enhanced MCP protocol features
+- Custom model deployment options
+
+Join our [community Slack](https://community.codegen.com) to stay updated and share your Claude Code workflows with other developers.
