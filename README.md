@@ -22,6 +22,8 @@
 
 <br />
 
+Last updated: April 17, 2025
+
 The Codegen SDK provides a programmatic interface to code agents provided by [Codegen](https://codegen.com).
 
 ```python
