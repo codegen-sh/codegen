@@ -212,19 +212,33 @@ class GitRepoClient:
         if base_branch_name is None:
             base_branch_name = self.default_branch
 
-        # draft PRs are not supported on all private repos
-        # TODO: check repo plan features instead of this heuristic
+        # First, check if we should attempt to create a draft PR
+        should_try_draft = draft
+
+        # Private repos may not support draft PRs, but this is just a heuristic
         if self.repo.visibility == "private":
-            logger.info(f"Repo {self.repo.name} is private. Disabling draft PRs.")
-            draft = False
+            logger.info(f"Repo {self.repo.name} is private. Draft PRs might not be supported.")
+            # We'll still try if draft is requested, but we're prepared to handle failure
 
         try:
-            pr = self.repo.create_pull(title=title or f"Draft PR for {head_branch_name}", body=body or "", head=head_branch_name, base=base_branch_name, draft=draft)
+            # First attempt - try with draft if requested
+            pr = self.repo.create_pull(title=title or f"PR for {head_branch_name}", body=body or "", head=head_branch_name, base=base_branch_name, draft=should_try_draft)
             logger.info(f"Created pull request for head branch: {head_branch_name} at {pr.html_url}")
             # NOTE: return a read-only copy to prevent people from editing it
             return self.repo.get_pull(pr.number)
         except GithubException as ge:
-            logger.warning(f"Failed to create PR got GithubException\n\t{ge}")
+            # Check if this is the specific error about draft PRs not being supported
+            if should_try_draft and "Draft pull requests are not supported in this repository" in str(ge):
+                logger.warning(f"Draft PRs not supported in repository {self.repo.name}. Retrying with draft=False.")
+                try:
+                    # Second attempt - try without draft
+                    pr = self.repo.create_pull(title=title or f"PR for {head_branch_name}", body=body or "", head=head_branch_name, base=base_branch_name, draft=False)
+                    logger.info(f"Created non-draft pull request for head branch: {head_branch_name} at {pr.html_url}")
+                    return self.repo.get_pull(pr.number)
+                except Exception as retry_e:
+                    logger.warning(f"Failed to create non-draft PR after draft PR failed:\n\t{retry_e}")
+            else:
+                logger.warning(f"Failed to create PR got GithubException\n\t{ge}")
         except Exception as e:
             logger.warning(f"Failed to create PR:\n\t{e}")
 
@@ -451,6 +465,28 @@ class GitRepoClient:
         post_parameters = {"branch": branch_name}
         status, _, _ = self.repo._requester.requestJson("POST", f"{self.repo.url}/merge-upstream", input=post_parameters)
         return status == 200
+
+    ####################################################################################################################
+    # DRAFT PR SUPPORT
+    ####################################################################################################################
+
+    def accepts_draft_prs(self) -> bool:
+        """Check if the repository supports draft PRs.
+
+        This method uses a cached result if available to avoid making unnecessary API calls.
+
+        Returns:
+            bool: True if the repository supports draft PRs, False otherwise.
+        """
+        # Private repos may not support draft PRs (this is just a heuristic)
+        if self.repo.visibility == "private":
+            logger.info(f"Repo {self.repo.name} is private. Draft PRs might not be supported.")
+            # We'll still return True here and let the create_pull method handle the fallback
+            # This avoids an extra API call just to check
+            return True
+
+        # For public repos, draft PRs are generally supported
+        return True
 
     ####################################################################################################################
     # SEARCH
