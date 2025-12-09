@@ -219,10 +219,31 @@ class GitRepoClient:
             draft = False
 
         try:
-            pr = self.repo.create_pull(title=title or f"Draft PR for {head_branch_name}", body=body or "", head=head_branch_name, base=base_branch_name, draft=draft)
-            logger.info(f"Created pull request for head branch: {head_branch_name} at {pr.html_url}")
-            # NOTE: return a read-only copy to prevent people from editing it
-            return self.repo.get_pull(pr.number)
+            # First attempt to create with draft=True if requested
+            if draft:
+                try:
+                    pr = self.repo.create_pull(title=title or f"Draft PR for {head_branch_name}", body=body or "", head=head_branch_name, base=base_branch_name, draft=True)
+                    logger.info(f"Created draft pull request for head branch: {head_branch_name} at {pr.html_url}")
+                    # NOTE: return a read-only copy to prevent people from editing it
+                    return self.repo.get_pull(pr.number)
+                except GithubException as ge:
+                    # Check if the error is related to draft PR support (422 Unprocessable Entity)
+                    if "422" in str(ge) and "draft" in str(ge).lower():
+                        logger.warning("Repository doesn't support draft PRs. Creating regular PR instead.")
+                        # Fall back to non-draft PR
+                        pr = self.repo.create_pull(title=title or f"PR for {head_branch_name}", body=body or "", head=head_branch_name, base=base_branch_name, draft=False)
+                        logger.info(f"Created regular pull request for head branch: {head_branch_name} at {pr.html_url}")
+                        # NOTE: return a read-only copy to prevent people from editing it
+                        return self.repo.get_pull(pr.number)
+                    else:
+                        # Re-raise if it's not a draft PR support issue
+                        raise
+            else:
+                # If draft is not requested, create a regular PR
+                pr = self.repo.create_pull(title=title or f"PR for {head_branch_name}", body=body or "", head=head_branch_name, base=base_branch_name, draft=False)
+                logger.info(f"Created pull request for head branch: {head_branch_name} at {pr.html_url}")
+                # NOTE: return a read-only copy to prevent people from editing it
+                return self.repo.get_pull(pr.number)
         except GithubException as ge:
             logger.warning(f"Failed to create PR got GithubException\n\t{ge}")
         except Exception as e:
