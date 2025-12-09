@@ -1,6 +1,5 @@
 import codecs
 import fnmatch
-import glob
 import os
 from collections.abc import Generator
 from datetime import UTC, datetime
@@ -593,19 +592,8 @@ class RepoOperator:
         if os.listdir(self.abspath(os.path.dirname(path))) == []:
             os.rmdir(self.abspath(os.path.dirname(path)))
 
-    def get_filepaths_for_repo(self, ignore_list):
-        # Get list of files to iterate over based on gitignore setting
-        if self.repo_config.respect_gitignore:
-            # ls-file flags:
-            # -c: show cached files
-            # -o: show other / untracked files
-            # --exclude-standard: exclude standard gitignore rules
-            filepaths = self.git_cli.git.ls_files("-co", "--exclude-standard").split("\n")
-        else:
-            filepaths = glob.glob("**", root_dir=self.repo_path, recursive=True, include_hidden=True)
-            # Filter filepaths by ignore list.
-        if ignore_list:
-            filepaths = [f for f in filepaths if not any(fnmatch.fnmatch(f, pattern) or f.startswith(pattern) for pattern in ignore_list)]
+    def get_filepaths_for_repo(self, ignore_list: list[str] | None) -> list[str]:
+        filepaths = self._get_filepaths_for_repo_raw(ignore_list)
 
         # Fix bug where unicode characters are not handled correctly
         for i, filepath in enumerate(filepaths):
@@ -627,6 +615,47 @@ class RepoOperator:
                 filepaths[i] = filepath
 
         return filepaths
+
+    def _get_filepaths_for_repo_raw(self, ignore_list: list[str] | None) -> list[str]:
+        """Walks the directory tree, ignoring any files which match `ignore_list`,
+        and not traversing any directories which match the list.
+        """
+        # Get list of files to iterate over based on gitignore setting
+        if self.repo_config.respect_gitignore:
+            # ls-file flags:
+            # -c: show cached files
+            # -o: show other / untracked files
+            # --exclude-standard: exclude standard gitignore rules
+            return [
+                filepath.strip()
+                for filepath in self.git_cli.git.ls_files("-co", "--exclude-standard").split("\n")
+                if filepath.strip()
+                if not self._matches_ignore_list(ignore_list, filepath)
+            ]
+
+        filepaths = []
+        for dirpath, subdirnames, filenames in os.walk(self.repo_path):
+            to_remove = []
+            for i, subdirname in enumerate(subdirnames):
+                subdirpath = os.path.join(dirpath, subdirname)
+                if self._matches_ignore_list(ignore_list, subdirpath):
+                    to_remove.append(i)
+
+            for i in reversed(to_remove):
+                subdirnames.pop(i)
+
+            for filename in filenames:
+                filepath = os.path.join(dirpath, filename)
+                if self._matches_ignore_list(ignore_list, filepath):
+                    continue
+                filepaths.append(os.path.relpath(filepath, self.repo_path))
+
+        return filepaths
+
+    def _matches_ignore_list(self, ignore_list: list[str] | None, filepath: str) -> bool:
+        if ignore_list is None:
+            return False
+        return any(fnmatch.fnmatch(filepath, pattern) or filepath.startswith(pattern) for pattern in ignore_list)
 
     # TODO: unify param naming i.e. subdirectories vs subdirs probably use subdirectories since that's in the DB
     def iter_files(
