@@ -1,4 +1,4 @@
-<br />
+✨<br />
 
 <p align="center">
   <a href="https://docs.codegen.com">
