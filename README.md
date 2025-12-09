@@ -98,3 +98,7 @@ Please see our [Contributing Guide](CONTRIBUTING.md) for instructions on how to 
 ## Enterprise
 
 For more information on enterprise engagements, please [contact us](https://codegen.com/contact) or [request a demo](https://codegen.com/request-demo).
+
+## Last Updated
+
+This documentation was last updated on April 2, 2025.
