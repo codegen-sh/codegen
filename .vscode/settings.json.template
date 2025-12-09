@@ -1,9 +1,72 @@
 {
-    "editor.formatOnSave": true,
-    "[python]": {
-        "editor.defaultFormatter": "charliermarsh.ruff",
-        "editor.codeActionsOnSave": {
-            "source.fixAll": true
-        }
+  // Editor settings
+  "editor.rulers": [100],
+  "editor.tabSize": 4,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": true,
+  "editor.renderWhitespace": "boundary",
+  "editor.wordWrap": "off",
+  "editor.cursorBlinking": "solid",
+  "editor.cursorStyle": "line",
+  "editor.cursorSmoothCaretAnimation": "on",
+  "editor.multiCursorModifier": "alt",
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": false,
+  "editor.suggestSelection": "first",
+  "editor.acceptSuggestionOnEnter": "smart",
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": true,
+  "editor.guides.indentation": true,
+
+  // File settings
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "files.eol": "\n",
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/.mypy_cache": true,
+    "**/*.pyc": true,
+    "**/.DS_Store": true
+  },
+
+  // Python settings
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.codeActionsOnSave": {
+      "source.fixAll": true
     }
+  },
+  "python.linting.enabled": true,
+  "python.linting.pylintEnabled": true,
+  "python.linting.mypyEnabled": true,
+  "python.linting.flake8Enabled": true,
+
+  // TypeScript/JavaScript settings
+  "[typescript]": {
+    "editor.tabSize": 2,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.tabSize": 2,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.tabSize": 2,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[yaml]": {
+    "editor.tabSize": 2
+  },
+
+  // Terminal settings
+  "terminal.integrated.cursorBlinking": true,
+  "terminal.integrated.cursorStyle": "line",
+
+  // Git settings
+  "git.enableSmartCommit": true,
+  "git.confirmSync": false,
+
+  // EditorConfig settings
+  "editor.formatOnSaveMode": "file"
 }
