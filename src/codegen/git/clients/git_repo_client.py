@@ -224,7 +224,18 @@ class GitRepoClient:
             # NOTE: return a read-only copy to prevent people from editing it
             return self.repo.get_pull(pr.number)
         except GithubException as ge:
-            logger.warning(f"Failed to create PR got GithubException\n\t{ge}")
+            # Check if the error is related to draft PRs not being supported
+            if draft and "Draft pull requests are not supported" in str(ge):
+                logger.info("Draft PRs not supported by this repository. Retrying without draft flag.")
+                try:
+                    # Retry without the draft flag
+                    pr = self.repo.create_pull(title=title or f"PR for {head_branch_name}", body=body or "", head=head_branch_name, base=base_branch_name, draft=False)
+                    logger.info(f"Created non-draft pull request for head branch: {head_branch_name} at {pr.html_url}")
+                    return self.repo.get_pull(pr.number)
+                except Exception as retry_e:
+                    logger.warning(f"Failed to create non-draft PR:\n\t{retry_e}")
+            else:
+                logger.warning(f"Failed to create PR got GithubException\n\t{ge}")
         except Exception as e:
             logger.warning(f"Failed to create PR:\n\t{e}")
 
