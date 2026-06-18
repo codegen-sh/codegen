@@ -56,13 +56,16 @@ def main():
         if update_claude_session_status and session_id:
             update_claude_session_status(session_id, "COMPLETE", org_id)
 
-        # Print minimal output to avoid noisy hooks
-        print(json.dumps({"session_id": session_id, "status": "COMPLETE"}))
+        # Stop hooks must stay silent on stdout unless they emit a valid decision object.
+        # This hook only performs a backend side effect, so it should not print anything.
+        return 0
 
     except Exception as e:
-        # Ensure hook doesn't fail Claude if something goes wrong
-        print(json.dumps({"error": str(e)}))
+        # Ensure hook doesn't fail Claude if something goes wrong.
+        # Log to stderr only so stdout remains a valid empty hook response.
+        print(json.dumps({"error": str(e)}), file=sys.stderr)
+        return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
